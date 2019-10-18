@@ -13,6 +13,7 @@
 ItemSelector::ItemSelector(QGraphicsItem * canvas, QGraphicsItem * parent)
     : QGraphicsRectItem(parent)
     , canvas_(canvas)
+    , force_(false)
     , type_(0)
 {
     selBox_ = new SelectBox(this);
@@ -29,9 +30,6 @@ ItemSelector::ItemSelector(QGraphicsItem * canvas, QGraphicsItem * parent)
     });
 
     setAcceptedMouseButtons(Qt::LeftButton);
-
-    setPen(QPen());
-    setRect(parent->boundingRect());
 
     select(nullptr);
 }
@@ -71,6 +69,11 @@ void ItemSelector::setBoxRect(QRectF const & rect)
     toolBar_->setPos(rect.right() - toolBar_->boundingRect().width(), rect.bottom() + 10);
 }
 
+void ItemSelector::setForce(bool force)
+{
+    force_ = force;
+}
+
 void ItemSelector::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     start_ = mapToParent(event->pos());
@@ -82,17 +85,21 @@ void ItemSelector::mousePressEvent(QGraphicsSceneMouseEvent *event)
             if (!canvas_->childItems().contains(item))
                 continue;
             Control * ct = Control::fromItem(item);
-            if (ct->flags() & Control::FullLayout)
-                continue;
-            select(nullptr);
-            select_ = item;
-            selectControl_ = ct;
-            type_ = 10;
+            if (force_ && (ct->flags() & Control::CanSelect)) {
+                select(nullptr);
+                select_ = item;
+                selectControl_ = ct;
+                type_ = 10;
+            }
             break;
         }
     }
-    if (type_ == 0)
-        select(nullptr);
+    if (type_ == 0) {
+        if (select_)
+            select(nullptr);
+        else
+            QGraphicsRectItem::mousePressEvent(event);
+    }
 }
 
 void ItemSelector::mouseMoveEvent(QGraphicsSceneMouseEvent *event)

@@ -12,7 +12,10 @@ ImageControl::ImageControl(ResourceView * res)
 QGraphicsItem * ImageControl::create(ResourceView * res)
 {
     QGraphicsPixmapItem * item = new QGraphicsPixmapItem();
-    res->getData().then([this, item](QByteArray data) {
+    QWeakPointer<int> life(lifeToken_);
+    res->getData().then([this, item, life](QByteArray data) {
+        if (life.isNull())
+            return;
         QPixmap pixmap;
         pixmap.loadFromData(data);
         item->setPixmap(pixmap);

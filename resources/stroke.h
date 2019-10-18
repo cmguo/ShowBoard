@@ -38,6 +38,12 @@ public:
         return points_;
     }
 
+public:
+    virtual Stroke * clone() const override;
+
+protected:
+    Stroke(Stroke const & res);
+
 private:
     QSizeF canvasSize_;
     QList<stroke_point_t> points_;

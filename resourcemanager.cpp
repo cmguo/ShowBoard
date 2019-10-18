@@ -2,9 +2,19 @@
 #include "resource.h"
 #include "resourceview.h"
 #include "qlazy.hpp"
+#include "qcomponentcontainer.h"
 
 #include "resources/resources.h"
 #include "controls/controls.h"
+#include "showboard.h"
+
+ResourceManager * ResourceManager::instance()
+{
+    static ResourceManager * manager = nullptr;
+    if (manager == nullptr)
+        manager = ShowBoard::containter().get_export_value<ResourceManager>();
+    return manager;
+}
 
 static QExport<ResourceManager> export_(QPart::shared);
 static QImportMany<ResourceManager, ResourceView> import_resources("resource_types", QPart::nonshared, true);
@@ -31,7 +41,7 @@ void ResourceManager::mapResourceType(QString const & from, QString const & to)
 
 static constexpr char DATA_SCHEME_SEP[] = { ';', ',' };
 
-ResourceView * ResourceManager::CreateResource(QUrl const & uri)
+ResourceView * ResourceManager::createResource(QUrl const & uri)
 {
     std::map<QString, QLazy*>::iterator iter = resources_.end();
     QString type = "";

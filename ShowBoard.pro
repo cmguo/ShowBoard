@@ -1,4 +1,4 @@
-QT += widgets network multimediawidgets webenginewidgets
+QT += widgets network multimediawidgets webenginewidgets axcontainer
 
 TEMPLATE = lib
 DEFINES += SHOWBOARD_LIBRARY
@@ -22,11 +22,13 @@ SOURCES += \
     itemselector.cpp \
     resource.cpp \
     resourcemanager.cpp \
+    resourcepackage.cpp \
+    resourcepage.cpp \
     resourceview.cpp \
     selectbox.cpp \
+    showboard.cpp \
     toolbarwidget.cpp \
     whitecanvas.cpp \
-    whitepage.cpp \
     widgetcontrol.cpp
 
 HEADERS += \
@@ -36,16 +38,25 @@ HEADERS += \
     itemselector.h \
     resource.h \
     resourcemanager.h \
+    resourcepackage.h \
+    resourcepage.h \
     resourceview.h \
     selectbox.h \
+    showboard.h \
     toolbarwidget.h \
     whitecanvas.h \
-    whitepage.h \
     widgetcontrol.h
 
 include(resources/resources.pri)
 include(controls/controls.pri)
 include(opengl/opengl.pri)
+
+includes.files = $$PWD/*.h $$PWD/*.hpp
+win32 {
+    includes.path = $$[QT_INSTALL_HEADERS]/ShowBoard
+    target.path = $$[QT_INSTALL_LIBS]
+}
+INSTALLS += includes
 
 # Default rules for deployment.
 unix {

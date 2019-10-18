@@ -5,35 +5,32 @@
 #include "controlmanager.h"
 #include "control.h"
 #include "resourceview.h"
-#include "whitepage.h"
-
-#include <qcomponentcontainer.h>
+#include "resourcepage.h"
 
 #include <QBrush>
 #include <QPen>
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
 
-QComponentContainer & WhiteCanvas::containter()
+WhiteCanvas::WhiteCanvas(QObject * parent)
+    : QObject(parent)
+    , page_(nullptr)
 {
-    static QComponentContainer c;
-    return c;
-}
-
-WhiteCanvas::WhiteCanvas()
-{
-    resource_manager_ = containter().get_export_value<ResourceManager>();
-    control_manager_ = containter().get_export_value<ControlManager>();
+    resource_manager_ = ResourceManager::instance();
+    control_manager_ = ControlManager::instance();
     setAcceptedMouseButtons(Qt::LeftButton);
     //setFlags(ItemIsMovable);
-    setPen(QPen());
+    QPen pen(Qt::transparent);
+    setPen(pen);
     setBrush(QBrush(Qt::green));
-    setRect(-512, -288, 1024, 576);
     //addToGroup(new ItemSelector());
     canvas_ = new QGraphicsRectItem(this);
+    canvas_->setPen(pen);
     canvas_->setRect(rect());
     selector_ = new ItemSelector(canvas_, this);
-    switchPage(new WhitePage);
+    selector_->setPen(pen);
+    selector_->setRect(rect());
+    switchPage(new ResourcePage);
 }
 
 WhiteCanvas::~WhiteCanvas()
@@ -41,14 +38,29 @@ WhiteCanvas::~WhiteCanvas()
     switchPage(nullptr);
 }
 
-void WhiteCanvas::switchPage(WhitePage * page)
+QVariant WhiteCanvas::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value)
+{
+    if (change == ItemParentHasChanged || change == ItemSceneChange) {
+        QRectF rect = change == ItemParentHasChanged
+                ? value.value<QGraphicsItem *>()->boundingRect()
+                : value.value<QGraphicsScene *>()->sceneRect();
+        rect.moveCenter({0, 0});
+        setRect(rect);
+        canvas_->setRect(rect);
+        selector_->setRect(rect);
+    }
+    return value;
+}
+
+void WhiteCanvas::switchPage(ResourcePage * page)
 {
     if (page_ != nullptr) {
         QList<QGraphicsItem *> items = canvas_->childItems();
         for (QGraphicsItem * item : items) {
-            Control * ct = Control::fromItem(item);
-            ct->detach();
+            removeResource(item, true);
         }
+        if (!page_->parent())
+            page_->deleteLater();
     }
     page_ = page;
     if (page_ != nullptr) {
@@ -57,17 +69,18 @@ void WhiteCanvas::switchPage(WhitePage * page)
     }
 }
 
-void WhiteCanvas::addResource(QUrl const url)
+void WhiteCanvas::addResource(QUrl const & url)
 {
-    ResourceView * rv = resource_manager_->CreateResource(url);
+    ResourceView * rv = resource_manager_->createResource(url);
     addResource(rv);
 }
 
 void WhiteCanvas::addResource(ResourceView * res, bool fromSwitch)
 {
     selector_->select(nullptr);
-    Control * ct = control_manager_->CreateControl(res);
-    ct->attach(canvas_);
+    Control * ct = control_manager_->createControl(res);
+    ct->attach();
+    ct->item()->setParentItem(canvas_);
     if (!fromSwitch)
         page_->addResource(res);
 }
@@ -79,10 +92,35 @@ void WhiteCanvas::copyResource(QGraphicsItem *item)
     addResource(rv);
 }
 
-void WhiteCanvas::removeResource(QGraphicsItem *item)
+void WhiteCanvas::removeResource(QGraphicsItem *item, bool fromSwitch)
 {
     selector_->select(nullptr);
     Control * ct = Control::fromItem(item);
+    scene()->removeItem(item);
     ct->detach();
-    page_->removeResource(ct->resource());
+    if (!fromSwitch)
+        page_->removeResource(ct->resource());
+}
+
+void WhiteCanvas::enableSelector(bool enable)
+{
+    selector_->setForce(enable);
+}
+
+void WhiteCanvas::mousePressEvent(QGraphicsSceneMouseEvent *event)
+{
+    bool force = selector_->force_;
+    selector_->force_ = true;
+    selector_->mousePressEvent(event);
+    selector_->force_ = force;
+}
+
+void WhiteCanvas::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
+{
+    selector_->mouseMoveEvent(event);
+}
+
+void WhiteCanvas::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
+{
+    selector_->mouseReleaseEvent(event);
 }

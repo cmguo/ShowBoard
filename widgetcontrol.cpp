@@ -28,6 +28,5 @@ QGraphicsItem * WidgetControl::create(ResourceView *res)
 void WidgetControl::detach()
 {
     static_cast<QGraphicsProxyWidget*>(item_)->setWidget(nullptr);
-    widget_->deleteLater();
     Control::detach();
 }

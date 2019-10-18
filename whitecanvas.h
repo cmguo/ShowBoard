@@ -3,6 +3,7 @@
 
 #include "ShowBoard_global.h"
 
+#include <QObject>
 #include <QGraphicsRectItem>
 
 class ItemSelector;
@@ -10,28 +11,38 @@ class QComponentContainer;
 class ResourceManager;
 class ControlManager;
 class ResourceView;
-class WhitePage;
+class ResourcePage;
 
-class SHOWBOARD_EXPORT WhiteCanvas : public QGraphicsRectItem
+class SHOWBOARD_EXPORT WhiteCanvas : public QObject, public QGraphicsRectItem
 {
+    Q_OBJECT
 public:
-    WhiteCanvas();
+    WhiteCanvas(QObject * parent = nullptr);
 
     virtual ~WhiteCanvas() override;
 
-public:
-    void switchPage(WhitePage * page);
+public slots:
+    void switchPage(ResourcePage * page);
 
-    void addResource(QUrl const url);
+    void addResource(QUrl const & url);
 
     void addResource(ResourceView * res, bool fromSwitch = false);
 
     void copyResource(QGraphicsItem * item);
 
-    void removeResource(QGraphicsItem * item);
+    void removeResource(QGraphicsItem * item, bool fromSwitch = false);
+
+    void enableSelector(bool enable);
 
 private:
-    static QComponentContainer & containter();
+    virtual QVariant itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value) override;
+
+private:
+    virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+
+    virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
+
+    virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
 
 private:
     ResourceManager * resource_manager_;
@@ -40,7 +51,7 @@ private:
 private:
     QGraphicsRectItem * canvas_;
     ItemSelector * selector_;
-    WhitePage * page_;
+    ResourcePage * page_;
 };
 
 #endif // WHITECANVAS_H

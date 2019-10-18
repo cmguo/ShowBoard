@@ -7,6 +7,7 @@
 
 class Control;
 class SelectBox;
+class WhiteCanvas;
 
 class SHOWBOARD_EXPORT ItemSelector : public QGraphicsRectItem
 {
@@ -23,7 +24,11 @@ public:
 
     void setBoxRect(QRectF const & rect);
 
+    void setForce(bool force);
+
 private:
+    friend class WhiteCanvas;
+
     virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
 
     virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
@@ -38,6 +43,7 @@ private:
 private:
     QGraphicsItem * select_;
     Control * selectControl_;
+    bool force_;
     QPointF start_;
     QRectF direction_;
     int type_;

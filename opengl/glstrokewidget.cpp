@@ -56,6 +56,13 @@ GLStrokeWidget::GLStrokeWidget(QWidget* parent)
     setAttribute(Qt::WA_AlwaysStackOnTop);
 }
 
+GLStrokeWidget::~GLStrokeWidget()
+{
+    if (mouseStroke_) {
+        mouseStroke_ = nullptr;
+    }
+}
+
 void GLStrokeWidget::initializeGL()
 {
     renderer_ = new GLStrokeRenderer([this]() {

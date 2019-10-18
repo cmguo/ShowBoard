@@ -14,6 +14,8 @@ class SHOWBOARD_EXPORT GLStrokeWidget : public QOpenGLWidget
 public:
     GLStrokeWidget(QWidget* parent = nullptr);
 
+    virtual ~GLStrokeWidget() override;
+
 private:
     virtual void initializeGL() override;
 

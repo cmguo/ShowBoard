@@ -20,7 +20,9 @@ public:
 signals:
 
 public:
-    Control * CreateControl(ResourceView * res);
+    static ControlManager * instance();
+
+    Control * createControl(ResourceView * res);
 
 public slots:
     void onComposition();

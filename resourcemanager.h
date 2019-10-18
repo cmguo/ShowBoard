@@ -24,9 +24,11 @@ public:
 signals:
 
 public:
-    ResourceView * CreateResource(QUrl const & uri);
+    static ResourceManager * instance();
 
-    ResourceView * CreateResource(QString const & mine, QByteArray const & data);
+    ResourceView * createResource(QUrl const & uri);
+
+    ResourceView * createResource(QString const & mine, QByteArray const & data);
 
 public slots:
     void onComposition();

@@ -15,17 +15,29 @@ ResourceView::ResourceView(Resource * res)
     res_->setParent(this);
 }
 
-ResourceView * ResourceView::clone()
+ResourceView::ResourceView(ResourceView const & res)
+    : res_(new Resource(*res.res_))
+    , transform_(res.transform_)
 {
-    return new ResourceView(new Resource(*res_));
+    transform_.translate(20 / transform_.m11(), 20 / transform_.m22());
 }
 
-QPromise<QIODevice *> ResourceView::getStream()
+ResourceView * ResourceView::clone() const
+{
+    return new ResourceView(*this);
+}
+
+QUrl const & ResourceView::url() const
+{
+    return res_->url();
+}
+
+QPromise<QIODevice *> ResourceView::getStream(bool all)
 {
     if (res_->url().scheme() == "data") {
         return QPromise<QIODevice *>::resolve(nullptr);
     } else if (res_->url().scheme() == "" || res_->url().scheme() == "file") {
-        QFile * file = new QFile(res_->url().toLocalFile());
+        QFile * file = new QFile(url().toLocalFile());
         file->open(QFile::ReadOnly | QFile::ExistingOnly);
         return QPromise<QIODevice *>::resolve(file);
     } else {
@@ -34,17 +46,26 @@ QPromise<QIODevice *> ResourceView::getStream()
             network_->setRedirectPolicy(QNetworkRequest::NoLessSafeRedirectPolicy);
         }
         QNetworkReply * reply = network_->get(QNetworkRequest(res_->url()));
-        return QPromise<QIODevice *>([reply](
+        return QPromise<QIODevice *>([reply, all](
                                          const QPromiseResolve<QIODevice *>& resolve,
                                          const QPromiseReject<QIODevice *>& reject) {
             auto readyRead = [=]() {
                 resolve(reply);
             };
+            auto finished = [=]() {
+                if (reply->error())
+                    reject(reply->error());
+                else
+                    resolve(reply);
+            };
             auto error = [=](QNetworkReply::NetworkError e) {
                 reject(e);
             };
             void (QNetworkReply::*p)(QNetworkReply::NetworkError) = &QNetworkReply::error;
-            QObject::connect(reply, &QNetworkReply::readyRead, readyRead);
+            if (all)
+                QObject::connect(reply, &QNetworkReply::finished, finished);
+            else
+                QObject::connect(reply, &QNetworkReply::readyRead, readyRead);
             QObject::connect(reply, p, error);
         });
     }
@@ -55,7 +76,7 @@ QPromise<QByteArray> ResourceView::getData()
     if (res_->url().scheme() == "data") {
         return QPromise<QByteArray>::resolve(QByteArray());
     } else {
-        return getStream().then([](QIODevice * io) {
+        return getStream(true).then([](QIODevice * io) {
             QByteArray data = io->readAll();
             io->close();
             io->deleteLater();

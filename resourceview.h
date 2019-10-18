@@ -6,6 +6,7 @@
 #include <QtPromise>
 
 #include <QObject>
+#include <QTransform>
 
 class QNetworkAccessManager;
 class Resource;
@@ -21,15 +22,20 @@ public:
 
     Q_PROPERTY(Resource * resource READ resource())
 
+    Q_PROPERTY(QTransform * transform READ transform())
+
 public:
-    QtPromise::QPromise<QIODevice *> getStream();
+    QtPromise::QPromise<QIODevice *> getStream(bool all = false);
 
     QtPromise::QPromise<QByteArray> getData();
 
     QtPromise::QPromise<QString> getText();
 
 public:
-    virtual ResourceView * clone();
+    virtual ResourceView * clone() const ;
+
+protected:
+    ResourceView(ResourceView const & res);
 
 signals:
 
@@ -39,11 +45,19 @@ public slots:
         return res_;
     }
 
+    QUrl const & url() const;
+
+    QTransform * transform()
+    {
+        return &transform_;
+    }
+
 private:
     static QNetworkAccessManager * network_;
 
 protected:
-    Resource * const res_;
+    Resource * res_;
+    QTransform transform_;
 };
 
 #define REGISTER_RESOURCE_VIEW(ctype, type) \

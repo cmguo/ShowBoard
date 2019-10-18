@@ -11,6 +11,18 @@ Stroke::Stroke(Resource * res)
 {
 }
 
+Stroke::Stroke(Stroke const & o)
+    : ResourceView(o)
+    , canvasSize_(o.canvasSize_)
+    , points_(o.points_)
+{
+}
+
+Stroke * Stroke::clone() const
+{
+    return new Stroke(*this);
+}
+
 QPromise<bool> Stroke::load()
 {
     return getStream().then([this](QIODevice * stream) {

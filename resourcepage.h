@@ -1,19 +1,23 @@
 #ifndef WHITEPAGE_H
 #define WHITEPAGE_H
 
+#include "ShowBoard_global.h"
+
 #include <QObject>
 
 class ResourceView;
 
-class WhitePage : public QObject
+class SHOWBOARD_EXPORT ResourcePage : public QObject
 {
     Q_OBJECT
 
     Q_PROPERTY(QList<ResourceView *> const & resources READ resources())
 public:
-    explicit WhitePage(QObject *parent = nullptr);
+    explicit ResourcePage(QObject *parent = nullptr);
 
 public:
+    void addResource(QUrl const & url);
+
     void addResource(ResourceView * res);
 
     void removeResource(ResourceView * res);
