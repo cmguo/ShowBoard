@@ -45,9 +45,7 @@ QVariant WhiteCanvas::itemChange(QGraphicsItem::GraphicsItemChange change, const
                 ? value.value<QGraphicsItem *>()->boundingRect()
                 : value.value<QGraphicsScene *>()->sceneRect();
         rect.moveCenter({0, 0});
-        setRect(rect);
-        canvas_->setRect(rect);
-        selector_->setRect(rect);
+        setGeometry(rect);
     }
     return value;
 }
@@ -55,17 +53,23 @@ QVariant WhiteCanvas::itemChange(QGraphicsItem::GraphicsItemChange change, const
 void WhiteCanvas::switchPage(ResourcePage * page)
 {
     if (page_ != nullptr) {
-        QList<QGraphicsItem *> items = canvas_->childItems();
-        for (QGraphicsItem * item : items) {
-            removeResource(item, true);
+        page_->disconnect(this);
+        for (int i = page_->resources().size() - 1; i >= 0; --i) {
+            removeResource(i);
         }
         if (!page_->parent())
             page_->deleteLater();
     }
     page_ = page;
     if (page_ != nullptr) {
-        for (ResourceView * res : page->resources())
-            addResource(res, true);
+        for (int i = 0; i < page_->resources().size(); ++i)
+            insertResource(i);
+        QObject::connect(page_, &ResourcePage::rowsInserted,
+                         this, &WhiteCanvas::resourceInserted);
+        QObject::connect(page_, &ResourcePage::rowsRemoved,
+                         this, &WhiteCanvas::resourceRemoved);
+        QObject::connect(page_, &ResourcePage::rowsMoved,
+                         this, &WhiteCanvas::resourceMoved);
     }
 }
 
@@ -75,14 +79,10 @@ void WhiteCanvas::addResource(QUrl const & url)
     addResource(rv);
 }
 
-void WhiteCanvas::addResource(ResourceView * res, bool fromSwitch)
+void WhiteCanvas::addResource(ResourceView * res)
 {
     selector_->select(nullptr);
-    Control * ct = control_manager_->createControl(res);
-    ct->attach();
-    ct->item()->setParentItem(canvas_);
-    if (!fromSwitch)
-        page_->addResource(res);
+    page_->addResource(res);
 }
 
 void WhiteCanvas::copyResource(QGraphicsItem *item)
@@ -92,19 +92,23 @@ void WhiteCanvas::copyResource(QGraphicsItem *item)
     addResource(rv);
 }
 
-void WhiteCanvas::removeResource(QGraphicsItem *item, bool fromSwitch)
+void WhiteCanvas::removeResource(QGraphicsItem *item)
 {
     selector_->select(nullptr);
     Control * ct = Control::fromItem(item);
-    scene()->removeItem(item);
-    ct->detach();
-    if (!fromSwitch)
-        page_->removeResource(ct->resource());
+    page_->removeResource(ct->resource());
 }
 
 void WhiteCanvas::enableSelector(bool enable)
 {
     selector_->setForce(enable);
+}
+
+void WhiteCanvas::setGeometry(QRectF const & rect)
+{
+    setRect(rect);
+    canvas_->setRect(rect);
+    selector_->setRect(rect);
 }
 
 void WhiteCanvas::mousePressEvent(QGraphicsSceneMouseEvent *event)
@@ -123,4 +127,53 @@ void WhiteCanvas::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 void WhiteCanvas::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
     selector_->mouseReleaseEvent(event);
+}
+
+void WhiteCanvas::resourceInserted(QModelIndex const &parent, int first, int last)
+{
+    (void) parent;
+    (void) last;
+    while (first <= last) {
+        insertResource(first);
+        ++first;
+    }
+}
+
+void WhiteCanvas::resourceRemoved(QModelIndex const &parent, int first, int last)
+{
+    (void) parent;
+    while (first <= last) {
+        removeResource(first);
+        --last;
+    }
+}
+
+void WhiteCanvas::resourceMoved(QModelIndex const &parent, int start, int end,
+                                QModelIndex const &destination, int row)
+{
+    QGraphicsItem * dest = canvas_->childItems()[row];
+    while (start <= end) {
+        QGraphicsItem * item = canvas_->childItems()[start];
+        item->stackBefore(dest);
+        ++start;
+    }
+}
+
+void WhiteCanvas::insertResource(int layer)
+{
+    ResourceView *res = page_->resources()[layer];
+    Control * ct = control_manager_->createControl(res);
+    ct->attach();
+    ct->item()->setParentItem(canvas_); // TODO: layer
+    if (layer < canvas_->childItems().size() - 1) {
+        ct->item()->stackBefore(canvas_->childItems()[layer]);
+    }
+}
+
+void WhiteCanvas::removeResource(int layer)
+{
+    QGraphicsItem * item = canvas_->childItems()[layer];
+    Control * ct = Control::fromItem(item);
+    scene()->removeItem(item);
+    ct->detach();
 }

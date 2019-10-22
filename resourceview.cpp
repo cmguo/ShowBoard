@@ -4,13 +4,18 @@
 #include <QFile>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
+#include <QTemporaryFile>
+#include <QDir>
 
 using namespace QtPromise;
 
 QNetworkAccessManager * ResourceView::network_ = nullptr;
 
+static void nopdel(int *) {}
+
 ResourceView::ResourceView(Resource * res)
     : res_(res)
+    , lifeToken_(reinterpret_cast<int*>(1), nopdel)
 {
     res_->setParent(this);
 }
@@ -30,6 +35,25 @@ ResourceView * ResourceView::clone() const
 QUrl const & ResourceView::url() const
 {
     return res_->url();
+}
+
+QPromise<QUrl> ResourceView::getLocalUrl()
+{
+    if (res_->url().scheme() == "file") {
+        return QPromise<QUrl>::resolve(res_->url());
+    }
+    QWeakPointer<int> life(lifeToken_);
+    return getData().then([this, life] (QByteArray data) {
+        if (life.isNull())
+            return QUrl();
+        QString path = res_->url().path();
+        path = QDir::currentPath() + path.mid(path.lastIndexOf('/'));
+        QFile * temp = new QFile(path, this);
+        temp->open(QFile::WriteOnly);
+        temp->write(data);
+        temp->close();
+        return QUrl::fromLocalFile(temp->fileName());
+    });
 }
 
 QPromise<QIODevice *> ResourceView::getStream(bool all)

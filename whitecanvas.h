@@ -26,15 +26,30 @@ public slots:
 
     void addResource(QUrl const & url);
 
-    void addResource(ResourceView * res, bool fromSwitch = false);
+    void addResource(ResourceView * res);
 
     void copyResource(QGraphicsItem * item);
 
-    void removeResource(QGraphicsItem * item, bool fromSwitch = false);
+    void removeResource(QGraphicsItem * item);
 
+public:
     void enableSelector(bool enable);
 
+    void setGeometry(QRectF const & rect);
+
+private slots:
+    void resourceInserted(QModelIndex const &parent, int first, int last);
+
+    void resourceRemoved(QModelIndex const &parent, int first, int last);
+
+    void resourceMoved(QModelIndex const &parent, int start, int end,
+                       QModelIndex const &destination, int row);
+
 private:
+    void insertResource(int layer);
+
+    void removeResource(int layer);
+
     virtual QVariant itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value) override;
 
 private:

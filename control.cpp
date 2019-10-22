@@ -31,7 +31,7 @@ Control * Control::fromItem(QGraphicsItem * item)
     return item->data(ITEM_KEY_CONTROL).value<Control *>();
 }
 
-void nopdel(int *) {}
+static void nopdel(int *) {}
 
 Control::Control(ResourceView *res, Flags flags, Flags clearFlags)
     : flags_(DefaultFlags | flags & ~clearFlags)

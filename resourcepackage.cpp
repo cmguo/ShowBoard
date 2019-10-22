@@ -8,14 +8,59 @@ extern QComponentContainer & ShowBoard_containter();
 
 ResourcePackage::ResourcePackage(QObject *parent)
     : QObject(parent)
+    , current_(0)
 {
-    newPage(0);
+    newPage();
 }
 
-ResourcePage * ResourcePackage::newPage(int at) {
+ResourcePage * ResourcePackage::newPage()
+{
     ResourcePage * page = new ResourcePage(this);
-    pages_.insert(at, page);
+    addPage(page);
+    emit currentPageChanged(page);
     return page;
+}
+
+ResourcePage * ResourcePackage::currentPage()
+{
+    return pages_[current_];
+}
+
+void ResourcePackage::gotoFront()
+{
+    current_ = 0;
+    emit currentPageChanged(pages_[current_]);
+}
+
+void ResourcePackage::gotoNext()
+{
+    if (++current_ < pages_.size())
+        emit currentPageChanged(pages_[current_]);
+    else
+        --current_;
+}
+
+void ResourcePackage::gotoPrevious()
+{
+    if (--current_ >= 0)
+        emit currentPageChanged(pages_[current_]);
+    else
+        ++current_;
+}
+
+void ResourcePackage::gotoBack()
+{
+    current_ = pages_.size() - 1;
+    emit currentPageChanged(pages_[current_]);
+}
+
+void ResourcePackage::switchPage(ResourcePage * page)
+{
+    int n = pages_.indexOf(page);
+    if (n < 0 || n == current_)
+        return;
+    current_ = n;
+    emit currentPageChanged(pages_[current_]);
 }
 
 void ResourcePackage::addPage(ResourcePage * page)

@@ -29,6 +29,7 @@ SOURCES += \
     showboard.cpp \
     toolbarwidget.cpp \
     whitecanvas.cpp \
+    whitecanvaswidget.cpp \
     widgetcontrol.cpp
 
 HEADERS += \
@@ -45,6 +46,7 @@ HEADERS += \
     showboard.h \
     toolbarwidget.h \
     whitecanvas.h \
+    whitecanvaswidget.h \
     widgetcontrol.h
 
 include(resources/resources.pri)

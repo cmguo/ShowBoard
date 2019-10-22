@@ -3,11 +3,11 @@
 
 #include "ShowBoard_global.h"
 
-#include <QObject>
+#include <QAbstractItemModel>
 
 class ResourceView;
 
-class SHOWBOARD_EXPORT ResourcePage : public QObject
+class SHOWBOARD_EXPORT ResourcePage : public QAbstractItemModel
 {
     Q_OBJECT
 
@@ -16,11 +16,19 @@ public:
     explicit ResourcePage(QObject *parent = nullptr);
 
 public:
-    void addResource(QUrl const & url);
+    ResourceView * addResource(QUrl const & url);
 
     void addResource(ResourceView * res);
 
     void removeResource(ResourceView * res);
+
+    void moveResourceFront(ResourceView * res);
+
+    void moveResourceNext(ResourceView * res);
+
+    void moveResourcePrevious(ResourceView * res);
+
+    void moveResourceBack(ResourceView * res);
 
 public:
     QList<ResourceView *> const & resources()
@@ -28,7 +36,23 @@ public:
         return resources_;
     }
 
+    using QObject::parent;
+
 public slots:
+
+private:
+    void moveResource(int pos, int newPos);
+
+private:
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+
+    int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+
+    QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const override;
+
+    QModelIndex parent(const QModelIndex &child) const override;
 
 private:
     QList<ResourceView *> resources_;

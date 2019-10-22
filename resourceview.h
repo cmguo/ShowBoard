@@ -7,6 +7,7 @@
 
 #include <QObject>
 #include <QTransform>
+#include <QSharedPointer>
 
 class QNetworkAccessManager;
 class Resource;
@@ -25,6 +26,8 @@ public:
     Q_PROPERTY(QTransform * transform READ transform())
 
 public:
+    QtPromise::QPromise<QUrl> getLocalUrl();
+
     QtPromise::QPromise<QIODevice *> getStream(bool all = false);
 
     QtPromise::QPromise<QByteArray> getData();
@@ -58,6 +61,7 @@ private:
 protected:
     Resource * res_;
     QTransform transform_;
+    QSharedPointer<int> lifeToken_;
 };
 
 #define REGISTER_RESOURCE_VIEW(ctype, type) \

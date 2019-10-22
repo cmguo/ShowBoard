@@ -19,7 +19,9 @@ QGraphicsItem * WidgetControl::create(ResourceView *res)
 {
     res_ = res;
     widget_ = createWidget(res);
+    widget_->setAttribute(Qt::WA_NoSystemBackground);
     QGraphicsProxyWidget * item = new QGraphicsProxyWidget();
+    item->setAutoFillBackground(false);
     item->setWidget(widget_);
     move(QPointF(widget_->width(), widget_->height()) / -2.0);
     return item;
