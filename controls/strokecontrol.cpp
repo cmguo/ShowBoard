@@ -7,7 +7,7 @@
 #include <QGraphicsProxyWidget>
 
 StrokeControl::StrokeControl(ResourceView * res)
-    : WidgetControl(res, KeepAspectRatio)
+    : WidgetControl(res, FullLayout, DefaultFlags)
 {
 }
 

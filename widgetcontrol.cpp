@@ -4,8 +4,8 @@
 #include <QGraphicsProxyWidget>
 #include <QWidget>
 
-WidgetControl::WidgetControl(ResourceView *res, Flags flags)
-    : Control(res, flags)
+WidgetControl::WidgetControl(ResourceView *res, Flags flags, Flags clearFlags)
+    : Control(res, flags, clearFlags)
 {
 }
 
@@ -21,10 +21,23 @@ QGraphicsItem * WidgetControl::create(ResourceView *res)
     widget_ = createWidget(res);
     widget_->setAttribute(Qt::WA_NoSystemBackground);
     QGraphicsProxyWidget * item = new QGraphicsProxyWidget();
+    item->setFocusPolicy(Qt::NoFocus);
     item->setAutoFillBackground(false);
     item->setWidget(widget_);
     move(QPointF(widget_->width(), widget_->height()) / -2.0);
     return item;
+}
+
+void WidgetControl::relayout()
+{
+    if (flags_ & FullLayout) {
+        QGraphicsProxyWidget * item = static_cast<QGraphicsProxyWidget*>(item_);
+        QSizeF size = item->size();
+        move(QPointF(size.width(), size.height()) / 2.0);
+        size = item->parentItem()->boundingRect().size();
+        item->resize(size);
+        move(QPointF(size.width(), size.height()) / -2.0);
+    }
 }
 
 void WidgetControl::detach()

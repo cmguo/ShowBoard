@@ -12,7 +12,7 @@
 
 REGISTER_CONTROL(ImageControl, "bmp,gif,jpg,jpeg,png")
 REGISTER_CONTROL(VideoControl, "mp4,flv,ts,m3u8,rtsp")
-//REGISTER_CONTROL(StrokeControl, "stroke")
+REGISTER_CONTROL(StrokeControl, "stroke")
 REGISTER_CONTROL(WebControl, "htm,html")
 REGISTER_CONTROL(PptxControl, "ppt,pptx")
 

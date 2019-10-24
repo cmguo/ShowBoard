@@ -6,6 +6,7 @@
 #include "control.h"
 #include "resourceview.h"
 #include "resourcepage.h"
+#include "toolbarwidget.h"
 
 #include <QBrush>
 #include <QPen>
@@ -30,6 +31,8 @@ WhiteCanvas::WhiteCanvas(QObject * parent)
     selector_ = new ItemSelector(canvas_, this);
     selector_->setPen(pen);
     selector_->setRect(rect());
+    void (ToolbarWidget::*sig)(ToolButton *) = &ToolbarWidget::buttonClicked;
+    QObject::connect(selector_->toolBar(), sig, this, &WhiteCanvas::toolButtonClicked);
     switchPage(new ResourcePage);
 }
 
@@ -85,18 +88,24 @@ void WhiteCanvas::addResource(ResourceView * res)
     page_->addResource(res);
 }
 
-void WhiteCanvas::copyResource(QGraphicsItem *item)
+Control * WhiteCanvas::findControl(ResourceView * res)
 {
-    ResourceView * rv = Control::fromItem(item)->resource();
-    rv = rv->clone();
-    addResource(rv);
+    int index = page_->resources().indexOf(res);
+    if (index < 0)
+        return nullptr;
+    QGraphicsItem * item = canvas_->childItems()[index];
+    return Control::fromItem(item);
 }
 
-void WhiteCanvas::removeResource(QGraphicsItem *item)
+Control * WhiteCanvas::findControl(QUrl const & url)
 {
-    selector_->select(nullptr);
-    Control * ct = Control::fromItem(item);
-    page_->removeResource(ct->resource());
+    return findControl(page_->findResource(url));
+}
+
+Control * WhiteCanvas::topControl()
+{
+    QGraphicsItem * item = canvas_->childItems().back();
+    return item ? Control::fromItem(item) : nullptr;
 }
 
 void WhiteCanvas::enableSelector(bool enable)
@@ -109,6 +118,24 @@ void WhiteCanvas::setGeometry(QRectF const & rect)
     setRect(rect);
     canvas_->setRect(rect);
     selector_->setRect(rect);
+    for (QGraphicsItem * item : canvas_->childItems()) {
+        Control * ct = Control::fromItem(item);
+        ct->relayout();
+    }
+}
+
+void WhiteCanvas::toolButtonClicked(ToolButton * button)
+{
+    Control * ct = Control::fromItem(selector_->selected());
+    if (button == &Control::btnCopy) {
+        selector_->select(nullptr);
+        page_->copyResource(ct->resource());
+    } else if (button == &Control::btnDelete) {
+        selector_->select(nullptr);
+        page_->removeResource(ct->resource());
+    } else {
+        ct->handleToolButton(button);
+    }
 }
 
 void WhiteCanvas::mousePressEvent(QGraphicsSceneMouseEvent *event)
@@ -151,6 +178,8 @@ void WhiteCanvas::resourceRemoved(QModelIndex const &parent, int first, int last
 void WhiteCanvas::resourceMoved(QModelIndex const &parent, int start, int end,
                                 QModelIndex const &destination, int row)
 {
+    (void) parent;
+    (void) destination;
     QGraphicsItem * dest = canvas_->childItems()[row];
     while (start <= end) {
         QGraphicsItem * item = canvas_->childItems()[start];
@@ -168,6 +197,7 @@ void WhiteCanvas::insertResource(int layer)
     if (layer < canvas_->childItems().size() - 1) {
         ct->item()->stackBefore(canvas_->childItems()[layer]);
     }
+    ct->relayout();
 }
 
 void WhiteCanvas::removeResource(int layer)

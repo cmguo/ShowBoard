@@ -12,6 +12,9 @@ class ResourceManager;
 class ControlManager;
 class ResourceView;
 class ResourcePage;
+class Control;
+
+struct ToolButton;
 
 class SHOWBOARD_EXPORT WhiteCanvas : public QObject, public QGraphicsRectItem
 {
@@ -24,13 +27,16 @@ public:
 public slots:
     void switchPage(ResourcePage * page);
 
+public:
     void addResource(QUrl const & url);
 
     void addResource(ResourceView * res);
 
-    void copyResource(QGraphicsItem * item);
+    Control * findControl(ResourceView * res);
 
-    void removeResource(QGraphicsItem * item);
+    Control * findControl(QUrl const & url);
+
+    Control * topControl();
 
 public:
     void enableSelector(bool enable);
@@ -44,6 +50,8 @@ private slots:
 
     void resourceMoved(QModelIndex const &parent, int start, int end,
                        QModelIndex const &destination, int row);
+
+    void toolButtonClicked(ToolButton * button);
 
 private:
     void insertResource(int layer);

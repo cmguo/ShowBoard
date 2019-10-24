@@ -7,7 +7,7 @@ using namespace QtPromise;
 REGISTER_RESOURCE_VIEW(Stroke, "stroke")
 
 Stroke::Stroke(Resource * res)
-    : ResourceView(res)
+    : ResourceView(res, {TopMost, Splittable})
 {
 }
 

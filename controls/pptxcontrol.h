@@ -3,12 +3,15 @@
 
 #include "control.h"
 
+#include <QUrl>
+
 class ResourceView;
 class QAxObject;
 
 class PptxControl : public Control
 {
     Q_OBJECT
+
 public:
     Q_INVOKABLE PptxControl(ResourceView * res);
 
@@ -33,8 +36,17 @@ private slots:
 protected:
     virtual QGraphicsItem * create(ResourceView * res) override;
 
+    virtual QString toolsString() const override;
+
+    virtual void detach() override;
+
+private:
+    void open();
+
 private:
     static QAxObject * application_;
+
+    QUrl localUrl_;
     QAxObject * presentation_;
     QAxObject * view_;
 };

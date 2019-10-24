@@ -18,7 +18,11 @@ public:
 public:
     ResourceView * addResource(QUrl const & url);
 
+    ResourceView * findResource(QUrl const & url);
+
     void addResource(ResourceView * res);
+
+    void copyResource(ResourceView * res);
 
     void removeResource(ResourceView * res);
 

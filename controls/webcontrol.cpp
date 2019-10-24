@@ -6,7 +6,7 @@
 #include <QWebEngineSettings>
 
 WebControl::WebControl(ResourceView * res)
-    : WidgetControl(res)
+    : WidgetControl(res, HelpSelect)
 {
     static bool init = false;
     if (!init) {

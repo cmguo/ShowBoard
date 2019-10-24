@@ -22,13 +22,6 @@ ItemSelector::ItemSelector(QGraphicsItem * canvas, QGraphicsItem * parent)
     QGraphicsProxyWidget * proxy = new QGraphicsProxyWidget(this);
     proxy->setWidget(toolBar);
     toolBar_ = proxy;
-    toolBar->addCommond("复制", "", [this] () {
-        copySelection();
-    });
-    toolBar->addCommond("删除", "", [this] () {
-        removeSelection();
-    });
-
     setAcceptedMouseButtons(Qt::LeftButton);
 
     select(nullptr);
@@ -45,28 +38,25 @@ void ItemSelector::select(QGraphicsItem *item)
         itemChange(ItemPositionHasChanged, pos());
         select_ = item;
         selectControl_ = Control::fromItem(item);
+        QList<ToolButton *> buttons;
+        selectControl_->getToolButtons(buttons);
+        toolBar()->setToolButtons(buttons);
     } else {
         select_ = nullptr;
         selectControl_ = nullptr;
     }
 }
 
-void ItemSelector::copySelection()
-{
-    WhiteCanvas * wc = static_cast<WhiteCanvas *>(parentItem());
-    wc->copyResource(select_);
-}
-
-void ItemSelector::removeSelection()
-{
-    WhiteCanvas * wc = static_cast<WhiteCanvas *>(parentItem());
-    wc->removeResource(select_);
-}
-
 void ItemSelector::setBoxRect(QRectF const & rect)
 {
     selBox_->setRect(rect);
     toolBar_->setPos(rect.right() - toolBar_->boundingRect().width(), rect.bottom() + 10);
+}
+
+ToolbarWidget * ItemSelector::toolBar()
+{
+    return static_cast<ToolbarWidget*>(
+                static_cast<QGraphicsProxyWidget*>(toolBar_)->widget());
 }
 
 void ItemSelector::setForce(bool force)
@@ -76,22 +66,23 @@ void ItemSelector::setForce(bool force)
 
 void ItemSelector::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    start_ = mapToParent(event->pos());
+    start_ = event->pos();
     type_ = select_ == nullptr ? 0 :
-            selBox_->hitTest(selBox_->mapFromParent(event->pos()), direction_);
+            selBox_->hitTest(selBox_->mapFromParent(start_), direction_);
     if (type_ == 0) {
         QList<QGraphicsItem*> items = scene()->items(event->scenePos());
         for (QGraphicsItem * item : items) {
             if (!canvas_->childItems().contains(item))
                 continue;
             Control * ct = Control::fromItem(item);
-            if (force_ && (ct->flags() & Control::CanSelect)) {
+            if ((ct->flags() & Control::CanSelect)
+                    && (force_ || ct->selectTest(mapToItem(item, start_)))) {
                 select(nullptr);
                 select_ = item;
                 selectControl_ = ct;
                 type_ = 10;
+                break;
             }
-            break;
         }
     }
     if (type_ == 0) {

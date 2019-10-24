@@ -22,6 +22,7 @@ static QImportMany<ResourceManager, ResourceView> import_resources("resource_typ
 ResourceManager::ResourceManager(QObject *parent)
     : QObject(parent)
 {
+    //Q_INIT_RESOURCE(ShowBoard);
 }
 
 void ResourceManager::onComposition()

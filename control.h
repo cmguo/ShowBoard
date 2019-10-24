@@ -10,6 +10,7 @@
 class QGraphicsItem;
 class ResourceView;
 class QControlTransform;
+struct ToolButton;
 
 class SHOWBOARD_EXPORT Control : public QObject
 {
@@ -26,10 +27,10 @@ public:
         CanMove = 2,
         CanScale = 4,
         CanRotate = 8,
-        CanCopy = 16,
-        CanDelete = 32,
-        DefaultFlags = 63, // all can
-        KeepAspectRatio = 1 << 8,
+        DefaultFlags = 15, // all can
+        KeepAspectRatio = 1 << 4,
+        FullLayout = 1 << 5,
+        HelpSelect = 1 << 6,
     };
 
     Q_DECLARE_FLAGS(Flags, Flag)
@@ -41,6 +42,9 @@ private:
 
 public:
     static Control * fromItem(QGraphicsItem * item);
+
+    static ToolButton btnCopy;
+    static ToolButton btnDelete;
 
 public:
     explicit Control(ResourceView *res, Flags flags = None, Flags clearFlags = None);
@@ -73,30 +77,31 @@ public:
     virtual void save();
 
 public:
+    virtual void relayout();
+
+    virtual bool selectTest(QPointF const & point);
+
+public:
     void move(QPointF const & delta);
 
     void scale(QRectF const & origin, QRectF & result);
 
-    void exec(QString const & cmd, QString const & args);
+    void exec(QString const & cmd, QVariantList const & args = QVariantList());
 
-    struct Command
-    {
-        QString name;
-        QString title;
-        //QVariant icon;
-    };
+    virtual void getToolButtons(QList<ToolButton *> & buttons);
 
-    void commands(QList<Command *> & result);
+    virtual void handleToolButton(ToolButton * button);
 
 protected:
     virtual QGraphicsItem * create(ResourceView * res) = 0;
 
+    virtual QString toolsString() const;
+
 protected:
     virtual void sizeChanged(QSizeF size);
 
-signals:
-
-public slots:
+private:
+    QList<ToolButton *> & tools();
 
 protected:
     Flags flags_;

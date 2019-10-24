@@ -8,6 +8,7 @@
 class Control;
 class SelectBox;
 class WhiteCanvas;
+class ToolbarWidget;
 
 class SHOWBOARD_EXPORT ItemSelector : public QGraphicsRectItem
 {
@@ -17,14 +18,16 @@ public:
 public:
     void select(QGraphicsItem * item);
 
-public:
-    void copySelection();
-
-    void removeSelection();
-
     void setBoxRect(QRectF const & rect);
 
     void setForce(bool force);
+
+    ToolbarWidget * toolBar();
+
+    QGraphicsItem * selected()
+    {
+        return select_;
+    }
 
 private:
     friend class WhiteCanvas;

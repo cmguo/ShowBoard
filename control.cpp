@@ -1,11 +1,14 @@
 #include "control.h"
 #include "resourceview.h"
+#include "toolbutton.h"
 
 #include <QGraphicsItem>
 #include <QGraphicsScene>
 #include <QTransform>
 #include <QGraphicsTransform>
 #include <QMetaMethod>
+
+#include <map>
 
 class QControlTransform : public QGraphicsTransform
 {
@@ -31,10 +34,13 @@ Control * Control::fromItem(QGraphicsItem * item)
     return item->data(ITEM_KEY_CONTROL).value<Control *>();
 }
 
+ToolButton Control::btnCopy = { "copy", "复制", ":/showboard/icons/icon_copy.png" };
+ToolButton Control::btnDelete = { "delete", "删除", ":/showboard/icons/icon_delete.png" };
+
 static void nopdel(int *) {}
 
 Control::Control(ResourceView *res, Flags flags, Flags clearFlags)
-    : flags_(DefaultFlags | flags & ~clearFlags)
+    : flags_((DefaultFlags | flags) & ~clearFlags)
     , res_(res)
     , lifeToken_(reinterpret_cast<int*>(1), nopdel)
 {
@@ -71,6 +77,33 @@ void Control::detach()
 void Control::save()
 {
 
+}
+
+void Control::relayout()
+{
+}
+
+static constexpr qreal CROSS_LENGTH = 30;
+
+static bool test(QPointF const & p)
+{
+    return qAbs(p.x()) + qAbs(p.y()) < CROSS_LENGTH;
+}
+
+bool Control::selectTest(QPointF const & point)
+{
+    if ((flags_ & HelpSelect) == 0)
+        return false;
+    QRectF rect = item_->boundingRect();
+    return test(point - rect.topLeft())
+            || test(point - rect.topRight())
+            || test(point - rect.bottomLeft())
+            || test(point - rect.bottomRight());
+}
+
+QString Control::toolsString() const
+{
+    return nullptr;
 }
 
 void Control::sizeChanged(QSizeF size)
@@ -126,28 +159,53 @@ void Control::scale(QRectF const & origin, QRectF & result)
     transform_->update();
 }
 
-void Control::exec(QString const & cmd, QString const & args)
+void Control::exec(QString const & cmd, QVariantList const & args)
 {
-    int index = metaObject()->indexOfSlot(cmd.toUtf8());
+    int index = metaObject()->indexOfSlot(cmd.toUtf8() + "()");
+    if (index < 0)
+        index = metaObject()->indexOfSlot(cmd.toUtf8() + "(QVariantList)");
     if (index < 0)
         return;
     QMetaMethod method = metaObject()->method(index);
     if (method.parameterCount() == 0)
         method.invoke(this);
     else if (method.parameterCount() == 1)
-        method.invoke(this, Q_ARG(QString const *, &args));
+        method.invoke(this, Q_ARG(QVariantList, args));
 }
 
-void Control::commands(QList<Command *> & result)
+void Control::getToolButtons(QList<ToolButton *> & buttons)
 {
-    int n = metaObject()->methodCount();
-    for (int i = staticMetaObject.methodCount(); i < n; ++i) {
-        QMetaMethod method = metaObject()->method(i);
-        if (method.methodType() != QMetaMethod::Slot)
-            continue;
-        int idesc = metaObject()->indexOfClassInfo(method.name());
-        if (idesc < 0)
-            continue;
-        //QString desc = metaObject()->classInfo(idesc);
+    if (res_->flags() & ResourceView::CanCopy)
+        buttons.append(&btnCopy);
+    if (res_->flags() & ResourceView::CanDelete)
+        buttons.append(&btnDelete);
+    buttons.append(tools());
+}
+
+void Control::handleToolButton(ToolButton *button)
+{
+    exec(button->name);
+}
+
+QList<ToolButton *> & Control::tools()
+{
+    static std::map<QMetaObject const *, QList<ToolButton *>> slist;
+    auto iter = slist.find(metaObject());
+    if (iter == slist.end()) {
+        QList<ToolButton *> list;
+        QString tools = this->toolsString();
+        QStringList descs = tools.split(";");
+        for (QString desc : descs) {
+            QStringList seps = desc.split("|");
+            if (seps.size() >= 1) {
+                list.append(new ToolButton{
+                                seps[0],
+                                seps.size() > 1 ? seps[1] : seps[0],
+                                seps.size() > 2 ? QVariant(seps[2]) : QVariant()
+                            });
+            }
+        }
+        iter = slist.insert(std::make_pair(metaObject(), std::move(list))).first;
     }
+    return iter->second;
 }

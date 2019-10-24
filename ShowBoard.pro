@@ -45,6 +45,7 @@ HEADERS += \
     selectbox.h \
     showboard.h \
     toolbarwidget.h \
+    toolbutton.h \
     whitecanvas.h \
     whitecanvaswidget.h \
     widgetcontrol.h
@@ -52,6 +53,7 @@ HEADERS += \
 include(resources/resources.pri)
 include(controls/controls.pri)
 include(opengl/opengl.pri)
+include(office/office.pri)
 
 includes.files = $$PWD/*.h $$PWD/*.hpp
 win32 {
@@ -77,3 +79,8 @@ INCLUDEPATH += $$PWD/../QtPromise/src
 
 INCLUDEPATH += $$PWD/../qtpromise/src/qtpromise $$PWD/../qtpromise/include
 DEPENDPATH += $$PWD/../qtpromise/src/qtpromise
+
+RESOURCES += \
+    ShowBoard.qrc
+
+

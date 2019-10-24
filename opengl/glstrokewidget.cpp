@@ -88,6 +88,8 @@ void GLStrokeWidget::paintGL()
 
 void GLStrokeWidget::mousePressEvent(QMouseEvent *event)
 {
+    event->ignore();
+    return;
     QPointF pt = event->pos();
     mouseStroke_->Start(size(), pt);
 }

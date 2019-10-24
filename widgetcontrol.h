@@ -8,7 +8,7 @@
 class SHOWBOARD_EXPORT WidgetControl : public Control
 {
 public:
-    WidgetControl(ResourceView *res, Flags flags = None);
+    WidgetControl(ResourceView *res, Flags flags = None, Flags clearFlags = None);
 
     virtual ~WidgetControl() override;
 
@@ -16,6 +16,8 @@ protected:
     virtual QGraphicsItem * create(ResourceView * res) override;
 
     virtual QWidget * createWidget(ResourceView * res) = 0;
+
+    virtual void relayout() override;
 
     virtual void detach() override;
 
