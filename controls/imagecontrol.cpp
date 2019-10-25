@@ -1,5 +1,6 @@
 #include "imagecontrol.h"
 #include "resourceview.h"
+#include "resource.h"
 
 #include <QPixmap>
 #include <QGraphicsPixmapItem>
@@ -13,7 +14,7 @@ QGraphicsItem * ImageControl::create(ResourceView * res)
 {
     QGraphicsPixmapItem * item = new QGraphicsPixmapItem();
     QWeakPointer<int> life(lifeToken_);
-    res->getData().then([this, item, life](QByteArray data) {
+    res->resource()->getData().then([this, item, life](QByteArray data) {
         if (life.isNull())
             return;
         QPixmap pixmap;

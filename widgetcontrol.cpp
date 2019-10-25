@@ -24,7 +24,7 @@ QGraphicsItem * WidgetControl::create(ResourceView *res)
     item->setFocusPolicy(Qt::NoFocus);
     item->setAutoFillBackground(false);
     item->setWidget(widget_);
-    move(QPointF(widget_->width(), widget_->height()) / -2.0);
+    item->setPos(QPointF(widget_->width(), widget_->height()) / -2.0);
     return item;
 }
 
@@ -32,11 +32,9 @@ void WidgetControl::relayout()
 {
     if (flags_ & FullLayout) {
         QGraphicsProxyWidget * item = static_cast<QGraphicsProxyWidget*>(item_);
-        QSizeF size = item->size();
-        move(QPointF(size.width(), size.height()) / 2.0);
-        size = item->parentItem()->boundingRect().size();
+        QSizeF size = item->parentItem()->boundingRect().size();
         item->resize(size);
-        move(QPointF(size.width(), size.height()) / -2.0);
+        item->setPos(QPointF(size.width(), size.height()) / -2.0);
     }
 }
 

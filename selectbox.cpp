@@ -1,6 +1,8 @@
 #include "selectbox.h"
+#include "toolbarwidget.h"
 
 #include <QPen>
+#include <QGraphicsProxyWidget>
 
 static constexpr qreal CROSS_LENGTH = 30;
 static constexpr qreal CROSS_OFFSET = 4;
@@ -23,6 +25,11 @@ SelectBox::SelectBox(QGraphicsItem * parent)
     QPen pen2(QColor(Qt::blue), 2);
     rightBottom_->setPen(pen2);
 
+    ToolbarWidget * toolBar = new ToolbarWidget();
+    QGraphicsProxyWidget * proxy = new QGraphicsProxyWidget(this);
+    proxy->setWidget(toolBar);
+    toolBar_ = proxy;
+
     setPen(QPen());
     setBrush(QBrush(QColor::fromRgba(0x20202020)));
 }
@@ -32,6 +39,7 @@ void SelectBox::setRect(QRectF const & rect)
     QGraphicsRectItem::setRect(rect);
     leftTop_->setPos(rect.left() - CROSS_OFFSET, rect.top() - CROSS_OFFSET);
     rightBottom_->setPos(rect.right() + CROSS_OFFSET, rect.bottom() + CROSS_OFFSET);
+    toolBar_->setPos(rect.right() - toolBar_->boundingRect().width(), rect.bottom() + 10);
 }
 
 int SelectBox::hitTest(const QPointF &pos, QRectF &direction)
@@ -46,5 +54,11 @@ int SelectBox::hitTest(const QPointF &pos, QRectF &direction)
         return 1;
     }
     return 0;
+}
+
+ToolbarWidget * SelectBox::toolBar()
+{
+    return static_cast<ToolbarWidget*>(
+                static_cast<QGraphicsProxyWidget*>(toolBar_)->widget());
 }
 

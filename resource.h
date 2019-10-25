@@ -1,11 +1,18 @@
 #ifndef RESOURCE_H
 #define RESOURCE_H
 
+#include "ShowBoard_global.h"
+
+#include <QtPromise>
+
 #include <QObject>
 #include <QUrl>
 #include <QSizeF>
+#include <QSharedPointer>
 
-class Resource : public QObject
+class QNetworkAccessManager;
+
+class SHOWBOARD_EXPORT Resource : public QObject
 {
     Q_OBJECT
 public:
@@ -20,7 +27,7 @@ public:
 signals:
     void sizeChanged();
 
-public slots:
+public:
     QUrl const & url() const
     {
         return url_;
@@ -31,10 +38,23 @@ public slots:
         return type_;
     }
 
+public:
+    QtPromise::QPromise<QUrl> getLocalUrl();
+
+    QtPromise::QPromise<QIODevice *> getStream(bool all = false);
+
+    QtPromise::QPromise<QByteArray> getData();
+
+    QtPromise::QPromise<QString> getText();
+
+private:
+    static QNetworkAccessManager * network_;
+
 private:
     QUrl const url_;
     QString const type_;
     QSizeF size_;
+    QSharedPointer<int> lifeToken_;
 };
 
 #endif // RESOURCE_H

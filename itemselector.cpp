@@ -7,7 +7,6 @@
 #include <QPen>
 #include <QDebug>
 #include <QGraphicsSceneMouseEvent>
-#include <QGraphicsProxyWidget>
 #include <QGraphicsScene>
 
 ItemSelector::ItemSelector(QGraphicsItem * canvas, QGraphicsItem * parent)
@@ -17,24 +16,16 @@ ItemSelector::ItemSelector(QGraphicsItem * canvas, QGraphicsItem * parent)
     , type_(0)
 {
     selBox_ = new SelectBox(this);
-
-    ToolbarWidget * toolBar = new ToolbarWidget();
-    QGraphicsProxyWidget * proxy = new QGraphicsProxyWidget(this);
-    proxy->setWidget(toolBar);
-    toolBar_ = proxy;
     setAcceptedMouseButtons(Qt::LeftButton);
-
     select(nullptr);
 }
 
 void ItemSelector::select(QGraphicsItem *item)
 {
     selBox_->setVisible(item);
-    toolBar_->setVisible(item);
     if (item) {
         QRectF rect = item->mapToParent(item->boundingRect()).boundingRect();
-        setBoxRect(rect);
-        selBox_->setPos(0, 0);
+        selBox_->setRect(rect);
         itemChange(ItemPositionHasChanged, pos());
         select_ = item;
         selectControl_ = Control::fromItem(item);
@@ -47,16 +38,9 @@ void ItemSelector::select(QGraphicsItem *item)
     }
 }
 
-void ItemSelector::setBoxRect(QRectF const & rect)
-{
-    selBox_->setRect(rect);
-    toolBar_->setPos(rect.right() - toolBar_->boundingRect().width(), rect.bottom() + 10);
-}
-
 ToolbarWidget * ItemSelector::toolBar()
 {
-    return static_cast<ToolbarWidget*>(
-                static_cast<QGraphicsProxyWidget*>(toolBar_)->widget());
+    return selBox_->toolBar();
 }
 
 void ItemSelector::setForce(bool force)
@@ -99,13 +83,13 @@ void ItemSelector::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         QGraphicsRectItem::mouseMoveEvent(event);
         return;
     }
-    QPointF pt = mapToParent(event->pos());
+    QPointF pt = event->pos();
     QPointF d = pt - start_;
     QRectF rect = selBox_->rect();
     switch (type_) {
     case 1:
         rect.adjust(d.x(), d.y(), d.x(), d.y());
-        setBoxRect(rect);
+        selBox_->setRect(rect);
         selectControl_->move(pt - start_);
         break;
     case 2: {
@@ -115,7 +99,7 @@ void ItemSelector::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         //qDebug() << "  " << rect;
         selectControl_->scale(rect, rect2);
         pt = start_ + (rect2.center() - rect.center()) * 2;
-        setBoxRect(rect2);
+        selBox_->setRect(rect2);
         } break;
     case 10:
     case 11:

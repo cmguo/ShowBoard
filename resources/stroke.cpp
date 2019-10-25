@@ -25,7 +25,7 @@ Stroke * Stroke::clone() const
 
 QPromise<bool> Stroke::load()
 {
-    return getStream().then([this](QIODevice * stream) {
+    return res_->getStream().then([this](QIODevice * stream) {
         canvasSize_ = StrokeParser::instance->load(res_->type(), stream, points_);
         return canvasSize_.width() > 0 && canvasSize_.height() > 0;
     });

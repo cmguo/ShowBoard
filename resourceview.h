@@ -5,13 +5,9 @@
 
 #include <qexport.h>
 
-#include <QtPromise>
-
 #include <QObject>
 #include <QTransform>
-#include <QSharedPointer>
 
-class QNetworkAccessManager;
 class Resource;
 
 class SHOWBOARD_EXPORT ResourceView : public QObject
@@ -43,15 +39,6 @@ public:
     Q_PROPERTY(QTransform * transform READ transform())
 
 public:
-    QtPromise::QPromise<QUrl> getLocalUrl();
-
-    QtPromise::QPromise<QIODevice *> getStream(bool all = false);
-
-    QtPromise::QPromise<QByteArray> getData();
-
-    QtPromise::QPromise<QString> getText();
-
-public:
     virtual ResourceView * clone() const ;
 
 protected:
@@ -77,14 +64,10 @@ public slots:
         return &transform_;
     }
 
-private:
-    static QNetworkAccessManager * network_;
-
 protected:
     Resource * res_;
     Flags flags_;
     QTransform transform_;
-    QSharedPointer<int> lifeToken_;
 };
 
 #define REGISTER_RESOURCE_VIEW(ctype, type) \

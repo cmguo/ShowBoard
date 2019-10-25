@@ -66,5 +66,5 @@ void ResourcePackage::switchPage(ResourcePage * page)
 void ResourcePackage::addPage(ResourcePage * page)
 {
     page->setParent(this);
-    pages_.append(page);
+    pages_.insert(current_, page);
 }

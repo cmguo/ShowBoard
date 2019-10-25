@@ -78,7 +78,7 @@ DEPENDPATH += $$PWD/../QtComposition
 INCLUDEPATH += $$PWD/../QtPromise/src
 
 INCLUDEPATH += $$PWD/../qtpromise/src/qtpromise $$PWD/../qtpromise/include
-DEPENDPATH += $$PWD/../qtpromise/src/qtpromise
+#DEPENDPATH += $$PWD/../qtpromise/src/qtpromise
 
 RESOURCES += \
     ShowBoard.qrc

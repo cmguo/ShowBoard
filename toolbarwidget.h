@@ -1,6 +1,8 @@
 #ifndef TOOLBARWIDGET_H
 #define TOOLBARWIDGET_H
 
+#include "ShowBoard_global.h"
+
 #include "toolbutton.h"
 
 #include <QWidget>
@@ -10,16 +12,16 @@
 class QHBoxLayout;
 class QStyleOptionButton;
 
-class ToolbarWidget : public QWidget
+class SHOWBOARD_EXPORT ToolbarWidget : public QWidget
 {
     Q_OBJECT
 public:
     explicit ToolbarWidget(QWidget *parent = nullptr);
 
 public:
-    typedef std::function<void(void)> Action;
-
     void setToolButtons(QList<ToolButton *> const & buttons);
+
+    void setToolButtons(ToolButton buttons[], int count);
 
     void clear();
 
@@ -28,6 +30,9 @@ signals:
 
 public slots:
     void buttonClicked();
+
+private:
+    void addToolButton(ToolButton * button);
 
 private:
     QHBoxLayout * layout_;

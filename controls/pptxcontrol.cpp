@@ -1,5 +1,6 @@
 #include "pptxcontrol.h"
 #include "resourceview.h"
+#include "resource.h"
 
 #include <QAxObject>
 #include <QUrl>
@@ -64,7 +65,7 @@ void PptxControl::show()
         return;
     }
     QWeakPointer<int> life(lifeToken_);
-    res_->getLocalUrl().then([this, life](QUrl const & url) {
+    res_->resource()->getLocalUrl().then([this, life](QUrl const & url) {
         if (life.isNull())
             return;
         localUrl_ = url;

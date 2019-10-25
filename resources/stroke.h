@@ -3,6 +3,8 @@
 
 #include "resourceview.h"
 
+#include <QtPromise>
+
 #include <QSizeF>
 
 typedef std::array<float, 3> stroke_point_t;

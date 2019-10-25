@@ -18,8 +18,6 @@ public:
 public:
     void select(QGraphicsItem * item);
 
-    void setBoxRect(QRectF const & rect);
-
     void setForce(bool force);
 
     ToolbarWidget * toolBar();
@@ -41,7 +39,6 @@ private:
 private:
     QGraphicsItem * canvas_;
     SelectBox * selBox_;
-    QGraphicsItem * toolBar_;
 
 private:
     QGraphicsItem * select_;
