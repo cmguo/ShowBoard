@@ -21,15 +21,13 @@ WhiteCanvas::WhiteCanvas(QObject * parent)
     control_manager_ = ControlManager::instance();
     setAcceptedMouseButtons(Qt::LeftButton);
     //setFlags(ItemIsMovable);
-    QPen pen(Qt::transparent);
-    setPen(pen);
+    setPen(QPen(Qt::NoPen));
     setBrush(QBrush(Qt::green));
     //addToGroup(new ItemSelector());
     canvas_ = new QGraphicsRectItem(this);
-    canvas_->setPen(pen);
+    canvas_->setPen(QPen(Qt::NoPen));
     canvas_->setRect(rect());
     selector_ = new ItemSelector(canvas_, this);
-    selector_->setPen(pen);
     selector_->setRect(rect());
     void (ToolbarWidget::*sig)(ToolButton *) = &ToolbarWidget::buttonClicked;
     QObject::connect(selector_->toolBar(), sig, this, &WhiteCanvas::toolButtonClicked);

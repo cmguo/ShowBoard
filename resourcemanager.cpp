@@ -75,5 +75,10 @@ ResourceView * ResourceManager::createResource(QUrl const & uri)
             return nullptr;
     }
     Resource * res = new Resource(iter->first, uri);
+    char const * rfactory = iter->second->part()->attr(ResourceView::EXPORT_ATTR_FACTORY);
+    if (rfactory && strcmp(rfactory, "true") == 0) {
+        ResourceFactory * factory = iter->second->get<ResourceFactory>();
+        return factory->create(res);
+    }
     return iter->second->create<ResourceView>(Q_ARG(Resource *, res));
 }

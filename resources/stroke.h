@@ -27,7 +27,7 @@ public:
     Q_INVOKABLE Stroke(Resource * res);
 
 public:
-    QtPromise::QPromise<bool> load();
+    QtPromise::QPromise<void> load();
 
 public:
     QSizeF canvasSize() const

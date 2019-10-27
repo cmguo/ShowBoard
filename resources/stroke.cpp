@@ -23,10 +23,14 @@ Stroke * Stroke::clone() const
     return new Stroke(*this);
 }
 
-QPromise<bool> Stroke::load()
+QPromise<void> Stroke::load()
 {
-    return res_->getStream().then([this](QIODevice * stream) {
+    QWeakPointer<int> life(lifeToken_);
+    return res_->getStream().then([this, life](QIODevice * stream) {
+        if (life.isNull())
+            return;
         canvasSize_ = StrokeParser::instance->load(res_->type(), stream, points_);
-        return canvasSize_.width() > 0 && canvasSize_.height() > 0;
+        if (canvasSize_.isEmpty())
+            throw std::exception("empty canvas size");
     });
 }

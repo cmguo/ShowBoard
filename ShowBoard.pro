@@ -21,6 +21,7 @@ SOURCES += \
     controlmanager.cpp \
     itemselector.cpp \
     resource.cpp \
+    resourcefactory.cpp \
     resourcemanager.cpp \
     resourcepackage.cpp \
     resourcepage.cpp \
@@ -38,6 +39,7 @@ HEADERS += \
     controlmanager.h \
     itemselector.h \
     resource.h \
+    resourcefactory.h \
     resourcemanager.h \
     resourcepackage.h \
     resourcepage.h \

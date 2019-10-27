@@ -7,6 +7,7 @@
 
 #include <QObject>
 #include <QTransform>
+#include <QSharedPointer>
 
 class Resource;
 
@@ -15,6 +16,7 @@ class SHOWBOARD_EXPORT ResourceView : public QObject
     Q_OBJECT
 public:
     static constexpr char const * EXPORT_ATTR_TYPE = "rtype";
+    static constexpr char const * EXPORT_ATTR_FACTORY = "rfactory";
 
 public:
     enum Flag {
@@ -68,6 +70,7 @@ protected:
     Resource * res_;
     Flags flags_;
     QTransform transform_;
+    QSharedPointer<int> lifeToken_;
 };
 
 #define REGISTER_RESOURCE_VIEW(ctype, type) \

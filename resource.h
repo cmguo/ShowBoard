@@ -16,7 +16,7 @@ class SHOWBOARD_EXPORT Resource : public QObject
 {
     Q_OBJECT
 public:
-    Resource(QString const & type, QUrl const & url);
+    Resource(QString const & type, QUrl const & url = QUrl("data:"));
 
     Resource(Resource const & o);
 

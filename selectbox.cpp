@@ -30,7 +30,7 @@ SelectBox::SelectBox(QGraphicsItem * parent)
     proxy->setWidget(toolBar);
     toolBar_ = proxy;
 
-    setPen(QPen());
+    setPen(QPen(Qt::NoPen));
     setBrush(QBrush(QColor::fromRgba(0x20202020)));
 }
 

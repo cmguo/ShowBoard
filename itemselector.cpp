@@ -15,6 +15,8 @@ ItemSelector::ItemSelector(QGraphicsItem * canvas, QGraphicsItem * parent)
     , force_(false)
     , type_(0)
 {
+    setPen(QPen(Qt::NoPen));
+
     selBox_ = new SelectBox(this);
     setAcceptedMouseButtons(Qt::LeftButton);
     select(nullptr);
