@@ -34,6 +34,16 @@ void ControlManager::onComposition()
     }
 }
 
+Control * ControlManager::createControl(QString const & type)
+{
+    std::map<QString, QLazy *>::iterator iter = controls_.find(type);
+    if (iter == controls_.end())
+        return nullptr;
+    Control * c = iter->second->create<Control>();
+    c->load();
+    return c;
+}
+
 Control * ControlManager::createControl(ResourceView * res)
 {
     std::map<QString, QLazy *>::iterator iter = controls_.find(res->resource()->type());

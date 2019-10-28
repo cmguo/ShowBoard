@@ -20,11 +20,16 @@ public:
 public:
     intptr_t hwnd() const;
 
+signals:
+    void opened();
+    void closed();
+
 public slots:
-    void show();
+    void open(int page = 0);
     void next();
     void prev();
-    void exit();
+    void jump(int page);
+    void close();
 
 private slots:
     void onPropertyChanged(const QString &name);
@@ -41,14 +46,17 @@ protected:
     virtual void detach() override;
 
 private:
-    void open();
+    void open_();
 
 private:
     static QAxObject * application_;
 
     QUrl localUrl_;
+    QString name_;
     QAxObject * presentation_;
     QAxObject * view_;
+    intptr_t hwnd_;
+    int startIndex_;
 };
 
 #endif // PPTXCONTROL_H

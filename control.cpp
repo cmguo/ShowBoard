@@ -159,18 +159,14 @@ void Control::scale(QRectF const & origin, QRectF & result)
     transform_->update();
 }
 
-void Control::exec(QString const & cmd, QVariantList const & args)
+void Control::exec(QString const & cmd, QGenericArgument arg0,
+                   QGenericArgument arg1, QGenericArgument arg2)
 {
-    int index = metaObject()->indexOfSlot(cmd.toUtf8() + "()");
-    if (index < 0)
-        index = metaObject()->indexOfSlot(cmd.toUtf8() + "(QVariantList)");
+    int index = metaObject()->indexOfSlot(cmd.toUtf8());
     if (index < 0)
         return;
     QMetaMethod method = metaObject()->method(index);
-    if (method.parameterCount() == 0)
-        method.invoke(this);
-    else if (method.parameterCount() == 1)
-        method.invoke(this, Q_ARG(QVariantList, args));
+    method.invoke(this, arg0, arg1, arg2);
 }
 
 void Control::getToolButtons(QList<ToolButton *> & buttons)

@@ -54,13 +54,18 @@ void ResourcePackage::gotoBack()
     emit currentPageChanged(pages_[current_]);
 }
 
+void ResourcePackage::switchPage(int page)
+{
+    current_ = page;
+    emit currentPageChanged(pages_[current_]);
+}
+
 void ResourcePackage::switchPage(ResourcePage * page)
 {
     int n = pages_.indexOf(page);
     if (n < 0 || n == current_)
         return;
-    current_ = n;
-    emit currentPageChanged(pages_[current_]);
+    switchPage(n);
 }
 
 void ResourcePackage::addPage(ResourcePage * page)

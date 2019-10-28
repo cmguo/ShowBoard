@@ -7,6 +7,12 @@
 
 class ResourceView;
 
+/*
+ * ResourcePage mananges a collection of resources (views)
+ *   manage adds/removes and z-orders
+ *   worked as ItemModel to data drive ui (canvas)
+ */
+
 class SHOWBOARD_EXPORT ResourcePage : public QAbstractItemModel
 {
     Q_OBJECT
@@ -16,22 +22,56 @@ public:
     explicit ResourcePage(QObject *parent = nullptr);
 
 public:
+    /*
+     * add resource from url
+     *  @see addResource(res)
+     *  @return newly added resource
+     */
     ResourceView * addResource(QUrl const & url);
 
+    /*
+     * find resource by url
+     */
     ResourceView * findResource(QUrl const & url);
 
+    /*
+     * add resource at back (top), but under resources with flag TopMost
+     */
     void addResource(ResourceView * res);
 
-    void copyResource(ResourceView * res);
+    /*
+     * copy resource @res and add to page
+     *  @see ResourceView::clone
+     */
+    ResourceView * copyResource(ResourceView * res);
 
+    /*
+     * remove resource from page
+     */
     void removeResource(ResourceView * res);
 
+    /*
+     * move resource to front of collection
+     *   means backmost in z-order, but not cross resources with flag ButtomMost
+     */
     void moveResourceFront(ResourceView * res);
 
+    /*
+     * move resource to back of collection,
+     *   means topmost in z-order, but not cross resources with flag TopMmost
+     */
     void moveResourceNext(ResourceView * res);
 
+    /*
+     * move resource to take postion of previous one,
+     *   means goes down in z-order, but not cross resources with flag ButtomMost
+     */
     void moveResourcePrevious(ResourceView * res);
 
+    /*
+     * move resource to take postion of next one,
+     *   means goes up in z-order, but not cross resources with flag TopMmost
+     */
     void moveResourceBack(ResourceView * res);
 
 public:

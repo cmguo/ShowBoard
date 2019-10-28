@@ -13,10 +13,12 @@ class ToolbarWidget;
 class SHOWBOARD_EXPORT ItemSelector : public QGraphicsRectItem
 {
 public:
-    ItemSelector(QGraphicsItem * canvas, QGraphicsItem * parent = nullptr);
+    ItemSelector(QGraphicsItem * parent = nullptr);
 
 public:
     void select(QGraphicsItem * item);
+
+    void showControl(QGraphicsItem * item);
 
     void setForce(bool force);
 
@@ -37,8 +39,8 @@ private:
     virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
 
 private:
-    QGraphicsItem * canvas_;
     SelectBox * selBox_;
+    QGraphicsItem * shown_;
 
 private:
     QGraphicsItem * select_;

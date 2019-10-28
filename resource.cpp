@@ -57,7 +57,8 @@ QPromise<QIODevice *> Resource::getStream(bool all)
             network_ = new QNetworkAccessManager();
             network_->setRedirectPolicy(QNetworkRequest::NoLessSafeRedirectPolicy);
         }
-        QNetworkReply * reply = network_->get(QNetworkRequest(url()));
+        QNetworkRequest request(url());
+        QNetworkReply * reply = network_->get(request);
         return QPromise<QIODevice *>([reply, all](
                                          const QPromiseResolve<QIODevice *>& resolve,
                                          const QPromiseReject<QIODevice *>& reject) {
@@ -73,11 +74,11 @@ QPromise<QIODevice *> Resource::getStream(bool all)
             auto error = [=](QNetworkReply::NetworkError e) {
                 reject(e);
             };
-            void (QNetworkReply::*p)(QNetworkReply::NetworkError) = &QNetworkReply::error;
             if (all)
                 QObject::connect(reply, &QNetworkReply::finished, finished);
             else
                 QObject::connect(reply, &QNetworkReply::readyRead, readyRead);
+            void (QNetworkReply::*p)(QNetworkReply::NetworkError) = &QNetworkReply::error;
             QObject::connect(reply, p, error);
         });
     }

@@ -16,6 +16,13 @@ class Control;
 
 struct ToolButton;
 
+/*
+ * WhiteCanvas is a container for all controls
+ *  Controls are split into to groups, one with resource backend and another not
+ *  Non-resource-backend controls are considered to be tools and are temporarily shown,
+ *   SelectBox is one of them.
+ */
+
 class SHOWBOARD_EXPORT WhiteCanvas : public QObject, public QGraphicsRectItem
 {
     Q_OBJECT
@@ -28,19 +35,47 @@ public slots:
     void switchPage(ResourcePage * page);
 
 public:
+    /*
+     * add resource to attached resource page
+     * use ResourcePage instead
+     */
     void addResource(QUrl const & url);
 
+    /*
+     * add resource to attached resource page
+     * use ResourcePage instead
+     */
     void addResource(ResourceView * res);
 
+    /*
+     * show tool control of type @type
+     *  these controls are not backed by resource and is single instance
+     *  a new control of type @type is created if not exists in canvas
+     */
+    void showToolControl(QString const & type);
+
+    /*
+     * find control assosiate with resource @res
+     */
     Control * findControl(ResourceView * res);
 
+    /*
+     * find control assosiate by @url
+     *  @see ResourcePage::findResource
+     */
     Control * findControl(QUrl const & url);
 
+    /*
+     * get top most control
+     */
     Control * topControl();
 
 public:
     void enableSelector(bool enable);
 
+    /*
+     * change canvas size
+     */
     void setGeometry(QRectF const & rect);
 
 private slots:

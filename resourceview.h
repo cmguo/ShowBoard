@@ -21,13 +21,16 @@ public:
 public:
     enum Flag {
         None = 0,
-        TopMost = 1,
+        TopMost = 1,  // always stay on top (back of list)
         BottomMost = 2,
-        StickOn = 4,
-        StickUnder = 8,
+        StickOn = 4, // moves together with it's previous resource
+        StickUnder = 8, // moves together with it's next resource
         CanCopy = 16,
         CanDelete = 32,
         DefaultFlags = CanCopy | CanDelete,
+        // when insert new resource under this resource,
+        //  this resource will be split into two and new resource is insert between
+        //  special used for stroke writen
         Splittable = 1 << 8,
     };
 
@@ -61,6 +64,10 @@ public slots:
 
     QUrl const & url() const;
 
+    /*
+     * for move, scale, rotate
+     *  these are all saved in transform
+     */
     QTransform * transform()
     {
         return &transform_;
@@ -73,6 +80,10 @@ protected:
     QSharedPointer<int> lifeToken_;
 };
 
+/*
+ * register resource view class @ctype with resource type @type
+ *  @type is a list of strings seperate with ','
+ */
 #define REGISTER_RESOURCE_VIEW(ctype, type) \
     static QExport<ctype, ResourceView> const export_resource_##ctype(QPart::Attribute(ResourceView::EXPORT_ATTR_TYPE, type));
 

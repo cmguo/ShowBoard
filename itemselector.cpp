@@ -9,9 +9,9 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsScene>
 
-ItemSelector::ItemSelector(QGraphicsItem * canvas, QGraphicsItem * parent)
+ItemSelector::ItemSelector(QGraphicsItem * parent)
     : QGraphicsRectItem(parent)
-    , canvas_(canvas)
+    , shown_(nullptr)
     , force_(false)
     , type_(0)
 {
@@ -24,7 +24,8 @@ ItemSelector::ItemSelector(QGraphicsItem * canvas, QGraphicsItem * parent)
 
 void ItemSelector::select(QGraphicsItem *item)
 {
-    selBox_->setVisible(item);
+    if (item == select_)
+        return;
     if (item) {
         QRectF rect = item->mapToParent(item->boundingRect()).boundingRect();
         selBox_->setRect(rect);
@@ -34,10 +35,24 @@ void ItemSelector::select(QGraphicsItem *item)
         QList<ToolButton *> buttons;
         selectControl_->getToolButtons(buttons);
         toolBar()->setToolButtons(buttons);
+        showControl(selBox_);
     } else {
         select_ = nullptr;
         selectControl_ = nullptr;
+        if (shown_ == selBox_)
+            showControl(nullptr);
     }
+}
+
+void ItemSelector::showControl(QGraphicsItem *item)
+{
+    if (item == shown_)
+        return;
+    if (shown_)
+        shown_->setVisible(false);
+    shown_ = item;
+    if (shown_)
+        shown_->setVisible(true);
 }
 
 ToolbarWidget * ItemSelector::toolBar()
@@ -58,9 +73,9 @@ void ItemSelector::mousePressEvent(QGraphicsSceneMouseEvent *event)
     if (type_ == 0) {
         QList<QGraphicsItem*> items = scene()->items(event->scenePos());
         for (QGraphicsItem * item : items) {
-            if (!canvas_->childItems().contains(item))
-                continue;
             Control * ct = Control::fromItem(item);
+            if (!ct)
+                continue;
             if ((ct->flags() & Control::CanSelect)
                     && (force_ || ct->selectTest(mapToItem(item, start_)))) {
                 select(nullptr);

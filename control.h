@@ -41,12 +41,18 @@ private:
     static constexpr int ITEM_KEY_CONTROL = 1000;
 
 public:
+    /*
+     * Get control from item
+     */
     static Control * fromItem(QGraphicsItem * item);
 
     static ToolButton btnCopy;
     static ToolButton btnDelete;
 
 public:
+    /*
+     * realFlags = (DefaultFlags | flags) & ~clearFlags
+     */
     explicit Control(ResourceView *res, Flags flags = None, Flags clearFlags = None);
 
     virtual ~Control() override;
@@ -68,36 +74,90 @@ public:
     }
 
 public:
+    /*
+     * load from resource
+     * be called when create, will call create(res)
+     */
     virtual void load();
 
+    /*
+     * called before item is attached to canvas
+     * override this to do more preparing work
+     */
     virtual void attach();
 
+    /*
+     * called after item is detached from canvas
+     * override this to do more release work
+     */
     virtual void detach();
 
+    /*
+     * save to resource
+     */
     virtual void save();
 
 public:
+    /*
+     * called when attached to canvas or canvas is resized
+     */
     virtual void relayout();
 
+    /*
+     * when flag HelpSelect is set, this function is called
+     *   to help test if then click at @point selects this item
+     */
     virtual bool selectTest(QPointF const & point);
 
 public:
+    /*
+     * move (shift) this item, is saved at transform
+     */
     void move(QPointF const & delta);
 
+    /*
+     * scale this item, is saved at transform
+     */
     void scale(QRectF const & origin, QRectF & result);
 
-    void exec(QString const & cmd, QVariantList const & args = QVariantList());
+    /*
+     * invoke slot by name, use for lose relation call
+     */
+    void exec(QString const & cmd, QGenericArgument arg0 = QGenericArgument(),
+              QGenericArgument arg1 = QGenericArgument(), QGenericArgument arg2 = QGenericArgument());
 
+    /*
+     * collect context menu of this control
+     *  copy, delete is add according to flags
+     *  other menus can be defined with toolsString()
+     */
     virtual void getToolButtons(QList<ToolButton *> & buttons);
 
+    /*
+     * handle button click,
+     *  copy, delete are handled by canvas and should not go here
+     */
     virtual void handleToolButton(ToolButton * button);
 
 protected:
+    /*
+     * override this to do really creation of item
+     */
     virtual QGraphicsItem * create(ResourceView * res) = 0;
 
+    /*
+     * stringlized definition of context menus
+     *   menu strings is seperated with ';' and menu define parts with '|'
+     *   for example:
+     *     "open()|打开|:/showboard/icons/icon_open.png;"
+     */
     virtual QString toolsString() const;
 
 protected:
+    /*
+     * called by child control to notify item init size change
+     *  this function will calc suitable init scale for item
+     */
     virtual void sizeChanged(QSizeF size);
 
 private:
@@ -111,6 +171,10 @@ protected:
     QSharedPointer<int> lifeToken_;
 };
 
+/*
+ * register control of @ctype with resource type @type
+ *  @type is a list of strings seperate with ','
+ */
 #define REGISTER_CONTROL(ctype, type) \
     static QExport<ctype, Control> const export_control_##ctype(QPart::Attribute(Control::EXPORT_ATTR_TYPE, type));
 

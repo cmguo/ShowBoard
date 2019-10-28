@@ -8,6 +8,10 @@
 class QGraphicsPathItem;
 class ToolbarWidget;
 
+/*
+ * A selection box with context menu
+ */
+
 class SHOWBOARD_EXPORT SelectBox : public QGraphicsRectItem
 {
 public:

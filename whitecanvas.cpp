@@ -27,7 +27,7 @@ WhiteCanvas::WhiteCanvas(QObject * parent)
     canvas_ = new QGraphicsRectItem(this);
     canvas_->setPen(QPen(Qt::NoPen));
     canvas_->setRect(rect());
-    selector_ = new ItemSelector(canvas_, this);
+    selector_ = new ItemSelector(this);
     selector_->setRect(rect());
     void (ToolbarWidget::*sig)(ToolButton *) = &ToolbarWidget::buttonClicked;
     QObject::connect(selector_->toolBar(), sig, this, &WhiteCanvas::toolButtonClicked);
@@ -84,6 +84,24 @@ void WhiteCanvas::addResource(ResourceView * res)
 {
     selector_->select(nullptr);
     page_->addResource(res);
+}
+
+static constexpr int ITEM_KEY_TYPE = 2000;
+
+void WhiteCanvas::showToolControl(const QString &type)
+{
+    for (QGraphicsItem * item : selector_->childItems()) {
+        QVariant type = item->data(ITEM_KEY_TYPE);
+        if (type.isValid() && type.toString() == type) {
+            selector_->showControl(item);
+            return;
+        }
+    }
+    Control * ct = control_manager_->createControl(type);
+    ct->attach();
+    ct->item()->setParentItem(canvas_);
+    ct->relayout();
+    selector_->showControl(ct->item());
 }
 
 Control * WhiteCanvas::findControl(ResourceView * res)
@@ -191,7 +209,7 @@ void WhiteCanvas::insertResource(int layer)
     ResourceView *res = page_->resources()[layer];
     Control * ct = control_manager_->createControl(res);
     ct->attach();
-    ct->item()->setParentItem(canvas_); // TODO: layer
+    ct->item()->setParentItem(canvas_);
     if (layer < canvas_->childItems().size() - 1) {
         ct->item()->stackBefore(canvas_->childItems()[layer]);
     }

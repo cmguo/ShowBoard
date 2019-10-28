@@ -45,14 +45,15 @@ void ResourcePage::addResource(ResourceView * res)
     }
 }
 
-void ResourcePage::copyResource(ResourceView * res)
+ResourceView * ResourcePage::copyResource(ResourceView * res)
 {
     if ((res->flags() & ResourceView::CanCopy) == 0)
-        return;
+        return nullptr;
     ResourceView * copy = res->clone();
     QTransform * t = copy->transform();
     t->translate(40.0 / t->m11(), 40.0 / t->m22());
     addResource(copy);
+    return copy;
 }
 
 void ResourcePage::removeResource(ResourceView * res)
