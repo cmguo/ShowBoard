@@ -7,8 +7,6 @@ class Ellipse : public Graph2D
 {
     Q_OBJECT
 public:
-    Ellipse();
-
     Q_INVOKABLE Ellipse(Resource * res);
 
     Ellipse(QPointF const & pt);
@@ -16,8 +14,6 @@ public:
     Ellipse(Ellipse const & o);
 
 public:
-    virtual bool commit(QPointF const & pt) override;
-
     virtual QPainterPath path() override;
 };
 

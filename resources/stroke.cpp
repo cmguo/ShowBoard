@@ -1,6 +1,6 @@
 #include "stroke.h"
 #include "strokeparser.h"
-#include "resource.h"
+#include "core/resource.h"
 
 using namespace QtPromise;
 

@@ -2,6 +2,7 @@
 #include "resources/graph/graph2d.h"
 
 #include <QGraphicsPathItem>
+#include <QBrush>
 
 Graph2DControl::Graph2DControl(ResourceView * res)
     : GraphControl(res)
@@ -12,6 +13,7 @@ QGraphicsItem * Graph2DControl::create(ResourceView * res)
 {
     Graph2D * gh = qobject_cast<Graph2D *>(res);
     QGraphicsPathItem * item = new QGraphicsPathItem();
+    item->setBrush(QColor(0, 0, 255, 20));
     QWeakPointer<int> life(lifeToken_);
     if (!gh->empty()) {
         gh->load().then([item, gh, life]() {

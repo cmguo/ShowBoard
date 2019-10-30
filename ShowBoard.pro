@@ -17,52 +17,28 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    control.cpp \
-    controlmanager.cpp \
-    itemselector.cpp \
-    resource.cpp \
-    resourcefactory.cpp \
-    resourcemanager.cpp \
-    resourcepackage.cpp \
-    resourcepage.cpp \
-    resourceview.cpp \
-    selectbox.cpp \
-    showboard.cpp \
-    toolbarwidget.cpp \
-    whitecanvas.cpp \
-    whitecanvaswidget.cpp \
-    widgetcontrol.cpp
 
 HEADERS += \
     ShowBoard_global.h \
-    control.h \
-    controlmanager.h \
-    itemselector.h \
-    resource.h \
-    resourcefactory.h \
-    resourcemanager.h \
-    resourcepackage.h \
-    resourcepage.h \
-    resourceview.h \
-    selectbox.h \
-    showboard.h \
-    toolbarwidget.h \
-    toolbutton.h \
-    whitecanvas.h \
-    whitecanvaswidget.h \
-    widgetcontrol.h
 
+
+include(core/core.pri)
 include(resources/resources.pri)
 include(controls/controls.pri)
 include(opengl/opengl.pri)
-include(office/office.pri)
+include(tools/tools.pri)
+include(views/views.pri)
 
-includes.files = $$PWD/*.h $$PWD/*.hpp
+includes.files = $$PWD/*.h
+includes.core.files = $$PWD/core/*.h
+includes.views.files = $$PWD/views/*.h
 win32 {
     includes.path = $$[QT_INSTALL_HEADERS]/ShowBoard
+    includes.core.path = $$[QT_INSTALL_HEADERS]/ShowBoard/core
+    includes.views.path = $$[QT_INSTALL_HEADERS]/ShowBoard/views
     target.path = $$[QT_INSTALL_LIBS]
 }
-INSTALLS += includes
+INSTALLS += includes includes.core includes.views
 
 # Default rules for deployment.
 unix {

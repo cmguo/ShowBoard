@@ -1,5 +1,5 @@
 #include "graph.h"
-#include "resource.h"
+#include "core/resource.h"
 
 Graph::Graph(Resource * res)
     : ResourceView(res)
@@ -49,11 +49,12 @@ void Graph::clear()
     points_.clear();
 }
 
-void Graph::finsh(const QPointF &c)
+void Graph::finish(const QPointF &c)
 {
     for (int i = 0; i < points_.size(); ++i)
     {
         QPointF & pt = points_[i];
         pt -= c;
     }
+    transform_.translate(c.x(), c.y());
 }

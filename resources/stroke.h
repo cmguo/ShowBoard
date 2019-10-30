@@ -1,7 +1,7 @@
 #ifndef STROKE_H
 #define STROKE_H
 
-#include "resourceview.h"
+#include "core/resourceview.h"
 
 #include <QtPromise>
 

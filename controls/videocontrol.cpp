@@ -1,6 +1,6 @@
 #include "videocontrol.h"
-#include "resourceview.h"
-#include "resource.h"
+#include "core/resourceview.h"
+#include "core/resource.h"
 
 #include <QGraphicsVideoItem>
 #include <QMediaPlayer>
@@ -32,11 +32,11 @@ void VideoControl::sizeChanged(QSizeF size)
     Control::sizeChanged(size);
 }
 
-void VideoControl::detach()
+void VideoControl::detached()
 {
     //player_->setVideoOutput(static_cast<QGraphicsVideoItem*>(nullptr));
     player_->stop();
     delete player_;
     player_ = nullptr;
-    Control::detach();
+    Control::detached();
 }

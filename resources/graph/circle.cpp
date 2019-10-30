@@ -1,9 +1,5 @@
 #include "circle.h"
 
-Circle::Circle()
-{
-}
-
 Circle::Circle(Resource * res)
     : Ellipse(res)
 {

@@ -18,8 +18,6 @@ public:
 public:
     void select(QGraphicsItem * item);
 
-    void showControl(QGraphicsItem * item);
-
     void setForce(bool force);
 
     ToolbarWidget * toolBar();
@@ -40,7 +38,6 @@ private:
 
 private:
     SelectBox * selBox_;
-    QGraphicsItem * shown_;
 
 private:
     QGraphicsItem * select_;

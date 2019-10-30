@@ -1,7 +1,7 @@
 #ifndef WEBCONTROL_H
 #define WEBCONTROL_H
 
-#include "widgetcontrol.h"
+#include "core/widgetcontrol.h"
 
 class WebControl : public WidgetControl
 {

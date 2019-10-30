@@ -1,7 +1,7 @@
 #ifndef IMAGECONTROL_H
 #define IMAGECONTROL_H
 
-#include "control.h"
+#include "core/control.h"
 
 class ImageControl : public Control
 {

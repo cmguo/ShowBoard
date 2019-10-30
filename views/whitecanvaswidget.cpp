@@ -1,7 +1,7 @@
 #include "whitecanvaswidget.h"
 #include "whitecanvas.h"
-#include "resourcepackage.h"
-#include "resourcepage.h"
+#include "core/resourcepackage.h"
+#include "core/resourcepage.h"
 
 #include <QGraphicsScene>
 #include <QSizePolicy>
@@ -19,7 +19,7 @@ WhiteCanvasWidget::WhiteCanvasWidget(QWidget *parent)
 
     setRenderHint(QPainter::Antialiasing);
     setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
-    setBackgroundBrush(QColor(230, 200, 167));
+    //setBackgroundBrush(QColor(230, 200, 167));
 }
 
 WhiteCanvasWidget::~WhiteCanvasWidget()

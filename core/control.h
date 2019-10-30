@@ -9,7 +9,7 @@
 
 class QGraphicsItem;
 class ResourceView;
-class QControlTransform;
+class QGraphicsTransform;
 struct ToolButton;
 
 class SHOWBOARD_EXPORT Control : public QObject
@@ -84,13 +84,25 @@ public:
      * called before item is attached to canvas
      * override this to do more preparing work
      */
-    virtual void attach();
+    virtual void attaching();
+
+    /*
+     * called after item is attached to canvas
+     * override this to do more post attach work
+     */
+    virtual void attached();
+
+    /*
+     * called before item is detached from canvas
+     * override this to do more release work
+     */
+    virtual void detaching();
 
     /*
      * called after item is detached from canvas
      * override this to do more release work
      */
-    virtual void detach();
+    virtual void detached();
 
     /*
      * save to resource
@@ -160,13 +172,15 @@ protected:
      */
     virtual void sizeChanged(QSizeF size);
 
+    void updateTransform();
+
 private:
     QList<ToolButton *> & tools();
 
 protected:
     Flags flags_;
     ResourceView * res_;
-    QControlTransform * transform_;
+    QGraphicsTransform * transform_;
     QGraphicsItem * item_;
     QSharedPointer<int> lifeToken_;
 };

@@ -1,6 +1,6 @@
 #include "pptxcontrol.h"
-#include "resourceview.h"
-#include "resource.h"
+#include "core/resourceview.h"
+#include "core/resource.h"
 
 #include <QAxObject>
 #include <QUrl>
@@ -162,9 +162,10 @@ void PptxControl::close()
     emit closed();
 }
 
-void PptxControl::detach()
+void PptxControl::detached()
 {
     close();
+    Control::detached();
 }
 
 void PptxControl::onPropertyChanged(const QString &name)

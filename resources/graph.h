@@ -1,7 +1,7 @@
 #ifndef GRAPH_H
 #define GRAPH_H
 
-#include "resourceview.h"
+#include "core/resourceview.h"
 
 #include <QtPromise>
 
@@ -24,7 +24,7 @@ public:
 
     virtual void clear();
 
-    virtual void finsh(QPointF const & c);
+    virtual void finish(QPointF const & c);
 
 public:
     virtual QtPromise::QPromise<void> load() = 0;

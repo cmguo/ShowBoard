@@ -19,7 +19,7 @@ protected:
 
     virtual void relayout() override;
 
-    virtual void detach() override;
+    virtual void detached() override;
 
 protected:
     QWidget * widget_;

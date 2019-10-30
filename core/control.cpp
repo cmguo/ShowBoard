@@ -61,13 +61,21 @@ void Control::load()
     item_ = create(res_);
 }
 
-void Control::attach()
+void Control::attaching()
 {
     item_->setData(ITEM_KEY_CONTROL, QVariant::fromValue(this));
     item_->setTransformations({transform_});
 }
 
-void Control::detach()
+void Control::attached()
+{
+}
+
+void Control::detaching()
+{
+}
+
+void Control::detached()
 {
     item_->setTransformations({});
     item_->setData(ITEM_KEY_CONTROL, QVariant());
@@ -81,6 +89,10 @@ void Control::save()
 
 void Control::relayout()
 {
+    if ((flags_ & FullLayout)
+            && item_->type() == QGraphicsRectItem::Type) {
+        static_cast<QGraphicsRectItem*>(item_)->setRect(item_->parentItem()->boundingRect());
+    }
 }
 
 static constexpr qreal CROSS_LENGTH = 30;
@@ -117,14 +129,14 @@ void Control::sizeChanged(QSizeF size)
         scale /= 2.0;
     }
     res_->transform()->scale(scale, scale);
-    transform_->update();
+    updateTransform();
 }
 
 void Control::move(QPointF const & delta)
 {
     QTransform * t = res_->transform();
     t->translate(delta.x() / t->m11(), delta.y() / t->m22());
-    transform_->update();
+    updateTransform();
 }
 
 void Control::scale(QRectF const & origin, QRectF & result)
@@ -156,7 +168,12 @@ void Control::scale(QRectF const & origin, QRectF & result)
     QPointF p2 = result.topLeft();
     d = p2 - p1;
     t->translate(d.x() / t->m11(), d.y() / t->m22());
-    transform_->update();
+    updateTransform();
+}
+
+void Control::updateTransform()
+{
+    static_cast<QControlTransform *>(transform_)->update();
 }
 
 void Control::exec(QString const & cmd, QGenericArgument arg0,
@@ -190,7 +207,7 @@ QList<ToolButton *> & Control::tools()
     if (iter == slist.end()) {
         QList<ToolButton *> list;
         QString tools = this->toolsString();
-        QStringList descs = tools.split(";");
+        QStringList descs = tools.split(";", QString::SkipEmptyParts);
         for (QString desc : descs) {
             QStringList seps = desc.split("|");
             if (seps.size() >= 1) {

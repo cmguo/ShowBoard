@@ -1,7 +1,7 @@
 #ifndef VIDEOCONTROL_H
 #define VIDEOCONTROL_H
 
-#include "control.h"
+#include "core/control.h"
 
 class QMediaPlayer;
 
@@ -16,7 +16,7 @@ protected:
 
     virtual void sizeChanged(QSizeF size) override;
 
-    virtual void detach() override;
+    virtual void detached() override;
 
 private:
     QMediaPlayer * player_;

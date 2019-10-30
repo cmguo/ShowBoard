@@ -3,7 +3,7 @@
 
 #include "ShowBoard_global.h"
 
-#include "toolbutton.h"
+#include "core/toolbutton.h"
 
 #include <QWidget>
 #include <QMap>

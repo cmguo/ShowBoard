@@ -1,5 +1,5 @@
 #include "toolbarwidget.h"
-#include "toolbutton.h"
+#include "core/toolbutton.h"
 
 #include <QHBoxLayout>
 #include <QToolButton>

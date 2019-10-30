@@ -3,6 +3,8 @@
 #include "resourceview.h"
 #include "resource.h"
 #include "showboard.h"
+#include "controls/controls.h"
+#include "tools/tools.h"
 
 #include <qpart.h>
 #include <qlazy.hpp>

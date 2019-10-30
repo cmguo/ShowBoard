@@ -1,5 +1,5 @@
 #include "itemselector.h"
-#include "control.h"
+#include "core/control.h"
 #include "toolbarwidget.h"
 #include "whitecanvas.h"
 #include "selectbox.h"
@@ -11,15 +11,16 @@
 
 ItemSelector::ItemSelector(QGraphicsItem * parent)
     : QGraphicsRectItem(parent)
-    , shown_(nullptr)
+    , select_(nullptr)
+    , selectControl_(nullptr)
     , force_(false)
     , type_(0)
 {
     setPen(QPen(Qt::NoPen));
+    setAcceptedMouseButtons(Qt::LeftButton);
 
     selBox_ = new SelectBox(this);
-    setAcceptedMouseButtons(Qt::LeftButton);
-    select(nullptr);
+    selBox_->setVisible(false);
 }
 
 void ItemSelector::select(QGraphicsItem *item)
@@ -35,24 +36,12 @@ void ItemSelector::select(QGraphicsItem *item)
         QList<ToolButton *> buttons;
         selectControl_->getToolButtons(buttons);
         toolBar()->setToolButtons(buttons);
-        showControl(selBox_);
+        selBox_->setVisible(true);
     } else {
         select_ = nullptr;
         selectControl_ = nullptr;
-        if (shown_ == selBox_)
-            showControl(nullptr);
+        selBox_->setVisible(false);
     }
-}
-
-void ItemSelector::showControl(QGraphicsItem *item)
-{
-    if (item == shown_)
-        return;
-    if (shown_)
-        shown_->setVisible(false);
-    shown_ = item;
-    if (shown_)
-        shown_->setVisible(true);
 }
 
 ToolbarWidget * ItemSelector::toolBar()
@@ -134,9 +123,11 @@ void ItemSelector::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
         return;
     }
     switch (type_) {
-    case 10:
-        select(select_);
-        break;
+    case 10: {
+        QGraphicsItem * item = select_;
+        select_ = nullptr;
+        select(item);
+    } break;
     case 11:
         select(nullptr);
         break;

@@ -2,7 +2,7 @@
 #define GRAPH2D_H
 
 #include "resources/graph.h"
-#include "resourcefactory.h"
+#include "core/resourcefactory.h"
 
 #include <QPainterPath>
 
@@ -10,8 +10,6 @@ class Graph2D : public Graph
 {
     Q_OBJECT
 public:
-    Graph2D();
-
     Graph2D(Resource * res);
 
     Graph2D(QPointF const & pt);
@@ -24,6 +22,8 @@ public:
     virtual QtPromise::QPromise<void> load() override;
 
 public:
+    virtual bool commit(const QPointF &pt) override;
+
     virtual QPainterPath path();
 };
 

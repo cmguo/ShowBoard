@@ -1,6 +1,6 @@
 #include "webcontrol.h"
-#include "resource.h"
-#include "resourceview.h"
+#include "core/resource.h"
+#include "core/resourceview.h"
 
 #include <QWebEngineView>
 #include <QWebEngineSettings>

@@ -4,7 +4,7 @@
 
 #include <QSizeF>
 
-#include "resourcemanager.h"
+#include "core/resourcemanager.h"
 
 static QImportOptional<StrokeParser, ResourceManager> import_resource_("manager", QPart::shared);
 static QImportMany<StrokeParser, IStrokeParser> import_controls("parser_types", QPart::nonshared, true);

@@ -38,8 +38,8 @@ void WidgetControl::relayout()
     }
 }
 
-void WidgetControl::detach()
+void WidgetControl::detached()
 {
     static_cast<QGraphicsProxyWidget*>(item_)->setWidget(nullptr);
-    Control::detach();
+    Control::detached();
 }

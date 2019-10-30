@@ -1,7 +1,7 @@
 #ifndef PPTXCONTROL_H
 #define PPTXCONTROL_H
 
-#include "control.h"
+#include "core/control.h"
 
 #include <QUrl>
 
@@ -43,7 +43,7 @@ protected:
 
     virtual QString toolsString() const override;
 
-    virtual void detach() override;
+    virtual void detached() override;
 
 private:
     void open_();

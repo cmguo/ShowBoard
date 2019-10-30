@@ -1,12 +1,7 @@
 #include "graph2d.h"
-#include "resource.h"
+#include "core/resource.h"
 
 using namespace QtPromise;
-
-Graph2D::Graph2D()
-    : Graph("graph2d")
-{
-}
 
 Graph2D::Graph2D(Resource * res)
     : Graph(res)
@@ -29,6 +24,15 @@ bool Graph2D::empty() const
     return Graph::empty() && res_->url().path().length() < 10;
 }
 
+bool Graph2D::commit(const QPointF &pt)
+{
+    (void) pt;
+    if (points_.size() == 1) {
+        movePoint(points_.first() + QPointF(80, 80));
+    }
+    return true;
+}
+
 QPainterPath Graph2D::path()
 {
     QPainterPath ph(points_[0]);
@@ -36,6 +40,7 @@ QPainterPath Graph2D::path()
     {
         ph.lineTo(points_[i]);
     }
+    ph.closeSubpath();
     return ph;
 }
 

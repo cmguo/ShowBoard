@@ -1,6 +1,6 @@
 #include "imagecontrol.h"
-#include "resourceview.h"
-#include "resource.h"
+#include "core/resourceview.h"
+#include "core/resource.h"
 
 #include <QPixmap>
 #include <QGraphicsPixmapItem>

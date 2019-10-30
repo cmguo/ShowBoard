@@ -5,7 +5,6 @@
 #include "qcomponentcontainer.h"
 
 #include "resources/resources.h"
-#include "controls/controls.h"
 #include "showboard.h"
 
 ResourceManager * ResourceManager::instance()

@@ -6,13 +6,12 @@
 #include <QObject>
 #include <QGraphicsRectItem>
 
-class ItemSelector;
-class QComponentContainer;
-class ResourceManager;
-class ControlManager;
 class ResourceView;
 class ResourcePage;
 class Control;
+class ResourcePageItem;
+class ToolBoxItem;
+class ItemSelector;
 
 struct ToolButton;
 
@@ -39,13 +38,13 @@ public:
      * add resource to attached resource page
      * use ResourcePage instead
      */
-    void addResource(QUrl const & url);
+    Control * addResource(QUrl const & url);
 
     /*
      * add resource to attached resource page
      * use ResourcePage instead
      */
-    void addResource(ResourceView * res);
+    Control * addResource(ResourceView * res);
 
     /*
      * show tool control of type @type
@@ -53,6 +52,10 @@ public:
      *  a new control of type @type is created if not exists in canvas
      */
     void showToolControl(QString const & type);
+
+    void hideToolControl(QString const & type);
+
+    Control * getToolControl(QString const & type);
 
     /*
      * find control assosiate with resource @res
@@ -79,23 +82,11 @@ public:
     void setGeometry(QRectF const & rect);
 
 private slots:
-    void resourceInserted(QModelIndex const &parent, int first, int last);
-
-    void resourceRemoved(QModelIndex const &parent, int first, int last);
-
-    void resourceMoved(QModelIndex const &parent, int start, int end,
-                       QModelIndex const &destination, int row);
-
     void toolButtonClicked(ToolButton * button);
 
 private:
-    void insertResource(int layer);
-
-    void removeResource(int layer);
-
     virtual QVariant itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value) override;
 
-private:
     virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
 
     virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
@@ -103,13 +94,9 @@ private:
     virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
 
 private:
-    ResourceManager * resource_manager_;
-    ControlManager * control_manager_;
-
-private:
-    QGraphicsRectItem * canvas_;
+    ResourcePageItem * canvas_;
+    ToolBoxItem * tools_;
     ItemSelector * selector_;
-    ResourcePage * page_;
 };
 
 #endif // WHITECANVAS_H
