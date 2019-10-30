@@ -7,6 +7,13 @@
 #include <QSizePolicy>
 #include <QResizeEvent>
 
+static WhiteCanvasWidget * mainInstance_;
+
+WhiteCanvasWidget * WhiteCanvasWidget::mainInstance()
+{
+    return mainInstance_;
+}
+
 WhiteCanvasWidget::WhiteCanvasWidget(QWidget *parent)
     : QGraphicsView(parent)
     , package_(nullptr)
@@ -19,14 +26,17 @@ WhiteCanvasWidget::WhiteCanvasWidget(QWidget *parent)
 
     setRenderHint(QPainter::Antialiasing);
     setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
-    //setBackgroundBrush(QColor(230, 200, 167));
+
+    mainInstance_ = this;
 }
 
 WhiteCanvasWidget::~WhiteCanvasWidget()
 {
+    mainInstance_ = nullptr;
+    delete canvas_;
+    canvas_ = nullptr;
     delete scene_;
     scene_ = nullptr;
-    canvas_ = nullptr;
 }
 
 void WhiteCanvasWidget::resizeEvent(QResizeEvent *event)

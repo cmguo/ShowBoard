@@ -22,6 +22,9 @@ protected:
     virtual void detached() override;
 
 protected:
+    void resize(QSizeF const & size);
+
+protected:
     QWidget * widget_;
 };
 

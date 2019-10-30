@@ -17,6 +17,8 @@ public:
 
     virtual ~WhiteCanvasWidget() override;
 
+    static WhiteCanvasWidget * mainInstance();
+
 public:
     WhiteCanvas * canvas()
     {

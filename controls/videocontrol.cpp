@@ -13,8 +13,8 @@ VideoControl::VideoControl(ResourceView * res)
 QGraphicsItem * VideoControl::create(ResourceView * res)
 {
     QGraphicsVideoItem * item = new QGraphicsVideoItem();
-    //item->setSize({720, 576});
-    QObject::connect(item, &QGraphicsVideoItem::nativeSizeChanged, this, &VideoControl::sizeChanged);
+    QObject::connect(item, &QGraphicsVideoItem::nativeSizeChanged,
+                     this, &VideoControl::sizeChanged);
     QMediaPlayer * player = new QMediaPlayer(this);
     player->setVideoOutput(item);
     player->setMedia(res->resource()->url());

@@ -30,12 +30,12 @@ public:
     // copy constructor
     Resource(Resource const & o);
 
-    Q_PROPERTY(QUrl const url READ url())
-    Q_PROPERTY(QString const type READ type())
-    Q_PROPERTY(QSizeF size MEMBER size_)
+    Q_PROPERTY(QUrl const url READ url)
+    Q_PROPERTY(QString const type READ type)
+    Q_PROPERTY(QSizeF size READ size WRITE setSize)
 
 signals:
-    void sizeChanged();
+    void sizeChanged(QSizeF const & size);
 
 public:
     QUrl const & url() const
@@ -47,6 +47,14 @@ public:
     {
         return type_;
     }
+
+    QSizeF size() const
+    {
+        return size_;
+    }
+
+public:
+    void setSize(QSizeF const & size);
 
 public:
     /*

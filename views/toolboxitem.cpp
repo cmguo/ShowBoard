@@ -39,17 +39,29 @@ void ToolBoxItem::showItem(QGraphicsItem *item)
     if (item == shown_)
         return;
     if (shown_)
-        shown_->setVisible(false);
+        shown_->hide();
     shown_ = item;
     if (shown_)
-        shown_->setVisible(true);
+        shown_->show();
 }
 
 void ToolBoxItem::hideItem(QGraphicsItem *item)
 {
     if (item == shown_) {
-        shown_->setVisible(false);
+        shown_->hide();
         shown_ = nullptr;
     }
+}
+
+QVariant ToolBoxItem::itemChange(QGraphicsItem::GraphicsItemChange change,
+                                         const QVariant &value)
+{
+    if (change == QGraphicsItem::ItemChildAddedChange) {
+        value.value<QGraphicsItem *>()->hide();
+    } else if (change == QGraphicsItem::ItemChildRemovedChange) {
+        if (value.value<QGraphicsItem *>() == shown_)
+            shown_ = nullptr;
+    }
+    return value;
 }
 

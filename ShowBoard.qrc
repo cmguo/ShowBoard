@@ -3,5 +3,6 @@
         <file>icons/icon_copy.png</file>
         <file>icons/icon_delete.png</file>
         <file>icons/icon_top.png</file>
+        <file>htmls/video.htm</file>
     </qresource>
 </RCC>

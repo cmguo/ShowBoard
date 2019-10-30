@@ -25,6 +25,14 @@ Resource::Resource(Resource const & o)
 {
 }
 
+void Resource::setSize(QSizeF const & size)
+{
+    if (size != size_) {
+        size_ = size;
+        emit sizeChanged(size_);
+    }
+}
+
 QPromise<QUrl> Resource::getLocalUrl()
 {
     if (url_.scheme() == "file") {

@@ -95,22 +95,15 @@ void Control::relayout()
     }
 }
 
-static constexpr qreal CROSS_LENGTH = 30;
-
-static bool test(QPointF const & p)
-{
-    return qAbs(p.x()) + qAbs(p.y()) < CROSS_LENGTH;
-}
+static constexpr qreal CROSS_LENGTH = 20;
 
 bool Control::selectTest(QPointF const & point)
 {
     if ((flags_ & HelpSelect) == 0)
         return false;
     QRectF rect = item_->boundingRect();
-    return test(point - rect.topLeft())
-            || test(point - rect.topRight())
-            || test(point - rect.bottomLeft())
-            || test(point - rect.bottomRight());
+    rect.adjust(CROSS_LENGTH, CROSS_LENGTH, -CROSS_LENGTH, -CROSS_LENGTH);
+    return !rect.contains(point);
 }
 
 QString Control::toolsString() const
@@ -162,9 +155,9 @@ void Control::scale(QRectF const & origin, QRectF & result)
         s2.scale(1.0 / s1.width(), 1.0 / s1.height(), Qt::IgnoreAspectRatio);
     }
     QTransform * t = res_->transform();
-    QPointF p1 = t->inverted().map(origin.topLeft());
+    QPointF p1 = item_->mapFromParent(origin.topLeft());
     t->scale(s.width(), s.height());
-    p1 = t->map(p1);
+    p1 = item_->mapToParent(p1);
     QPointF p2 = result.topLeft();
     d = p2 - p1;
     t->translate(d.x() / t->m11(), d.y() / t->m22());

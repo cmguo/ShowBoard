@@ -11,6 +11,15 @@ public:
 
 protected:
     virtual QWidget * createWidget(ResourceView * res) override;
+
+    virtual QString toolsString() const override;
+
+private slots:
+    void loadFinished();
+
+    void contentsSizeChanged(const QSizeF &size);
+
+    void reload();
 };
 
 #endif // WEBCONTROL_H

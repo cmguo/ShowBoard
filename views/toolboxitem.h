@@ -20,6 +20,8 @@ private:
 
     void hideItem(QGraphicsItem * item);
 
+    virtual QVariant itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value) override;
+
 private:
     QGraphicsItem * shown_;
 };

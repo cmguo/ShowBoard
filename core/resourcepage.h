@@ -4,6 +4,7 @@
 #include "ShowBoard_global.h"
 
 #include <QAbstractItemModel>
+#include <QSizeF>
 
 class ResourceView;
 
@@ -28,6 +29,8 @@ public:
      *  @return newly added resource
      */
     ResourceView * addResource(QUrl const & url);
+
+    ResourceView * addResource(QUrl const & url, QSizeF const & sizeHint);
 
     /*
      * find resource by url

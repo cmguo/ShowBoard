@@ -1,4 +1,5 @@
 #include "resourcepage.h"
+#include "resource.h"
 #include "resourceview.h"
 #include "resourcemanager.h"
 
@@ -9,7 +10,13 @@ ResourcePage::ResourcePage(QObject *parent)
 
 ResourceView * ResourcePage::addResource(QUrl const & url)
 {
+    return addResource(url, QSizeF());
+}
+
+ResourceView * ResourcePage::addResource(QUrl const & url, QSizeF const & sizeHint)
+{
     ResourceView * rv = ResourceManager::instance()->createResource(url);
+    rv->resource()->setSize(sizeHint);
     addResource(rv);
     return rv;
 }

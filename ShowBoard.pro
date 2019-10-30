@@ -29,6 +29,10 @@ include(opengl/opengl.pri)
 include(tools/tools.pri)
 include(views/views.pri)
 
+CONFIG(debug, debug|release) {
+    win32: TARGET = $$join(TARGET,,,d)
+}
+
 includes.files = $$PWD/*.h
 includes.core.files = $$PWD/core/*.h
 includes.views.files = $$PWD/views/*.h
@@ -47,7 +51,7 @@ unix {
 !isEmpty(target.path): INSTALLS += target
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../QtComposition/release/ -lQtComposition
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../QtComposition/debug/ -lQtComposition
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../QtComposition/debug/ -lQtCompositiond
 else:unix: LIBS += -L$$OUT_PWD/../QtComposition/ -lQtComposition
 
 INCLUDEPATH += $$PWD/../QtComposition
