@@ -6,7 +6,7 @@
 #include <QGraphicsPixmapItem>
 
 ImageControl::ImageControl(ResourceView * res)
-    : Control(res, KeepAspectRatio)
+    : Control(res, {KeepAspectRatio, FullSelect})
 {
 }
 

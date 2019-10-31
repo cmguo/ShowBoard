@@ -31,9 +31,17 @@ public:
         KeepAspectRatio = 1 << 4,
         FullLayout = 1 << 5,
         HelpSelect = 1 << 6,
+        FullSelect = 1 << 7,
     };
 
     Q_DECLARE_FLAGS(Flags, Flag)
+
+    enum SelectMode
+    {
+        PassSelect,
+        Select,
+        NotSelect
+    };
 
     static constexpr char const * EXPORT_ATTR_TYPE = "ctrl_type";
 
@@ -119,7 +127,7 @@ public:
      * when flag HelpSelect is set, this function is called
      *   to help test if then click at @point selects this item
      */
-    virtual bool selectTest(QPointF const & point);
+    virtual SelectMode selectTest(QPointF const & point);
 
 public:
     /*

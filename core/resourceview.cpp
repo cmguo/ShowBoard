@@ -1,5 +1,6 @@
 #include "resourceview.h"
 #include "resource.h"
+#include "resourcepage.h"
 
 static void nopdel(int *) {}
 
@@ -30,3 +31,7 @@ QUrl const & ResourceView::url() const
     return res_->url();
 }
 
+void ResourceView::moveTop()
+{
+    qobject_cast<ResourcePage*>(parent())->moveResourceBack(this);
+}

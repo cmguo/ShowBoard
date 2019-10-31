@@ -126,9 +126,10 @@ void ResourcePage::moveResource(int pos, int newPos)
         --newPos;
     while (newPos < pos && (resources_[newPos]->flags() & ResourceView::BottomMost))
         ++newPos;
-    if (newPos == pos)
+    if (newPos >= pos1 && newPos <= pos2)
         return;
-    beginMoveRows(QModelIndex(), pos1, pos2, QModelIndex(), newPos);
+    int newPos2 = newPos > pos2 ? newPos + 1 : newPos; // ItemModel diffs from QList
+    beginMoveRows(QModelIndex(), pos1, pos2, QModelIndex(), newPos2);
     while (pos2 >= pos1) {
         resources_.move(pos1, newPos);
         --pos2;

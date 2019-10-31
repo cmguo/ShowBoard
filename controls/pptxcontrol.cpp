@@ -5,25 +5,30 @@
 #include <QAxObject>
 #include <QUrl>
 #include <QGraphicsTextItem>
+#include <QDir>
 
-extern intptr_t getHwnd(char const * titleParts[]);
-extern bool isHwndShown(intptr_t hwnd);
+extern intptr_t findWindow(char const * titleParts[]);
+extern bool isWindowShown(intptr_t hwnd);
+extern void showWindow(intptr_t hwnd);
+extern void hideWindow(intptr_t hwnd);
+extern void setWindowAtTop(intptr_t hwnd);
 
 QAxObject * PptxControl::application_ = nullptr;
 
 static char const * titleParts[] = {"PowerPoint", "ppt", nullptr};
 
 static char const * toolstr =
-        "open()|打开|:/showboard/icons/icon_delete.png;"
+        "show()|开始演示|:/showboard/icons/icon_delete.png;"
         "next()|下一页|:/showboard/icons/icon_delete.png;"
         "prev()|上一页|:/showboard/icons/icon_delete.png;"
-        "close()|关闭|:/showboard/icons/icon_delete.png";
+        "hide()|结束演示|:/showboard/icons/icon_delete.png";
 
 PptxControl::PptxControl(ResourceView * res)
-    : Control(res)
+    : Control(res, {KeepAspectRatio, FullSelect})
+    , page_(0)
     , presentation_(nullptr)
     , view_(nullptr)
-    , startIndex_(0)
+    , hwnd_(0)
 {
     if (application_ == nullptr) {
         application_ = new QAxObject("PowerPoint.Application");
@@ -44,7 +49,13 @@ QGraphicsItem * PptxControl::create(ResourceView * res)
 {
     QString path = res->url().path();
     name_ = path.mid(path.lastIndexOf('/') + 1);
-    return new QGraphicsTextItem(name_ + "(NotStart)");
+    QVariant slideNumber = res->property("slideNumber");
+    if (slideNumber.isValid())
+        page_ = slideNumber.toInt();
+    QGraphicsPixmapItem * item = new QGraphicsPixmapItem;
+    item->setPixmap(QPixmap(":/showboard/icons/icon_delete.png"));
+    open();
+    return item;
 }
 
 QString PptxControl::toolsString() const
@@ -57,16 +68,10 @@ intptr_t PptxControl::hwnd() const
     return hwnd_;
 }
 
-void PptxControl::open(int page)
+void PptxControl::open()
 {
     if (presentation_)
         return;
-    if (page == 0) {
-        QVariant slideNumber = res_->property("slideNumber");
-        if (slideNumber.isValid())
-            page = slideNumber.toInt();
-    }
-    startIndex_ = page;
     if (!localUrl_.isEmpty()) {
         open_();
         return;
@@ -91,60 +96,130 @@ void PptxControl::open_()
     if (presentation) {
         QObject::connect(presentation, SIGNAL(exception(int,QString,QString,QString)),
                          this, SLOT(onException(int,QString,QString,QString)));
-        QAxObject * settings = presentation->querySubObject("SlideShowSettings");
-        settings->setProperty("ShowType", "ppShowTypeSpeaker");
-        settings->setProperty("ShowMediaControls", "true");
+        QVariant slideNumber = res_->property("slideNumber");
         presentation_ = presentation;
-        QAxObject * window = settings->querySubObject("Run()");
-        view_ = window->querySubObject("View");
-        QObject::connect(view_, SIGNAL(exception(int,QString,QString,QString)),
-                         this, SLOT(onException(int,QString,QString,QString)));
-        QGraphicsTextItem * item = static_cast<QGraphicsTextItem*>(item_);
-        item->setPlainText(name_ + "(Showing)");
-        if (startIndex_)
-            jump(startIndex_);
-        hwnd_ = getHwnd(titleParts);
-        QTimer * timer = new QTimer(this);
-        timer->setInterval(500);
-        timer->setSingleShot(false);
-        timer->start();
-        QObject::connect(timer, &QTimer::timeout, this, [this, timer]() {
-            if (isHwndShown(hwnd_)) {
-                try {
-                    QAxObject * slide = view_->querySubObject("Slide");
-                    if (slide) {
-                        QVariant slideNumber = slide->property("SlideNumber");
-                        qDebug() << "slideNumber:" << slideNumber;
-                        res_->setProperty("slideNumber", slideNumber);
-                    }
-                } catch(...) {
-                }
-            } else {
-                close();
-                timer->stop();
-                timer->deleteLater();
-            }
-        });
+        total_ = presentation_->querySubObject("Slides")->property("Count").toInt();
+        page_ = 1;
+        if (slideNumber.isValid())
+            thumb(slideNumber.toInt());
+        else
+            thumb(1);
         emit opened();
     }
 }
 
+void PptxControl::reopen()
+{
+    view_ = nullptr;
+    hwnd_ = 0;
+    open_(); // reopen
+}
+
+void PptxControl::thumb(int page)
+{
+    QAxObject * slide = nullptr;
+    if (page == 0) {
+        slide = view_->querySubObject("Slide");
+    } else {
+        slide = presentation_->querySubObject("Slides(int)", page);
+    }
+    if (!slide)
+        return;
+    QString file = QDir::tempPath().replace('/', '\\') + "\\showboard.thumb.ppt.jpg";
+    slide->dynamicCall("Export(QString, QString)", file, "JPG");
+    QPixmap pixmap(file);
+    if (!pixmap.isNull()) {
+        QGraphicsPixmapItem * item = static_cast<QGraphicsPixmapItem *>(item_);
+        item->setPixmap(pixmap);
+        if (!view_) {
+            item->setOffset(pixmap.width() / -2, pixmap.height() / -2);
+            sizeChanged(pixmap.size());
+        }
+    }
+}
+
+void PptxControl::show(int page)
+{
+    if (!presentation_)
+        return;
+    if (view_) {
+        showWindow(hwnd_);
+        setWindowAtTop(hwnd_);
+        return;
+    }
+    if (page == 0) {
+        page = page_;
+    }
+    QAxObject * settings = presentation_->querySubObject("SlideShowSettings");
+    settings->setProperty("ShowType", "ppShowTypeSpeaker");
+    settings->setProperty("ShowMediaControls", "true");
+    //if (page) // will cause View be null
+    //    settings->setProperty("StartingSlide", page);
+    QAxObject * window = settings->querySubObject("Run()");
+    view_ = window->querySubObject("View");
+    QObject::connect(view_, SIGNAL(exception(int,QString,QString,QString)),
+                     this, SLOT(onException(int,QString,QString,QString)));
+    if (page)
+        jump(page);
+    hwnd_ = findWindow(titleParts);
+    setWindowAtTop(hwnd_);
+    QTimer * timer = new QTimer(this);
+    timer->setInterval(500);
+    timer->setSingleShot(false);
+    timer->start();
+    QObject::connect(timer, &QTimer::timeout, this, [this, timer]() {
+        if (isWindowShown(hwnd_)) {
+            try {
+                QAxObject * slide = view_->querySubObject("Slide");
+                if (slide) {
+                    QVariant slideNumber = slide->property("SlideNumber");
+                    if (slideNumber.isValid()) {
+                        page_ = slideNumber.toInt();
+                    }
+                }
+            } catch(...) {
+            }
+        } else {
+            timer->stop();
+            timer->deleteLater();
+            reopen();
+        }
+    });
+}
+
 void PptxControl::next()
 {
-    if (view_)
+    if (view_) {
         view_->dynamicCall("Next()");
+        thumb(0);
+    } else if (presentation_ && page_ < total_) {
+        thumb(++page_);
+    }
 }
 
 void PptxControl::jump(int page)
 {
-    if (view_)
+    if (view_) {
         view_->dynamicCall("GotoSlide(int)", page);
+        thumb(0);
+    } else if (presentation_ && page_ > 0 && page_ <= total_) {
+        thumb(page_ = page);
+    }
 }
 
 void PptxControl::prev()
 {
-    if (view_)
+    if (view_) {
         view_->dynamicCall("Previous()");
+        thumb(0);
+    } else if (presentation_ && page_ > 1) {
+        thumb(--page_);
+    }
+}
+
+void PptxControl::hide()
+{
+    hideWindow(hwnd_);
 }
 
 void PptxControl::close()
@@ -157,14 +232,14 @@ void PptxControl::close()
     presentation_->dynamicCall("Close()");
     delete presentation_;
     presentation_ = nullptr;
-    QGraphicsTextItem * item = static_cast<QGraphicsTextItem*>(item_);
-    item->setPlainText(name_ + "(Finished)");
+    total_ = 0;
     emit closed();
 }
 
 void PptxControl::detached()
 {
     close();
+    res_->setProperty("slideNumber", page_);
     Control::detached();
 }
 

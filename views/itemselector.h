@@ -20,6 +20,8 @@ public:
 
     void setForce(bool force);
 
+    void autoTop(bool force);
+
     ToolbarWidget * toolBar();
 
     QGraphicsItem * selected()
@@ -40,9 +42,14 @@ private:
     SelectBox * selBox_;
 
 private:
+    bool force_;
+    bool autoTop_;
+
+private:
     QGraphicsItem * select_;
     Control * selectControl_;
-    bool force_;
+
+private:
     QPointF start_;
     QRectF direction_;
     int type_;

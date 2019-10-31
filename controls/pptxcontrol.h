@@ -25,10 +25,12 @@ signals:
     void closed();
 
 public slots:
-    void open(int page = 0);
+    void open();
+    void show(int page = 0); // 0 for current page, 1 for first page
     void next();
     void prev();
     void jump(int page);
+    void hide();
     void close();
 
 private slots:
@@ -48,15 +50,20 @@ protected:
 private:
     void open_();
 
+    void reopen();
+
+    void thumb(int page);
+
 private:
     static QAxObject * application_;
 
     QUrl localUrl_;
     QString name_;
+    int total_;
+    int page_;
     QAxObject * presentation_;
     QAxObject * view_;
     intptr_t hwnd_;
-    int startIndex_;
 };
 
 #endif // PPTXCONTROL_H

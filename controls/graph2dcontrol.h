@@ -10,8 +10,11 @@ public:
     Q_INVOKABLE Graph2DControl(ResourceView *res);
 
 protected:
-    virtual QGraphicsItem * create(ResourceView * res);
+    virtual QGraphicsItem * create(ResourceView * res) override;
 
+    virtual SelectMode selectTest(QPointF const & point) override;
+
+protected:
     virtual void updateGraph(Graph * gh) override;
 
     virtual QRectF bounds() override;

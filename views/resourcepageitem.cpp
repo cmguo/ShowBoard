@@ -85,11 +85,19 @@ void ResourcePageItem::resourceMoved(QModelIndex const &parent, int start, int e
 {
     (void) parent;
     (void) destination;
-    QGraphicsItem * dest = childItems()[row];
-    while (start <= end) {
-        QGraphicsItem * item = childItems()[start];
-        item->stackBefore(dest);
-        ++start;
+    if (row < start) {
+        QGraphicsItem * dest = childItems()[row];
+        while (start <= end) {
+            QGraphicsItem * item = childItems()[start];
+            item->stackBefore(dest);
+            ++start;
+        }
+    } else if (row > end) {
+        QGraphicsItem * first = childItems()[start];
+        while (++end < row) {
+            QGraphicsItem * item = childItems()[end];
+            item->stackBefore(first);
+        }
     }
 }
 

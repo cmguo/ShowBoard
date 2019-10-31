@@ -12,6 +12,7 @@ ToolbarWidget::ToolbarWidget(QWidget *parent)
     : QWidget(parent)
 {
     layout_ = new QHBoxLayout(this);
+    setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
     style_ = new QStyleOptionButton();
     style_->features = QStyleOptionButton::Flat;
 }
@@ -39,7 +40,7 @@ void ToolbarWidget::setToolButtons(QList<ToolButton *> const & buttons)
     for (ToolButton * b : buttons) {
         addToolButton(b);
     }
-    layout_->update();
+    updateGeometry();
 }
 
 void ToolbarWidget::setToolButtons(ToolButton buttons[], int count)
@@ -48,13 +49,13 @@ void ToolbarWidget::setToolButtons(ToolButton buttons[], int count)
     for (int i = 0; i < count; ++i) {
         addToolButton(buttons + i);
     }
-    layout_->update();
+    updateGeometry();
 }
 
 void ToolbarWidget::addToolButton(ToolButton * button)
 {
     QToolButton * btn = new QToolButton();
-    btn->setIconSize({40, 40});
+    btn->setIconSize({20, 20});
     btn->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
     QVariant & icon = button->icon;
     if (icon.type() == QVariant::String)

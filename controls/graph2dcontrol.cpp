@@ -25,6 +25,11 @@ QGraphicsItem * Graph2DControl::create(ResourceView * res)
     return item;
 }
 
+Control::SelectMode Graph2DControl::selectTest(QPointF const & point)
+{
+    return item_->contains(point) ? Select : PassSelect;
+}
+
 void Graph2DControl::updateGraph(Graph * gh)
 {
     QGraphicsPathItem * item = static_cast<QGraphicsPathItem *>(item_);

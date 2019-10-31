@@ -97,13 +97,15 @@ void Control::relayout()
 
 static constexpr qreal CROSS_LENGTH = 20;
 
-bool Control::selectTest(QPointF const & point)
+Control::SelectMode Control::selectTest(QPointF const & point)
 {
+    if (flags_ & FullSelect)
+        return Select;
     if ((flags_ & HelpSelect) == 0)
-        return false;
+        return NotSelect;
     QRectF rect = item_->boundingRect();
     rect.adjust(CROSS_LENGTH, CROSS_LENGTH, -CROSS_LENGTH, -CROSS_LENGTH);
-    return !rect.contains(point);
+    return rect.contains(point) ? NotSelect : Select;
 }
 
 QString Control::toolsString() const
@@ -116,6 +118,8 @@ void Control::sizeChanged(QSizeF size)
     if (item_->parentItem() == nullptr)
         return;
     QSizeF ps = item_->parentItem()->boundingRect().size();
+    QRectF rc(QPointF(0, 0), size);
+    size = item_->mapToParent(rc).boundingRect().size();
     qreal scale = 1.0;
     while (size.width() > ps.width() || size.height() > ps.height()) {
         size /= 2.0;

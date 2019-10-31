@@ -1,5 +1,6 @@
 #include "itemselector.h"
 #include "core/control.h"
+#include "core/resourceview.h"
 #include "toolbarwidget.h"
 #include "whitecanvas.h"
 #include "selectbox.h"
@@ -11,9 +12,10 @@
 
 ItemSelector::ItemSelector(QGraphicsItem * parent)
     : QGraphicsRectItem(parent)
+    , force_(false)
+    , autoTop_(false)
     , select_(nullptr)
     , selectControl_(nullptr)
-    , force_(false)
     , type_(0)
 {
     setPen(QPen(Qt::NoPen));
@@ -54,6 +56,11 @@ void ItemSelector::setForce(bool force)
     force_ = force;
 }
 
+void ItemSelector::autoTop(bool force)
+{
+    autoTop_ = force;
+}
+
 void ItemSelector::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     start_ = event->pos();
@@ -65,14 +72,19 @@ void ItemSelector::mousePressEvent(QGraphicsSceneMouseEvent *event)
             Control * ct = Control::fromItem(item);
             if (!ct)
                 continue;
-            if ((ct->flags() & Control::CanSelect)
-                    && (force_ || ct->selectTest(mapToItem(item, start_)))) {
+            Control::SelectMode mode = Control::NotSelect;
+            if ((force_ && (ct->flags() & Control::CanSelect))
+                    || (mode = ct->selectTest(mapToItem(item, start_))) == Control::Select) {
                 select(nullptr);
                 select_ = item;
                 selectControl_ = ct;
                 type_ = 10;
-                break;
+                if (autoTop_) {
+                    selectControl_->resource()->moveTop();
+                }
             }
+            if (mode != Control::PassSelect)
+                break;
         }
     }
     if (type_ == 0) {

@@ -73,6 +73,11 @@ public slots:
         return &transform_;
     }
 
+    /*
+     * move this resource to top in z-order
+     */
+    void moveTop();
+
 protected:
     Resource * res_;
     Flags flags_;

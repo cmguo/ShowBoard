@@ -76,6 +76,8 @@ public:
 public:
     void enableSelector(bool enable);
 
+    void moveSelectionTop(bool enable);
+
     /*
      * change canvas size
      */
