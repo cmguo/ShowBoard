@@ -38,11 +38,20 @@ PptxControl::PptxControl(ResourceView * res)
                 titleParts[0] = "WPS";
         }
     }
+    if (application_) {
+        presentations_ = application_->querySubObject("Presentations");
+        QObject::connect(presentations_, SIGNAL(exception(int,QString,QString,QString)),
+                         this, SLOT(onException(int,QString,QString,QString)));
+    }
 }
 
 PptxControl::~PptxControl()
 {
     close();
+    if (presentations_) {
+        delete presentations_;
+        presentations_ = nullptr;
+    }
 }
 
 QGraphicsItem * PptxControl::create(ResourceView * res)
@@ -52,6 +61,8 @@ QGraphicsItem * PptxControl::create(ResourceView * res)
     QVariant slideNumber = res->property("slideNumber");
     if (slideNumber.isValid())
         page_ = slideNumber.toInt();
+    else
+        page_ = 1;
     QGraphicsPixmapItem * item = new QGraphicsPixmapItem;
     item->setPixmap(QPixmap(":/showboard/icons/icon_delete.png"));
     open();
@@ -72,38 +83,33 @@ void PptxControl::open()
 {
     if (presentation_)
         return;
-    if (!localUrl_.isEmpty()) {
-        open_();
+    QVariant localUrl = res_->property("localUrl");
+    if (localUrl.isValid()) {
+        open(localUrl.toUrl());
         return;
     }
     QWeakPointer<int> life(lifeToken_);
     res_->resource()->getLocalUrl().then([this, life](QUrl const & url) {
         if (life.isNull())
             return;
-        localUrl_ = url;
-        open_();
+        res_->setProperty("localUrl", url);
+        open(url);
     });
 }
 
-void PptxControl::open_()
+void PptxControl::open(QUrl const & url)
 {
-    QAxObject * presentations = application_->querySubObject("Presentations");
-    QObject::connect(presentations, SIGNAL(exception(int,QString,QString,QString)),
-                     this, SLOT(onException(int,QString,QString,QString)));
-    QAxObject * presentation = presentations->querySubObject(
+    if (!presentations_)
+        return;
+    QAxObject * presentation = presentations_->querySubObject(
                 "Open(const QString&, bool, bool, bool)",
-                localUrl_.toLocalFile(), true, false, false);
+                url.toLocalFile(), true, false, false);
     if (presentation) {
         QObject::connect(presentation, SIGNAL(exception(int,QString,QString,QString)),
                          this, SLOT(onException(int,QString,QString,QString)));
-        QVariant slideNumber = res_->property("slideNumber");
         presentation_ = presentation;
         total_ = presentation_->querySubObject("Slides")->property("Count").toInt();
-        page_ = 1;
-        if (slideNumber.isValid())
-            thumb(slideNumber.toInt());
-        else
-            thumb(1);
+        thumb(page_);
         emit opened();
     }
 }
@@ -112,7 +118,8 @@ void PptxControl::reopen()
 {
     view_ = nullptr;
     hwnd_ = 0;
-    open_(); // reopen
+    presentation_ = nullptr;
+    open(); // reopen
 }
 
 void PptxControl::thumb(int page)
@@ -142,26 +149,25 @@ void PptxControl::show(int page)
 {
     if (!presentation_)
         return;
-    if (view_) {
-        showWindow(hwnd_);
-        setWindowAtTop(hwnd_);
-        return;
-    }
     if (page == 0) {
         page = page_;
     }
-    QAxObject * settings = presentation_->querySubObject("SlideShowSettings");
-    settings->setProperty("ShowType", "ppShowTypeSpeaker");
-    settings->setProperty("ShowMediaControls", "true");
-    //if (page) // will cause View be null
-    //    settings->setProperty("StartingSlide", page);
-    QAxObject * window = settings->querySubObject("Run()");
-    view_ = window->querySubObject("View");
-    QObject::connect(view_, SIGNAL(exception(int,QString,QString,QString)),
-                     this, SLOT(onException(int,QString,QString,QString)));
+    if (view_) {
+        showWindow(hwnd_);
+    } else {
+        QAxObject * settings = presentation_->querySubObject("SlideShowSettings");
+        //settings->setProperty("ShowType", "ppShowTypeSpeaker");
+        settings->setProperty("ShowMediaControls", "true");
+        //if (page) // will cause View be null
+        //    settings->setProperty("StartingSlide", page);
+        QAxObject * window = settings->querySubObject("Run()");
+        view_ = window->querySubObject("View");
+        QObject::connect(view_, SIGNAL(exception(int,QString,QString,QString)),
+                         this, SLOT(onException(int,QString,QString,QString)));
+        hwnd_ = findWindow(titleParts);
+    }
     if (page)
         jump(page);
-    hwnd_ = findWindow(titleParts);
     setWindowAtTop(hwnd_);
     QTimer * timer = new QTimer(this);
     timer->setInterval(500);
@@ -219,6 +225,7 @@ void PptxControl::prev()
 
 void PptxControl::hide()
 {
+    thumb(page_);
     hideWindow(hwnd_);
 }
 

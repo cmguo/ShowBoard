@@ -10,11 +10,19 @@
 
 ToolbarWidget::ToolbarWidget(QWidget *parent)
     : QWidget(parent)
+    , template_(nullptr)
 {
     layout_ = new QHBoxLayout(this);
     setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
     style_ = new QStyleOptionButton();
     style_->features = QStyleOptionButton::Flat;
+}
+
+void ToolbarWidget::setButtonTemplate(int typeId)
+{
+    QMetaObject const * meta = QMetaType::metaObjectForType(typeId);
+    if (meta && meta->inherits(&QToolButton::staticMetaObject))
+        template_ = meta;
 }
 
 static QPixmap widgetToPixmap(QWidget * widget)
@@ -54,7 +62,9 @@ void ToolbarWidget::setToolButtons(ToolButton buttons[], int count)
 
 void ToolbarWidget::addToolButton(ToolButton * button)
 {
-    QToolButton * btn = new QToolButton();
+    QToolButton * btn = template_
+            ? qobject_cast<QToolButton *>(template_->newInstance())
+            : new QToolButton;
     btn->setIconSize({20, 20});
     btn->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
     QVariant & icon = button->icon;
@@ -92,4 +102,9 @@ void ToolbarWidget::buttonClicked()
     ToolButton * b = buttons_.value(btn);
     if (b)
         emit buttonClicked(b);
+}
+
+void ToolbarWidget::resizeEvent(QResizeEvent *event)
+{
+    emit sizeChanged(event->size());
 }

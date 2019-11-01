@@ -18,6 +18,7 @@ ResourceView::ResourceView(ResourceView const & o)
     , transform_(o.transform_)
     , lifeToken_(reinterpret_cast<int*>(1), nopdel)
 {
+    res_->setParent(this);
     transform_.translate(20 / transform_.m11(), 20 / transform_.m22());
 }
 

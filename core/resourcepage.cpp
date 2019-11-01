@@ -21,6 +21,17 @@ ResourceView * ResourcePage::addResource(QUrl const & url, QSizeF const & sizeHi
     return rv;
 }
 
+ResourceView * ResourcePage::addResourceOrBringTop(QUrl const & url, QSizeF const & sizeHint)
+{
+    ResourceView * rv = findResource(url);
+    if (rv) {
+        moveResourceBack(rv);
+        return rv;
+    } else {
+        return addResource(url, sizeHint);
+    }
+}
+
 ResourceView * ResourcePage::findResource(QUrl const & url)
 {
     for (ResourceView * res : resources()) {

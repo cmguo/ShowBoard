@@ -48,7 +48,7 @@ protected:
     virtual void detached() override;
 
 private:
-    void open_();
+    void open(QUrl const & url);
 
     void reopen();
 
@@ -57,10 +57,12 @@ private:
 private:
     static QAxObject * application_;
 
-    QUrl localUrl_;
     QString name_;
     int total_;
     int page_;
+
+private:
+    QAxObject * presentations_;
     QAxObject * presentation_;
     QAxObject * view_;
     intptr_t hwnd_;

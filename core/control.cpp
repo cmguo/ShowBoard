@@ -79,7 +79,8 @@ void Control::detached()
 {
     item_->setTransformations({});
     item_->setData(ITEM_KEY_CONTROL, QVariant());
-    deleteLater();
+    //deleteLater();
+    delete this;
 }
 
 void Control::save()

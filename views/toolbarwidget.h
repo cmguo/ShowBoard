@@ -19,6 +19,8 @@ public:
     explicit ToolbarWidget(QWidget *parent = nullptr);
 
 public:
+    void setButtonTemplate(int typeId);
+
     void setToolButtons(QList<ToolButton *> const & buttons);
 
     void setToolButtons(ToolButton buttons[], int count);
@@ -28,13 +30,19 @@ public:
 signals:
     void buttonClicked(ToolButton * button);
 
+    void sizeChanged(QSizeF const & size);
+
 public slots:
     void buttonClicked();
+
+private:
+    virtual void resizeEvent(QResizeEvent *event) override;
 
 private:
     void addToolButton(ToolButton * button);
 
 private:
+    QMetaObject const * template_;
     QHBoxLayout * layout_;
     QMap<QWidget *, ToolButton *> buttons_;
     QStyleOptionButton * style_;

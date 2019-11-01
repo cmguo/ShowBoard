@@ -32,6 +32,8 @@ public:
 
     ResourceView * addResource(QUrl const & url, QSizeF const & sizeHint);
 
+    ResourceView * addResourceOrBringTop(QUrl const & url, QSizeF const & sizeHint = QSizeF());
+
     /*
      * find resource by url
      */

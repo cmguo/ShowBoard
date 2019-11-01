@@ -91,6 +91,11 @@ Control * WhiteCanvas::topControl()
     return item ? Control::fromItem(item) : nullptr;
 }
 
+ItemSelector * WhiteCanvas::selector()
+{
+    return selector_;
+}
+
 void WhiteCanvas::enableSelector(bool enable)
 {
     selector_->setForce(enable);

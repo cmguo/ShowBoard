@@ -73,6 +73,8 @@ public:
      */
     Control * topControl();
 
+    ItemSelector * selector();
+
 public:
     void enableSelector(bool enable);
 

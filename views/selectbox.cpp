@@ -29,6 +29,10 @@ SelectBox::SelectBox(QGraphicsItem * parent)
     QGraphicsProxyWidget * proxy = new QGraphicsProxyWidget(this);
     proxy->setWidget(toolBar);
     toolBar_ = proxy;
+    QObject::connect(toolBar, &ToolbarWidget::sizeChanged, [this](QSizeF const & size) {
+        QRectF rect(this->rect());
+        toolBar_->setPos(rect.right() - size.width(), rect.bottom() + 10);
+    });
 
     setPen(QPen(Qt::NoPen));
     setBrush(QBrush(QColor::fromRgba(0x20202020)));
