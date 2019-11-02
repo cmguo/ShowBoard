@@ -32,6 +32,7 @@ public:
         FullLayout = 1 << 5,
         HelpSelect = 1 << 6,
         FullSelect = 1 << 7,
+        CanvasBackground = 1 << 8,
     };
 
     Q_DECLARE_FLAGS(Flags, Flag)

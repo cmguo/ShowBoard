@@ -52,7 +52,19 @@ private:
 private:
     QPointF start_;
     QRectF direction_;
-    int type_;
+
+    enum SelectType
+    {
+        None = 0,
+        Translate,
+        Scale,
+        Rotate,
+        Canvas,
+        TempNoMove,
+        TempMoved
+    };
+
+    SelectType type_;
 };
 
 #endif // ITEMSELECTOR_H

@@ -45,6 +45,8 @@ protected:
 
     virtual QString toolsString() const override;
 
+    virtual void attaching() override;
+
     virtual void detached() override;
 
 private:

@@ -1,6 +1,7 @@
 #include "control.h"
 #include "resourceview.h"
 #include "toolbutton.h"
+#include "views/whitecanvas.h"
 
 #include <QGraphicsItem>
 #include <QGraphicsScene>
@@ -119,8 +120,19 @@ void Control::sizeChanged(QSizeF size)
     if (item_->parentItem() == nullptr)
         return;
     QSizeF ps = item_->parentItem()->boundingRect().size();
-    QRectF rc(QPointF(0, 0), size);
-    size = item_->mapToParent(rc).boundingRect().size();
+    if (flags_ & CanvasBackground) {
+        if (size.width() > ps.width() || size.height() > ps.height()) {
+            if (size.width() < ps.width())
+                size.setWidth(ps.width());
+            if (size.height() < ps.height())
+                size.setHeight(ps.height());
+        }
+        WhiteCanvas * canvas = static_cast<WhiteCanvas *>(item_->parentItem()->parentItem());
+        QRectF rect(QPointF(0, 0), size);
+        rect.moveCenter({0, 0});
+        canvas->setGeometry(rect);
+        return;
+    }
     qreal scale = 1.0;
     while (size.width() > ps.width() || size.height() > ps.height()) {
         size /= 2.0;

@@ -25,10 +25,7 @@ public:
         return canvas_;
     }
 
-    ResourcePackage * package()
-    {
-        return package_;
-    }
+    ResourcePackage * package();
 
     void setResourcePackage(ResourcePackage * pack);
 
@@ -42,7 +39,10 @@ private:
 private:
     QGraphicsScene * scene_;
     WhiteCanvas * canvas_;
-    ResourcePackage * package_;
+
+private:
+    QPointF start_;
+    bool started_;
 };
 
 #endif // WHITECANVASWIDGET_H

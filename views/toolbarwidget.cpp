@@ -7,13 +7,13 @@
 #include <QWidget>
 #include <QStyleOptionButton>
 #include <QGraphicsItem>
+#include <QGraphicsProxyWidget>
 
 ToolbarWidget::ToolbarWidget(QWidget *parent)
     : QWidget(parent)
     , template_(nullptr)
 {
     layout_ = new QHBoxLayout(this);
-    setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
     style_ = new QStyleOptionButton();
     style_->features = QStyleOptionButton::Flat;
 }
@@ -48,7 +48,7 @@ void ToolbarWidget::setToolButtons(QList<ToolButton *> const & buttons)
     for (ToolButton * b : buttons) {
         addToolButton(b);
     }
-    updateGeometry();
+    updateGeometry(); //
 }
 
 void ToolbarWidget::setToolButtons(ToolButton buttons[], int count)
@@ -94,6 +94,10 @@ void ToolbarWidget::clear()
         w->deleteLater();
     }
     buttons_.clear();
+    layout_->activate();
+    QGraphicsProxyWidget * proxy = graphicsProxyWidget();
+    if (proxy)
+        proxy->resize(minimumSize());
 }
 
 void ToolbarWidget::buttonClicked()

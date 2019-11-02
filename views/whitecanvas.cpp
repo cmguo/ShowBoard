@@ -6,6 +6,7 @@
 #include "core/control.h"
 #include "core/resourceview.h"
 #include "core/resourcepage.h"
+#include "core/resourcepackage.h"
 #include "toolbarwidget.h"
 
 #include <QBrush>
@@ -15,6 +16,7 @@
 
 WhiteCanvas::WhiteCanvas(QObject * parent)
     : QObject(parent)
+    , package_(nullptr)
 {
     setAcceptedMouseButtons(Qt::LeftButton);
     //setFlags(ItemIsMovable);
@@ -29,7 +31,6 @@ WhiteCanvas::WhiteCanvas(QObject * parent)
     selector_->setRect(rect());
     void (ToolbarWidget::*sig)(ToolButton *) = &ToolbarWidget::buttonClicked;
     QObject::connect(selector_->toolBar(), sig, this, &WhiteCanvas::toolButtonClicked);
-    switchPage(new ResourcePage);
 }
 
 WhiteCanvas::~WhiteCanvas()
@@ -66,6 +67,9 @@ QVariant WhiteCanvas::itemChange(QGraphicsItem::GraphicsItemChange change, const
 
 void WhiteCanvas::switchPage(ResourcePage * page)
 {
+    selector_->select(nullptr);
+    canvas_->switchPage(nullptr);
+    setGeometry(scene()->sceneRect());
     canvas_->switchPage(page);
 }
 
@@ -112,6 +116,20 @@ void WhiteCanvas::setGeometry(QRectF const & rect)
     canvas_->setGeometry(rect);
     tools_->setGeometry(rect);
     selector_->setRect(rect);
+}
+
+void WhiteCanvas::setResourcePackage(ResourcePackage * pack)
+{
+    if (package_) {
+        QObject::disconnect(package_, &ResourcePackage::currentPageChanged,
+                            this, &WhiteCanvas::switchPage);
+    }
+    package_ = pack;
+    if (package_) {
+        canvas_->switchPage(package_->currentPage());
+        QObject::connect(package_, &ResourcePackage::currentPageChanged,
+                         this, &WhiteCanvas::switchPage);
+    }
 }
 
 void WhiteCanvas::toolButtonClicked(ToolButton * button)

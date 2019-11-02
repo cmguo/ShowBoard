@@ -107,11 +107,11 @@ void ResourcePageItem::insertResource(int layer)
     Control * ct = control_manager_->createControl(res);
     ct->attaching();
     ct->item()->setParentItem(this);
-    ct->attached();
     if (layer < childItems().size() - 1) {
         ct->item()->stackBefore(childItems()[layer]);
     }
     ct->relayout();
+    ct->attached();
 }
 
 void ResourcePageItem::removeResource(int layer)

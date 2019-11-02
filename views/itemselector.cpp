@@ -16,7 +16,7 @@ ItemSelector::ItemSelector(QGraphicsItem * parent)
     , autoTop_(false)
     , select_(nullptr)
     , selectControl_(nullptr)
-    , type_(0)
+    , type_(None)
 {
     setPen(QPen(Qt::NoPen));
     setAcceptedMouseButtons(Qt::LeftButton);
@@ -64,9 +64,9 @@ void ItemSelector::autoTop(bool force)
 void ItemSelector::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     start_ = event->pos();
-    type_ = select_ == nullptr ? 0 :
-            selBox_->hitTest(selBox_->mapFromParent(start_), direction_);
-    if (type_ == 0) {
+    type_ = select_ == nullptr ? None :
+            static_cast<SelectType>(selBox_->hitTest(selBox_->mapFromParent(start_), direction_));
+    if (type_ == None) {
         QList<QGraphicsItem*> items = scene()->items(event->scenePos());
         for (QGraphicsItem * item : items) {
             Control * ct = Control::fromItem(item);
@@ -78,7 +78,7 @@ void ItemSelector::mousePressEvent(QGraphicsSceneMouseEvent *event)
                 select(nullptr);
                 select_ = item;
                 selectControl_ = ct;
-                type_ = 10;
+                type_ = TempNoMove;
                 if (autoTop_) {
                     selectControl_->resource()->moveTop();
                 }
@@ -87,17 +87,24 @@ void ItemSelector::mousePressEvent(QGraphicsSceneMouseEvent *event)
                 break;
         }
     }
-    if (type_ == 0) {
-        if (select_)
+    if (type_ == None) {
+        if (select_) {
             select(nullptr);
-        else
+            qDebug() << "mousePress: select null";
+        }
+        if (force_) {
+            type_ = Canvas;
+        } else {
             QGraphicsRectItem::mousePressEvent(event);
+        }
+    } else {
+        qDebug() << "mousePress: select " << selectControl_->resource()->url();
     }
 }
 
 void ItemSelector::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
-    if (type_ == 0) {
+    if (type_ == None) {
         QGraphicsRectItem::mouseMoveEvent(event);
         return;
     }
@@ -105,12 +112,14 @@ void ItemSelector::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     QPointF d = pt - start_;
     QRectF rect = selBox_->rect();
     switch (type_) {
-    case 1:
-        rect.adjust(d.x(), d.y(), d.x(), d.y());
-        selBox_->setRect(rect);
-        selectControl_->move(pt - start_);
+    case Translate:
+        if (selectControl_->flags() & Control::CanMove) {
+            rect.adjust(d.x(), d.y(), d.x(), d.y());
+            selBox_->setRect(rect);
+            selectControl_->move(pt - start_);
+        }
         break;
-    case 2: {
+    case Scale: {
         //qDebug() << rect;
         QRectF rect2 = rect.adjusted(d.x() * direction_.left(), d.y() * direction_.top(),
                     d.x() * direction_.width(), d.y() * direction_.height());
@@ -119,10 +128,31 @@ void ItemSelector::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         pt = start_ + (rect2.center() - rect.center()) * 2;
         selBox_->setRect(rect2);
         } break;
-    case 10:
-    case 11:
-        type_ = 11;
+    case Canvas: {
+        QGraphicsItem * canvas = parentItem();
+        QRectF crect = canvas->boundingRect().adjusted(d.x(), d.y(), d.x(), d.y());
+        QRectF srect = canvas->mapFromScene(scene()->sceneRect()).boundingRect();
+        if (crect.left() > srect.left())
+            d.setX(d.x() + srect.left() - crect.left());
+        else if (crect.right() < srect.right())
+            d.setX(d.x() + srect.right() - crect.right());
+        if (crect.top() > srect.top())
+            d.setY(d.y() + srect.top() - crect.top());
+        else if (crect.bottom() < srect.bottom())
+            d.setY(d.y() + srect.bottom() - crect.bottom());
+        parentItem()->moveBy(d.x(), d.y());
+        pt = start_;
+        } break;
+    case TempNoMove:
+        if ((selectControl_->flags() & Control::CanMove) == 0) {
+            break;
+        }
+        type_ = TempMoved;
+        [[clang::fallthrough]];
+    case TempMoved:
         selectControl_->move(pt - start_);
+        break;
+    default:
         break;
     }
     start_ = pt;
@@ -130,19 +160,22 @@ void ItemSelector::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 
 void ItemSelector::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
-    if (type_ == 0) {
+    if (type_ == None) {
         QGraphicsRectItem::mouseReleaseEvent(event);
         return;
     }
+    qDebug() << "mouseRelease";
     switch (type_) {
-    case 10: {
+    case TempNoMove: {
         QGraphicsItem * item = select_;
         select_ = nullptr;
         select(item);
     } break;
-    case 11:
+    case TempMoved:
         select(nullptr);
         break;
+    default:
+        break;
     }
-    type_ = 0;
+    type_ = None;
 }

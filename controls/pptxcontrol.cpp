@@ -63,15 +63,19 @@ QGraphicsItem * PptxControl::create(ResourceView * res)
         page_ = slideNumber.toInt();
     else
         page_ = 1;
-    QGraphicsPixmapItem * item = new QGraphicsPixmapItem;
-    item->setPixmap(QPixmap(":/showboard/icons/icon_delete.png"));
-    open();
-    return item;
+    return new QGraphicsPixmapItem;
 }
+
 
 QString PptxControl::toolsString() const
 {
     return toolstr;
+}
+
+void PptxControl::attaching()
+{
+    Control::attaching();
+    open();
 }
 
 intptr_t PptxControl::hwnd() const
@@ -88,6 +92,8 @@ void PptxControl::open()
         open(localUrl.toUrl());
         return;
     }
+    QGraphicsPixmapItem * item = static_cast<QGraphicsPixmapItem *>(item_);
+    item->setPixmap(QPixmap(":/showboard/icons/icon_delete.png"));
     QWeakPointer<int> life(lifeToken_);
     res_->resource()->getLocalUrl().then([this, life](QUrl const & url) {
         if (life.isNull())

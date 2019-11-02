@@ -8,6 +8,7 @@
 
 class ResourceView;
 class ResourcePage;
+class ResourcePackage;
 class Control;
 class ResourcePageItem;
 class ToolBoxItem;
@@ -30,7 +31,14 @@ public:
 
     virtual ~WhiteCanvas() override;
 
-public slots:
+public:
+    ResourcePackage * package()
+    {
+        return package_;
+    }
+
+    void setResourcePackage(ResourcePackage * pack);
+
     void switchPage(ResourcePage * page);
 
 public:
@@ -98,6 +106,7 @@ private:
     virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
 
 private:
+    ResourcePackage * package_;
     ResourcePageItem * canvas_;
     ToolBoxItem * tools_;
     ItemSelector * selector_;
