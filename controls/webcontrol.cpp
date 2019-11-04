@@ -4,9 +4,63 @@
 
 #include <QWebEngineView>
 #include <QWebEngineSettings>
+#include <QApplication>
+#include <QGraphicsItem>
 
 static char const * toolstr =
         "reload()|刷新|:/showboard/icons/icon_delete.png;";
+
+class TouchEventForwarder : public QObject
+{
+public:
+    TouchEventForwarder(QWebEngineView *w, QObject *parent)
+        : QObject(parent)
+        , webView(w)
+        , m_waState(w->testAttribute(Qt::WA_AcceptTouchEvents))
+    {
+        // make sure that touch events are delivered at all
+        w->setAttribute(Qt::WA_AcceptTouchEvents);
+        w->installEventFilter(this);
+    }
+
+    virtual ~TouchEventForwarder() override
+    {
+        if (webView) {
+            webView->removeEventFilter(this);
+            webView->setAttribute(Qt::WA_AcceptTouchEvents, m_waState);
+        }
+    }
+
+protected:
+    bool eventFilter(QObject *obj, QEvent *event) override {
+        if (event->type() == QEvent::TouchBegin
+                || event->type() == QEvent::TouchEnd
+                || event->type() == QEvent::TouchUpdate
+                || event->type() == QEvent::TouchCancel) {
+            if (!childWidget)
+                childWidget = findChildWidget("QtWebEngineCore::RenderWidgetHostViewQtDelegateWidget");
+            Q_ASSERT(childWidget);
+            qDebug() << "eventFilter: " << event->type();
+            QApplication::sendEvent(childWidget, event);
+            return true;
+        }
+        return QObject::eventFilter(obj, event);
+    }
+
+private:
+    QWidget *findChildWidget(const QString &className) const
+    {
+        for (auto w: webView->findChildren<QWidget*>())
+            if (className == QString::fromLatin1(w->metaObject()->className()))
+                return w;
+        return nullptr;
+    }
+
+    QPointer<QWidget> webView;
+    QPointer<QWidget> childWidget;
+    bool m_waState;
+};
+
 
 WebControl::WebControl(ResourceView * res)
     : WidgetControl(res, HelpSelect)
@@ -35,12 +89,37 @@ QString WebControl::toolsString() const
 QWidget * WebControl::createWidget(ResourceView * res)
 {
     QWebEngineView * view = new QWebEngineView();
+    new TouchEventForwarder(view, this);
     QObject::connect(view->page(), &QWebEnginePage::loadFinished,
                      this, &WebControl::loadFinished);
     QObject::connect(view->page(), &QWebEnginePage::contentsSizeChanged,
                      this, &WebControl::contentsSizeChanged);
-    view->load(res->resource()->url());
     return view;
+}
+
+void WebControl::attached()
+{
+    QVariant sizeHint = res_->property("sizeHint");
+    if (sizeHint.isValid()) {
+        QSizeF size = sizeHint.toSizeF();
+        if (size.width() < 1.0) {
+            QRectF rect = item_->parentItem()->boundingRect();
+            resize(QSizeF(rect.width() * size.width(), rect.height() * size.height()));
+        }
+    }
+    QWebEngineView * view = qobject_cast<QWebEngineView *>(widget_);
+    view->load(res_->resource()->url());
+}
+
+QSizeF WebControl::sizeHint()
+{
+    return widget_->size();
+}
+
+void WebControl::setSizeHint(QSizeF const & size)
+{
+    if (size.width() > 1.0)
+        resize(size);
 }
 
 void WebControl::loadFinished()
@@ -51,8 +130,9 @@ void WebControl::loadFinished()
 
 void WebControl::contentsSizeChanged(const QSizeF &size)
 {
-    QSizeF d = QSizeF(widget_->size()) - size;
-    if (qAbs(d.width() + qAbs(d.height())) < 10)
+    qDebug() << "contentsSizeChanged: " << size;
+    QSizeF d = size - QSizeF(widget_->size());
+    if ((d.width() + d.height()) < 10)
         return;
     resize(size.toSize());
 }

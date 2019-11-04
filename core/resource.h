@@ -32,10 +32,6 @@ public:
 
     Q_PROPERTY(QUrl const url READ url)
     Q_PROPERTY(QString const type READ type)
-    Q_PROPERTY(QSizeF size READ size WRITE setSize)
-
-signals:
-    void sizeChanged(QSizeF const & size);
 
 public:
     QUrl const & url() const
@@ -47,14 +43,6 @@ public:
     {
         return type_;
     }
-
-    QSizeF size() const
-    {
-        return size_;
-    }
-
-public:
-    void setSize(QSizeF const & size);
 
 public:
     /*
@@ -86,7 +74,6 @@ private:
 private:
     QUrl const url_;
     QString const type_;
-    QSizeF size_;
     QSharedPointer<int> lifeToken_;
 };
 

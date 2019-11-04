@@ -92,11 +92,11 @@ void ItemSelector::mousePressEvent(QGraphicsSceneMouseEvent *event)
             select(nullptr);
             qDebug() << "mousePress: select null";
         }
-        if (force_) {
-            type_ = Canvas;
-        } else {
+        //if (force_) {
+        //    type_ = Canvas;
+        //} else {
             QGraphicsRectItem::mousePressEvent(event);
-        }
+        //}
     } else {
         qDebug() << "mousePress: select " << selectControl_->resource()->url();
     }

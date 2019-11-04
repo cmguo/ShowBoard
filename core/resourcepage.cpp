@@ -8,27 +8,24 @@ ResourcePage::ResourcePage(QObject *parent)
 {
 }
 
-ResourceView * ResourcePage::addResource(QUrl const & url)
-{
-    return addResource(url, QSizeF());
-}
-
-ResourceView * ResourcePage::addResource(QUrl const & url, QSizeF const & sizeHint)
+ResourceView * ResourcePage::addResource(QUrl const & url, QVariantMap const & settings)
 {
     ResourceView * rv = ResourceManager::instance()->createResource(url);
-    rv->resource()->setSize(sizeHint);
+    for (QString const & k : settings.keys()) {
+        rv->setProperty(k.toUtf8(), settings.value(k));
+    }
     addResource(rv);
     return rv;
 }
 
-ResourceView * ResourcePage::addResourceOrBringTop(QUrl const & url, QSizeF const & sizeHint)
+ResourceView * ResourcePage::addResourceOrBringTop(QUrl const & url, QVariantMap const & settings)
 {
     ResourceView * rv = findResource(url);
     if (rv) {
         moveResourceBack(rv);
         return rv;
     } else {
-        return addResource(url, sizeHint);
+        return addResource(url, settings);
     }
 }
 

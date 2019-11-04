@@ -64,8 +64,10 @@ void Control::load()
 
 void Control::attaching()
 {
+    item_->setAcceptTouchEvents(true);
     item_->setData(ITEM_KEY_CONTROL, QVariant::fromValue(this));
     item_->setTransformations({transform_});
+    loadSettings();
 }
 
 void Control::attached()
@@ -81,12 +83,29 @@ void Control::detached()
     item_->setTransformations({});
     item_->setData(ITEM_KEY_CONTROL, QVariant());
     //deleteLater();
+    saveSettings();
     delete this;
 }
 
 void Control::save()
 {
 
+}
+
+void Control::loadSettings()
+{
+    for (QByteArray & k : res_->dynamicPropertyNames())
+        setProperty(k, res_->property(k));
+}
+
+void Control::saveSettings()
+{
+    for (int i = Control::metaObject()->propertyCount(); i < metaObject()->propertyCount(); ++i) {
+        QMetaProperty p = metaObject()->property(i);
+        res_->setProperty(p.name(), p.read(this));
+    }
+    for (QByteArray & k : dynamicPropertyNames())
+        res_->setProperty(k, property(k));
 }
 
 void Control::relayout()
@@ -133,11 +152,18 @@ void Control::sizeChanged(QSizeF size)
         canvas->setGeometry(rect);
         return;
     }
+    if (flags_ & FullLayout) {
+        return;
+    }
     qreal scale = 1.0;
     while (size.width() > ps.width() || size.height() > ps.height()) {
         size /= 2.0;
         scale /= 2.0;
     }
+    //while (size.width() * 2.0 < ps.width() && size.height() * 2.0 < ps.height()) {
+    //    size *= 2.
+    //    scale *= 2.0;
+    //}
     res_->transform()->scale(scale, scale);
     updateTransform();
 }

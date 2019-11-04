@@ -181,6 +181,10 @@ protected:
      */
     virtual void sizeChanged(QSizeF size);
 
+    virtual void loadSettings();
+
+    virtual void saveSettings();
+
     void updateTransform();
 
 private:

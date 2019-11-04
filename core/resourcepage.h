@@ -28,11 +28,16 @@ public:
      *  @see addResource(res)
      *  @return newly added resource
      */
-    ResourceView * addResource(QUrl const & url);
+    ResourceView * addResource(QUrl const & url, QVariantMap const & settings = QVariantMap());
 
-    ResourceView * addResource(QUrl const & url, QSizeF const & sizeHint);
-
-    ResourceView * addResourceOrBringTop(QUrl const & url, QSizeF const & sizeHint = QSizeF());
+    /*
+     * add resource from url
+     *  if a resource with same url is already exists in this page,
+     *   it's bring to top
+     *  @see addResource(res)
+     *  @return newly added or already existing resource
+     */
+    ResourceView * addResourceOrBringTop(QUrl const & url, QVariantMap const & settings = QVariantMap());
 
     /*
      * find resource by url

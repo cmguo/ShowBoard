@@ -21,16 +21,7 @@ Resource::Resource(QString const & type, QUrl const & url)
 Resource::Resource(Resource const & o)
     : url_(o.url_)
     , type_(o.type_)
-    , size_(o.size_)
 {
-}
-
-void Resource::setSize(QSizeF const & size)
-{
-    if (size != size_) {
-        size_ = size;
-        emit sizeChanged(size_);
-    }
 }
 
 QPromise<QUrl> Resource::getLocalUrl()

@@ -22,8 +22,6 @@ QGraphicsItem * WidgetControl::create(ResourceView *res)
     res_ = res;
     widget_ = createWidget(res);
     widget_->setAttribute(Qt::WA_NoSystemBackground);
-    if (!res->resource()->size().isEmpty())
-        widget_->resize(res->resource()->size().toSize());
     QGraphicsProxyWidget * item = new QGraphicsProxyWidget();
     item->setFocusPolicy(Qt::NoFocus);
     item->setAutoFillBackground(false);
