@@ -126,9 +126,11 @@ void WhiteCanvas::setResourcePackage(ResourcePackage * pack)
     }
     package_ = pack;
     if (package_) {
-        canvas_->switchPage(package_->currentPage());
+        switchPage(package_->currentPage());
         QObject::connect(package_, &ResourcePackage::currentPageChanged,
                          this, &WhiteCanvas::switchPage);
+    } else {
+        switchPage(nullptr);
     }
 }
 

@@ -9,12 +9,9 @@ QNetworkAccessManager * Resource::network_ = nullptr;
 
 using namespace QtPromise;
 
-static void nopdel(int *) {}
-
 Resource::Resource(QString const & type, QUrl const & url)
     : url_(url)
     , type_(type)
-    , lifeToken_(reinterpret_cast<int*>(1), nopdel)
 {
 }
 
@@ -29,9 +26,8 @@ QPromise<QUrl> Resource::getLocalUrl()
     if (url_.scheme() == "file") {
         return QPromise<QUrl>::resolve(url());
     }
-    QWeakPointer<int> life(lifeToken_);
-    return getData().then([this, life] (QByteArray data) {
-        if (life.isNull())
+    return getData().then([this, l = life()] (QByteArray data) {
+        if (l.isNull())
             return QUrl();
         QString path = url_.path();
         path = QDir::currentPath() + path.mid(path.lastIndexOf('/'));

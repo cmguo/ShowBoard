@@ -25,7 +25,7 @@ Stroke * Stroke::clone() const
 
 QPromise<void> Stroke::load()
 {
-    QWeakPointer<int> life(lifeToken_);
+    QWeakPointer<int> life(this->life());
     return res_->getStream().then([this, life](QIODevice * stream) {
         if (life.isNull())
             return;

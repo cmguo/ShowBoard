@@ -3,6 +3,11 @@
         <file>icons/icon_copy.png</file>
         <file>icons/icon_delete.png</file>
         <file>icons/icon_top.png</file>
+        <file>icons/loading.svg</file>
+        <file>icons/play.normal.svg</file>
+        <file>icons/play.press.svg</file>
+        <file>icons/stop.normal.svg</file>
+        <file>icons/stop.press.svg</file>
         <file>htmls/video.htm</file>
     </qresource>
 </RCC>

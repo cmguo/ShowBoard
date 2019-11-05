@@ -12,6 +12,8 @@ class PptxControl : public Control
 {
     Q_OBJECT
 
+    Q_PROPERTY(int slideNumber MEMBER slideNumber_)
+
 public:
     Q_INVOKABLE PptxControl(ResourceView * res);
 
@@ -45,9 +47,14 @@ protected:
 
     virtual QString toolsString() const override;
 
-    virtual void attaching() override;
+    virtual void attached() override;
 
     virtual void detached() override;
+
+private:
+    virtual void timerEvent(QTimerEvent * event) override;
+
+    virtual bool eventFilter(QObject *obj, QEvent * event) override;
 
 private:
     void open(QUrl const & url);
@@ -56,18 +63,22 @@ private:
 
     void thumb(int page);
 
+    void showReturnButton();
+
 private:
     static QAxObject * application_;
 
     QString name_;
     int total_;
-    int page_;
+    int slideNumber_;
 
 private:
     QAxObject * presentations_;
     QAxObject * presentation_;
     QAxObject * view_;
     intptr_t hwnd_;
+    QGraphicsItem * stateItem_;
+    QWidget * stopButton_;
 };
 
 #endif // PPTXCONTROL_H

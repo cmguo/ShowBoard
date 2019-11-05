@@ -14,7 +14,7 @@ public:
 protected:
     virtual QGraphicsItem * create(ResourceView * res) override;
 
-    virtual void sizeChanged(QSizeF size) override;
+    virtual void initScale(QSizeF size) override;
 
     virtual void detached() override;
 

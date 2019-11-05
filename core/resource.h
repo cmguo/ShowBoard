@@ -2,13 +2,11 @@
 #define RESOURCE_H
 
 #include "ShowBoard_global.h"
+#include "lifeobject.h"
 
 #include <QtPromise>
 
-#include <QObject>
 #include <QUrl>
-#include <QSizeF>
-#include <QSharedPointer>
 
 class QNetworkAccessManager;
 
@@ -16,7 +14,7 @@ class QNetworkAccessManager;
  * Resource is pure data, while ResourceView is struct data
  */
 
-class SHOWBOARD_EXPORT Resource : public QObject
+class SHOWBOARD_EXPORT Resource : public LifeObject
 {
     Q_OBJECT
 public:
@@ -74,7 +72,6 @@ private:
 private:
     QUrl const url_;
     QString const type_;
-    QSharedPointer<int> lifeToken_;
 };
 
 #endif // RESOURCE_H

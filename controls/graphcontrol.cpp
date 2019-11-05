@@ -12,11 +12,10 @@ GraphControl::GraphControl(ResourceView * res)
 
 void GraphControl::attached()
 {
-    Control::attached();
     Graph * gh = static_cast<Graph *>(res_);
     if (gh->empty()) {
     } else {
-        QWeakPointer<int> life(lifeToken_);
+        QWeakPointer<int> life(this->life());
         gh->load().then([this, gh, life]() {
             if (life.isNull())
                 return;

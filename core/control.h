@@ -2,17 +2,16 @@
 #define CONTROL_H
 
 #include "ShowBoard_global.h"
+#include "lifeobject.h"
 
-#include <QObject>
 #include <QSizeF>
-#include <QSharedPointer>
 
 class QGraphicsItem;
 class ResourceView;
 class QGraphicsTransform;
 struct ToolButton;
 
-class SHOWBOARD_EXPORT Control : public QObject
+class SHOWBOARD_EXPORT Control : public LifeObject
 {
     Q_OBJECT
 
@@ -33,6 +32,7 @@ public:
         HelpSelect = 1 << 6,
         FullSelect = 1 << 7,
         CanvasBackground = 1 << 8,
+        RestoreSession = 1 << 9,
     };
 
     Q_DECLARE_FLAGS(Flags, Flag)
@@ -87,50 +87,18 @@ public:
      * load from resource
      * be called when create, will call create(res)
      */
-    virtual void load();
-
-    /*
-     * called before item is attached to canvas
-     * override this to do more preparing work
-     */
-    virtual void attaching();
-
-    /*
-     * called after item is attached to canvas
-     * override this to do more post attach work
-     */
-    virtual void attached();
-
-    /*
-     * called before item is detached from canvas
-     * override this to do more release work
-     */
-    virtual void detaching();
-
-    /*
-     * called after item is detached from canvas
-     * override this to do more release work
-     */
-    virtual void detached();
+    void attachTo(QGraphicsItem * parent);
 
     /*
      * save to resource
      */
-    virtual void save();
+    void detachFrom(QGraphicsItem * parent);
 
-public:
     /*
      * called when attached to canvas or canvas is resized
      */
-    virtual void relayout();
+    void relayout();
 
-    /*
-     * when flag HelpSelect is set, this function is called
-     *   to help test if then click at @point selects this item
-     */
-    virtual SelectMode selectTest(QPointF const & point);
-
-public:
     /*
      * move (shift) this item, is saved at transform
      */
@@ -146,6 +114,13 @@ public:
      */
     void exec(QString const & cmd, QGenericArgument arg0 = QGenericArgument(),
               QGenericArgument arg1 = QGenericArgument(), QGenericArgument arg2 = QGenericArgument());
+
+public:
+    /*
+     * when flag HelpSelect is set, this function is called
+     *   to help test if then click at @point selects this item
+     */
+    virtual SelectMode selectTest(QPointF const & point);
 
     /*
      * collect context menu of this control
@@ -174,16 +149,53 @@ protected:
      */
     virtual QString toolsString() const;
 
+    /*
+     * called before item is attached to canvas
+     * override this to do more preparing work
+     */
+    virtual void attaching();
+
+    /*
+     * load settings from resource view,
+     * all dynamic properties from resource view are applied to control
+     */
+    virtual void loadSettings();
+
+    /*
+     * called after item is attached to canvas
+     * override this to do more post attach work
+     */
+    virtual void attached();
+
+    /*
+     * called before item is detached from canvas
+     * override this to do more release work
+     */
+    virtual void detaching();
+
+    /*
+     * save settings to resource view,
+     * all properties (include dynamic properties) are saved to resource view
+     */
+    virtual void saveSettings();
+
+    /*
+     * called after item is detached from canvas
+     * override this to do more release work
+     */
+    virtual void detached();
+
 protected:
     /*
      * called by child control to notify item init size change
      *  this function will calc suitable init scale for item
      */
-    virtual void sizeChanged(QSizeF size);
+    virtual void initScale(QSizeF size);
 
-    virtual void loadSettings();
-
-    virtual void saveSettings();
+    /*
+     * called when attached to canvas or canvas is resized
+     */
+    virtual void layout(QRectF const & rect);
 
     void updateTransform();
 
@@ -195,7 +207,6 @@ protected:
     ResourceView * res_;
     QGraphicsTransform * transform_;
     QGraphicsItem * item_;
-    QSharedPointer<int> lifeToken_;
 };
 
 /*

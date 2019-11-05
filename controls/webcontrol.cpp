@@ -88,8 +88,10 @@ QString WebControl::toolsString() const
 
 QWidget * WebControl::createWidget(ResourceView * res)
 {
+    (void)res;
     QWebEngineView * view = new QWebEngineView();
     new TouchEventForwarder(view, this);
+    view->resize(1024, 768);
     QObject::connect(view->page(), &QWebEnginePage::loadFinished,
                      this, &WebControl::loadFinished);
     QObject::connect(view->page(), &QWebEnginePage::contentsSizeChanged,
@@ -99,14 +101,6 @@ QWidget * WebControl::createWidget(ResourceView * res)
 
 void WebControl::attached()
 {
-    QVariant sizeHint = res_->property("sizeHint");
-    if (sizeHint.isValid()) {
-        QSizeF size = sizeHint.toSizeF();
-        if (size.width() < 1.0) {
-            QRectF rect = item_->parentItem()->boundingRect();
-            resize(QSizeF(rect.width() * size.width(), rect.height() * size.height()));
-        }
-    }
     QWebEngineView * view = qobject_cast<QWebEngineView *>(widget_);
     view->load(res_->resource()->url());
 }
@@ -116,10 +110,15 @@ QSizeF WebControl::sizeHint()
     return widget_->size();
 }
 
+// called before attached
 void WebControl::setSizeHint(QSizeF const & size)
 {
-    if (size.width() > 1.0)
+    if (size.width() < 10.0) {
+        QRectF rect = item_->parentItem()->boundingRect();
+        resize(QSizeF(rect.width() * size.width(), rect.height() * size.height()));
+    } else {
         resize(size);
+    }
 }
 
 void WebControl::loadFinished()

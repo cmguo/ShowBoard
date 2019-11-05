@@ -105,20 +105,15 @@ void ResourcePageItem::insertResource(int layer)
 {
     ResourceView *res = page_->resources()[layer];
     Control * ct = control_manager_->createControl(res);
-    ct->attaching();
-    ct->item()->setParentItem(this);
+    ct->attachTo(this);
     if (layer < childItems().size() - 1) {
         ct->item()->stackBefore(childItems()[layer]);
     }
-    ct->relayout();
-    ct->attached();
 }
 
 void ResourcePageItem::removeResource(int layer)
 {
     QGraphicsItem * item = childItems()[layer];
     Control * ct = Control::fromItem(item);
-    ct->detaching();
-    scene()->removeItem(item);
-    ct->detached();
+    ct->detachFrom(this);
 }

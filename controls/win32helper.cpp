@@ -58,3 +58,36 @@ void closeWindow(intptr_t hwnd)
     HWND hWnd = reinterpret_cast<HWND>(hwnd);
     ::CloseWindow(hWnd);
 }
+
+void attachWindow(intptr_t hwnd, intptr_t hwndParent, int left, int top)
+{
+    HWND hWndParent = reinterpret_cast<HWND>(hwndParent);
+    HWND hWnd = reinterpret_cast<HWND>(hwnd);
+    LONG style = ::GetWindowLongA(hWnd, GWL_STYLE);
+    style |= WS_CHILDWINDOW;
+    style &= ~WS_POPUP;
+    style &= ~WS_SYSMENU;
+    style &= ~WS_MAXIMIZEBOX;
+    style &= ~WS_MINIMIZEBOX;
+    ::SetWindowLongA(hWnd, GWL_STYLE, style);
+    ::SetParent(hWnd, hWndParent);
+    if (left < 0 || top < 0) {
+        RECT rect;
+        ::GetWindowRect(hWndParent, &rect);
+        if (left < 0)
+            left += rect.right - rect.left;
+        if (top < 0)
+            top += rect.bottom - rect.top;
+    }
+    ::SetWindowPos(hWnd, HWND_TOP, left, top, 0, 0, SWP_NOSIZE);
+    ::ShowWindow(hWnd, SW_SHOWNORMAL);
+}
+
+void moveChildWindow(intptr_t hwnd, int dx, int dy)
+{
+    HWND hWnd = reinterpret_cast<HWND>(hwnd);
+    RECT rect;
+    ::GetWindowRect(hWnd, &rect);
+    ::SetWindowPos(hWnd, HWND_TOP, rect.left + dx, rect.top + dy,
+                   0, 0, SWP_NOSIZE | SWP_NOZORDER);
+}

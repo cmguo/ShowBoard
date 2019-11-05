@@ -46,7 +46,7 @@ QPainterPath Graph2D::path()
 
 QPromise<void> Graph2D::load()
 {
-    QWeakPointer<int> life(lifeToken_);
+    QWeakPointer<int> life(this->life());
     if (!Graph::empty())
         return QPromise<void>::resolve();
     return res_->getStream().then([this, life](QIODevice * s) {

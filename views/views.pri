@@ -2,6 +2,7 @@ HEADERS += \
     $$PWD/itemselector.h \
     $$PWD/resourcepageitem.h \
     $$PWD/selectbox.h \
+    $$PWD/stateitem.h \
     $$PWD/toolbarwidget.h \
     $$PWD/toolboxitem.h \
     $$PWD/whitecanvas.h \
@@ -11,6 +12,7 @@ SOURCES += \
     $$PWD/itemselector.cpp \
     $$PWD/resourcepageitem.cpp \
     $$PWD/selectbox.cpp \
+    $$PWD/stateitem.cpp \
     $$PWD/toolbarwidget.cpp \
     $$PWD/toolboxitem.cpp \
     $$PWD/whitecanvas.cpp \

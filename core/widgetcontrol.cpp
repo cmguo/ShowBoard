@@ -30,24 +30,21 @@ QGraphicsItem * WidgetControl::create(ResourceView *res)
     return item;
 }
 
-void WidgetControl::relayout()
+void WidgetControl::layout(QRectF const &rect)
 {
-    if (flags_ & FullLayout) {
-        QGraphicsProxyWidget * item = static_cast<QGraphicsProxyWidget*>(item_);
-        QSizeF size = item->parentItem()->boundingRect().size();
-        resize(size);
-    }
+    QGraphicsProxyWidget * item = static_cast<QGraphicsProxyWidget*>(item_);
+    item->resize(rect.size());
+    item->setPos(rect.topLeft());
 }
 
 void WidgetControl::detached()
 {
     static_cast<QGraphicsProxyWidget*>(item_)->setWidget(nullptr);
-    Control::detached();
 }
 
 void WidgetControl::resize(QSizeF const & size)
 {
-    QGraphicsProxyWidget * item = static_cast<QGraphicsProxyWidget*>(item_);
-    item->resize(size);
-    item->setPos(QPointF(size.width(), size.height()) / -2.0);
+    QRectF rect(QPointF(0, 0), size);
+    rect.moveCenter(QPointF(0, 0));
+    layout(rect);
 }

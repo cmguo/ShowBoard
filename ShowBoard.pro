@@ -1,4 +1,4 @@
-QT += widgets network multimediawidgets webenginewidgets axcontainer
+QT += widgets network multimediawidgets webenginewidgets axcontainer svg
 
 TEMPLATE = lib
 DEFINES += SHOWBOARD_LIBRARY

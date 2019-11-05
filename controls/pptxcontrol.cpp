@@ -1,17 +1,22 @@
 #include "pptxcontrol.h"
 #include "core/resourceview.h"
 #include "core/resource.h"
+#include "views/stateitem.h"
 
-#include <QAxObject>
 #include <QUrl>
-#include <QGraphicsTextItem>
 #include <QDir>
+#include <QMouseEvent>
+#include <QAxObject>
+#include <QGraphicsTextItem>
+#include <QToolButton>
 
 extern intptr_t findWindow(char const * titleParts[]);
 extern bool isWindowShown(intptr_t hwnd);
 extern void showWindow(intptr_t hwnd);
 extern void hideWindow(intptr_t hwnd);
 extern void setWindowAtTop(intptr_t hwnd);
+extern void attachWindow(intptr_t hwndParent, intptr_t hwnd, int left, int top);
+extern void moveChildWindow(intptr_t hwnd, int dx, int dy);
 
 QAxObject * PptxControl::application_ = nullptr;
 
@@ -23,12 +28,16 @@ static char const * toolstr =
         "prev()|上一页|:/showboard/icons/icon_delete.png;"
         "hide()|结束演示|:/showboard/icons/icon_delete.png";
 
+static constexpr int ITEM_KEY_TIMER = 1100;
+
 PptxControl::PptxControl(ResourceView * res)
-    : Control(res, {KeepAspectRatio, FullSelect})
-    , page_(0)
+    : Control(res, {KeepAspectRatio})
+    , slideNumber_(1)
     , presentation_(nullptr)
     , view_(nullptr)
     , hwnd_(0)
+    , stateItem_(nullptr)
+    , stopButton_(nullptr)
 {
     if (application_ == nullptr) {
         application_ = new QAxObject("PowerPoint.Application");
@@ -58,43 +67,33 @@ QGraphicsItem * PptxControl::create(ResourceView * res)
 {
     QString path = res->url().path();
     name_ = path.mid(path.lastIndexOf('/') + 1);
-    QVariant slideNumber = res->property("slideNumber");
-    if (slideNumber.isValid())
-        page_ = slideNumber.toInt();
-    else
-        page_ = 1;
-    return new QGraphicsPixmapItem;
+    QGraphicsItem * item = new QGraphicsPixmapItem;
+    StateItem * state = new StateItem(item); // state
+    QObject::connect(state, &StateItem::clicked, this, [this]() {
+        show();
+    });
+    stateItem_ = state;
+    return item;
 }
 
 
-QString PptxControl::toolsString() const
+void PptxControl::attached()
 {
-    return toolstr;
-}
-
-void PptxControl::attaching()
-{
-    Control::attaching();
     open();
-}
-
-intptr_t PptxControl::hwnd() const
-{
-    return hwnd_;
 }
 
 void PptxControl::open()
 {
     if (presentation_)
         return;
+    static_cast<StateItem*>(stateItem_)->setSvgFile(
+                QString(":/showboard/icons/loading.svg"), 45.0);
     QVariant localUrl = res_->property("localUrl");
     if (localUrl.isValid()) {
         open(localUrl.toUrl());
         return;
     }
-    QGraphicsPixmapItem * item = static_cast<QGraphicsPixmapItem *>(item_);
-    item->setPixmap(QPixmap(":/showboard/icons/icon_delete.png"));
-    QWeakPointer<int> life(lifeToken_);
+    QWeakPointer<int> life(this->life());
     res_->resource()->getLocalUrl().then([this, life](QUrl const & url) {
         if (life.isNull())
             return;
@@ -115,7 +114,10 @@ void PptxControl::open(QUrl const & url)
                          this, SLOT(onException(int,QString,QString,QString)));
         presentation_ = presentation;
         total_ = presentation_->querySubObject("Slides")->property("Count").toInt();
-        thumb(page_);
+        thumb(slideNumber_);
+        static_cast<StateItem*>(stateItem_)->setSvgFiles(
+                    QString(":/showboard/icons/play.normal.svg"),
+                    QString(":/showboard/icons/play.press.svg"));
         emit opened();
     }
 }
@@ -124,6 +126,10 @@ void PptxControl::reopen()
 {
     view_ = nullptr;
     hwnd_ = 0;
+    if (stopButton_) {
+        delete stopButton_;
+        stopButton_ = nullptr;
+    }
     presentation_ = nullptr;
     open(); // reopen
 }
@@ -139,14 +145,14 @@ void PptxControl::thumb(int page)
     if (!slide)
         return;
     QString file = QDir::tempPath().replace('/', '\\') + "\\showboard.thumb.ppt.jpg";
-    slide->dynamicCall("Export(QString, QString)", file, "JPG");
+    //slide->dynamicCall("Export(QString, QString, long, long)", file, "JPG", 320, 180);
     QPixmap pixmap(file);
     if (!pixmap.isNull()) {
         QGraphicsPixmapItem * item = static_cast<QGraphicsPixmapItem *>(item_);
         item->setPixmap(pixmap);
         if (!view_) {
             item->setOffset(pixmap.width() / -2, pixmap.height() / -2);
-            sizeChanged(pixmap.size());
+            initScale(pixmap.size());
         }
     }
 }
@@ -156,7 +162,7 @@ void PptxControl::show(int page)
     if (!presentation_)
         return;
     if (page == 0) {
-        page = page_;
+        page = slideNumber_;
     }
     if (view_) {
         showWindow(hwnd_);
@@ -175,28 +181,24 @@ void PptxControl::show(int page)
     if (page)
         jump(page);
     setWindowAtTop(hwnd_);
-    QTimer * timer = new QTimer(this);
-    timer->setInterval(500);
-    timer->setSingleShot(false);
-    timer->start();
-    QObject::connect(timer, &QTimer::timeout, this, [this, timer]() {
-        if (isWindowShown(hwnd_)) {
-            try {
-                QAxObject * slide = view_->querySubObject("Slide");
-                if (slide) {
-                    QVariant slideNumber = slide->property("SlideNumber");
-                    if (slideNumber.isValid()) {
-                        page_ = slideNumber.toInt();
-                    }
-                }
-            } catch(...) {
-            }
-        } else {
-            timer->stop();
-            timer->deleteLater();
-            reopen();
-        }
-    });
+    int timer = startTimer(500);
+    item_->setData(ITEM_KEY_TIMER, timer);
+}
+
+void PptxControl::showReturnButton()
+{
+    QToolButton * button = new QToolButton;
+    button->setWindowFlag(Qt::FramelessWindowHint);
+    button->setAttribute(Qt::WA_TranslucentBackground);
+    button->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    button->setStyleSheet("background-color:#80000000;");
+    button->setIconSize({48, 48});
+    button->setIcon(QPixmap(":/showboard/icons/stop.normal.svg"));
+    button->installEventFilter(this);
+    button->setVisible(true);
+    attachWindow(static_cast<intptr_t>(button->winId()),
+                 hwnd_, -72, -72);
+    stopButton_ = button;
 }
 
 void PptxControl::next()
@@ -204,8 +206,8 @@ void PptxControl::next()
     if (view_) {
         view_->dynamicCall("Next()");
         thumb(0);
-    } else if (presentation_ && page_ < total_) {
-        thumb(++page_);
+    } else if (presentation_ && slideNumber_ < total_) {
+        thumb(++slideNumber_);
     }
 }
 
@@ -214,8 +216,8 @@ void PptxControl::jump(int page)
     if (view_) {
         view_->dynamicCall("GotoSlide(int)", page);
         thumb(0);
-    } else if (presentation_ && page_ > 0 && page_ <= total_) {
-        thumb(page_ = page);
+    } else if (presentation_ && slideNumber_ > 0 && slideNumber_ <= total_) {
+        thumb(slideNumber_ = page);
     }
 }
 
@@ -224,14 +226,14 @@ void PptxControl::prev()
     if (view_) {
         view_->dynamicCall("Previous()");
         thumb(0);
-    } else if (presentation_ && page_ > 1) {
-        thumb(--page_);
+    } else if (presentation_ && slideNumber_ > 1) {
+        thumb(--slideNumber_);
     }
 }
 
 void PptxControl::hide()
 {
-    thumb(page_);
+    thumb(slideNumber_);
     hideWindow(hwnd_);
 }
 
@@ -241,6 +243,11 @@ void PptxControl::close()
         return;
     delete view_;
     view_ = nullptr;
+    hwnd_ = 0;
+    if (stopButton_) {
+        delete stopButton_;
+        stopButton_ = nullptr;
+    }
     presentation_->setProperty("Saved", true);
     presentation_->dynamicCall("Close()");
     delete presentation_;
@@ -252,8 +259,69 @@ void PptxControl::close()
 void PptxControl::detached()
 {
     close();
-    res_->setProperty("slideNumber", page_);
-    Control::detached();
+}
+
+void PptxControl::timerEvent(QTimerEvent * event)
+{
+    if (event->timerId() == item_->data(ITEM_KEY_TIMER)) {
+        if (isWindowShown(hwnd_)) {
+            if (!stopButton_)
+                showReturnButton();
+            try {
+                QAxObject * slide = view_->querySubObject("Slide");
+                if (slide) {
+                    QVariant slideNumber = slide->property("SlideNumber");
+                    if (slideNumber.isValid()) {
+                        slideNumber_ = slideNumber.toInt();
+                    }
+                }
+            } catch(...) {
+            }
+        } else {
+            killTimer(event->timerId());
+            reopen();
+        }
+    }
+}
+
+bool PptxControl::eventFilter(QObject *obj, QEvent * event)
+{
+    if (obj != stopButton_)
+        return false;
+    switch (event->type()) {
+    case QEvent::MouseMove: {
+        QPoint lpos = obj->property("lastPos").toPoint();
+        QPoint pos = static_cast<QMouseEvent*>(event)->pos();
+        moveChildWindow(static_cast<intptr_t>(stopButton_->winId()),
+                        pos.x() - lpos.x(), pos.y() - lpos.y());
+        obj->setProperty("moved", true);
+    } break;
+    case QEvent::MouseButtonPress:
+        static_cast<QToolButton*>(stopButton_)->setIcon(
+                    QPixmap(":/showboard/icons/stop.press.svg"));
+        obj->setProperty("lastPos", static_cast<QMouseEvent*>(event)->pos());
+        obj->setProperty("moved", false);
+        break;
+    case QEvent::MouseButtonRelease:
+        static_cast<QToolButton*>(stopButton_)->setIcon(
+                    QPixmap(":/showboard/icons/stop.normal.svg"));
+        if (!obj->property("moved").toBool())
+            hide();
+        break;
+    default:
+        return false;
+    }
+    return true;
+}
+
+QString PptxControl::toolsString() const
+{
+    return toolstr;
+}
+
+intptr_t PptxControl::hwnd() const
+{
+    return hwnd_;
 }
 
 void PptxControl::onPropertyChanged(const QString &name)

@@ -2,16 +2,15 @@
 #define RESOURCEVIEW_H
 
 #include "ShowBoard_global.h"
+#include "lifeobject.h"
 
 #include <qexport.h>
 
-#include <QObject>
 #include <QTransform>
-#include <QSharedPointer>
 
 class Resource;
 
-class SHOWBOARD_EXPORT ResourceView : public QObject
+class SHOWBOARD_EXPORT ResourceView : public LifeObject
 {
     Q_OBJECT
 public:
@@ -32,6 +31,7 @@ public:
         //  this resource will be split into two and new resource is insert between
         //  special used for stroke writen
         Splittable = 1 << 8,
+        SavedSession = 1 << 9,
     };
 
     Q_DECLARE_FLAGS(Flags, Flag)
@@ -49,9 +49,7 @@ public:
 protected:
     ResourceView(ResourceView const & res);
 
-signals:
-
-public slots:
+public:
     Resource * resource() const
     {
         return res_;
@@ -73,16 +71,18 @@ public slots:
         return &transform_;
     }
 
+public:
     /*
      * move this resource to top in z-order
      */
     void moveTop();
 
+    void setSaved();
+
 protected:
     Resource * res_;
     Flags flags_;
     QTransform transform_;
-    QSharedPointer<int> lifeToken_;
 };
 
 /*

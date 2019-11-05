@@ -38,14 +38,13 @@ Control * Control::fromItem(QGraphicsItem * item)
 ToolButton Control::btnCopy = { "copy", "复制", ":/showboard/icons/icon_copy.png" };
 ToolButton Control::btnDelete = { "delete", "删除", ":/showboard/icons/icon_delete.png" };
 
-static void nopdel(int *) {}
-
 Control::Control(ResourceView *res, Flags flags, Flags clearFlags)
     : flags_((DefaultFlags | flags) & ~clearFlags)
     , res_(res)
-    , lifeToken_(reinterpret_cast<int*>(1), nopdel)
 {
     transform_ = new QControlTransform(res->transform());
+    if (res_->flags() & ResourceView::SavedSession)
+        flags_ |= RestoreSession;
 }
 
 Control::~Control()
@@ -57,17 +56,41 @@ Control::~Control()
     res_ = nullptr;
 }
 
-void Control::load()
+void Control::attachTo(QGraphicsItem * parent)
 {
     item_ = create(res_);
+    attaching();
+    item_->setAcceptTouchEvents(true);
+    item_->setData(ITEM_KEY_CONTROL, QVariant::fromValue(this));
+    item_->setTransformations({transform_});
+    item_->setParentItem(parent);
+    loadSettings();
+    relayout();
+    attached();
+}
+
+void Control::detachFrom(QGraphicsItem *parent)
+{
+    detaching();
+    saveSettings();
+    (void) parent;
+    item_->scene()->removeItem(item_);
+    item_->setTransformations({});
+    item_->setData(ITEM_KEY_CONTROL, QVariant());
+    detached();
+    //deleteLater();
+    delete this;
+}
+
+void Control::relayout()
+{
+    if (flags_ & FullLayout) {
+        layout(item_->parentItem()->boundingRect());
+    }
 }
 
 void Control::attaching()
 {
-    item_->setAcceptTouchEvents(true);
-    item_->setData(ITEM_KEY_CONTROL, QVariant::fromValue(this));
-    item_->setTransformations({transform_});
-    loadSettings();
 }
 
 void Control::attached()
@@ -80,16 +103,6 @@ void Control::detaching()
 
 void Control::detached()
 {
-    item_->setTransformations({});
-    item_->setData(ITEM_KEY_CONTROL, QVariant());
-    //deleteLater();
-    saveSettings();
-    delete this;
-}
-
-void Control::save()
-{
-
 }
 
 void Control::loadSettings()
@@ -106,13 +119,13 @@ void Control::saveSettings()
     }
     for (QByteArray & k : dynamicPropertyNames())
         res_->setProperty(k, property(k));
+    res_->setSaved();
 }
 
-void Control::relayout()
+void Control::layout(QRectF const & rect)
 {
-    if ((flags_ & FullLayout)
-            && item_->type() == QGraphicsRectItem::Type) {
-        static_cast<QGraphicsRectItem*>(item_)->setRect(item_->parentItem()->boundingRect());
+    if (item_->type() == QGraphicsRectItem::Type) {
+        static_cast<QGraphicsRectItem*>(item_)->setRect(rect);
     }
 }
 
@@ -134,7 +147,7 @@ QString Control::toolsString() const
     return nullptr;
 }
 
-void Control::sizeChanged(QSizeF size)
+void Control::initScale(QSizeF size)
 {
     if (item_->parentItem() == nullptr)
         return;
@@ -152,10 +165,11 @@ void Control::sizeChanged(QSizeF size)
         canvas->setGeometry(rect);
         return;
     }
-    if (flags_ & FullLayout) {
+    if (flags_ & (FullLayout | RestoreSession)) {
         return;
     }
     qreal scale = 1.0;
+    size += QSizeF(20.0, 20.0);
     while (size.width() > ps.width() || size.height() > ps.height()) {
         size /= 2.0;
         scale /= 2.0;
