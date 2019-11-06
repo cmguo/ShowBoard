@@ -2,6 +2,7 @@
 #include "resourceview.h"
 #include "toolbutton.h"
 #include "views/whitecanvas.h"
+#include "views/stateitem.h"
 
 #include <QGraphicsItem>
 #include <QGraphicsScene>
@@ -41,6 +42,7 @@ ToolButton Control::btnDelete = { "delete", "删除", ":/showboard/icons/icon_de
 Control::Control(ResourceView *res, Flags flags, Flags clearFlags)
     : flags_((DefaultFlags | flags) & ~clearFlags)
     , res_(res)
+    , stateItem_(nullptr)
 {
     transform_ = new QControlTransform(res->transform());
     if (res_->flags() & ResourceView::SavedSession)
@@ -60,6 +62,7 @@ void Control::attachTo(QGraphicsItem * parent)
 {
     item_ = create(res_);
     attaching();
+    initPosition(parent);
     item_->setAcceptTouchEvents(true);
     item_->setData(ITEM_KEY_CONTROL, QVariant::fromValue(this));
     item_->setTransformations({transform_});
@@ -147,6 +150,50 @@ QString Control::toolsString() const
     return nullptr;
 }
 
+static qreal polygonArea(QPolygonF const & p)
+{
+    qreal area = 0;
+    int j = 0;
+    for (int i = 1; i < p.size(); ++i) {
+        area += (p[j].x() + p[i].x()) * (p[j].y() - p[i].y());
+        j = i;
+    }
+    return qAbs(area) / 2.0;
+}
+
+void Control::initPosition(QGraphicsItem *parent)
+{
+    if (flags_ & FullLayout)
+        return;
+    QPolygonF polygon;
+    for (QGraphicsItem * c : parent->childItems()) {
+        if (Control::fromItem(c)->flags() & FullLayout)
+            return;
+        polygon = polygon.united(c->mapToParent(c->boundingRect()));
+    }
+    QRectF rect = parent->boundingRect();
+    qreal dx = rect.width() / 3.0;
+    qreal dy = rect.height() / 3.0;
+    rect.adjust(0, 0, -dx - dx, -dy - dy);
+    qreal minArea = dx * dy;
+    QPointF pos;
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            qreal area = polygonArea(polygon.intersected(rect));
+            if (qFuzzyIsNull(minArea - area) && i == 1 && j == 1) {
+                pos = rect.center();
+            } else if (minArea > area) {
+                minArea = area;
+                pos = rect.center();
+            }
+            rect.adjust(dx, 0, dx, 0);
+        }
+        qreal dx3 = -dx * 3;
+        rect.adjust(dx3, dy, dx3, dy);
+    }
+    res_->transform()->translate(pos.x(), pos.y());
+}
+
 void Control::initScale(QSizeF size)
 {
     if (item_->parentItem() == nullptr)
@@ -169,10 +216,20 @@ void Control::initScale(QSizeF size)
         return;
     }
     qreal scale = 1.0;
-    size += QSizeF(20.0, 20.0);
+    QVariant sizeHint = property("sizeHint");
+    if (sizeHint.isValid()) {
+        QSizeF sh = sizeHint.toSizeF();
+        if (sh.width() < 10.0) {
+            sh = QSizeF(ps.width() * sh.width(), ps.height() * sh.height());
+        }
+        ps = sh;
+    }
     while (size.width() > ps.width() || size.height() > ps.height()) {
         size /= 2.0;
         scale /= 2.0;
+    }
+    if (stateItem_) {
+        stateItem_->setScale(1.0 / scale, 1.0 / scale);
     }
     //while (size.width() * 2.0 < ps.width() && size.height() * 2.0 < ps.height()) {
     //    size *= 2.
@@ -218,7 +275,23 @@ void Control::scale(QRectF const & origin, QRectF & result)
     QPointF p2 = result.topLeft();
     d = p2 - p1;
     t->translate(d.x() / t->m11(), d.y() / t->m22());
+    stateItem_->setScale(1.0 / t->m11(), 1.0 / t->m22());
     updateTransform();
+}
+
+StateItem * Control::stateItem()
+{
+    if (stateItem_)
+        return stateItem_;
+    stateItem_ = new StateItem(item_);
+    return stateItem_;
+}
+
+void Control::clearStateItem()
+{
+    item_->scene()->removeItem(stateItem_);
+    delete stateItem_;
+    stateItem_ = nullptr;
 }
 
 void Control::updateTransform()

@@ -6,6 +6,8 @@ ResourceView::ResourceView(Resource * res, Flags flags, Flags clearFlags)
     : res_(res)
     , flags_((DefaultFlags | flags) & ~clearFlags)
 {
+    QString path = res->url().path();
+    name_ = path.mid(path.lastIndexOf('/') + 1);
     res_->setParent(this);
 }
 

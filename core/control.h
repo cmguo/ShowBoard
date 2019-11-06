@@ -9,6 +9,7 @@
 class QGraphicsItem;
 class ResourceView;
 class QGraphicsTransform;
+class StateItem;
 struct ToolButton;
 
 class SHOWBOARD_EXPORT Control : public LifeObject
@@ -186,6 +187,8 @@ protected:
     virtual void detached();
 
 protected:
+    virtual void initPosition(QGraphicsItem *parent);
+
     /*
      * called by child control to notify item init size change
      *  this function will calc suitable init scale for item
@@ -197,6 +200,10 @@ protected:
      */
     virtual void layout(QRectF const & rect);
 
+    StateItem * stateItem();
+
+    void clearStateItem();
+
     void updateTransform();
 
 private:
@@ -207,6 +214,7 @@ protected:
     ResourceView * res_;
     QGraphicsTransform * transform_;
     QGraphicsItem * item_;
+    StateItem * stateItem_;
 };
 
 /*

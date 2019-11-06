@@ -3,6 +3,7 @@
 #include <QFile>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
+#include <QMetaEnum>
 #include <QDir>
 
 QNetworkAccessManager * Resource::network_ = nullptr;
@@ -62,12 +63,14 @@ QPromise<QIODevice *> Resource::getStream(bool all)
             };
             auto finished = [=]() {
                 if (reply->error())
-                    reject(reply->error());
+                    reject(std::exception(
+                               QMetaEnum::fromType<QNetworkReply::NetworkError>().key(reply->error())));
                 else
                     resolve(reply);
             };
             auto error = [=](QNetworkReply::NetworkError e) {
-                reject(e);
+                reject(std::exception(
+                           QMetaEnum::fromType<QNetworkReply::NetworkError>().key(e)));
             };
             if (all)
                 QObject::connect(reply, &QNetworkReply::finished, finished);

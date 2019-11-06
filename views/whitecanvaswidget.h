@@ -29,10 +29,6 @@ public:
 
     void setResourcePackage(ResourcePackage * pack);
 
-signals:
-
-public slots:
-
 private:
     virtual void resizeEvent(QResizeEvent *event) override;
 

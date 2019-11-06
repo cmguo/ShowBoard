@@ -17,12 +17,22 @@ SvgCache::SvgCache(QObject *parent)
 {
 }
 
+static QSvgRenderer * nil = reinterpret_cast<QSvgRenderer *>(1);
+
 QSvgRenderer * SvgCache::get(const QString &file)
 {
     QSvgRenderer * renderer = cache_.value(file);
     if (!renderer) {
         renderer = new QSvgRenderer(file, this);
-        cache_[file] = renderer;
+        if (renderer->isValid())
+            cache_[file] = renderer;
+        else {
+            cache_[file] = nil;
+            delete renderer;
+            renderer = nullptr;
+        }
+    } else if (renderer == nil) {
+        renderer = nullptr;
     }
     return renderer;
 }

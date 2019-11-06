@@ -13,7 +13,7 @@
 ItemSelector::ItemSelector(QGraphicsItem * parent)
     : QGraphicsRectItem(parent)
     , force_(false)
-    , autoTop_(false)
+    , autoTop_(true)
     , select_(nullptr)
     , selectControl_(nullptr)
     , type_(None)

@@ -124,7 +124,7 @@ void ResourcePage::moveResource(int pos, int newPos)
         --pos1;
         if (pos1 == newPos) --newPos;
     }
-    while (pos2 > resources_.size() - 2 && (resources_[pos2 + 1]->flags() & ResourceView::StickOn)) {
+    while (pos2 < resources_.size() - 2 && (resources_[pos2 + 1]->flags() & ResourceView::StickOn)) {
         ++pos2;
         if (pos2 == newPos) ++newPos;
     }

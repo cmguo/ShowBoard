@@ -25,7 +25,7 @@ protected:
     void setSizeHint(QSizeF const & size);
 
 private slots:
-    void loadFinished();
+    void loadFinished(bool ok);
 
     void contentsSizeChanged(const QSizeF &size);
 

@@ -11,6 +11,8 @@ public:
 
 protected:
     virtual QGraphicsItem * create(ResourceView * res);
+
+    virtual void attached() override;
 };
 
 #endif // IMAGECONTROL_H

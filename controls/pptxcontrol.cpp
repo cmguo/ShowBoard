@@ -32,11 +32,11 @@ static constexpr int ITEM_KEY_TIMER = 1100;
 
 PptxControl::PptxControl(ResourceView * res)
     : Control(res, {KeepAspectRatio})
+    , total_(0)
     , slideNumber_(1)
     , presentation_(nullptr)
     , view_(nullptr)
     , hwnd_(0)
-    , stateItem_(nullptr)
     , stopButton_(nullptr)
 {
     if (application_ == nullptr) {
@@ -65,20 +65,18 @@ PptxControl::~PptxControl()
 
 QGraphicsItem * PptxControl::create(ResourceView * res)
 {
-    QString path = res->url().path();
-    name_ = path.mid(path.lastIndexOf('/') + 1);
+    (void) res;
     QGraphicsItem * item = new QGraphicsPixmapItem;
-    StateItem * state = new StateItem(item); // state
-    QObject::connect(state, &StateItem::clicked, this, [this]() {
-        show();
-    });
-    stateItem_ = state;
     return item;
 }
 
 
 void PptxControl::attached()
 {
+    stateItem()->setLoading();
+    QObject::connect(stateItem(), &StateItem::clicked, this, [this]() {
+        show();
+    });
     open();
 }
 
@@ -86,8 +84,6 @@ void PptxControl::open()
 {
     if (presentation_)
         return;
-    static_cast<StateItem*>(stateItem_)->setSvgFile(
-                QString(":/showboard/icons/loading.svg"), 45.0);
     QVariant localUrl = res_->property("localUrl");
     if (localUrl.isValid()) {
         open(localUrl.toUrl());
@@ -99,13 +95,19 @@ void PptxControl::open()
             return;
         res_->setProperty("localUrl", url);
         open(url);
+    }).fail([this, life](std::exception & e) {
+        if (life.isNull())
+            return;
+        stateItem()->setFailed(e.what());
     });
 }
 
 void PptxControl::open(QUrl const & url)
 {
-    if (!presentations_)
+    if (!presentations_) {
+        stateItem()->setFailed("No PPT Application");
         return;
+    }
     QAxObject * presentation = presentations_->querySubObject(
                 "Open(const QString&, bool, bool, bool)",
                 url.toLocalFile(), true, false, false);
@@ -113,12 +115,19 @@ void PptxControl::open(QUrl const & url)
         QObject::connect(presentation, SIGNAL(exception(int,QString,QString,QString)),
                          this, SLOT(onException(int,QString,QString,QString)));
         presentation_ = presentation;
+        bool first = total_ == 0;
         total_ = presentation_->querySubObject("Slides")->property("Count").toInt();
-        thumb(slideNumber_);
-        static_cast<StateItem*>(stateItem_)->setSvgFiles(
-                    QString(":/showboard/icons/play.normal.svg"),
-                    QString(":/showboard/icons/play.press.svg"));
+        if (first) {
+            stateItem()->setLoaded(
+                        QString(":/showboard/icons/play.svg"));
+        }
+        thumb(slideNumber_, first);
         emit opened();
+        bool autoShow = property("autoShow").toBool();
+        if (first && autoShow)
+            show();
+    } else {
+        stateItem()->setFailed("Open Failed");
     }
 }
 
@@ -134,7 +143,7 @@ void PptxControl::reopen()
     open(); // reopen
 }
 
-void PptxControl::thumb(int page)
+void PptxControl::thumb(int page, bool first)
 {
     QAxObject * slide = nullptr;
     if (page == 0) {
@@ -145,12 +154,12 @@ void PptxControl::thumb(int page)
     if (!slide)
         return;
     QString file = QDir::tempPath().replace('/', '\\') + "\\showboard.thumb.ppt.jpg";
-    //slide->dynamicCall("Export(QString, QString, long, long)", file, "JPG", 320, 180);
+    slide->dynamicCall("Export(QString, QString, long, long)", file, "JPG", 320, 180);
     QPixmap pixmap(file);
     if (!pixmap.isNull()) {
         QGraphicsPixmapItem * item = static_cast<QGraphicsPixmapItem *>(item_);
         item->setPixmap(pixmap);
-        if (!view_) {
+        if (first) {
             item->setOffset(pixmap.width() / -2, pixmap.height() / -2);
             initScale(pixmap.size());
         }
@@ -189,15 +198,16 @@ void PptxControl::showReturnButton()
 {
     QToolButton * button = new QToolButton;
     button->setWindowFlag(Qt::FramelessWindowHint);
+    button->setWindowFlag(Qt::SubWindow);
     button->setAttribute(Qt::WA_TranslucentBackground);
     button->setToolButtonStyle(Qt::ToolButtonIconOnly);
-    button->setStyleSheet("background-color:#80000000;");
+    //button->setStyleSheet("background-color:#80000000;");
     button->setIconSize({48, 48});
     button->setIcon(QPixmap(":/showboard/icons/stop.normal.svg"));
     button->installEventFilter(this);
-    button->setVisible(true);
     attachWindow(static_cast<intptr_t>(button->winId()),
                  hwnd_, -72, -72);
+    button->setVisible(true);
     stopButton_ = button;
 }
 
@@ -241,6 +251,7 @@ void PptxControl::close()
 {
     if (!presentation_)
         return;
+    qDebug() << "PptxControl::close()";
     delete view_;
     view_ = nullptr;
     hwnd_ = 0;

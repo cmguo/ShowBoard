@@ -13,6 +13,9 @@ class Resource;
 class SHOWBOARD_EXPORT ResourceView : public LifeObject
 {
     Q_OBJECT
+
+    Q_PROPERTY(QString name MEMBER name_)
+
 public:
     static constexpr char const * EXPORT_ATTR_TYPE = "rtype";
     static constexpr char const * EXPORT_ATTR_FACTORY = "rfactory";
@@ -62,6 +65,11 @@ public:
 
     QUrl const & url() const;
 
+    QString const & name() const
+    {
+        return name_;
+    }
+
     /*
      * for move, scale, rotate
      *  these are all saved in transform
@@ -82,6 +90,7 @@ public:
 protected:
     Resource * res_;
     Flags flags_;
+    QString name_;
     QTransform transform_;
 };
 

@@ -61,14 +61,13 @@ private:
 
     void reopen();
 
-    void thumb(int page);
+    void thumb(int page, bool first = false);
 
     void showReturnButton();
 
 private:
     static QAxObject * application_;
 
-    QString name_;
     int total_;
     int slideNumber_;
 
@@ -77,7 +76,6 @@ private:
     QAxObject * presentation_;
     QAxObject * view_;
     intptr_t hwnd_;
-    QGraphicsItem * stateItem_;
     QWidget * stopButton_;
 };
 

@@ -10,11 +10,26 @@ class StateItem : public QGraphicsSvgItem
 {
     Q_OBJECT
 public:
+    enum State
+    {
+        Loading,
+        Loaded,
+        Failed,
+    };
+
+    Q_ENUM(State)
+
+public:
     StateItem(QGraphicsItem * parent = nullptr);
 
-    void setSvgFile(QString const & file, qreal rotate);
+public:
+    void setLoading();
 
-    void setSvgFiles(QString const & fileNormal, QString const & filePressed);
+    void setLoaded(QString const & icon);
+
+    void setFailed(QString const & msg);
+
+    void setScale(qreal sx, qreal sy);
 
 signals:
     void clicked();
@@ -29,9 +44,17 @@ private:
     virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent * event) override;
 
 private:
-    SvgCache * cache_;
+    static SvgCache * cache_;
+    static QSvgRenderer * loading_;
+    static QSvgRenderer * failed_;
+
+private:
     QSvgRenderer * normal_;
+    QSvgRenderer * hover_;
     QSvgRenderer * pressed_;
+
+private:
+    State state_;
     int timerId_;
     qreal rotate_;
 };

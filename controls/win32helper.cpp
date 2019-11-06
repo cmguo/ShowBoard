@@ -80,7 +80,9 @@ void attachWindow(intptr_t hwnd, intptr_t hwndParent, int left, int top)
             top += rect.bottom - rect.top;
     }
     ::SetWindowPos(hWnd, HWND_TOP, left, top, 0, 0, SWP_NOSIZE);
-    ::ShowWindow(hWnd, SW_SHOWNORMAL);
+    //::ShowWindow(hWnd, SW_SHOWNORMAL);
+    //::SetActiveWindow(hWndParent);
+    ::SetFocus(hWndParent);
 }
 
 void moveChildWindow(intptr_t hwnd, int dx, int dy)

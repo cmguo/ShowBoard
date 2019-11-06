@@ -1,6 +1,7 @@
 #include "webcontrol.h"
 #include "core/resource.h"
 #include "core/resourceview.h"
+#include "views/stateitem.h"
 
 #include <QWebEngineView>
 #include <QWebEngineSettings>
@@ -101,6 +102,7 @@ QWidget * WebControl::createWidget(ResourceView * res)
 
 void WebControl::attached()
 {
+    stateItem()->setLoading();
     QWebEngineView * view = qobject_cast<QWebEngineView *>(widget_);
     view->load(res_->resource()->url());
 }
@@ -121,10 +123,17 @@ void WebControl::setSizeHint(QSizeF const & size)
     }
 }
 
-void WebControl::loadFinished()
+void WebControl::loadFinished(bool ok)
 {
-    QWebEngineView * view = qobject_cast<QWebEngineView *>(widget_);
-    resize(view->page()->contentsSize());
+    if (ok) {
+        QWebEngineView * view = qobject_cast<QWebEngineView *>(widget_);
+        QSizeF size = view->page()->contentsSize();
+        resize(size);
+        clearStateItem();
+        initScale(size);
+    } else {
+        stateItem()->setFailed("Load failed");
+    }
 }
 
 void WebControl::contentsSizeChanged(const QSizeF &size)
