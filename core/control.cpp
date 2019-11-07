@@ -3,6 +3,7 @@
 #include "toolbutton.h"
 #include "views/whitecanvas.h"
 #include "views/stateitem.h"
+#include "core/transformhelper.h"
 
 #include <QGraphicsItem>
 #include <QGraphicsScene>
@@ -62,12 +63,12 @@ void Control::attachTo(QGraphicsItem * parent)
 {
     item_ = create(res_);
     attaching();
-    initPosition(parent);
     item_->setAcceptTouchEvents(true);
     item_->setData(ITEM_KEY_CONTROL, QVariant::fromValue(this));
     item_->setTransformations({transform_});
     item_->setParentItem(parent);
     loadSettings();
+    initPosition(parent);
     relayout();
     attached();
 }
@@ -88,7 +89,9 @@ void Control::detachFrom(QGraphicsItem *parent)
 void Control::relayout()
 {
     if (flags_ & FullLayout) {
-        layout(item_->parentItem()->boundingRect());
+        resize(item_->parentItem()->boundingRect().size());
+    } else {
+
     }
 }
 
@@ -125,9 +128,11 @@ void Control::saveSettings()
     res_->setSaved();
 }
 
-void Control::layout(QRectF const & rect)
+void Control::resize(QSizeF const & size)
 {
     if (item_->type() == QGraphicsRectItem::Type) {
+        QRectF rect(QPointF(0, 0), size);
+        rect.moveCenter({0, 0});
         static_cast<QGraphicsRectItem*>(item_)->setRect(rect);
     }
 }
@@ -163,12 +168,12 @@ static qreal polygonArea(QPolygonF const & p)
 
 void Control::initPosition(QGraphicsItem *parent)
 {
-    if (flags_ & FullLayout)
+    if (flags_ & (FullLayout | RestoreSession))
         return;
     QPolygonF polygon;
     for (QGraphicsItem * c : parent->childItems()) {
-        if (Control::fromItem(c)->flags() & FullLayout)
-            return;
+        if (c == item_ || Control::fromItem(c)->flags() & FullLayout)
+            continue;
         polygon = polygon.united(c->mapToParent(c->boundingRect()));
     }
     QRectF rect = parent->boundingRect();
@@ -194,11 +199,12 @@ void Control::initPosition(QGraphicsItem *parent)
     res_->transform()->translate(pos.x(), pos.y());
 }
 
-void Control::initScale(QSizeF size)
+void Control::initScale(QSizeF unused)
 {
     if (item_->parentItem() == nullptr)
         return;
     QSizeF ps = item_->parentItem()->boundingRect().size();
+    QSizeF size = item_->boundingRect().size();
     if (flags_ & CanvasBackground) {
         if (size.width() > ps.width() || size.height() > ps.height()) {
             if (size.width() < ps.width())
@@ -228,15 +234,16 @@ void Control::initScale(QSizeF size)
         size /= 2.0;
         scale /= 2.0;
     }
-    if (stateItem_) {
-        stateItem_->setScale(1.0 / scale, 1.0 / scale);
-    }
     //while (size.width() * 2.0 < ps.width() && size.height() * 2.0 < ps.height()) {
     //    size *= 2.
     //    scale *= 2.0;
     //}
-    res_->transform()->scale(scale, scale);
+    QTransform * t = res_->transform();
+    t->scale(scale / t->m11(), scale / t->m22());
     updateTransform();
+    if (stateItem_) {
+        stateItem_->updateTransform();
+    }
 }
 
 void Control::move(QPointF const & delta)
@@ -246,36 +253,33 @@ void Control::move(QPointF const & delta)
     updateTransform();
 }
 
-void Control::scale(QRectF const & origin, QRectF & result)
+void Control::scale(QRectF const & origin, bool positive, QRectF & result)
 {
     //result = origin;
     //result.adjust(0, 0, origin.width() / -2, origin.height() / -2);
-    QSizeF s1 = origin.size();
+    QSizeF s1 = item_->boundingRect().size();
     QSizeF s2 = result.size();
     QSizeF s(s2.width() / s1.width(), s2.height() / s1.height());
     QPointF d = result.center() - origin.center();
     if (flags_ & KeepAspectRatio) {
+        qreal sign = positive ? 1.0 : -1.0;
         if (s.width() > s.height()) {
-            s.setWidth(s.height());
-            d.setX(d.y() * s1.width() / s1.height());
-            result.setWidth(s1.width() * s.width());
+            d.setX(d.y() * sign * s1.width() / s1.height());
+            //d.setX(d.x() * s.height() / s.width());
+            result.setWidth(s1.width() * s.height());
         } else {
-            s.setHeight(s.width());
-            d.setY(d.x() * s1.height() / s1.width());
-            result.setHeight(s1.height() * s.height());
+            d.setY(d.x() * sign * s1.height() / s1.width());
+            //d.setY(d.y() * s.width() / s.height());
+            result.setHeight(s1.height() * s.width());
         }
         result.moveCenter(origin.center() + d);
     } else {
         s2.scale(1.0 / s1.width(), 1.0 / s1.height(), Qt::IgnoreAspectRatio);
     }
     QTransform * t = res_->transform();
-    QPointF p1 = item_->mapFromParent(origin.topLeft());
-    t->scale(s.width(), s.height());
-    p1 = item_->mapToParent(p1);
-    QPointF p2 = result.topLeft();
-    d = p2 - p1;
-    t->translate(d.x() / t->m11(), d.y() / t->m22());
-    stateItem_->setScale(1.0 / t->m11(), 1.0 / t->m22());
+    TransformHelper::apply(*t, item_, result.normalized(), 0.0);
+    if (stateItem_)
+        stateItem_->updateTransform();
     updateTransform();
 }
 

@@ -159,9 +159,9 @@ void PptxControl::thumb(int page, bool first)
     if (!pixmap.isNull()) {
         QGraphicsPixmapItem * item = static_cast<QGraphicsPixmapItem *>(item_);
         item->setPixmap(pixmap);
+        item->setOffset(pixmap.width() / -2, pixmap.height() / -2);
         if (first) {
-            item->setOffset(pixmap.width() / -2, pixmap.height() / -2);
-            initScale(pixmap.size());
+            initScale();
         }
     }
 }

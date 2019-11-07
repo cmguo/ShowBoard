@@ -14,7 +14,13 @@ QGraphicsItem * VideoControl::create(ResourceView * res)
 {
     QGraphicsVideoItem * item = new QGraphicsVideoItem();
     QObject::connect(item, &QGraphicsVideoItem::nativeSizeChanged,
-                     this, &VideoControl::initScale);
+                     this, [this](QSizeF const & size) {
+        QGraphicsVideoItem * item = static_cast<QGraphicsVideoItem *>(item_);
+        item->setSize(size);
+        item->setOffset({size.width() / -2.0, size.height() / -2.0});
+        initScale();
+        item->disconnect(this);
+    });
     QMediaPlayer * player = new QMediaPlayer(this);
     player->setVideoOutput(item);
     player->setMedia(res->resource()->url());
@@ -22,14 +28,6 @@ QGraphicsItem * VideoControl::create(ResourceView * res)
     player->play();
     player_ = player;
     return item;
-}
-
-void VideoControl::initScale(QSizeF size)
-{
-    QGraphicsVideoItem * item = static_cast<QGraphicsVideoItem *>(item_);
-    item->setSize(size);
-    item->setOffset({size.width() / -2.0, size.height() / -2.0});
-    Control::initScale(size);
 }
 
 void VideoControl::detached()

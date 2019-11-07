@@ -31,7 +31,7 @@ void ImageControl::attached()
         item->setPixmap(pixmap);
         item->setOffset(pixmap.width() / -2, pixmap.height() / -2);
         clearStateItem();
-        initScale(pixmap.size());
+        initScale();
     }).fail([this, life](std::exception & e) {
         if (life.isNull())
             return;

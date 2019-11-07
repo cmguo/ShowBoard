@@ -1,5 +1,6 @@
 #include "stateitem.h"
 #include "core/svgcache.h"
+#include "core/transformhelper.h"
 
 #include <QSvgRenderer>
 #include <QGraphicsSceneMouseEvent>
@@ -57,18 +58,15 @@ void StateItem::setSharedRenderer(QSvgRenderer * renderer)
     setRotation(0);
     QGraphicsSvgItem::setSharedRenderer(renderer);
     setTransformOriginPoint(boundingRect().center());
-    setPos(parentItem()->boundingRect().center() - boundingRect().center());
+    updateTransform();
 }
 
-void StateItem::setScale(qreal sx, qreal sy)
+void StateItem::updateTransform()
 {
-    QPointF c(boundingRect().center());
-    c.setX(c.x() * sx);
-    c.setY(c.y() * sy);
-    setPos(parentItem()->boundingRect().center() - c);
     QTransform t;
-    t.scale(sx, sy);
-    setTransform(t);
+    TransformHelper::keepAtParent(t, this, {0, 0});
+    QPointF center(boundingRect().center());
+    setTransform(QTransform::fromTranslate(-center.x(), -center.y()) * t);
 }
 
 void StateItem::timerEvent(QTimerEvent * event)

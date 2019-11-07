@@ -26,7 +26,9 @@ public:
 
 private:
     QGraphicsPathItem * leftTop_;
+    QGraphicsPathItem * rightTop_;
     QGraphicsPathItem * rightBottom_;
+    QGraphicsPathItem * leftBottom_;
     QGraphicsItem * toolBar_;
 };
 

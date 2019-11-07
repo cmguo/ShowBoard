@@ -64,6 +64,7 @@ void ItemSelector::autoTop(bool force)
 void ItemSelector::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     start_ = event->pos();
+    rect_ = selBox_->rect();
     type_ = select_ == nullptr ? None :
             static_cast<SelectType>(selBox_->hitTest(selBox_->mapFromParent(start_), direction_));
     if (type_ == None) {
@@ -110,7 +111,7 @@ void ItemSelector::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     }
     QPointF pt = event->pos();
     QPointF d = pt - start_;
-    QRectF rect = selBox_->rect();
+    QRectF rect = rect_;
     switch (type_) {
     case Translate:
         if (selectControl_->flags() & Control::CanMove) {
@@ -121,12 +122,14 @@ void ItemSelector::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         break;
     case Scale: {
         //qDebug() << rect;
-        QRectF rect2 = rect.adjusted(d.x() * direction_.left(), d.y() * direction_.top(),
+        rect.adjust(
+                    d.x() * direction_.left(), d.y() * direction_.top(),
                     d.x() * direction_.width(), d.y() * direction_.height());
         //qDebug() << "  " << rect;
-        selectControl_->scale(rect, rect2);
-        pt = start_ + (rect2.center() - rect.center()) * 2;
-        selBox_->setRect(rect2);
+        bool positive = qFuzzyIsNull(direction_.left() - direction_.top());
+        selectControl_->scale(rect_, positive, rect);
+        pt = start_ + (rect.center() - rect_.center()) * 2;
+        selBox_->setRect(rect.normalized());
         } break;
     case Canvas: {
         QGraphicsItem * canvas = parentItem();
@@ -156,6 +159,7 @@ void ItemSelector::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         break;
     }
     start_ = pt;
+    rect_ = rect;
 }
 
 void ItemSelector::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)

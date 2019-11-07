@@ -26,15 +26,10 @@ QGraphicsItem * WidgetControl::create(ResourceView *res)
     item->setFocusPolicy(Qt::NoFocus);
     item->setAutoFillBackground(false);
     item->setWidget(widget_);
-    item->setPos(QPointF(item->size().width(), item->size().height()) / -2.0);
+    //resize(widget_->size());
+    QSizeF size = item->size() / -2.0;
+    item->setTransform(QTransform::fromTranslate(size.width(), size.height()));
     return item;
-}
-
-void WidgetControl::layout(QRectF const &rect)
-{
-    QGraphicsProxyWidget * item = static_cast<QGraphicsProxyWidget*>(item_);
-    item->resize(rect.size());
-    item->setPos(rect.topLeft());
 }
 
 void WidgetControl::detached()
@@ -44,7 +39,8 @@ void WidgetControl::detached()
 
 void WidgetControl::resize(QSizeF const & size)
 {
-    QRectF rect(QPointF(0, 0), size);
-    rect.moveCenter(QPointF(0, 0));
-    layout(rect);
+    QGraphicsProxyWidget * item = static_cast<QGraphicsProxyWidget*>(item_);
+    item->resize(size);
+    item->setTransform(QTransform::fromTranslate(
+                           size.width() / -2.0, size.height() / -2.0));
 }

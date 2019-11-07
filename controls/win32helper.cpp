@@ -2,13 +2,13 @@
 
 BOOL CALLBACK EnumWindowsProc(_In_ HWND hwnd, _In_ LPARAM lParam)
 {
-    char temp[70] = {0};
+    char temp[256] = {0};
     unsigned long pid = 0;
     char const ** titleParts = *reinterpret_cast<char const ***>(lParam);
     ::GetWindowThreadProcessId(hwnd, &pid);
     if (pid == ::GetCurrentProcessId()) // avoid deadlock
         return TRUE;
-    ::GetWindowTextA(hwnd, temp, 70);
+    ::GetWindowTextA(hwnd, temp, 255);
     char * p = temp;
     while (*titleParts && (p = strstr(p, *titleParts))) {
         ++titleParts;

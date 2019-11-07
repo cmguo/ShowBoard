@@ -29,7 +29,7 @@ public:
 
     void setFailed(QString const & msg);
 
-    void setScale(qreal sx, qreal sy);
+    void updateTransform();
 
 signals:
     void clicked();

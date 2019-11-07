@@ -130,7 +130,7 @@ void WebControl::loadFinished(bool ok)
         QSizeF size = view->page()->contentsSize();
         resize(size);
         clearStateItem();
-        initScale(size);
+        initScale();
     } else {
         stateItem()->setFailed("Load failed");
     }

@@ -108,7 +108,7 @@ public:
     /*
      * scale this item, is saved at transform
      */
-    void scale(QRectF const & origin, QRectF & result);
+    void scale(QRectF const & origin, bool positive, QRectF & result);
 
     /*
      * invoke slot by name, use for lose relation call
@@ -190,15 +190,15 @@ protected:
     virtual void initPosition(QGraphicsItem *parent);
 
     /*
-     * called by child control to notify item init size change
+     * called by child control to notify it's geometry is ready
      *  this function will calc suitable init scale for item
      */
-    virtual void initScale(QSizeF size);
+    virtual void initScale(QSizeF unused = QSizeF());
 
     /*
      * called when attached to canvas or canvas is resized
      */
-    virtual void layout(QRectF const & rect);
+    virtual void resize(QSizeF const & size);
 
     StateItem * stateItem();
 
