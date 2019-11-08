@@ -68,7 +68,7 @@ void Control::attachTo(QGraphicsItem * parent)
     item_->setTransformations({transform_});
     item_->setParentItem(parent);
     loadSettings();
-    initPosition(parent);
+    initPosition();
     relayout();
     attached();
 }
@@ -166,10 +166,11 @@ static qreal polygonArea(QPolygonF const & p)
     return qAbs(area) / 2.0;
 }
 
-void Control::initPosition(QGraphicsItem *parent)
+void Control::initPosition()
 {
     if (flags_ & (FullLayout | RestoreSession))
         return;
+    QGraphicsItem *parent = item_->parentItem();
     QPolygonF polygon;
     for (QGraphicsItem * c : parent->childItems()) {
         if (c == item_ || Control::fromItem(c)->flags() & FullLayout)
@@ -199,7 +200,7 @@ void Control::initPosition(QGraphicsItem *parent)
     res_->transform()->translate(pos.x(), pos.y());
 }
 
-void Control::initScale(QSizeF unused)
+void Control::initScale()
 {
     if (item_->parentItem() == nullptr)
         return;

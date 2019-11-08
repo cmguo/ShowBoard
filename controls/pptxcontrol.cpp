@@ -153,6 +153,7 @@ void PptxControl::thumb(int page, bool first)
     }
     if (!slide)
         return;
+    item_->setCursor(Qt::WaitCursor);
     QString file = QDir::tempPath().replace('/', '\\') + "\\showboard.thumb.ppt.jpg";
     slide->dynamicCall("Export(QString, QString, long, long)", file, "JPG", 320, 180);
     QPixmap pixmap(file);
@@ -164,6 +165,7 @@ void PptxControl::thumb(int page, bool first)
             initScale();
         }
     }
+    item_->setCursor(Qt::ArrowCursor);
 }
 
 void PptxControl::show(int page)
@@ -243,8 +245,8 @@ void PptxControl::prev()
 
 void PptxControl::hide()
 {
-    thumb(slideNumber_);
     hideWindow(hwnd_);
+    thumb(slideNumber_);
 }
 
 void PptxControl::close()

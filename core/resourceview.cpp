@@ -36,6 +36,11 @@ void ResourceView::moveTop()
     qobject_cast<ResourcePage*>(parent())->moveResourceBack(this);
 }
 
+void ResourceView::removeFromPage()
+{
+    qobject_cast<ResourcePage*>(parent())->removeResource(this);
+}
+
 void ResourceView::setSaved()
 {
     flags_ |= SavedSession;

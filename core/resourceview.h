@@ -87,6 +87,8 @@ public:
 
     void setSaved();
 
+    void removeFromPage();
+
 protected:
     Resource * res_;
     Flags flags_;

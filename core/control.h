@@ -187,13 +187,13 @@ protected:
     virtual void detached();
 
 protected:
-    virtual void initPosition(QGraphicsItem *parent);
+    virtual void initPosition();
 
     /*
      * called by child control to notify it's geometry is ready
      *  this function will calc suitable init scale for item
      */
-    virtual void initScale(QSizeF unused = QSizeF());
+    virtual void initScale();
 
     /*
      * called when attached to canvas or canvas is resized

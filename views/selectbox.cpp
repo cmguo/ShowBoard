@@ -14,21 +14,25 @@ SelectBox::SelectBox(QGraphicsItem * parent)
     lt.lineTo(QPointF(0, 0));
     lt.lineTo(QPointF(CROSS_LENGTH, 0));
     leftTop_ = new QGraphicsPathItem(lt, this);
+    leftTop_->setCursor(Qt::SizeFDiagCursor);
 
     QPainterPath rt(QPointF(0, CROSS_LENGTH));
     rt.lineTo(QPointF(0, 0));
     rt.lineTo(QPointF(-CROSS_LENGTH, 0));
     rightTop_ = new QGraphicsPathItem(rt, this);
+    rightTop_->setCursor(Qt::SizeBDiagCursor);
 
     QPainterPath rb(QPointF(0, -CROSS_LENGTH));
     rb.lineTo(QPointF(0, 0));
     rb.lineTo(QPointF(-CROSS_LENGTH, 0));
     rightBottom_ = new QGraphicsPathItem(rb, this);
+    rightBottom_->setCursor(Qt::SizeFDiagCursor);
 
     QPainterPath lb(QPointF(0, -CROSS_LENGTH));
     lb.lineTo(QPointF(0, 0));
     lb.lineTo(QPointF(CROSS_LENGTH, 0));
     leftBottom_ = new QGraphicsPathItem(lb, this);
+    leftBottom_->setCursor(Qt::SizeBDiagCursor);
 
     QPen pen1(QColor(Qt::red), 2);
     leftTop_->setPen(pen1);
@@ -48,6 +52,7 @@ SelectBox::SelectBox(QGraphicsItem * parent)
 
     setPen(QPen(Qt::NoPen));
     setBrush(QBrush(QColor::fromRgba(0x20202020)));
+    setCursor(Qt::ClosedHandCursor);
 }
 
 void SelectBox::setRect(QRectF const & rect)
