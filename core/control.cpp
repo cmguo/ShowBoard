@@ -3,6 +3,7 @@
 #include "toolbutton.h"
 #include "views/whitecanvas.h"
 #include "views/stateitem.h"
+#include "views/selectbar.h"
 #include "core/transformhelper.h"
 
 #include <QGraphicsItem>
@@ -43,6 +44,8 @@ ToolButton Control::btnDelete = { "delete", "删除", ":/showboard/icons/icon_de
 Control::Control(ResourceView *res, Flags flags, Flags clearFlags)
     : flags_((DefaultFlags | flags) & ~clearFlags)
     , res_(res)
+    , item_(nullptr)
+    , realItem_(nullptr)
     , stateItem_(nullptr)
 {
     transform_ = new QControlTransform(res->transform());
@@ -53,7 +56,8 @@ Control::Control(ResourceView *res, Flags flags, Flags clearFlags)
 Control::~Control()
 {
     delete transform_;
-    delete item_;
+    delete realItem_;
+    realItem_ = nullptr;
     item_ = nullptr;
     transform_ = nullptr;
     res_ = nullptr;
@@ -62,11 +66,17 @@ Control::~Control()
 void Control::attachTo(QGraphicsItem * parent)
 {
     item_ = create(res_);
+    if (flags_ & WithSelectBar) {
+        realItem_ = new SelectBar(item_);
+    } else {
+        realItem_ = item_;
+    }
     attaching();
     item_->setAcceptTouchEvents(true);
-    item_->setData(ITEM_KEY_CONTROL, QVariant::fromValue(this));
-    item_->setTransformations({transform_});
-    item_->setParentItem(parent);
+    item_->setFlag(QGraphicsItem::ItemIsFocusable);
+    realItem_->setData(ITEM_KEY_CONTROL, QVariant::fromValue(this));
+    realItem_->setTransformations({transform_});
+    realItem_->setParentItem(parent);
     loadSettings();
     initPosition();
     relayout();
@@ -78,9 +88,9 @@ void Control::detachFrom(QGraphicsItem *parent)
     detaching();
     saveSettings();
     (void) parent;
-    item_->scene()->removeItem(item_);
-    item_->setTransformations({});
-    item_->setData(ITEM_KEY_CONTROL, QVariant());
+    realItem_->scene()->removeItem(realItem_);
+    realItem_->setTransformations({});
+    realItem_->setData(ITEM_KEY_CONTROL, QVariant());
     detached();
     //deleteLater();
     delete this;
@@ -89,7 +99,7 @@ void Control::detachFrom(QGraphicsItem *parent)
 void Control::relayout()
 {
     if (flags_ & FullLayout) {
-        resize(item_->parentItem()->boundingRect().size());
+        resize(realItem_->parentItem()->boundingRect().size());
     } else {
 
     }
@@ -133,7 +143,7 @@ void Control::resize(QSizeF const & size)
     if (item_->type() == QGraphicsRectItem::Type) {
         QRectF rect(QPointF(0, 0), size);
         rect.moveCenter({0, 0});
-        static_cast<QGraphicsRectItem*>(item_)->setRect(rect);
+        static_cast<QGraphicsRectItem*>(realItem_)->setRect(rect);
     }
 }
 
@@ -168,12 +178,14 @@ static qreal polygonArea(QPolygonF const & p)
 
 void Control::initPosition()
 {
-    if (flags_ & (FullLayout | RestoreSession))
+    if (realItem_ != item_)
+        static_cast<SelectBar *>(realItem_)->updateRect();
+    if (flags_ & (FullLayout | RestoreSession | PositionAtCenter))
         return;
-    QGraphicsItem *parent = item_->parentItem();
+    QGraphicsItem *parent = realItem_->parentItem();
     QPolygonF polygon;
     for (QGraphicsItem * c : parent->childItems()) {
-        if (c == item_ || Control::fromItem(c)->flags() & FullLayout)
+        if (c == realItem_ || Control::fromItem(c)->flags() & FullLayout)
             continue;
         polygon = polygon.united(c->mapToParent(c->boundingRect()));
     }
@@ -202,9 +214,9 @@ void Control::initPosition()
 
 void Control::initScale()
 {
-    if (item_->parentItem() == nullptr)
-        return;
-    QSizeF ps = item_->parentItem()->boundingRect().size();
+    if (realItem_ != item_)
+        static_cast<SelectBar *>(realItem_)->updateRect();
+    QSizeF ps = realItem_->parentItem()->boundingRect().size();
     QSizeF size = item_->boundingRect().size();
     if (flags_ & CanvasBackground) {
         if (size.width() > ps.width() || size.height() > ps.height()) {
@@ -213,15 +225,17 @@ void Control::initScale()
             if (size.height() < ps.height())
                 size.setHeight(ps.height());
         }
-        WhiteCanvas * canvas = static_cast<WhiteCanvas *>(item_->parentItem()->parentItem());
+        WhiteCanvas * canvas = static_cast<WhiteCanvas *>(
+                    realItem_->parentItem()->parentItem());
         QRectF rect(QPointF(0, 0), size);
         rect.moveCenter({0, 0});
         canvas->setGeometry(rect);
         return;
     }
-    if (flags_ & (FullLayout | RestoreSession)) {
+    if (flags_ & (FullLayout | RestoreSession | ScaleInited)) {
         return;
     }
+    flags_ |= ScaleInited;
     qreal scale = 1.0;
     QVariant sizeHint = property("sizeHint");
     if (sizeHint.isValid()) {
@@ -258,7 +272,7 @@ void Control::scale(QRectF const & origin, bool positive, QRectF & result)
 {
     //result = origin;
     //result.adjust(0, 0, origin.width() / -2, origin.height() / -2);
-    QSizeF s1 = item_->boundingRect().size();
+    QSizeF s1 = realItem_->boundingRect().size();
     QSizeF s2 = result.size();
     QSizeF s(s2.width() / s1.width(), s2.height() / s1.height());
     QPointF d = result.center() - origin.center();
@@ -278,10 +292,16 @@ void Control::scale(QRectF const & origin, bool positive, QRectF & result)
         s2.scale(1.0 / s1.width(), 1.0 / s1.height(), Qt::IgnoreAspectRatio);
     }
     QTransform * t = res_->transform();
-    TransformHelper::apply(*t, item_, result.normalized(), 0.0);
+    TransformHelper::apply(*t, realItem_, result.normalized(), 0.0);
     if (stateItem_)
         stateItem_->updateTransform();
     updateTransform();
+}
+
+void Control::select(bool selected)
+{
+    if (realItem_ != item_)
+        static_cast<SelectBar *>(realItem_)->setSelected(selected);
 }
 
 StateItem * Control::stateItem()

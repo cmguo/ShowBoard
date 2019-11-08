@@ -123,7 +123,8 @@ void PptxControl::open(QUrl const & url)
         }
         thumb(slideNumber_, first);
         emit opened();
-        bool autoShow = property("autoShow").toBool();
+        bool autoShow = !(flags_ & RestoreSession)
+                && property("autoShow").toBool();
         if (first && autoShow)
             show();
     } else {

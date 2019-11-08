@@ -64,7 +64,7 @@ private:
 
 
 WebControl::WebControl(ResourceView * res)
-    : WidgetControl(res, HelpSelect)
+    : WidgetControl(res, WithSelectBar)
 {
     static bool init = false;
     if (!init) {
@@ -92,7 +92,7 @@ QWidget * WebControl::createWidget(ResourceView * res)
     (void)res;
     QWebEngineView * view = new QWebEngineView();
     new TouchEventForwarder(view, this);
-    view->resize(1024, 768);
+    view->resize(1024, 576);
     QObject::connect(view->page(), &QWebEnginePage::loadFinished,
                      this, &WebControl::loadFinished);
     QObject::connect(view->page(), &QWebEnginePage::contentsSizeChanged,
@@ -140,7 +140,8 @@ void WebControl::contentsSizeChanged(const QSizeF &size)
 {
     qDebug() << "contentsSizeChanged: " << size;
     QSizeF d = size - QSizeF(widget_->size());
-    if ((d.width() + d.height()) < 10)
+    if ((d.width() + d.height()) < 10
+            || size.height() > realItem_->parentItem()->boundingRect().height())
         return;
     resize(size.toSize());
 }

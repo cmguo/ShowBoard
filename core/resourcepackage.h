@@ -33,6 +33,8 @@ public:
 
     ResourcePage * currentPage();
 
+    int currentNumber();
+
 public slots:
     /*
      * set current page to first page

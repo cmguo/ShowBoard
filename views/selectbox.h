@@ -29,6 +29,10 @@ private:
     QGraphicsPathItem * rightTop_;
     QGraphicsPathItem * rightBottom_;
     QGraphicsPathItem * leftBottom_;
+    QGraphicsPathItem * left_;
+    QGraphicsPathItem * top_;
+    QGraphicsPathItem * right_;
+    QGraphicsPathItem * bottom_;
     QGraphicsItem * toolBar_;
 };
 

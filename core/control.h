@@ -34,6 +34,10 @@ public:
         FullSelect = 1 << 7,
         CanvasBackground = 1 << 8,
         RestoreSession = 1 << 9,
+        WithSelectBar = 1 << 10,
+        PositionAtCenter = 1 << 11,
+        LayoutScale = 1 << 12,
+        ScaleInited = 1 << 16,
     };
 
     Q_DECLARE_FLAGS(Flags, Flag)
@@ -109,6 +113,11 @@ public:
      * scale this item, is saved at transform
      */
     void scale(QRectF const & origin, bool positive, QRectF & result);
+
+    /*
+     * set when select state change
+     */
+    void select(bool selected);
 
     /*
      * invoke slot by name, use for lose relation call
@@ -214,6 +223,7 @@ protected:
     ResourceView * res_;
     QGraphicsTransform * transform_;
     QGraphicsItem * item_;
+    QGraphicsItem * realItem_;
     StateItem * stateItem_;
 };
 

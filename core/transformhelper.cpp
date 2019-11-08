@@ -20,7 +20,7 @@ void TransformHelper::keepAtParent(QTransform &tf, QGraphicsItem *item,
 {
     QGraphicsItem * parent = item->parentItem();
     QRectF rect(item->boundingRect());
-    QTransform t = parent->itemTransform(parent->parentItem());
+    QTransform t = parent->sceneTransform();
     rect.setWidth(rect.width() / t.m11());
     rect.setHeight(rect.height() / t.m22());
     rect.moveCenter(parent->boundingRect().center() + center);

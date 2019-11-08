@@ -8,7 +8,7 @@ extern QComponentContainer & ShowBoard_containter();
 
 ResourcePackage::ResourcePackage(QObject *parent)
     : QObject(parent)
-    , current_(0)
+    , current_(-1)
 {
     newPage();
 }
@@ -24,6 +24,11 @@ ResourcePage * ResourcePackage::newPage()
 ResourcePage * ResourcePackage::currentPage()
 {
     return pages_[current_];
+}
+
+int ResourcePackage::currentNumber()
+{
+    return current_ + 1;
 }
 
 void ResourcePackage::gotoFront()
@@ -71,5 +76,6 @@ void ResourcePackage::switchPage(ResourcePage * page)
 void ResourcePackage::addPage(ResourcePage * page)
 {
     page->setParent(this);
+    ++current_;
     pages_.insert(current_, page);
 }

@@ -35,12 +35,15 @@ void ItemSelector::select(QGraphicsItem *item)
         itemChange(ItemPositionHasChanged, pos());
         select_ = item;
         selectControl_ = Control::fromItem(item);
+        selectControl_->select(true);
         QList<ToolButton *> buttons;
         selectControl_->getToolButtons(buttons);
         toolBar()->setToolButtons(buttons);
         selBox_->setVisible(true);
     } else {
         select_ = nullptr;
+        if (selectControl_)
+            selectControl_->select(false);
         selectControl_ = nullptr;
         selBox_->setVisible(false);
     }
@@ -79,6 +82,7 @@ void ItemSelector::mousePressEvent(QGraphicsSceneMouseEvent *event)
                 select(nullptr);
                 select_ = item;
                 selectControl_ = ct;
+                selectControl_->select(true);
                 type_ = TempNoMove;
                 if (autoTop_) {
                     selectControl_->resource()->moveTop();
@@ -172,6 +176,7 @@ void ItemSelector::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     switch (type_) {
     case TempNoMove: {
         QGraphicsItem * item = select_;
+        selectControl_->select(false);
         select_ = nullptr;
         select(item);
     } break;
