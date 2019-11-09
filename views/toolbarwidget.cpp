@@ -2,12 +2,13 @@
 #include "core/toolbutton.h"
 
 #include <QHBoxLayout>
-#include <QToolButton>
 #include <QPainter>
 #include <QWidget>
 #include <QStyleOptionButton>
 #include <QGraphicsItem>
 #include <QGraphicsProxyWidget>
+#include <QPushButton>
+#include <QLabel>
 
 ToolbarWidget::ToolbarWidget(QWidget *parent)
     : QWidget(parent)
@@ -16,12 +17,17 @@ ToolbarWidget::ToolbarWidget(QWidget *parent)
     layout_ = new QHBoxLayout(this);
     style_ = new QStyleOptionButton();
     style_->features = QStyleOptionButton::Flat;
+    this->setObjectName(QString::fromUtf8("toolbarwidget"));
+    this->setAttribute(Qt::WA_StyledBackground,true);
+    this->setStyleSheet("QPushButton,.QLabel{color:#80ffffff;background-color:#00000000;border:none;font-size:14pt;spacing: 30px;} QPushButton{qproperty-iconSize: 30px 30px;} #toolbarwidget{background-color:#C8000000;border-radius:3px;}");
+    layout_->setContentsMargins(10,10,10,10);
+    this->setLayout(layout_);
 }
 
 void ToolbarWidget::setButtonTemplate(int typeId)
 {
     QMetaObject const * meta = QMetaType::metaObjectForType(typeId);
-    if (meta && meta->inherits(&QToolButton::staticMetaObject))
+    if (meta && meta->inherits(&QPushButton::staticMetaObject))
         template_ = meta;
 }
 
@@ -62,11 +68,9 @@ void ToolbarWidget::setToolButtons(ToolButton buttons[], int count)
 
 void ToolbarWidget::addToolButton(ToolButton * button)
 {
-    QToolButton * btn = template_
-            ? qobject_cast<QToolButton *>(template_->newInstance())
-            : new QToolButton;
-    btn->setIconSize({20, 20});
-    btn->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+    QPushButton * btn = template_
+            ? qobject_cast<QPushButton *>(template_->newInstance())
+            : new QPushButton;
     QVariant & icon = button->icon;
     if (icon.type() == QVariant::String)
         btn->setIcon(QIcon(icon.toString()));
@@ -80,9 +84,15 @@ void ToolbarWidget::addToolButton(ToolButton * button)
         else if (icon.userType() == qMetaTypeId<QGraphicsItem *>())
             btn->setIcon(QIcon(itemToPixmap(icon.value<QGraphicsItem *>())));
     }
-    btn->setText(button->title);
+    btn->setText(QString(" %1").arg(button->title));
     void (ToolbarWidget::*slot)() = &ToolbarWidget::buttonClicked;
-    QObject::connect(btn, &QToolButton::clicked, this, slot);
+    QObject::connect(btn, &QPushButton::clicked, this, slot);
+    if(buttons_.size()>0){
+        QLabel *splitLabel = new QLabel(this);
+        splitLabel->setText("|");
+        layout_->addWidget(splitLabel);
+        splitWidget_.append(splitLabel);
+    }
     layout_->addWidget(btn);
     buttons_.insert(btn, button);
 }
@@ -93,6 +103,11 @@ void ToolbarWidget::clear()
         layout_->removeWidget(w);
         w->deleteLater();
     }
+    for(QWidget *w : splitWidget_){
+        layout_->removeWidget(w);
+        w->deleteLater();
+    }
+    splitWidget_.clear();
     buttons_.clear();
     layout_->activate();
     QGraphicsProxyWidget * proxy = graphicsProxyWidget();

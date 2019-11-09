@@ -41,7 +41,6 @@ SelectBox::SelectBox(QGraphicsItem * parent)
     leftBottom_->setPen(pen1);
 
     ToolbarWidget * toolBar = new ToolbarWidget();
-    toolBar->setStyleSheet("ToolbarWidget{background-color:#00000000;}");
     QGraphicsProxyWidget * proxy = new QGraphicsProxyWidget(this);
     proxy->setWidget(toolBar);
     toolBar_ = proxy;

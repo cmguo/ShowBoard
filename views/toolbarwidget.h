@@ -45,6 +45,7 @@ private:
     QMetaObject const * template_;
     QHBoxLayout * layout_;
     QMap<QWidget *, ToolButton *> buttons_;
+    QList<QWidget *> splitWidget_;
     QStyleOptionButton * style_;
 };
 
