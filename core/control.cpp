@@ -5,6 +5,7 @@
 #include "views/stateitem.h"
 #include "views/selectbar.h"
 #include "core/transformhelper.h"
+#include "core/controltransform.h"
 
 #include <QGraphicsItem>
 #include <QGraphicsScene>
@@ -13,25 +14,6 @@
 #include <QMetaMethod>
 
 #include <map>
-
-class QControlTransform : public QGraphicsTransform
-{
-public:
-    QControlTransform (QTransform * t)
-        : t_(t)
-    {
-    }
-
-    virtual void applyTo(QMatrix4x4 *matrix) const override
-    {
-        *matrix = t_->toAffine();
-    }
-
-    using QGraphicsTransform::update;
-
-private:
-    QTransform * t_;
-};
 
 Control * Control::fromItem(QGraphicsItem * item)
 {
@@ -48,7 +30,7 @@ Control::Control(ResourceView *res, Flags flags, Flags clearFlags)
     , realItem_(nullptr)
     , stateItem_(nullptr)
 {
-    transform_ = new QControlTransform(res->transform());
+    transform_ = new ControlTransform(res->transform());
     if (res_->flags() & ResourceView::SavedSession)
         flags_ |= RestoreSession;
 }
@@ -66,8 +48,11 @@ Control::~Control()
 void Control::attachTo(QGraphicsItem * parent)
 {
     item_ = create(res_);
+    item_->setTransformations({transform_});
     if (flags_ & WithSelectBar) {
         realItem_ = new SelectBar(item_);
+        transform_ = new ControlTransform(
+                    static_cast<ControlTransform*>(transform_));
     } else {
         realItem_ = item_;
     }
@@ -81,6 +66,9 @@ void Control::attachTo(QGraphicsItem * parent)
     initPosition();
     relayout();
     attached();
+    if (!(flags_ & LoadFinished)) {
+        stateItem()->setLoading();
+    }
 }
 
 void Control::detachFrom(QGraphicsItem *parent)
@@ -129,13 +117,32 @@ void Control::loadSettings()
 
 void Control::saveSettings()
 {
-    for (int i = Control::metaObject()->propertyCount(); i < metaObject()->propertyCount(); ++i) {
+    for (int i = Control::metaObject()->propertyCount();
+            i < metaObject()->propertyCount(); ++i) {
         QMetaProperty p = metaObject()->property(i);
         res_->setProperty(p.name(), p.read(this));
     }
+    // special one
+    res_->setProperty("sizeHint", sizeHint());
     for (QByteArray & k : dynamicPropertyNames())
         res_->setProperty(k, property(k));
     res_->setSaved();
+}
+
+QSizeF Control::sizeHint()
+{
+    return item_->boundingRect().size();
+}
+
+// called before attached
+void Control::setSizeHint(QSizeF const & size)
+{
+    if (size.width() < 10.0) {
+        QRectF rect = realItem_->parentItem()->boundingRect();
+        resize(QSizeF(rect.width() * size.width(), rect.height() * size.height()));
+    } else {
+        resize(size);
+    }
 }
 
 void Control::resize(QSizeF const & size)
@@ -212,6 +219,24 @@ void Control::initPosition()
     res_->transform()->translate(pos.x(), pos.y());
 }
 
+void Control::loadFinished(bool ok, QString const & iconOrMsg)
+{
+    if (ok) {
+        if (iconOrMsg.isNull()) {
+            if (stateItem_) {
+                delete stateItem_;
+                stateItem_ = nullptr;
+            }
+        } else {
+            stateItem()->setLoaded(iconOrMsg);
+        }
+        initScale();
+        flags_ |= LoadFinished;
+    } else {
+        stateItem()->setFailed(iconOrMsg);
+    }
+}
+
 void Control::initScale()
 {
     if (realItem_ != item_)
@@ -232,12 +257,7 @@ void Control::initScale()
         canvas->setGeometry(rect);
         return;
     }
-    if (flags_ & (FullLayout | RestoreSession | ScaleInited)) {
-        return;
-    }
-    flags_ |= ScaleInited;
-    qreal scale = 1.0;
-    QVariant sizeHint = property("sizeHint");
+    QVariant sizeHint = res_->property("sizeHint");
     if (sizeHint.isValid()) {
         QSizeF sh = sizeHint.toSizeF();
         if (sh.width() < 10.0) {
@@ -245,6 +265,16 @@ void Control::initScale()
         }
         ps = sh;
     }
+    if (flags_ & RestoreSession) {
+        resize(ps);
+        if (realItem_ != item_)
+            static_cast<SelectBar *>(realItem_)->updateRect();
+        return;
+    }
+    if (flags_ & (FullLayout | LoadFinished)) {
+        return;
+    }
+    qreal scale = 1.0;
     while (size.width() > ps.width() || size.height() > ps.height()) {
         size /= 2.0;
         scale /= 2.0;
@@ -272,10 +302,18 @@ void Control::scale(QRectF const & origin, bool positive, QRectF & result)
 {
     //result = origin;
     //result.adjust(0, 0, origin.width() / -2, origin.height() / -2);
-    QSizeF s1 = realItem_->boundingRect().size();
+    qDebug() << result;
+    QPointF c0 = result.center();
+    QPointF d0 = c0 - origin.center();
+    if (item_ != realItem_) {
+        static_cast<SelectBar *>(realItem_)->updateRectToChild(result);
+        c0 = result.center();
+        qDebug() << "updateRectToChild" << result;
+    }
+    QSizeF s1 = item_->boundingRect().size();
     QSizeF s2 = result.size();
     QSizeF s(s2.width() / s1.width(), s2.height() / s1.height());
-    QPointF d = result.center() - origin.center();
+    QPointF d = d0;
     if (flags_ & KeepAspectRatio) {
         qreal sign = positive ? 1.0 : -1.0;
         if (s.width() > s.height()) {
@@ -287,12 +325,19 @@ void Control::scale(QRectF const & origin, bool positive, QRectF & result)
             //d.setY(d.y() * s.width() / s.height());
             result.setHeight(s1.height() * s.width());
         }
-        result.moveCenter(origin.center() + d);
+        result.moveCenter(c0 - d0 + d);
     } else {
         s2.scale(1.0 / s1.width(), 1.0 / s1.height(), Qt::IgnoreAspectRatio);
     }
+    if (flags_ & LayoutScale) {
+        resize(result.size());
+    }
     QTransform * t = res_->transform();
-    TransformHelper::apply(*t, realItem_, result.normalized(), 0.0);
+    TransformHelper::apply(*t, item_, result.normalized(), 0.0);
+    if (item_ != realItem_) {
+        static_cast<SelectBar *>(realItem_)->updateRectFromChild(result);
+        qDebug() << "updateRectFromChild" << result;
+    }
     if (stateItem_)
         stateItem_->updateTransform();
     updateTransform();
@@ -312,16 +357,9 @@ StateItem * Control::stateItem()
     return stateItem_;
 }
 
-void Control::clearStateItem()
-{
-    item_->scene()->removeItem(stateItem_);
-    delete stateItem_;
-    stateItem_ = nullptr;
-}
-
 void Control::updateTransform()
 {
-    static_cast<QControlTransform *>(transform_)->update();
+    static_cast<ControlTransform *>(transform_)->update();
 }
 
 void Control::exec(QString const & cmd, QGenericArgument arg0,

@@ -20,6 +20,8 @@ public:
 public:
     void setRect(QRectF const & rect);
 
+    void setVisible(bool menu, bool corner = false, bool border = false);
+
     int hitTest(QPointF const & pos, QRectF & direction);
 
     ToolbarWidget * toolBar();

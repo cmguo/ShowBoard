@@ -28,6 +28,7 @@ include(controls/controls.pri)
 include(opengl/opengl.pri)
 include(tools/tools.pri)
 include(views/views.pri)
+include(office/office.pri)
 
 CONFIG(debug, debug|release) {
     win32: TARGET = $$join(TARGET,,,d)

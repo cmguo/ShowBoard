@@ -43,17 +43,42 @@ void SelectBar::setSelected(bool selected)
     if (selected == selected_)
         return;
     selected_ = selected;
+    update();
+}
+
+void SelectBar::setRect(const QRectF &rect)
+{
+    QGraphicsRectItem::setRect(rect);
+    //QPointF center = -rect.center();
+    //setTransform(QTransform::fromTranslate(center.x(), center.y()));
+    update();
+}
+
+void SelectBar::update()
+{
     QRectF rect(boundingRect());
     rect.setHeight(48);
-    update(rect);
+    QGraphicsRectItem::update(rect);
 }
 
 void SelectBar::updateRect()
 {
-    QRectF rect = item_->boundingRect();
-    rect.moveCenter({0, 0});
+    QRectF rect = item_->mapToParent(item_->boundingRect()).boundingRect();
+    updateRectFromChild(rect);
+}
+
+void SelectBar::updateRectFromChild(QRectF & rect)
+{
     rect.adjust(0, -48, 0, 0);
-    setRect(rect);
-    QPointF center = -rect.center();
-    setTransform(QTransform::fromTranslate(center.x(), center.y()));
+    QRectF rect2 = rect;
+    rect2.moveCenter({0, -24});
+    setRect(rect2);
+}
+
+void SelectBar::updateRectToChild(QRectF & rect)
+{
+    QRectF rect2 = rect;
+    rect.adjust(0, 48, 0, 0);
+    rect2.moveCenter({0, -24});
+    setRect(rect2);
 }

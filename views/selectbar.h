@@ -11,7 +11,17 @@ public:
 public:
     void setSelected(bool selected);
 
+    void setRect(QRectF const & rect);
+
     void updateRect();
+
+    void updateRectFromChild(QRectF & rect);
+
+    void updateRectToChild(QRectF & rect);
+
+    void updateTransform();
+
+    void update();
 
 private:
     virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;

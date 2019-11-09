@@ -17,8 +17,9 @@ class SHOWBOARD_EXPORT Control : public LifeObject
     Q_OBJECT
 
     Q_PROPERTY(Flags flags READ flags())
-
     Q_PROPERTY(ResourceView * resource READ resource())
+
+    Q_PROPERTY(QSizeF sizeHint READ sizeHint  WRITE setSizeHint)
 
 public:
     enum Flag {
@@ -37,7 +38,7 @@ public:
         WithSelectBar = 1 << 10,
         PositionAtCenter = 1 << 11,
         LayoutScale = 1 << 12,
-        ScaleInited = 1 << 16,
+        LoadFinished = 1 << 16,
     };
 
     Q_DECLARE_FLAGS(Flags, Flag)
@@ -160,6 +161,11 @@ protected:
     virtual QString toolsString() const;
 
     /*
+     * called when attached to canvas or canvas is resized
+     */
+    virtual void resize(QSizeF const & size);
+
+    /*
      * called before item is attached to canvas
      * override this to do more preparing work
      */
@@ -196,22 +202,22 @@ protected:
     virtual void detached();
 
 protected:
-    virtual void initPosition();
+    void initPosition();
 
     /*
      * called by child control to notify it's geometry is ready
      *  this function will calc suitable init scale for item
      */
-    virtual void initScale();
+    void loadFinished(bool ok, QString const & iconOrMsg = QString());
 
-    /*
-     * called when attached to canvas or canvas is resized
-     */
-    virtual void resize(QSizeF const & size);
+    void initScale();
+
+protected:
+    QSizeF sizeHint();
+
+    void setSizeHint(QSizeF const & size);
 
     StateItem * stateItem();
-
-    void clearStateItem();
 
     void updateTransform();
 

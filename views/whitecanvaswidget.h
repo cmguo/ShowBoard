@@ -32,6 +32,10 @@ public:
 private:
     virtual void resizeEvent(QResizeEvent *event) override;
 
+    virtual void showEvent(QShowEvent *event) override;
+
+    virtual bool eventFilter(QObject *watched, QEvent *event) override;
+
 private:
     QGraphicsScene * scene_;
     WhiteCanvas * canvas_;

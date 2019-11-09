@@ -108,6 +108,21 @@ void SelectBox::setRect(QRectF const & rect)
     bottom_->setPos(center.x(), rect2.bottom());
 }
 
+void SelectBox::setVisible(bool menu, bool corner, bool border)
+{
+    border &= corner;
+    QGraphicsRectItem::setVisible(menu || corner);
+    toolBar_->setVisible(menu);
+    leftTop_->setVisible(corner);
+    rightTop_->setVisible(corner);
+    rightBottom_->setVisible(corner);
+    leftBottom_->setVisible(corner);
+    left_->setVisible(border);
+    top_->setVisible(border);
+    right_->setVisible(border);
+    bottom_->setVisible(border);
+}
+
 int SelectBox::hitTest(const QPointF &pos, QRectF &direction)
 {
     if (leftTop_->contains(leftTop_->mapFromParent(pos))) {

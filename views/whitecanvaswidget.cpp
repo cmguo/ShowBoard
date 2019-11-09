@@ -65,6 +65,22 @@ void WhiteCanvasWidget::resizeEvent(QResizeEvent *event)
     QGraphicsView::resizeEvent(event);
 }
 
+void WhiteCanvasWidget::showEvent(QShowEvent *event)
+{
+    (void) event;
+    window()->installEventFilter(this);
+}
+
+bool WhiteCanvasWidget::eventFilter(QObject *watched, QEvent *event)
+{
+    if (watched == window() && event->type() == QEvent::Close) {
+        qDebug() << "window closed";
+        setResourcePackage(nullptr);
+    }
+    return false;
+}
+
+
 ResourcePackage * WhiteCanvasWidget::package()
 {
     return canvas_->package();

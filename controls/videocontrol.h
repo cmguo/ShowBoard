@@ -16,6 +16,8 @@ protected:
 
     virtual void detached() override;
 
+    virtual void resize(const QSizeF &size) override;
+
 private:
     QMediaPlayer * player_;
 };

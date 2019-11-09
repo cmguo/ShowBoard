@@ -64,7 +64,7 @@ private:
 
 
 WebControl::WebControl(ResourceView * res)
-    : WidgetControl(res, WithSelectBar)
+    : WidgetControl(res, {WithSelectBar, LayoutScale})
 {
     static bool init = false;
     if (!init) {
@@ -107,32 +107,12 @@ void WebControl::attached()
     view->load(res_->resource()->url());
 }
 
-QSizeF WebControl::sizeHint()
-{
-    return widget_->size();
-}
-
-// called before attached
-void WebControl::setSizeHint(QSizeF const & size)
-{
-    if (size.width() < 10.0) {
-        QRectF rect = item_->parentItem()->boundingRect();
-        resize(QSizeF(rect.width() * size.width(), rect.height() * size.height()));
-    } else {
-        resize(size);
-    }
-}
-
 void WebControl::loadFinished(bool ok)
 {
     if (ok) {
-        QWebEngineView * view = qobject_cast<QWebEngineView *>(widget_);
-        QSizeF size = view->page()->contentsSize();
-        resize(size);
-        clearStateItem();
-        initScale();
+        Control::loadFinished(ok);
     } else {
-        stateItem()->setFailed("Load failed");
+        Control::loadFinished(ok, "Load failed");
     }
 }
 

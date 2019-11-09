@@ -30,11 +30,10 @@ void ImageControl::attached()
         QGraphicsPixmapItem * item = static_cast<QGraphicsPixmapItem *>(item_);
         item->setPixmap(pixmap);
         item->setOffset(pixmap.width() / -2, pixmap.height() / -2);
-        clearStateItem();
-        initScale();
+        loadFinished(true);
     }).fail([this, life](std::exception & e) {
         if (life.isNull())
             return;
-        stateItem()->setFailed(e.what());
+        loadFinished(false, e.what());
     });
 }

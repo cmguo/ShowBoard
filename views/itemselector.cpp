@@ -39,7 +39,8 @@ void ItemSelector::select(QGraphicsItem *item)
         QList<ToolButton *> buttons;
         selectControl_->getToolButtons(buttons);
         toolBar()->setToolButtons(buttons);
-        selBox_->setVisible(true);
+        selBox_->setVisible(true, selectControl_->flags() & Control::CanScale,
+                            !(selectControl_->flags() & Control::KeepAspectRatio));
     } else {
         select_ = nullptr;
         if (selectControl_)
