@@ -37,6 +37,10 @@ signals:
 private:
     void setSharedRenderer(QSvgRenderer * renderer);
 
+    virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
+
+    virtual QPainterPath shape() const override;
+
     virtual void timerEvent(QTimerEvent * event) override;
 
     virtual void mousePressEvent(QGraphicsSceneMouseEvent * event) override;
@@ -57,6 +61,8 @@ private:
     State state_;
     int timerId_;
     qreal rotate_;
+    QString text_;
+    QRectF textRect_;
 };
 
 #endif // STATEITEM_H

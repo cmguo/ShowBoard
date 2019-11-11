@@ -14,7 +14,10 @@ class SHOWBOARD_EXPORT ResourceView : public LifeObject
 {
     Q_OBJECT
 
+    Q_PROPERTY(Resource * resource READ resource())
+    Q_PROPERTY(Flags const flags READ flags())
     Q_PROPERTY(QString name MEMBER name_)
+    Q_PROPERTY(QTransform * transform READ transform())
 
 public:
     static constexpr char const * EXPORT_ATTR_TYPE = "rtype";
@@ -40,11 +43,10 @@ public:
     Q_DECLARE_FLAGS(Flags, Flag)
 
 public:
-    explicit ResourceView(Resource * res, Flags flags = None, Flags clearFlags = None);
+    Q_INVOKABLE explicit ResourceView(Resource * res,
+                                      Flags flags = None, Flags clearFlags = None);
 
-    Q_PROPERTY(Resource * resource READ resource())
-    Q_PROPERTY(Flags const flags READ flags())
-    Q_PROPERTY(QTransform * transform READ transform())
+    ResourceView(QString const & type, QUrl const & url);
 
 public:
     virtual ResourceView * clone() const ;

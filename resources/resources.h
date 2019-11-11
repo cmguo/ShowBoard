@@ -5,6 +5,7 @@
 #include "graph/graphs.h"
 #include "stroke.h"
 
+REGISTER_RESOURCE_VIEW(ResourceView, "bmp,gif,jpg,jpeg,png") // copyable
 REGISTER_RESOURCE_VIEW(Stroke, "stroke")
 
 //export_resource_Stroke;

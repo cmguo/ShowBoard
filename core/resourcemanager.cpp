@@ -68,8 +68,8 @@ ResourceView * ResourceManager::createResource(QUrl const & uri)
         }
     }
     if (iter == resources_.end()) {
-        if (type != "")
-            return new ResourceView(new Resource(type, uri));
+        if (!type.isEmpty())
+            return new ResourceView(type, uri);
         else
             return nullptr;
     }

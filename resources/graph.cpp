@@ -2,12 +2,12 @@
 #include "core/resource.h"
 
 Graph::Graph(Resource * res)
-    : ResourceView(res)
+    : ResourceView(res, CanCopy)
 {
 }
 
 Graph::Graph(QString const & type)
-    : ResourceView(new Resource(type))
+    : ResourceView(new Resource(type), CanCopy)
 {
 }
 

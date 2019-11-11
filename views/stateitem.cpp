@@ -4,6 +4,7 @@
 
 #include <QSvgRenderer>
 #include <QGraphicsSceneMouseEvent>
+#include <QPainter>
 
 SvgCache * StateItem::cache_ = nullptr;
 QSvgRenderer * StateItem::loading_ = nullptr;
@@ -48,6 +49,7 @@ void StateItem::setLoaded(const QString &icon)
 
 void StateItem::setFailed(QString const & msg)
 {
+    (void) msg;
     setSharedRenderer(failed_);
 }
 
@@ -67,6 +69,21 @@ void StateItem::updateTransform()
     TransformHelper::keepAtParent(t, this, {0, 0});
     QPointF center(boundingRect().center());
     setTransform(QTransform::fromTranslate(-center.x(), -center.y()) * t);
+}
+
+void StateItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
+                      QWidget *widget)
+{
+    QGraphicsSvgItem::paint(painter, option, widget);
+    //painter->drawText
+}
+
+QPainterPath StateItem::shape() const
+{
+    QPainterPath path(QGraphicsSvgItem::shape());
+    if (!textRect_.isEmpty())
+        path.addRect(textRect_);
+    return path;
 }
 
 void StateItem::timerEvent(QTimerEvent * event)

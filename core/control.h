@@ -28,7 +28,7 @@ public:
         CanMove = 2,
         CanScale = 4,
         CanRotate = 8,
-        DefaultFlags = 15, // all can
+        DefaultFlags = 7, // all can
         KeepAspectRatio = 1 << 4,
         FullLayout = 1 << 5,
         HelpSelect = 1 << 6,
@@ -113,7 +113,8 @@ public:
     /*
      * scale this item, is saved at transform
      */
-    void scale(QRectF const & origin, bool positive, QRectF & result);
+    void scale(QRectF const & origin, QRectF const & direction,
+               QPointF const & diff, QRectF & result);
 
     /*
      * set when select state change

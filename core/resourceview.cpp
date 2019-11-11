@@ -11,6 +11,11 @@ ResourceView::ResourceView(Resource * res, Flags flags, Flags clearFlags)
     res_->setParent(this);
 }
 
+ResourceView::ResourceView(QString const & type, QUrl const & url)
+    : ResourceView(new Resource(type, url), {}, CanCopy) // not copyable
+{
+}
+
 ResourceView::ResourceView(ResourceView const & o)
     : res_(new Resource(*o.res_))
     , flags_(o.flags_)

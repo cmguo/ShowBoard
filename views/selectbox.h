@@ -20,13 +20,15 @@ public:
 public:
     void setRect(QRectF const & rect);
 
-    void setVisible(bool menu, bool corner = false, bool border = false);
+    void setVisible(bool menu, bool scale = false, bool rotate = false);
 
     int hitTest(QPointF const & pos, QRectF & direction);
 
     ToolbarWidget * toolBar();
 
 private:
+    QGraphicsItem * toolBar_;
+    QGraphicsPathItem * rotate_;
     QGraphicsPathItem * leftTop_;
     QGraphicsPathItem * rightTop_;
     QGraphicsPathItem * rightBottom_;
@@ -35,7 +37,6 @@ private:
     QGraphicsPathItem * top_;
     QGraphicsPathItem * right_;
     QGraphicsPathItem * bottom_;
-    QGraphicsItem * toolBar_;
 };
 
 #endif // SELECTBOX_H

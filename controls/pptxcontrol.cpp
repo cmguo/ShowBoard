@@ -245,6 +245,7 @@ bool PptxControl::eventFilter(QObject *obj, QEvent * event)
 
 QString PptxControl::toolsString() const
 {
-    return toolstr;
+    (void) toolstr;
+    return "";//toolstr;
 }
 

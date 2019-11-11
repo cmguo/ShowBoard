@@ -4,8 +4,8 @@
 #include <QPen>
 #include <QGraphicsProxyWidget>
 
-static constexpr qreal CROSS_LENGTH = 48;
-static constexpr qreal CROSS_OFFSET = 8;
+static constexpr qreal CROSS_LENGTH = 20;
+static constexpr qreal CROSS_OFFSET = 3;
 
 class BorderItem : public QGraphicsPathItem
 {
@@ -19,8 +19,8 @@ private:
     virtual QPainterPath shape() const override
     {
         QPainterPath path;
-        path.addRect({-CROSS_LENGTH / 2, -CROSS_LENGTH / 2,
-                      CROSS_LENGTH, CROSS_LENGTH});
+        path.addRect({-CROSS_LENGTH * 3 / 2, -CROSS_LENGTH * 3 / 2,
+                      CROSS_LENGTH * 3, CROSS_LENGTH * 3});
         return path;
     }
 };
@@ -28,28 +28,34 @@ private:
 SelectBox::SelectBox(QGraphicsItem * parent)
     : QGraphicsRectItem(parent)
 {
+    QPainterPath r;
+    r.addEllipse({-CROSS_LENGTH / 2, -CROSS_LENGTH / 2,
+                  CROSS_LENGTH, CROSS_LENGTH});
+    rotate_ = new BorderItem(r, this);
+    rotate_->setCursor(Qt::CrossCursor);
+
     QPainterPath lt(QPointF(0, CROSS_LENGTH));
     lt.lineTo(QPointF(0, 0));
     lt.lineTo(QPointF(CROSS_LENGTH, 0));
-    leftTop_ = new QGraphicsPathItem(lt, this);
+    leftTop_ = new BorderItem(lt, this);
     leftTop_->setCursor(Qt::SizeFDiagCursor);
 
     QPainterPath rt(QPointF(0, CROSS_LENGTH));
     rt.lineTo(QPointF(0, 0));
     rt.lineTo(QPointF(-CROSS_LENGTH, 0));
-    rightTop_ = new QGraphicsPathItem(rt, this);
+    rightTop_ = new BorderItem(rt, this);
     rightTop_->setCursor(Qt::SizeBDiagCursor);
 
     QPainterPath rb(QPointF(0, -CROSS_LENGTH));
     rb.lineTo(QPointF(0, 0));
     rb.lineTo(QPointF(-CROSS_LENGTH, 0));
-    rightBottom_ = new QGraphicsPathItem(rb, this);
+    rightBottom_ = new BorderItem(rb, this);
     rightBottom_->setCursor(Qt::SizeFDiagCursor);
 
     QPainterPath lb(QPointF(0, -CROSS_LENGTH));
     lb.lineTo(QPointF(0, 0));
     lb.lineTo(QPointF(CROSS_LENGTH, 0));
-    leftBottom_ = new QGraphicsPathItem(lb, this);
+    leftBottom_ = new BorderItem(lb, this);
     leftBottom_->setCursor(Qt::SizeBDiagCursor);
 
     QPainterPath lr(QPointF(0, -CROSS_LENGTH / 2));
@@ -66,7 +72,9 @@ SelectBox::SelectBox(QGraphicsItem * parent)
     bottom_ = new BorderItem(tb, this);
     bottom_->setCursor(Qt::SizeVerCursor);
 
-    QPen pen1(QColor(Qt::blue), 2);
+    QPen pen1(QColor(Qt::white), 6);
+    pen1.setJoinStyle(Qt::MiterJoin);
+    rotate_->setPen(pen1);
     leftTop_->setPen(pen1);
     rightTop_->setPen(pen1);
     rightBottom_->setPen(pen1);
@@ -85,19 +93,21 @@ SelectBox::SelectBox(QGraphicsItem * parent)
         toolBar_->setPos(rect.right() - size.width(), rect.bottom() + 10);
     });
 
-    setPen(QPen(Qt::NoPen));
-    setBrush(QBrush(QColor::fromRgba(0x20202020)));
+    setPen(QPen(Qt::white, 2));
+    setOpacity(1.0);
     setCursor(Qt::ClosedHandCursor);
 }
 
 void SelectBox::setRect(QRectF const & rect)
 {
+    QRectF rect2(rect.adjusted(-1, -1, 1, 1));
     QGraphicsRectItem::setRect(rect);
     toolBar_->setPos(rect.right() - toolBar_->boundingRect().width(),
                      rect.bottom() + 10);
-    QRectF rect2(rect.adjusted(-CROSS_OFFSET, -CROSS_OFFSET,
-                               CROSS_OFFSET, CROSS_OFFSET));
+    rect2.adjust(-CROSS_OFFSET, -CROSS_OFFSET,
+                 CROSS_OFFSET, CROSS_OFFSET);
     QPointF center = rect.center();
+    rotate_->setPos(center.x(), rect2.top() - CROSS_LENGTH);
     leftTop_->setPos(rect2.left(), rect2.top());
     rightTop_->setPos(rect2.right(), rect2.top());
     rightBottom_->setPos(rect2.right(), rect2.bottom());
@@ -108,24 +118,26 @@ void SelectBox::setRect(QRectF const & rect)
     bottom_->setPos(center.x(), rect2.bottom());
 }
 
-void SelectBox::setVisible(bool menu, bool corner, bool border)
+void SelectBox::setVisible(bool menu, bool scale, bool rotate)
 {
-    border &= corner;
-    QGraphicsRectItem::setVisible(menu || corner);
+    QGraphicsRectItem::setVisible(menu || scale || rotate);
     toolBar_->setVisible(menu);
-    leftTop_->setVisible(corner);
-    rightTop_->setVisible(corner);
-    rightBottom_->setVisible(corner);
-    leftBottom_->setVisible(corner);
-    left_->setVisible(border);
-    top_->setVisible(border);
-    right_->setVisible(border);
-    bottom_->setVisible(border);
+    rotate_->setVisible(rotate);
+    leftTop_->setVisible(scale);
+    rightTop_->setVisible(scale);
+    rightBottom_->setVisible(scale);
+    leftBottom_->setVisible(scale);
+    left_->setVisible(scale);
+    top_->setVisible(scale);
+    right_->setVisible(scale);
+    bottom_->setVisible(scale);
 }
 
 int SelectBox::hitTest(const QPointF &pos, QRectF &direction)
 {
-    if (leftTop_->contains(leftTop_->mapFromParent(pos))) {
+    if (rotate_->contains(rotate_->mapToParent(pos))) {
+        return 3;
+    } if (leftTop_->contains(leftTop_->mapFromParent(pos))) {
         direction = QRectF(1, 1, 0, 0);
         return 2;
     } else if (rightTop_->contains(rightTop_->mapFromParent(pos))) {

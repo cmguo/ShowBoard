@@ -298,17 +298,23 @@ void Control::move(QPointF const & delta)
     updateTransform();
 }
 
-void Control::scale(QRectF const & origin, bool positive, QRectF & result)
+void Control::scale(QRectF const & origin, QRectF const & direction,
+                    QPointF const & diff, QRectF & result)
 {
     //result = origin;
     //result.adjust(0, 0, origin.width() / -2, origin.height() / -2);
-    qDebug() << result;
+    qDebug() << origin << " -> " << result;
+    bool positive = qFuzzyIsNull(direction.left() - direction.top());
+    bool byWidth = qFuzzyIsNull(direction.top()) && qFuzzyIsNull(direction.height());
+    bool byHeight = qFuzzyIsNull(direction.left()) && qFuzzyIsNull(direction.width());
+    result = origin.adjusted(
+                diff.x() * direction.left(), diff.y() * direction.top(),
+                diff.x() * direction.width(), diff.y() * direction.height());
     QPointF c0 = result.center();
     QPointF d0 = c0 - origin.center();
     if (item_ != realItem_) {
         static_cast<SelectBar *>(realItem_)->updateRectToChild(result);
         c0 = result.center();
-        qDebug() << "updateRectToChild" << result;
     }
     QSizeF s1 = item_->boundingRect().size();
     QSizeF s2 = result.size();
@@ -316,7 +322,7 @@ void Control::scale(QRectF const & origin, bool positive, QRectF & result)
     QPointF d = d0;
     if (flags_ & KeepAspectRatio) {
         qreal sign = positive ? 1.0 : -1.0;
-        if (s.width() > s.height()) {
+        if (byHeight || (s.width() < s.height() && !byWidth)) {
             d.setX(d.y() * sign * s1.width() / s1.height());
             //d.setX(d.x() * s.height() / s.width());
             result.setWidth(s1.width() * s.height());
@@ -328,6 +334,10 @@ void Control::scale(QRectF const & origin, bool positive, QRectF & result)
         result.moveCenter(c0 - d0 + d);
     } else {
         s2.scale(1.0 / s1.width(), 1.0 / s1.height(), Qt::IgnoreAspectRatio);
+    }
+    if (result.height() < 120) {
+        result = origin;
+        return;
     }
     if (flags_ & LayoutScale) {
         resize(result.size());
@@ -354,6 +364,7 @@ StateItem * Control::stateItem()
     if (stateItem_)
         return stateItem_;
     stateItem_ = new StateItem(item_);
+    stateItem_->setData(ITEM_KEY_CONTROL, QVariant::fromValue(this));
     return stateItem_;
 }
 

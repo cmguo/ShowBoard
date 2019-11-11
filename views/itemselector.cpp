@@ -40,7 +40,7 @@ void ItemSelector::select(QGraphicsItem *item)
         selectControl_->getToolButtons(buttons);
         toolBar()->setToolButtons(buttons);
         selBox_->setVisible(true, selectControl_->flags() & Control::CanScale,
-                            !(selectControl_->flags() & Control::KeepAspectRatio));
+                            (selectControl_->flags() & Control::CanRotate));
     } else {
         select_ = nullptr;
         if (selectControl_)
@@ -127,15 +127,12 @@ void ItemSelector::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         break;
     case Scale: {
         //qDebug() << rect;
-        rect.adjust(
-                    d.x() * direction_.left(), d.y() * direction_.top(),
-                    d.x() * direction_.width(), d.y() * direction_.height());
-        //qDebug() << "  " << rect;
-        bool positive = qFuzzyIsNull(direction_.left() - direction_.top());
-        selectControl_->scale(rect_, positive, rect);
+        selectControl_->scale(rect_, direction_, d, rect);
         pt = start_ + (rect.center() - rect_.center()) * 2;
         selBox_->setRect(rect.normalized());
         } break;
+    case Rotate:
+        break;
     case Canvas: {
         QGraphicsItem * canvas = parentItem();
         QRectF crect = canvas->boundingRect().adjusted(d.x(), d.y(), d.x(), d.y());
