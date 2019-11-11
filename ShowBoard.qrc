@@ -9,5 +9,6 @@
         <file>icons/stop.normal.svg</file>
         <file>icons/stop.press.svg</file>
         <file>htmls/video.htm</file>
+        <file>icons/icon_refresh.png</file>
     </qresource>
 </RCC>

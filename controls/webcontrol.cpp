@@ -9,7 +9,7 @@
 #include <QGraphicsItem>
 
 static char const * toolstr =
-        "reload()|刷新|:/showboard/icons/icon_delete.png;";
+        "reload()|刷新|:/showboard/icons/icon_refresh.png;";
 
 class TouchEventForwarder : public QObject
 {
