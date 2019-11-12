@@ -87,7 +87,7 @@ public:
 
     QGraphicsItem * item() const
     {
-        return item_;
+        return realItem_;
     }
 
 public:
