@@ -64,6 +64,13 @@ PowerPoint::PowerPoint(QObject * parent)
     moveToThread(&workThread());
 }
 
+PowerPoint::~PowerPoint()
+{
+    if (presentations_)
+        delete presentations_;
+    presentations_ = nullptr;
+}
+
 void PowerPoint::open(QString const & file)
 {
     if (application_ == nullptr) {
@@ -211,10 +218,11 @@ void PowerPoint::close()
 {
     if (!presentation_)
         return;
-    qDebug() << "PptxControl::close()";
+    qDebug() << "PowerPoint::close()";
     view_ = nullptr;
     hwnd_ = 0;
-    presentation_->deleteLater();
+    presentation_->dynamicCall("Close()");
+    delete presentation_;
     presentation_ = nullptr;
     total_ = 0;
     emit closed();

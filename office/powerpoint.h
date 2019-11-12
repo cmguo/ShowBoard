@@ -12,6 +12,8 @@ class PowerPoint : public QObject
 public:
     PowerPoint(QObject * parent = nullptr);
 
+    virtual ~PowerPoint() override;
+
 public:
     void open(QString const & file);
 
