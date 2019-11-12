@@ -99,6 +99,7 @@ void Control::attaching()
 
 void Control::attached()
 {
+    loadFinished(true);
 }
 
 void Control::detaching()

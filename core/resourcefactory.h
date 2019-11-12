@@ -7,6 +7,7 @@
 #include <qimport.h>
 
 #include <QObject>
+#include <QMap>
 
 /*
  * A Factory of a set of ResourceView sub types
@@ -14,7 +15,7 @@
  *  override this class to provider a custom resource type
  */
 
-class ResourceFactory : public QObject
+class SHOWBOARD_EXPORT ResourceFactory : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(std::vector<QLazy> resource_types MEMBER resource_types_)
@@ -29,8 +30,13 @@ public:
      */
     virtual ResourceView * create(Resource * res) = 0;
 
+    virtual QUrl newUrl(QString const & type) const = 0;
+
 public slots:
     void onComposition();
+
+public:
+    QList<QString> resourceTypes() const;
 
 protected:
     /*
@@ -40,7 +46,7 @@ protected:
 
 private:
     std::vector<QLazy> resource_types_;
-    std::map<QString, QLazy *> resources_;
+    QMap<QString, QLazy *> resources_;
 };
 
 /*

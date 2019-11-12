@@ -21,7 +21,7 @@ Graph2D::Graph2D(Graph2D const & o)
 
 bool Graph2D::empty() const
 {
-    return Graph::empty() && res_->url().path().length() < 10;
+    return Graph::empty() && res_->url().path().length() < 15;
 }
 
 bool Graph2D::commit(const QPointF &pt)
@@ -72,4 +72,9 @@ ResourceView * Graph2DFactory::create(Resource *res)
 {
     QString type = res->url().path().mid(1);
     return ResourceFactory::create(res, type);
+}
+
+QUrl Graph2DFactory::newUrl(const QString &type) const
+{
+    return "graph2d:///" + type;
 }

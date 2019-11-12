@@ -16,6 +16,7 @@ extern void hideWindow(intptr_t hwnd);
 extern void setWindowAtTop(intptr_t hwnd);
 extern void attachWindow(intptr_t hwndParent, intptr_t hwnd, int left, int top);
 extern void moveChildWindow(intptr_t hwnd, int dx, int dy);
+extern void setArrowCursor();
 
 QAxObject * PowerPoint::application_ = nullptr;
 
@@ -94,8 +95,8 @@ void PowerPoint::open(QString const & file)
                          this, SLOT(onException(int,QString,QString,QString)));
         presentation_ = presentation;
         total_ = presentation_->querySubObject("Slides")->property("Count").toInt();
-        thumb(slideNumber_);
         emit opened(total_);
+        thumb(slideNumber_);
     } else {
         emit failed("Open Failed");
     }
@@ -124,6 +125,7 @@ void PowerPoint::thumb(int page)
     slide->dynamicCall("Export(QString, QString, long, long)", file, "JPG", 320, 180);
     QPixmap pixmap(file);
     emit thumbed(pixmap);
+    setArrowCursor();
 }
 
 void PowerPoint::show(int page)

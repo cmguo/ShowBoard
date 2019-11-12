@@ -6,7 +6,7 @@
 QGraphicsItem * GraphControl::itemFilter_ = nullptr;
 
 GraphControl::GraphControl(ResourceView * res)
-    : Control(res)
+    : Control(res, PositionAtCenter)
 {
 }
 
@@ -14,12 +14,14 @@ void GraphControl::attached()
 {
     Graph * gh = static_cast<Graph *>(res_);
     if (gh->empty()) {
+        loadFinished(true);
     } else {
         QWeakPointer<int> life(this->life());
         gh->load().then([this, gh, life]() {
             if (life.isNull())
                 return;
             updateGraph(gh);
+            loadFinished(true);
         });
     }
 }

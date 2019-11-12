@@ -81,3 +81,16 @@ ResourceView * ResourceManager::createResource(QUrl const & uri)
     }
     return iter->second->create<ResourceView>(Q_ARG(Resource *, res));
 }
+
+ResourceFactory * ResourceManager::getFactory(QString const & type)
+{
+    std::map<QString, QLazy*>::iterator iter = resources_.find(type);
+    if (iter == resources_.end())
+        return nullptr;
+    char const * rfactory = iter->second->part()->attr(ResourceView::EXPORT_ATTR_FACTORY);
+    if (rfactory && strcmp(rfactory, "true") == 0) {
+        return iter->second->get<ResourceFactory>();
+    } else {
+        return nullptr;
+    }
+}

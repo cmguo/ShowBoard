@@ -93,3 +93,8 @@ void moveChildWindow(intptr_t hwnd, int dx, int dy)
     ::SetWindowPos(hWnd, HWND_TOP, rect.left + dx, rect.top + dy,
                    0, 0, SWP_NOSIZE | SWP_NOZORDER);
 }
+
+void setArrowCursor()
+{
+    SetCursor(LoadCursor(GetModuleHandle(nullptr), IDC_ARROW));
+}

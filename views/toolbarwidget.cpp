@@ -19,7 +19,9 @@ ToolbarWidget::ToolbarWidget(QWidget *parent)
     style_->features = QStyleOptionButton::Flat;
     this->setObjectName(QString::fromUtf8("toolbarwidget"));
     this->setAttribute(Qt::WA_StyledBackground,true);
-    this->setStyleSheet("QPushButton,.QLabel{color:#80ffffff;background-color:#00000000;border:none;font-size:14pt;spacing: 30px;} QPushButton{qproperty-iconSize: 30px 30px;} #toolbarwidget{background-color:#C8000000;border-radius:3px;}");
+    this->setStyleSheet("QPushButton,.QLabel{color:#80ffffff;background-color:#00000000;border:none;font-size:16pt;spacing: 30px;} "
+                        "QPushButton{qproperty-iconSize: 30px 30px; font-family: '微软雅黑'} "
+                        "#toolbarwidget{background-color:#C8000000;border-radius:3px;}");
     layout_->setContentsMargins(10,10,10,10);
     this->setLayout(layout_);
 }

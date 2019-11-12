@@ -20,9 +20,14 @@ void ResourceFactory::onComposition()
 
 ResourceView * ResourceFactory::create(Resource *res, const QString &type)
 {
-    std::map<QString, QLazy*>::iterator iter = resources_.find(type);
+    QMap<QString, QLazy*>::iterator iter = resources_.find(type);
     if (iter == resources_.end()) {
         return nullptr;
     }
-    return iter->second->create<ResourceView>(Q_ARG(Resource *, res));
+    return iter.value()->create<ResourceView>(Q_ARG(Resource *, res));
+}
+
+QList<QString> ResourceFactory::resourceTypes() const
+{
+    return resources_.keys();
 }

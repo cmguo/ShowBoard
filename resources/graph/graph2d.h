@@ -34,7 +34,9 @@ public:
     Q_INVOKABLE Graph2DFactory();
 
 public:
-    Q_INVOKABLE ResourceView * create(Resource * res);
+    virtual ResourceView * create(Resource * res) override;
+
+    virtual QUrl newUrl(const QString &type) const override;
 };
 
 #define REGISTER_GRAPH_2D(ctype, type) \

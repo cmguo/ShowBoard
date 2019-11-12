@@ -15,5 +15,4 @@ SOURCES += \
     $$PWD/pptxcontrol.cpp \
     $$PWD/strokecontrol.cpp \
     $$PWD/videocontrol.cpp \
-    $$PWD/webcontrol.cpp \
-    $$PWD/win32helper.cpp
+    $$PWD/webcontrol.cpp

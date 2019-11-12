@@ -10,6 +10,7 @@
 #include <QMap>
 
 class ResourceView;
+class ResourceFactory;
 
 class SHOWBOARD_EXPORT ResourceManager : public QObject
 {
@@ -29,6 +30,8 @@ public:
     ResourceView * createResource(QUrl const & uri);
 
     ResourceView * createResource(QString const & mine, QByteArray const & data);
+
+    ResourceFactory * getFactory(QString const & type);
 
 public slots:
     void onComposition();
