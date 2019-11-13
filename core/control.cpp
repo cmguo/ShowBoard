@@ -26,18 +26,21 @@ ToolButton Control::btnDelete = { "delete", "删除", ":/showboard/icons/icon_de
 Control::Control(ResourceView *res, Flags flags, Flags clearFlags)
     : flags_((DefaultFlags | flags) & ~clearFlags)
     , res_(res)
+    , transform_(nullptr)
     , item_(nullptr)
     , realItem_(nullptr)
     , stateItem_(nullptr)
 {
-    transform_ = new ControlTransform(res->transform());
+    if (!(flags_ & SelfTransform))
+        transform_ = new ControlTransform(res->transform());
     if (res_->flags() & ResourceView::SavedSession)
         flags_ |= RestoreSession;
 }
 
 Control::~Control()
 {
-    delete transform_;
+    if (transform_)
+        delete transform_;
     delete realItem_;
     realItem_ = nullptr;
     item_ = nullptr;
@@ -48,7 +51,8 @@ Control::~Control()
 void Control::attachTo(QGraphicsItem * parent)
 {
     item_ = create(res_);
-    item_->setTransformations({transform_});
+    if (transform_)
+        item_->setTransformations({transform_});
     if (flags_ & WithSelectBar) {
         realItem_ = new SelectBar(item_);
         transform_ = new ControlTransform(
@@ -60,7 +64,8 @@ void Control::attachTo(QGraphicsItem * parent)
     item_->setAcceptTouchEvents(true);
     item_->setFlag(QGraphicsItem::ItemIsFocusable);
     realItem_->setData(ITEM_KEY_CONTROL, QVariant::fromValue(this));
-    realItem_->setTransformations({transform_});
+    if (realItem_ != item_)
+        realItem_->setTransformations({transform_});
     realItem_->setParentItem(parent);
     loadSettings();
     initPosition();

@@ -49,6 +49,6 @@ Control * ControlManager::createControl(ResourceView * res)
     std::map<QString, QLazy *>::iterator iter = controls_.find(res->resource()->type());
     if (iter == controls_.end())
         return nullptr;
-    return iter->second->create<Control>(Q_ARG(ResourceView *, res));
+    return iter->second->create<Control>(Q_ARG(ResourceView*, res));
 }
 

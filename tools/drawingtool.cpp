@@ -5,9 +5,11 @@
 #include <QPen>
 #include <QGraphicsRectItem>
 #include <QGraphicsSceneMouseEvent>
+#include <QPushButton>
+#include <QGraphicsProxyWidget>
 
 DrawingTool::DrawingTool(ResourceView *res)
-    : Control(res, FullLayout, CanMove)
+    : Control(res, FullLayout, CanSelect)
 {
 }
 
@@ -31,9 +33,28 @@ public:
         : control_(nullptr)
     {
         setPen(QPen(Qt::NoPen));
+        setCursor(Qt::CrossCursor);
+        QPushButton * button = new QPushButton("Finish");
+        QObject::connect(button, &QPushButton::clicked, [this](){finish();});
+        QGraphicsProxyWidget * item = new QGraphicsProxyWidget(this);
+        item->setWidget(button);
+        item->hide();
+        finishItem_ = item;
     }
 
 private:
+    void finish()
+    {
+        if (control_) {
+            QEvent event(QEvent::User);
+            control_->event(&event);
+            DrawingTool * tool = static_cast<DrawingTool *>(Control::fromItem(this));
+            tool->finishControl(control_);
+            control_ = nullptr;
+            finishItem_->hide();
+        }
+    }
+
     virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override
     {
         if (!control_) {
@@ -53,16 +74,20 @@ private:
     {
         if (control_) {
             control_->event(event);
-            if (event->flags() & 256) {
+            if (control_->resource()->flags() & ResourceView::DrawFinised) {
                 DrawingTool * tool = static_cast<DrawingTool *>(Control::fromItem(this));
                 tool->finishControl(control_);
                 control_ = nullptr;
+            } else if (event->flags() & 256) {
+                finishItem_->setPos(event->pos() + QPointF(20, 20));
+                finishItem_->show();
             }
         }
     }
 
 private:
     Control * control_;
+    QGraphicsItem * finishItem_;
 };
 
 QGraphicsItem * DrawingTool::create(ResourceView *res)

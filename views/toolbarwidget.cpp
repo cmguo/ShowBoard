@@ -2,6 +2,7 @@
 #include "core/toolbutton.h"
 
 #include <QHBoxLayout>
+#include <QVBoxLayout>
 #include <QPainter>
 #include <QWidget>
 #include <QStyleOptionButton>
@@ -11,10 +12,18 @@
 #include <QLabel>
 
 ToolbarWidget::ToolbarWidget(QWidget *parent)
+    : ToolbarWidget(true, parent)
+{
+}
+
+ToolbarWidget::ToolbarWidget(bool horizontal, QWidget *parent)
     : QWidget(parent)
     , template_(nullptr)
 {
-    layout_ = new QHBoxLayout(this);
+    if (horizontal)
+        layout_ = new QHBoxLayout(this);
+    else
+        layout_ = new QVBoxLayout(this);
     style_ = new QStyleOptionButton();
     style_->features = QStyleOptionButton::Flat;
     this->setObjectName(QString::fromUtf8("toolbarwidget"));
@@ -22,7 +31,8 @@ ToolbarWidget::ToolbarWidget(QWidget *parent)
     this->setStyleSheet("QPushButton,.QLabel{color:#80ffffff;background-color:#00000000;border:none;font-size:16pt;spacing: 30px;} "
                         "QPushButton{qproperty-iconSize: 30px 30px; font-family: '微软雅黑'} "
                         "#toolbarwidget{background-color:#C8000000;border-radius:3px;}");
-    layout_->setContentsMargins(10,10,10,10);
+    if (horizontal)
+        layout_->setContentsMargins(10,10,10,10);
     this->setLayout(layout_);
 }
 
@@ -89,7 +99,8 @@ void ToolbarWidget::addToolButton(ToolButton * button)
     btn->setText(QString(" %1").arg(button->title));
     void (ToolbarWidget::*slot)() = &ToolbarWidget::buttonClicked;
     QObject::connect(btn, &QPushButton::clicked, this, slot);
-    if(buttons_.size()>0){
+    if (layout_->metaObject()->inherits(&QHBoxLayout::staticMetaObject)
+            && buttons_.size() > 0) {
         QLabel *splitLabel = new QLabel(this);
         splitLabel->setText("|");
         layout_->addWidget(splitLabel);

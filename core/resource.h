@@ -17,6 +17,13 @@ class QNetworkAccessManager;
 class SHOWBOARD_EXPORT Resource : public LifeObject
 {
     Q_OBJECT
+
+    Q_PROPERTY(QUrl const url READ url)
+    Q_PROPERTY(QString const type READ type)
+
+public:
+    static constexpr char const * PROP_SUB_TYPE = "RES_SUB_TYPE";
+
 public:
     /*
      * new resource with type @type and url @url
@@ -27,9 +34,6 @@ public:
 
     // copy constructor
     Resource(Resource const & o);
-
-    Q_PROPERTY(QUrl const url READ url)
-    Q_PROPERTY(QString const type READ type)
 
 public:
     QUrl const & url() const

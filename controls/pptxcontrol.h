@@ -24,7 +24,7 @@ public:
 
     void setSlideNumber(int n);
 
-public:
+public slots:
     void open();
     void show(int page = 0); // 0 for current page, 1 for first page
     void next();

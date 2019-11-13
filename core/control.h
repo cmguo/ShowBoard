@@ -39,6 +39,8 @@ public:
         PositionAtCenter = 1 << 11,
         LayoutScale = 1 << 12,
         LoadFinished = 1 << 16,
+        DrawFinished = 1 << 17,
+        SelfTransform = 1 << 18,
     };
 
     Q_DECLARE_FLAGS(Flags, Flag)
@@ -166,6 +168,8 @@ protected:
      */
     virtual void resize(QSizeF const & size);
 
+    virtual void updateTransform();
+
     /*
      * called before item is attached to canvas
      * override this to do more preparing work
@@ -219,8 +223,6 @@ protected:
     void setSizeHint(QSizeF const & size);
 
     StateItem * stateItem();
-
-    void updateTransform();
 
 private:
     QList<ToolButton *> & tools();

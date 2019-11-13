@@ -100,8 +100,8 @@ SelectBox::SelectBox(QGraphicsItem * parent)
 
 void SelectBox::setRect(QRectF const & rect)
 {
-    QRectF rect2(rect.adjusted(-1, -1, 1, 1));
-    QGraphicsRectItem::setRect(rect);
+    QRectF rect2(rect.adjusted(-2, -2, 2, 2));
+    QGraphicsRectItem::setRect(rect2);
     toolBar_->setPos(rect.right() - toolBar_->boundingRect().width(),
                      rect.bottom() + 10);
     rect2.adjust(-CROSS_OFFSET, -CROSS_OFFSET,

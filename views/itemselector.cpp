@@ -30,8 +30,8 @@ void ItemSelector::select(QGraphicsItem *item)
     if (item == select_)
         return;
     if (item) {
-        QRectF rect = item->mapToParent(item->boundingRect()).boundingRect();
-        selBox_->setRect(rect);
+        rect_ = item->mapToParent(item->boundingRect()).boundingRect();
+        selBox_->setRect(rect_);
         itemChange(ItemPositionHasChanged, pos());
         select_ = item;
         selectControl_ = Control::fromItem(item);
@@ -68,7 +68,6 @@ void ItemSelector::autoTop(bool force)
 void ItemSelector::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     start_ = event->pos();
-    rect_ = selBox_->rect();
     type_ = select_ == nullptr ? None :
             static_cast<SelectType>(selBox_->hitTest(selBox_->mapFromParent(start_), direction_));
     if (type_ == None) {

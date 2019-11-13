@@ -9,7 +9,7 @@
 #include <QMap>
 #include <QList>
 
-class QHBoxLayout;
+class QLayout;
 class QStyleOptionButton;
 
 class SHOWBOARD_EXPORT ToolbarWidget : public QWidget
@@ -17,6 +17,8 @@ class SHOWBOARD_EXPORT ToolbarWidget : public QWidget
     Q_OBJECT
 public:
     explicit ToolbarWidget(QWidget *parent = nullptr);
+
+    explicit ToolbarWidget(bool horizontal, QWidget *parent = nullptr);
 
 public:
     void setButtonTemplate(int typeId);
@@ -43,7 +45,7 @@ private:
 
 private:
     QMetaObject const * template_;
-    QHBoxLayout * layout_;
+    QLayout * layout_;
     QMap<QWidget *, ToolButton *> buttons_;
     QList<QWidget *> splitWidget_;
     QStyleOptionButton * style_;

@@ -38,6 +38,7 @@ public:
         //  special used for stroke writen
         Splittable = 1 << 8,
         SavedSession = 1 << 9,
+        DrawFinised = 1 << 10,
     };
 
     Q_DECLARE_FLAGS(Flags, Flag)

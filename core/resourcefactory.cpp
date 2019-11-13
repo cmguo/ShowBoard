@@ -1,4 +1,5 @@
 #include "resourcefactory.h"
+#include "resource.h"
 
 #include <qlazy.hpp>
 
@@ -24,6 +25,7 @@ ResourceView * ResourceFactory::create(Resource *res, const QString &type)
     if (iter == resources_.end()) {
         return nullptr;
     }
+    res->setProperty(Resource::PROP_SUB_TYPE, type);
     return iter.value()->create<ResourceView>(Q_ARG(Resource *, res));
 }
 

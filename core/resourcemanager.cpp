@@ -1,5 +1,6 @@
 #include "resourcemanager.h"
 #include "resource.h"
+#include "resourcefactory.h"
 #include "resourceview.h"
 #include "qlazy.hpp"
 #include "qcomponentcontainer.h"
@@ -79,7 +80,7 @@ ResourceView * ResourceManager::createResource(QUrl const & uri)
         ResourceFactory * factory = iter->second->get<ResourceFactory>();
         return factory->create(res);
     }
-    return iter->second->create<ResourceView>(Q_ARG(Resource *, res));
+    return iter->second->create<ResourceView>(Q_ARG(Resource*, res));
 }
 
 ResourceFactory * ResourceManager::getFactory(QString const & type)
