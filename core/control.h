@@ -39,8 +39,9 @@ public:
         PositionAtCenter = 1 << 11,
         LayoutScale = 1 << 12,
         LoadFinished = 1 << 16,
-        DrawFinished = 1 << 17,
-        SelfTransform = 1 << 18,
+        ExpandScale = 1 << 17,
+        DrawFinished = 1 << 18,
+        SelfTransform = 1 << 19,
     };
 
     Q_DECLARE_FLAGS(Flags, Flag)

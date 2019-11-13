@@ -25,7 +25,7 @@ void SelectBar::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     painter->setBrush(Qt::gray);
     painter->setOpacity(selected_ ? 1.0 : 0.2);
     QRectF rect(boundingRect());
-    rect.setHeight(48);
+    rect.setHeight(HEIGHT);
     painter->drawRect(rect);
     painter->setPen(Qt::white);
     qreal diff = rect.height() / 5;
@@ -57,7 +57,7 @@ void SelectBar::setRect(const QRectF &rect)
 void SelectBar::update()
 {
     QRectF rect(boundingRect());
-    rect.setHeight(48);
+    rect.setHeight(HEIGHT);
     QGraphicsRectItem::update(rect);
 }
 
@@ -69,16 +69,16 @@ void SelectBar::updateRect()
 
 void SelectBar::updateRectFromChild(QRectF & rect)
 {
-    rect.adjust(0, -48, 0, 0);
+    rect.adjust(0, -HEIGHT, 0, 0);
     QRectF rect2 = rect;
-    rect2.moveCenter({0, -24});
+    rect2.moveCenter({0, -HEIGHT / 2.0});
     setRect(rect2);
 }
 
 void SelectBar::updateRectToChild(QRectF & rect)
 {
     QRectF rect2 = rect;
-    rect.adjust(0, 48, 0, 0);
-    rect2.moveCenter({0, -24});
+    rect.adjust(0, HEIGHT, 0, 0);
+    rect2.moveCenter({0, -HEIGHT / 2.0});
     setRect(rect2);
 }

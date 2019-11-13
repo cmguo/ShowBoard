@@ -6,6 +6,8 @@
 class SelectBar : public QGraphicsRectItem
 {
 public:
+    static constexpr qreal HEIGHT = 48.0;
+
     SelectBar(QGraphicsItem * item, QGraphicsItem * parent = nullptr);
 
 public:

@@ -164,12 +164,25 @@ QSizeF Control::sizeHint()
     return item_->boundingRect().size();
 }
 
+static void adjustSizeHint(QSizeF & size, QSizeF const & psize)
+{
+    if (size.width() < 10.0) {
+        size.setWidth(psize.width() * size.width());
+    }
+    if (size.height() < 0)
+        size.setHeight(size.width() * -size.height());
+    else if (size.height() < 10.0)
+        size.setHeight(psize.height() * size.height());
+}
+
 // called before attached
 void Control::setSizeHint(QSizeF const & size)
 {
-    if (size.width() < 10.0) {
+    if (size.width() < 10.0 || size.height() < 10.0) {
+        QSizeF size2 = size;
         QRectF rect = realItem_->parentItem()->boundingRect();
-        resize(QSizeF(rect.width() * size.width(), rect.height() * size.height()));
+        adjustSizeHint(size2, rect.size());
+        resize(size2);
     } else {
         resize(size);
     }
@@ -289,35 +302,41 @@ void Control::initScale()
         canvas->setGeometry(rect);
         return;
     }
-    QVariant sizeHint = res_->property("sizeHint");
-    if (sizeHint.isValid()) {
-        QSizeF sh = sizeHint.toSizeF();
-        if (sh.width() < 10.0) {
-            sh = QSizeF(ps.width() * sh.width(), ps.height() * sh.height());
-        }
-        ps = sh;
-    }
     if (flags_ & RestoreSession) {
-        resize(ps);
-        if (realItem_ != item_)
-            static_cast<SelectBar *>(realItem_)->updateRect();
+        QVariant sizeHint = res_->property("sizeHint");
+        if (sizeHint.isValid()) {
+            QSizeF sh = sizeHint.toSizeF();
+            if (sh.width() < 10.0 || sh.height() < 10.0) {
+                adjustSizeHint(sh, ps);
+            }
+            resize(sh);
+            if (realItem_ != item_)
+                static_cast<SelectBar *>(realItem_)->updateRect();
+        }
         return;
     }
     if (flags_ & (FullLayout | LoadFinished)) {
         return;
+    }
+    if (flags_ & WithSelectBar) {
+        ps.setHeight(ps.height() - SelectBar::HEIGHT * 2);
     }
     qreal scale = 1.0;
     while (size.width() > ps.width() || size.height() > ps.height()) {
         size /= 2.0;
         scale /= 2.0;
     }
-    //while (size.width() * 2.0 < ps.width() && size.height() * 2.0 < ps.height()) {
-    //    size *= 2.
-    //    scale *= 2.0;
-    //}
+    if (flags_ & ExpandScale) {
+        while (size.width() * 2.0 < ps.width() && size.height() * 2.0 < ps.height()) {
+            size *= 2.0;
+            scale *= 2.0;
+        }
+    }
     QTransform * t = res_->transform();
     t->scale(scale / t->m11(), scale / t->m22());
     updateTransform();
+    if (realItem_ != item_)
+        static_cast<SelectBar *>(realItem_)->updateRect();
     if (stateItem_) {
         stateItem_->updateTransform();
     }
