@@ -13,7 +13,7 @@ public:
 protected:
     virtual QWidget * createWidget(ResourceView * res) override;
 
-    virtual QString toolsString() const override;
+    virtual QString toolsString(QString const & parent) const override;
 
     virtual void attached() override;
 

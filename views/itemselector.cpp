@@ -50,6 +50,14 @@ void ItemSelector::select(QGraphicsItem *item)
     }
 }
 
+void ItemSelector::updateSelect()
+{
+    if (!select_)
+        return;
+    rect_ = select_->mapToParent(select_->boundingRect()).boundingRect();
+    selBox_->setRect(rect_);
+}
+
 ToolbarWidget * ItemSelector::toolBar()
 {
     return selBox_->toolBar();
@@ -68,8 +76,10 @@ void ItemSelector::autoTop(bool force)
 void ItemSelector::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     start_ = event->pos();
-    type_ = select_ == nullptr ? None :
-            static_cast<SelectType>(selBox_->hitTest(selBox_->mapFromParent(start_), direction_));
+    type_ = None;
+    if (select_ && selBox_->isVisible())
+        type_ = static_cast<SelectType>(
+                    selBox_->hitTest(selBox_->mapFromParent(start_), direction_));
     if (type_ == None) {
         QList<QGraphicsItem*> items = scene()->items(event->scenePos());
         for (QGraphicsItem * item : items) {
@@ -79,7 +89,8 @@ void ItemSelector::mousePressEvent(QGraphicsSceneMouseEvent *event)
             Control::SelectMode mode = Control::NotSelect;
             if ((force_ && (ct->flags() & Control::CanSelect))
                     || (mode = ct->selectTest(mapToItem(item, start_))) == Control::Select) {
-                select(nullptr);
+                if (select_ != item)
+                    select(nullptr);
                 select_ = item;
                 selectControl_ = ct;
                 selectControl_->select(true);

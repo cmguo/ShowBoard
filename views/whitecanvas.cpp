@@ -29,7 +29,7 @@ WhiteCanvas::WhiteCanvas(QObject * parent)
     tools_->setRect(rect());
     selector_ = new ItemSelector(this);
     selector_->setRect(rect());
-    void (ToolbarWidget::*sig)(ToolButton *) = &ToolbarWidget::buttonClicked;
+    void (ToolbarWidget::*sig)(QList<ToolButton *> const &) = &ToolbarWidget::buttonClicked;
     QObject::connect(selector_->toolBar(), sig, this, &WhiteCanvas::toolButtonClicked);
 }
 
@@ -134,17 +134,17 @@ void WhiteCanvas::setResourcePackage(ResourcePackage * pack)
     }
 }
 
-void WhiteCanvas::toolButtonClicked(ToolButton * button)
+void WhiteCanvas::toolButtonClicked(QList<ToolButton *> const & buttons)
 {
     Control * ct = Control::fromItem(selector_->selected());
-    if (button == &Control::btnCopy) {
+    if (buttons.back() == &Control::btnCopy) {
         selector_->select(nullptr);
         canvas_->page()->copyResource(ct->resource());
-    } else if (button == &Control::btnDelete) {
+    } else if (buttons.back() == &Control::btnDelete) {
         selector_->select(nullptr);
         canvas_->page()->removeResource(ct->resource());
     } else {
-        ct->handleToolButton(button);
+        ct->handleToolButton(buttons);
     }
 }
 

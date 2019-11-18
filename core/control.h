@@ -10,7 +10,7 @@ class QGraphicsItem;
 class ResourceView;
 class QGraphicsTransform;
 class StateItem;
-struct ToolButton;
+class ToolButton;
 
 class SHOWBOARD_EXPORT Control : public LifeObject
 {
@@ -107,6 +107,7 @@ public:
      */
     void relayout();
 
+public:
     /*
      * move (shift) this item, is saved at transform
      */
@@ -119,15 +120,15 @@ public:
                QPointF const & diff, QRectF & result);
 
     /*
-     * set when select state change
-     */
-    void select(bool selected);
-
-    /*
      * invoke slot by name, use for lose relation call
      */
     void exec(QString const & cmd, QGenericArgument arg0 = QGenericArgument(),
               QGenericArgument arg1 = QGenericArgument(), QGenericArgument arg2 = QGenericArgument());
+
+    /*
+     * invoke slot by name, use for lose relation call
+     */
+    void exec(QString const & cmd, QStringList const & args);
 
 public:
     /*
@@ -137,17 +138,23 @@ public:
     virtual SelectMode selectTest(QPointF const & point);
 
     /*
+     * set when select state change
+     */
+    virtual void select(bool selected);
+
+    /*
      * collect context menu of this control
      *  copy, delete is add according to flags
      *  other menus can be defined with toolsString()
      */
-    virtual void getToolButtons(QList<ToolButton *> & buttons);
+    virtual void getToolButtons(QList<ToolButton *> & buttons,
+                                ToolButton * parent = nullptr);
 
     /*
      * handle button click,
      *  copy, delete are handled by canvas and should not go here
      */
-    virtual void handleToolButton(ToolButton * button);
+    virtual void handleToolButton(QList<ToolButton *> const & buttons);
 
 protected:
     /*
@@ -161,7 +168,7 @@ protected:
      *   for example:
      *     "open()|打开|:/showboard/icons/icon_open.png;"
      */
-    virtual QString toolsString() const;
+    virtual QString toolsString(QString const & parent = QString()) const;
 
     /*
      * called when attached to canvas or canvas is resized
@@ -207,6 +214,8 @@ protected:
     virtual void detached();
 
 protected:
+    void sizeChanged();
+
     void initPosition();
 
     /*
@@ -225,7 +234,7 @@ protected:
     StateItem * stateItem();
 
 private:
-    QList<ToolButton *> & tools();
+    QList<ToolButton *> & tools(QString const & parent = QString());
 
 protected:
     Flags flags_;

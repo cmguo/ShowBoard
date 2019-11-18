@@ -4,6 +4,7 @@
 #include "views/whitecanvas.h"
 #include "views/stateitem.h"
 #include "views/selectbar.h"
+#include "views/itemselector.h"
 #include "core/transformhelper.h"
 #include "core/controltransform.h"
 
@@ -20,8 +21,8 @@ Control * Control::fromItem(QGraphicsItem * item)
     return item->data(ITEM_KEY_CONTROL).value<Control *>();
 }
 
-ToolButton Control::btnCopy = { "copy", "复制", ":/showboard/icons/icon_copy.png" };
-ToolButton Control::btnDelete = { "delete", "删除", ":/showboard/icons/icon_delete.png" };
+ToolButton Control::btnCopy = { "copy", "复制", nullptr, ":/showboard/icons/icon_copy.png" };
+ToolButton Control::btnDelete = { "delete", "删除", nullptr, ":/showboard/icons/icon_delete.png" };
 
 Control::Control(ResourceView *res, Flags flags, Flags clearFlags)
     : flags_((DefaultFlags | flags) & ~clearFlags)
@@ -68,6 +69,7 @@ void Control::attachTo(QGraphicsItem * parent)
         realItem_->setTransformations({transform_});
     realItem_->setParentItem(parent);
     loadSettings();
+    sizeChanged();
     initPosition();
     relayout();
     attached();
@@ -93,6 +95,7 @@ void Control::relayout()
 {
     if (flags_ & FullLayout) {
         resize(realItem_->parentItem()->boundingRect().size());
+        sizeChanged();
     } else {
 
     }
@@ -135,6 +138,27 @@ void Control::saveSettings()
     res_->setSaved();
 }
 
+void Control::sizeChanged()
+{
+    QRectF rect = item_->boundingRect();
+    QPointF center(rect.center());
+    if (flags_ & LoadFinished) {
+        QTransform t = item_->transform();
+        center = t.map(center);
+        move(center);
+        t.translate(-center.x(), -center.y());
+        item_->setTransform(t);
+        if (realItem_ != item())
+            static_cast<SelectBar *>(realItem_)->updateRect();
+    } else {
+        item_->setTransform(QTransform::fromTranslate(-center.x(), -center.y()));
+    }
+    WhiteCanvas * canvas = static_cast<WhiteCanvas *>(
+                realItem_->parentItem()->parentItem());
+    if (canvas->selector()->selected() == realItem_)
+        canvas->selector()->updateSelect();
+}
+
 QSizeF Control::sizeHint()
 {
     return item_->boundingRect().size();
@@ -173,8 +197,9 @@ Control::SelectMode Control::selectTest(QPointF const & point)
     return rect.contains(point) ? NotSelect : Select;
 }
 
-QString Control::toolsString() const
+QString Control::toolsString(QString const & parent) const
 {
+    (void) parent;
     return nullptr;
 }
 
@@ -236,6 +261,7 @@ void Control::loadFinished(bool ok, QString const & iconOrMsg)
         } else {
             stateItem()->setLoaded(iconOrMsg);
         }
+        sizeChanged();
         initScale();
         flags_ |= LoadFinished;
     } else {
@@ -347,6 +373,7 @@ void Control::scale(QRectF const & origin, QRectF const & direction,
     }
     if (flags_ & LayoutScale) {
         resize(result.size());
+        sizeChanged();
     }
     QTransform * t = res_->transform();
     TransformHelper::apply(*t, item_, result.normalized(), 0.0);
@@ -386,39 +413,79 @@ void Control::exec(QString const & cmd, QGenericArgument arg0,
     if (index < 0)
         return;
     QMetaMethod method = metaObject()->method(index);
+    method.parameterType(index);
     method.invoke(this, arg0, arg1, arg2);
 }
 
-void Control::getToolButtons(QList<ToolButton *> & buttons)
+void Control::exec(QString const & cmd, QStringList const & args)
 {
-    if (res_->flags() & ResourceView::CanCopy)
-        buttons.append(&btnCopy);
-    if (res_->flags() & ResourceView::CanDelete)
-        buttons.append(&btnDelete);
+    int index = metaObject()->indexOfSlot(cmd.toUtf8());
+    if (index < 0)
+        return;
+    QMetaMethod method = metaObject()->method(index);
+    if (method.parameterCount() >= 4)
+        return;
+    QGenericArgument argv[4];
+    QVariant varg[4];
+    for (int i = 0; i < method.parameterCount(); ++i) {
+        if (i < args.size())
+            varg[i] = args[i];
+        int t = method.parameterType(i);
+        if (!varg[i].canConvert(t))
+            return;
+        varg[i].convert(t);
+        argv[i] = QGenericArgument(QMetaType::typeName(t), varg[i].data());
+    }
+    method.invoke(this, argv[0], argv[1], argv[2], argv[3]);
+}
+
+void Control::getToolButtons(QList<ToolButton *> & buttons, ToolButton * parent)
+{
+    if (!parent) {
+        if (res_->flags() & ResourceView::CanCopy)
+            buttons.append(&btnCopy);
+        if (res_->flags() & ResourceView::CanDelete)
+            buttons.append(&btnDelete);
+    }
     buttons.append(tools());
 }
 
-void Control::handleToolButton(ToolButton *button)
+void Control::handleToolButton(QList<ToolButton *> const & buttons)
 {
-    exec(button->name);
+    ToolButton * button = buttons.back();
+    int i = 0;
+    for (; i < buttons.size(); ++i) {
+        if (buttons[i]->flags & ToolButton::NameAsArgument) {
+            button = buttons[i];
+            break;
+        }
+    }
+    QStringList args;
+    for (++i; i < buttons.size(); ++i) {
+        args.append(buttons[i]->name);
+    }
+    exec(button->name, args);
 }
 
-QList<ToolButton *> & Control::tools()
+QList<ToolButton *> & Control::tools(QString const & parent)
 {
     static std::map<QMetaObject const *, QList<ToolButton *>> slist;
     auto iter = slist.find(metaObject());
     if (iter == slist.end()) {
         QList<ToolButton *> list;
-        QString tools = this->toolsString();
+        QString tools = this->toolsString(parent);
         QStringList descs = tools.split(";", QString::SkipEmptyParts);
         for (QString desc : descs) {
             QStringList seps = desc.split("|");
             if (seps.size() >= 1) {
-                list.append(new ToolButton{
-                                seps[0],
-                                seps.size() > 1 ? seps[1] : seps[0],
-                                seps.size() > 2 ? QVariant(seps[2]) : QVariant()
-                            });
+                ToolButton * btn = new ToolButton{
+                    seps[0],
+                    seps.size() > 1 ? seps[1] : seps[0],
+                    seps.size() > 3 ? ToolButton::makeFlags(seps[2]) : nullptr,
+                    seps.size() > 2 ? QVariant(seps.back()) : QVariant()
+                };
+                btn->flags |= ToolButton::Dynamic;
+                list.append(btn);
             }
         }
         iter = slist.insert(std::make_pair(metaObject(), std::move(list))).first;

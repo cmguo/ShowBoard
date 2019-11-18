@@ -29,6 +29,8 @@ public:
         return select_;
     }
 
+    void updateSelect();
+
 private:
     friend class WhiteCanvas;
 

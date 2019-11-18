@@ -14,7 +14,7 @@ class ResourcePageItem;
 class ToolBoxItem;
 class ItemSelector;
 
-struct ToolButton;
+class ToolButton;
 
 /*
  * WhiteCanvas is a container for all controls
@@ -94,7 +94,7 @@ public:
     void setGeometry(QRectF const & rect);
 
 private slots:
-    void toolButtonClicked(ToolButton * button);
+    void toolButtonClicked(QList<ToolButton *> const & buttons);
 
 private:
     virtual QVariant itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value) override;

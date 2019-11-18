@@ -28,5 +28,6 @@ SOURCES += \
     $$PWD/resourceview.cpp \
     $$PWD/showboard.cpp \
     $$PWD/svgcache.cpp \
+    $$PWD/toolbutton.cpp \
     $$PWD/transformhelper.cpp \
     $$PWD/widgetcontrol.cpp

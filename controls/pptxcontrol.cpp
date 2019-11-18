@@ -243,8 +243,9 @@ bool PptxControl::eventFilter(QObject *obj, QEvent * event)
     return true;
 }
 
-QString PptxControl::toolsString() const
+QString PptxControl::toolsString(QString const & parent) const
 {
+    (void) parent;
     (void) toolstr;
     return "";//toolstr;
 }

@@ -82,8 +82,9 @@ WebControl::WebControl(ResourceView * res)
     }
 }
 
-QString WebControl::toolsString() const
+QString WebControl::toolsString(QString const & parent) const
 {
+    (void) parent;
     return toolstr;
 }
 
@@ -123,7 +124,8 @@ void WebControl::contentsSizeChanged(const QSizeF &size)
     if ((d.width() + d.height()) < 10
             || size.height() > realItem_->parentItem()->boundingRect().height())
         return;
-    resize(size.toSize());
+    resize(size);
+    sizeChanged();
 }
 
 void WebControl::reload()

@@ -27,8 +27,6 @@ QGraphicsItem * WidgetControl::create(ResourceView *res)
     item->setAutoFillBackground(false);
     item->setWidget(widget_);
     //resize(widget_->size());
-    QSizeF size = item->size() / -2.0;
-    item->setTransform(QTransform::fromTranslate(size.width(), size.height()));
     return item;
 }
 
@@ -41,6 +39,4 @@ void WidgetControl::resize(QSizeF const & size)
 {
     QGraphicsProxyWidget * item = static_cast<QGraphicsProxyWidget*>(item_);
     item->resize(size);
-    item->setTransform(QTransform::fromTranslate(
-                           size.width() / -2.0, size.height() / -2.0));
 }

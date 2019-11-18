@@ -78,6 +78,25 @@ void ToolbarWidget::setToolButtons(ToolButton buttons[], int count)
     updateGeometry();
 }
 
+void ToolbarWidget::showPopupButtons(const QList<ToolButton *> &buttons)
+{
+    clearPopup();
+    popupButtons_.append(buttons);
+}
+
+void ToolbarWidget::showPopupButtons(ToolButton *buttons, int count)
+{
+    clearPopup();
+    for (int i = 0; i < count; ++i) {
+        popupButtons_.append(buttons + i);
+    }
+}
+
+void ToolbarWidget::clearPopup()
+{
+    popupButtons_.clear();
+}
+
 void ToolbarWidget::addToolButton(ToolButton * button)
 {
     QPushButton * btn = template_
@@ -114,9 +133,12 @@ void ToolbarWidget::clear()
 {
     for (QWidget * w : buttons_.keys()) {
         layout_->removeWidget(w);
+        ToolButton * btn = buttons_.value(w);
+        if (btn->flags & ToolButton::Dynamic)
+            delete btn;
         w->deleteLater();
     }
-    for(QWidget *w : splitWidget_){
+    for(QWidget *w : splitWidget_) {
         layout_->removeWidget(w);
         w->deleteLater();
     }
@@ -131,9 +153,14 @@ void ToolbarWidget::clear()
 void ToolbarWidget::buttonClicked()
 {
     QWidget * btn = qobject_cast<QWidget *>(sender());
-    ToolButton * b = buttons_.value(btn);
-    if (b)
-        emit buttonClicked(b);
+    ToolButton * button = buttons_.value(btn);
+    if (!button) return;
+    if (!popupButtons_.contains(button)) {
+        popupButtons_.clear();
+        popupParents_.clear();
+    }
+    popupParents_.append(button);
+    emit buttonClicked(popupParents_);
 }
 
 void ToolbarWidget::resizeEvent(QResizeEvent *event)
