@@ -92,6 +92,8 @@ public:
 
     void removeFromPage();
 
+    void setFlag(Flag f, bool on = true);
+
 protected:
     Resource * res_;
     Flags flags_;

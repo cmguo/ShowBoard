@@ -479,6 +479,12 @@ void Control::handleToolButton(QList<ToolButton *> const & buttons)
             break;
         }
     }
+    if (button->flags & ToolButton::HideSelector) {
+        WhiteCanvas * canvas = static_cast<WhiteCanvas *>(
+                    realItem_->parentItem()->parentItem());
+        if (canvas->selector()->selected() == realItem_)
+            canvas->selector()->selectImplied(realItem_);
+    }
     QStringList args;
     for (++i; i < buttons.size(); ++i) {
         args.append(buttons[i]->name);
@@ -488,9 +494,14 @@ void Control::handleToolButton(QList<ToolButton *> const & buttons)
 
 QList<ToolButton *> & Control::tools(QString const & parent)
 {
-    static std::map<QMetaObject const *, QList<ToolButton *>> slist;
+    static std::map<QMetaObject const *, std::map<QString, QList<ToolButton *>>> slist;
     auto iter = slist.find(metaObject());
     if (iter == slist.end()) {
+        std::map<QString, QList<ToolButton *>> t;
+        iter = slist.insert(std::make_pair(metaObject(), std::move(t))).first;
+    }
+    auto iter2 = iter->second.find(parent);
+    if (iter2 == iter->second.end()) {
         QList<ToolButton *> list;
         QString tools = this->toolsString(parent);
         QStringList descs = tools.split(";", QString::SkipEmptyParts);
@@ -503,11 +514,10 @@ QList<ToolButton *> & Control::tools(QString const & parent)
                     seps.size() > 3 ? ToolButton::makeFlags(seps[2]) : nullptr,
                     seps.size() > 2 ? QVariant(seps.back()) : QVariant()
                 };
-                btn->flags |= ToolButton::Dynamic;
                 list.append(btn);
             }
         }
-        iter = slist.insert(std::make_pair(metaObject(), std::move(list))).first;
+        iter2 = iter->second.insert(std::make_pair(parent, std::move(list))).first;
     }
-    return iter->second;
+    return iter2->second;
 }

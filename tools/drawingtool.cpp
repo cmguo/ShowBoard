@@ -34,6 +34,7 @@ public:
     {
         setPen(QPen(Qt::NoPen));
         setCursor(Qt::CrossCursor);
+        setAcceptHoverEvents(true);
         QPushButton * button = new QPushButton("Finish");
         QObject::connect(button, &QPushButton::clicked, [this](){finish();});
         QGraphicsProxyWidget * item = new QGraphicsProxyWidget(this);
@@ -83,6 +84,12 @@ private:
                 finishItem_->show();
             }
         }
+    }
+
+    virtual void hoverMoveEvent(QGraphicsSceneHoverEvent *event) override
+    {
+        if (control_)
+            control_->event(event);
     }
 
 private:

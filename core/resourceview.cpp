@@ -50,3 +50,8 @@ void ResourceView::setSaved()
 {
     flags_ |= SavedSession;
 }
+
+void ResourceView::setFlag(Flag f, bool on)
+{
+    flags_.setFlag(f, on);
+}

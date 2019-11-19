@@ -27,8 +27,11 @@ ItemSelector::ItemSelector(QGraphicsItem * parent)
 
 void ItemSelector::select(QGraphicsItem *item)
 {
-    if (item == select_)
+    if (item == select_) {
+        if (item)
+            selBox_->show();
         return;
+    }
     if (item) {
         rect_ = item->mapToParent(item->boundingRect()).boundingRect();
         selBox_->setRect(rect_);
@@ -48,6 +51,13 @@ void ItemSelector::select(QGraphicsItem *item)
         selectControl_ = nullptr;
         selBox_->setVisible(false);
     }
+}
+
+void ItemSelector::selectImplied(QGraphicsItem *item)
+{
+    if (item != select_)
+        select(item);
+    selBox_->hide();
 }
 
 void ItemSelector::updateSelect()
@@ -89,15 +99,21 @@ void ItemSelector::mousePressEvent(QGraphicsSceneMouseEvent *event)
             Control::SelectMode mode = Control::NotSelect;
             if ((force_ && (ct->flags() & Control::CanSelect))
                     || (mode = ct->selectTest(mapToItem(item, start_))) == Control::Select) {
-                if (select_ != item)
-                    select(nullptr);
-                select_ = item;
-                selectControl_ = ct;
-                selectControl_->select(true);
                 type_ = TempNoMove;
+                if (ct != selectControl_) {
+                    select(nullptr);
+                    select_ = ct->item();
+                    selectControl_ = ct;
+                    selectControl_->select(true);
+                } else {
+                    type_ = AgainNoMove;
+                }
                 if (autoTop_) {
                     selectControl_->resource()->moveTop();
                 }
+            } else if (ct == selectControl_) {
+                QGraphicsRectItem::mousePressEvent(event);
+                return;
             }
             if (mode != Control::PassSelect)
                 break;
@@ -159,12 +175,14 @@ void ItemSelector::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         pt = start_;
         } break;
     case TempNoMove:
+    case AgainNoMove:
         if ((selectControl_->flags() & Control::CanMove) == 0) {
             break;
         }
-        type_ = TempMoved;
+        type_ = static_cast<SelectType>(type_ + 1);
         [[clang::fallthrough]];
     case TempMoved:
+    case AgainMoved:
         selectControl_->move(pt - start_);
         break;
     default:
@@ -188,6 +206,9 @@ void ItemSelector::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
         select_ = nullptr;
         select(item);
     } break;
+    case AgainNoMove:
+        select(select_);
+        break;
     case TempMoved:
         select(nullptr);
         break;

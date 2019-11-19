@@ -18,6 +18,8 @@ public:
 public:
     void select(QGraphicsItem * item);
 
+    void selectImplied(QGraphicsItem * item);
+
     void setForce(bool force);
 
     void autoTop(bool force);
@@ -64,7 +66,9 @@ private:
         Rotate,
         Canvas,
         TempNoMove,
-        TempMoved
+        TempMoved,
+        AgainNoMove,
+        AgainMoved,
     };
 
     SelectType type_;
