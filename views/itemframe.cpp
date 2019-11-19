@@ -27,24 +27,30 @@ void ItemFrame::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
         switch (i.dock) {
         case Left:
             rect2.setWidth(i.size);
-            rect.adjusted(i.size, 0, 0, 0);
+            rect.adjust(i.size, 0, 0, 0);
             break;
         case Right:
             rect.adjust(0, 0, -i.size, 0);
-            rect2.adjust(rect.width(), 0, rect.width(), 0);
+            rect2.adjust(rect.width(), 0, 0, 0);
             break;
         case Top:
             rect2.setHeight(i.size);
-            rect.adjusted(0, i.size, 0, 0);
+            rect.adjust(0, i.size, 0, 0);
             break;
         case Buttom:
             rect.adjust(0, 0, 0, -i.size);
-            rect2.adjust(0, rect.height(), 0, rect.height());
+            rect2.adjust(0, rect.height(), 0, 0);
             break;
         }
         if (i.item.userType() == qMetaTypeId<PaintFunc>()) {
             painter->save();
             i.item.value<PaintFunc>()(painter, rect2, this);
+            painter->restore();
+        } else if (i.item.userType() == QVariant::Color) {
+            painter->save();
+            painter->setPen(Qt::NoPen);
+            painter->setBrush(i.item.value<QColor>());
+            painter->drawRect(rect2);
             painter->restore();
         }
     }
@@ -74,6 +80,11 @@ void ItemFrame::addTopBar()
 void ItemFrame::addDockItem(Dock dock, qreal size)
 {
     addDockItem({dock, size, QVariant()});
+}
+
+void ItemFrame::addDockItem(Dock dock, qreal size, QColor color)
+{
+    addDockItem({dock, size, color});
 }
 
 void ItemFrame::addDockItem(Dock dock, qreal size, PaintFunc paint)

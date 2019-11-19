@@ -24,6 +24,8 @@ public:
 
     void addDockItem(Dock dock, qreal size);
 
+    void addDockItem(Dock dock, qreal size, QColor color);
+
     void addDockItem(Dock dock, qreal size, PaintFunc paint);
 
     void addDockItem(Dock dock, QGraphicsItem * item);

@@ -11,6 +11,7 @@ class ResourceView;
 class QGraphicsTransform;
 class StateItem;
 class ToolButton;
+class ItemFrame;
 
 class SHOWBOARD_EXPORT Control : public LifeObject
 {
@@ -233,6 +234,8 @@ protected:
     void setSizeHint(QSizeF const & size);
 
     StateItem * stateItem();
+
+    ItemFrame * itemFrame();
 
 private:
     QList<ToolButton *> & tools(QString const & parent = QString());

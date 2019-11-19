@@ -57,9 +57,6 @@ void Control::attachTo(QGraphicsItem * parent)
     if (flags_ & WithSelectBar) {
         ItemFrame * frame = new ItemFrame(item_);
         frame->addTopBar();
-        frame->addDockItem(ItemFrame::Left, 60);
-        frame->addDockItem(ItemFrame::Buttom, 160);
-        frame->addDockItem(ItemFrame::Right, 100);
         realItem_ = frame;
         transform_ = new ControlTransform(
                     static_cast<ControlTransform*>(transform_));
@@ -424,6 +421,18 @@ void Control::select(bool selected)
 {
     if (realItem_ != item_)
         static_cast<ItemFrame *>(realItem_)->setSelected(selected);
+}
+
+ItemFrame * Control::itemFrame()
+{
+    if (item_ != realItem_) {
+        return static_cast<ItemFrame*>(realItem_);
+    }
+    ItemFrame * frame = new ItemFrame(item_);
+    realItem_ = frame;
+    transform_ = new ControlTransform(
+                static_cast<ControlTransform*>(transform_));
+    return frame;
 }
 
 StateItem * Control::stateItem()

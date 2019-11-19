@@ -2,6 +2,7 @@
 #include "core/resourceview.h"
 #include "core/resource.h"
 #include "views/stateitem.h"
+//#include "views/itemframe.h"
 #include "office/powerpoint.h"
 
 #include <QUrl>
@@ -44,6 +45,10 @@ QGraphicsItem * PptxControl::create(ResourceView * res)
     return item;
 }
 
+void PptxControl::attaching()
+{
+    //itemFrame()->addDockItem(ItemFrame::Right, 100, Qt::red);
+}
 
 void PptxControl::attached()
 {
