@@ -28,9 +28,8 @@ ItemSelector::ItemSelector(QGraphicsItem * parent)
 void ItemSelector::select(QGraphicsItem *item)
 {
     if (item == select_) {
-        if (item)
-            selBox_->show();
-        return;
+        if (selBox_->isVisible())
+            return;
     }
     if (item) {
         rect_ = item->mapToParent(item->boundingRect()).boundingRect();

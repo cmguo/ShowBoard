@@ -3,7 +3,7 @@
 #include "toolbutton.h"
 #include "views/whitecanvas.h"
 #include "views/stateitem.h"
-#include "views/selectbar.h"
+#include "views/itemframe.h"
 #include "views/itemselector.h"
 #include "core/transformhelper.h"
 #include "core/controltransform.h"
@@ -55,7 +55,12 @@ void Control::attachTo(QGraphicsItem * parent)
     if (transform_)
         item_->setTransformations({transform_});
     if (flags_ & WithSelectBar) {
-        realItem_ = new SelectBar(item_);
+        ItemFrame * frame = new ItemFrame(item_);
+        frame->addTopBar();
+        frame->addDockItem(ItemFrame::Left, 60);
+        frame->addDockItem(ItemFrame::Buttom, 160);
+        frame->addDockItem(ItemFrame::Right, 100);
+        realItem_ = frame;
         transform_ = new ControlTransform(
                     static_cast<ControlTransform*>(transform_));
     } else {
@@ -149,7 +154,7 @@ void Control::sizeChanged()
         t.translate(-center.x(), -center.y());
         item_->setTransform(t);
         if (realItem_ != item())
-            static_cast<SelectBar *>(realItem_)->updateRect();
+            static_cast<ItemFrame *>(realItem_)->updateRect();
     } else {
         item_->setTransform(QTransform::fromTranslate(-center.x(), -center.y()));
     }
@@ -230,7 +235,7 @@ static qreal polygonArea(QPolygonF const & p)
 void Control::initPosition()
 {
     if (realItem_ != item_)
-        static_cast<SelectBar *>(realItem_)->updateRect();
+        static_cast<ItemFrame *>(realItem_)->updateRect();
     if (flags_ & (FullLayout | RestoreSession | PositionAtCenter))
         return;
     QGraphicsItem *parent = realItem_->parentItem();
@@ -285,7 +290,7 @@ void Control::loadFinished(bool ok, QString const & iconOrMsg)
 void Control::initScale()
 {
     if (realItem_ != item_)
-        static_cast<SelectBar *>(realItem_)->updateRect();
+        static_cast<ItemFrame *>(realItem_)->updateRect();
     QSizeF ps = realItem_->parentItem()->boundingRect().size();
     QSizeF size = item_->boundingRect().size();
     if (flags_ & CanvasBackground) {
@@ -311,15 +316,17 @@ void Control::initScale()
             }
             resize(sh);
             if (realItem_ != item_)
-                static_cast<SelectBar *>(realItem_)->updateRect();
+                static_cast<ItemFrame *>(realItem_)->updateRect();
         }
         return;
     }
     if (flags_ & (FullLayout | LoadFinished)) {
         return;
     }
-    if (flags_ & WithSelectBar) {
-        ps.setHeight(ps.height() - SelectBar::HEIGHT * 2);
+    if (item_ != realItem_) {
+        QRectF rect(static_cast<ItemFrame *>(realItem_)->padding());
+        ps.setWidth(ps.height() - rect.width());
+        ps.setHeight(ps.height() - rect.height());
     }
     qreal scale = 1.0;
     while (size.width() > ps.width() || size.height() > ps.height()) {
@@ -336,7 +343,7 @@ void Control::initScale()
     t->scale(scale / t->m11(), scale / t->m22());
     updateTransform();
     if (realItem_ != item_)
-        static_cast<SelectBar *>(realItem_)->updateRect();
+        static_cast<ItemFrame *>(realItem_)->updateRect();
     if (stateItem_) {
         stateItem_->updateTransform();
     }
@@ -364,7 +371,12 @@ void Control::scale(QRectF const & origin, QRectF const & direction,
     QPointF c0 = result.center();
     QPointF d0 = c0 - origin.center();
     if (item_ != realItem_) {
-        static_cast<SelectBar *>(realItem_)->updateRectToChild(result);
+        static_cast<ItemFrame *>(realItem_)->updateRectToChild(result);
+        if (result.width() < 0 || result.height() < 0) {
+            result = origin;
+            static_cast<ItemFrame *>(realItem_)->setRect(origin);
+            return;
+        }
         c0 = result.center();
     }
     QSizeF s1 = item_->boundingRect().size();
@@ -388,6 +400,9 @@ void Control::scale(QRectF const & origin, QRectF const & direction,
     }
     if (result.height() < 120) {
         result = origin;
+        if (item_ != realItem_) {
+            static_cast<ItemFrame *>(realItem_)->setRect(origin);
+        }
         return;
     }
     if (flags_ & LayoutScale) {
@@ -397,7 +412,7 @@ void Control::scale(QRectF const & origin, QRectF const & direction,
     QTransform * t = res_->transform();
     TransformHelper::apply(*t, item_, result.normalized(), 0.0);
     if (item_ != realItem_) {
-        static_cast<SelectBar *>(realItem_)->updateRectFromChild(result);
+        static_cast<ItemFrame *>(realItem_)->updateRectFromChild(result);
         qDebug() << "updateRectFromChild" << result;
     }
     if (stateItem_)
@@ -408,7 +423,7 @@ void Control::scale(QRectF const & origin, QRectF const & direction,
 void Control::select(bool selected)
 {
     if (realItem_ != item_)
-        static_cast<SelectBar *>(realItem_)->setSelected(selected);
+        static_cast<ItemFrame *>(realItem_)->setSelected(selected);
 }
 
 StateItem * Control::stateItem()
