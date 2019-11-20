@@ -3,6 +3,8 @@
 #include <QPen>
 #include <QPainter>
 #include <QCursor>
+#include <QGraphicsScene>
+#include <QGraphicsSceneResizeEvent>
 
 ItemFrame::ItemFrame(QGraphicsItem * item, QGraphicsItem * parent)
     : QGraphicsRectItem(parent)
@@ -126,11 +128,41 @@ void ItemFrame::setSelected(bool selected)
     update();
 }
 
-void ItemFrame::setRect(const QRectF &rect)
+void ItemFrame::setRect(const QRectF &rect3)
 {
-    QRectF rect2 = rect;
-    rect2.moveCenter(padding_.center());
-    QGraphicsRectItem::setRect(rect2);
+    QRectF rect = rect3;
+    rect.moveCenter(padding_.center());
+    QGraphicsRectItem::setRect(rect);
+    for (DockItem & i : dockItems_) {
+        QRectF rect2(rect);
+        switch (i.dock) {
+        case Left:
+            rect2.setWidth(i.size);
+            rect.adjust(i.size, 0, 0, 0);
+            break;
+        case Right:
+            rect.adjust(0, 0, -i.size, 0);
+            rect2.adjust(rect.width(), 0, 0, 0);
+            break;
+        case Top:
+            rect2.setHeight(i.size);
+            rect.adjust(0, i.size, 0, 0);
+            break;
+        case Buttom:
+            rect.adjust(0, 0, 0, -i.size);
+            rect2.adjust(0, rect.height(), 0, 0);
+            break;
+        }
+        if (i.item.userType() == qMetaTypeId<QGraphicsItem*>()) {
+            QGraphicsItem * item = i.item.value<QGraphicsItem*>();
+            QGraphicsSceneResizeEvent event;
+            event.setNewSize(rect2.size());
+            event.setOldSize(item->boundingRect().size());
+            item->scene()->sendEvent(item, &event);
+            QPointF center = item->boundingRect().center();
+            item->setPos(rect2.center() - center);
+        }
+    }
 }
 
 /*

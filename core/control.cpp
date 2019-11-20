@@ -150,7 +150,7 @@ void Control::sizeChanged()
         move(center);
         t.translate(-center.x(), -center.y());
         item_->setTransform(t);
-        if (realItem_ != item())
+        if (realItem_ != item_)
             static_cast<ItemFrame *>(realItem_)->updateRect();
     } else {
         item_->setTransform(QTransform::fromTranslate(-center.x(), -center.y()));

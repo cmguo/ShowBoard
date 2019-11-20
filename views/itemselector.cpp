@@ -37,12 +37,12 @@ void ItemSelector::select(QGraphicsItem *item)
         itemChange(ItemPositionHasChanged, pos());
         select_ = item;
         selectControl_ = Control::fromItem(item);
-        selectControl_->select(true);
         QList<ToolButton *> buttons;
         selectControl_->getToolButtons(buttons);
         toolBar()->setToolButtons(buttons);
         selBox_->setVisible(true, selectControl_->flags() & Control::CanScale,
                             (selectControl_->flags() & Control::CanRotate));
+        selectControl_->select(true);
     } else {
         select_ = nullptr;
         if (selectControl_)
