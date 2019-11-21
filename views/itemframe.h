@@ -1,10 +1,12 @@
 #ifndef ITEMFRAME_H
 #define ITEMFRAME_H
 
+#include "ShowBoard_global.h"
+
 #include <QGraphicsRectItem>
 #include <QVector>
 
-class ItemFrame : public QGraphicsRectItem
+class SHOWBOARD_EXPORT ItemFrame : public QGraphicsRectItem
 {
 public:
     enum Dock

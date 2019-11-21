@@ -57,6 +57,7 @@ void Control::attachTo(QGraphicsItem * parent)
     if (flags_ & WithSelectBar) {
         ItemFrame * frame = new ItemFrame(item_);
         frame->addTopBar();
+        item_->setData(ITEM_KEY_CONTROL, QVariant::fromValue(this));
         realItem_ = frame;
         transform_ = new ControlTransform(
                     static_cast<ControlTransform*>(transform_));
@@ -432,6 +433,7 @@ ItemFrame * Control::itemFrame()
     realItem_ = frame;
     transform_ = new ControlTransform(
                 static_cast<ControlTransform*>(transform_));
+    realItem_->setData(ITEM_KEY_CONTROL, QVariant::fromValue(this));
     return frame;
 }
 

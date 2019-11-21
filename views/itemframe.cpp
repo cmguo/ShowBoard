@@ -98,6 +98,7 @@ void ItemFrame::addDockItem(Dock dock, QGraphicsItem * item)
 {
     QRectF rect(item->boundingRect());
     qreal size = dock < Top ? rect.width() : rect.height();
+    item->setParentItem(this);
     addDockItem({dock, size, QVariant::fromValue(item)});
 }
 
