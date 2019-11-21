@@ -54,20 +54,20 @@ void Control::attachTo(QGraphicsItem * parent)
     item_ = create(res_);
     if (transform_)
         item_->setTransformations({transform_});
+    item_->setData(ITEM_KEY_CONTROL, QVariant::fromValue(this));
     if (flags_ & WithSelectBar) {
         ItemFrame * frame = new ItemFrame(item_);
         frame->addTopBar();
-        item_->setData(ITEM_KEY_CONTROL, QVariant::fromValue(this));
         realItem_ = frame;
         transform_ = new ControlTransform(
                     static_cast<ControlTransform*>(transform_));
+        realItem_->setData(ITEM_KEY_CONTROL, QVariant::fromValue(this));
     } else {
         realItem_ = item_;
     }
     attaching();
     item_->setAcceptTouchEvents(true);
     item_->setFlag(QGraphicsItem::ItemIsFocusable);
-    realItem_->setData(ITEM_KEY_CONTROL, QVariant::fromValue(this));
     if (realItem_ != item_)
         realItem_->setTransformations({transform_});
     realItem_->setParentItem(parent);

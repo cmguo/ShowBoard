@@ -158,6 +158,8 @@ public:
      */
     virtual void handleToolButton(QList<ToolButton *> const & buttons);
 
+    void sizeChanged();
+
 protected:
     /*
      * override this to do really creation of item
@@ -216,7 +218,6 @@ protected:
     virtual void detached();
 
 protected:
-    void sizeChanged();
 
     void initPosition();
 
