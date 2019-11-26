@@ -19,6 +19,7 @@ ToolbarWidget::ToolbarWidget(QWidget *parent)
 ToolbarWidget::ToolbarWidget(bool horizontal, QWidget *parent)
     : QWidget(parent)
     , template_(nullptr)
+    , popUp_(nullptr)
 {
     if (horizontal)
         layout_ = new QHBoxLayout(this);
@@ -43,28 +44,55 @@ void ToolbarWidget::setButtonTemplate(int typeId)
         template_ = meta;
 }
 
-static QPixmap widgetToPixmap(QWidget * widget)
+static QPixmap widgetToPixmap(QWidget * widget, bool destroy)
 {
     QPixmap pm(widget->size());
     QPainter pt(&pm);
     widget->render(&pt);
+    if (destroy)
+        widget->deleteLater();
     return pm;
 }
 
-static QPixmap itemToPixmap(QGraphicsItem * item)
+static QPixmap itemToPixmap(QGraphicsItem * item, bool destroy)
 {
     QPixmap pm(item->boundingRect().size().toSize());
     QPainter pt(&pm);
     QStyleOptionGraphicsItem style;
     item->paint(&pt, &style);
+    if (destroy)
+        delete item;
     return pm;
+}
+
+static QIcon getIcon(QVariant& icon, bool replace)
+{
+    QIcon result;
+    if (icon.type() == QVariant::Icon)
+        return icon.value<QIcon>();
+    else if (icon.type() == QVariant::String)
+        result = QIcon(icon.toString());
+    else if (icon.type() == QVariant::Pixmap)
+        result = QIcon(icon.value<QPixmap>());
+    else if (icon.type() == QVariant::Image)
+        result = QIcon(QPixmap::fromImage(icon.value<QImage>()));
+    else if (icon.type() == QVariant::UserType) {
+        if (icon.userType() == QMetaType::QObjectStar) {
+            result = QIcon(widgetToPixmap(icon.value<QWidget *>(), replace));
+        } else if (icon.userType() == qMetaTypeId<QGraphicsItem *>()) {
+            result = QIcon(itemToPixmap(icon.value<QGraphicsItem *>(), replace));
+        }
+    }
+    if (replace)
+        icon = result;
+    return result;
 }
 
 void ToolbarWidget::setToolButtons(QList<ToolButton *> const & buttons)
 {
     clear();
     for (ToolButton * b : buttons) {
-        addToolButton(b);
+        addToolButton(layout_, b, buttons_);
     }
     updateGeometry(); //
 }
@@ -73,97 +101,164 @@ void ToolbarWidget::setToolButtons(ToolButton buttons[], int count)
 {
     clear();
     for (int i = 0; i < count; ++i) {
-        addToolButton(buttons + i);
+        addToolButton(layout_, buttons + i, buttons_);
     }
     updateGeometry();
+}
+
+void ToolbarWidget::updateButton(ToolButton *button)
+{
+    for (QWidget * w : buttons_.keys()) {
+        if (buttons_.value(w) != button)
+            continue;
+        QPushButton * btn = qobject_cast<QPushButton*>(w);
+        btn->setIcon(getIcon(button->icon, !(button->flags & ToolButton::Dynamic)));
+        btn->setText(QString(" %1").arg(button->title));
+    }
 }
 
 void ToolbarWidget::showPopupButtons(const QList<ToolButton *> &buttons)
 {
     clearPopup();
-    popupButtons_.append(buttons);
+    for (ToolButton * b : buttons) {
+        addToolButton(popUp_->layout(), b, popupButtons_);
+    }
+    popUp_->show();
 }
 
 void ToolbarWidget::showPopupButtons(ToolButton *buttons, int count)
 {
     clearPopup();
     for (int i = 0; i < count; ++i) {
-        popupButtons_.append(buttons + i);
+        addToolButton(popUp_->layout(), buttons + i, popupButtons_);
     }
+    popUp_->show();
 }
 
 void ToolbarWidget::clearPopup()
 {
-    popupButtons_.clear();
+    if (popUp_) {
+        popUp_->hide();
+        clearButtons(popUp_->layout(), popupButtons_);
+    }
 }
 
-void ToolbarWidget::addToolButton(ToolButton * button)
+void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWidget *, ToolButton *>& buttons)
 {
     QPushButton * btn = template_
             ? qobject_cast<QPushButton *>(template_->newInstance())
             : new QPushButton;
-    QVariant & icon = button->icon;
-    if (icon.type() == QVariant::String)
-        btn->setIcon(QIcon(icon.toString()));
-    else if (icon.type() == QVariant::Pixmap)
-        btn->setIcon(QIcon(icon.value<QPixmap>()));
-    else if (icon.type() == QVariant::Image)
-        btn->setIcon(QIcon(QPixmap::fromImage(icon.value<QImage>())));
-    else if (icon.type() == QVariant::UserType) {
-        if (icon.userType() == QMetaType::QObjectStar)
-            btn->setIcon(QIcon(widgetToPixmap(icon.value<QWidget *>())));
-        else if (icon.userType() == qMetaTypeId<QGraphicsItem *>())
-            btn->setIcon(QIcon(itemToPixmap(icon.value<QGraphicsItem *>())));
-    }
+    btn->setIcon(getIcon(button->icon, !(button->flags & ToolButton::Dynamic)));
     btn->setText(QString(" %1").arg(button->title));
     void (ToolbarWidget::*slot)() = &ToolbarWidget::buttonClicked;
     QObject::connect(btn, &QPushButton::clicked, this, slot);
-    if (layout_->metaObject()->inherits(&QHBoxLayout::staticMetaObject)
-            && buttons_.size() > 0) {
+    if (layout->metaObject()->inherits(&QHBoxLayout::staticMetaObject)
+            && buttons.size() > 0) {
         QLabel *splitLabel = new QLabel(this);
         splitLabel->setText("|");
-        layout_->addWidget(splitLabel);
+        layout->addWidget(splitLabel);
         splitWidget_.append(splitLabel);
     }
-    layout_->addWidget(btn);
-    buttons_.insert(btn, button);
+    layout->addWidget(btn);
+    buttons.insert(btn, button);
 }
 
 void ToolbarWidget::clear()
 {
-    for (QWidget * w : buttons_.keys()) {
-        layout_->removeWidget(w);
-        ToolButton * btn = buttons_.value(w);
-        if (btn->flags & ToolButton::Dynamic)
-            delete btn;
-        w->deleteLater();
-    }
+    clearPopup();
+    clearButtons(layout_, buttons_);
     for(QWidget *w : splitWidget_) {
         layout_->removeWidget(w);
         w->deleteLater();
     }
     splitWidget_.clear();
-    buttons_.clear();
     layout_->activate();
     QGraphicsProxyWidget * proxy = graphicsProxyWidget();
     if (proxy)
         proxy->resize(minimumSize());
 }
 
+void ToolbarWidget::clearButtons(QLayout *layout, QMap<QWidget *, ToolButton *> &buttons)
+{
+    for (QWidget * w : buttons.keys()) {
+        layout->removeWidget(w);
+        ToolButton * btn = buttons.value(w);
+        if (btn->flags & ToolButton::Dynamic)
+            delete btn;
+        w->deleteLater();
+    }
+    buttons.clear();
+}
+
+void ToolbarWidget::createPopup()
+{
+    popUp_ = new QWidget;
+    QGraphicsProxyWidget * proxy = graphicsProxyWidget();
+    if (proxy) {
+        proxy = new QGraphicsProxyWidget(proxy);
+        proxy->setWidget(popUp_);
+    } else {
+        popUp_->setParent(parentWidget()->parentWidget());
+    }
+    popUp_->setLayout(new QVBoxLayout());
+}
+
 void ToolbarWidget::buttonClicked()
 {
     QWidget * btn = qobject_cast<QWidget *>(sender());
-    ToolButton * button = buttons_.value(btn);
-    if (!button) return;
-    if (!popupButtons_.contains(button)) {
-        popupButtons_.clear();
+    ToolButton * button = popupButtons_.value(btn);
+    if (!button) {
+        button = buttons_.value(btn);
+        if (!button) return;
+        clearPopup();
         popupParents_.clear();
     }
     popupParents_.append(button);
-    emit buttonClicked(popupParents_);
+    if (button->flags & ToolButton::Popup) {
+        QList<ToolButton *> buttons;
+        emit popupButtonsRequired(buttons, popupParents_);
+        if (popUp_ == nullptr) {
+            createPopup();
+        }
+        QGraphicsProxyWidget * proxy = graphicsProxyWidget();
+        if (proxy) {
+            QGraphicsProxyWidget * proxy2 = popUp_->graphicsProxyWidget();
+            QPoint pos = btn->mapTo(this, QPoint(0, btn->height() + 10));
+            QPointF pos2 = proxy->mapToItem(proxy2->parentItem(), QPointF(pos));
+            proxy2->setPos(pos2);
+        } else {
+            QPoint pos = btn->mapTo(popUp_->parentWidget(), QPoint(0, btn->height() + 10));
+            popUp_->move(pos);
+        }
+        showPopupButtons(buttons);
+    } else {
+        emit buttonClicked(popupParents_);
+        int i = 0;
+        for (; i < popupParents_.size(); ++i) {
+            if (popupParents_[i]->flags & ToolButton::OptionsGroup) {
+                button = popupParents_[i];
+                break;
+            }
+        }
+        if (button->flags & ToolButton::NeedUpdate) {
+            updateButton(button);
+        }
+        popupParents_.pop_back();
+    }
 }
 
 void ToolbarWidget::resizeEvent(QResizeEvent *event)
 {
     emit sizeChanged(event->size());
+}
+
+void ToolbarWidget::setVisible(bool visible) {
+    QWidget::setVisible(visible);
+    if (!visible && popUp_) {
+        QGraphicsProxyWidget * proxy = popUp_->graphicsProxyWidget();
+        if (proxy)
+            proxy->hide();
+        else
+            popUp_->hide();
+    }
 }

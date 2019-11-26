@@ -31,12 +31,16 @@ public:
 
     void showPopupButtons(ToolButton buttons[], int count);
 
+    void updateButton(ToolButton * button);
+
     void clear();
 
     void clearPopup();
 
 signals:
     void buttonClicked(QList<ToolButton *> const & buttons);
+
+    void popupButtonsRequired(QList<ToolButton *> & buttons, QList<ToolButton *> const & parents);
 
     void sizeChanged(QSizeF const & size);
 
@@ -46,8 +50,14 @@ public slots:
 private:
     virtual void resizeEvent(QResizeEvent *event) override;
 
+    virtual void setVisible(bool visible) override;
+
 private:
-    void addToolButton(ToolButton * button);
+    void addToolButton(QLayout * layout, ToolButton * button, QMap<QWidget *, ToolButton *>& buttons);
+
+    void clearButtons(QLayout * layout, QMap<QWidget *, ToolButton *>& buttons);
+
+    void createPopup();
 
 private:
     QMetaObject const * template_;
@@ -55,7 +65,9 @@ private:
     QMap<QWidget *, ToolButton *> buttons_;
     QList<QWidget *> splitWidget_;
     QStyleOptionButton * style_;
-    QList<ToolButton *> popupButtons_;
+    //
+    QWidget * popUp_;
+    QMap<QWidget *, ToolButton *> popupButtons_;
     QList<ToolButton *> popupParents_;
 };
 

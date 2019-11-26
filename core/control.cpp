@@ -56,20 +56,13 @@ void Control::attachTo(QGraphicsItem * parent)
         item_->setTransformations({transform_});
     item_->setData(ITEM_KEY_CONTROL, QVariant::fromValue(this));
     if (flags_ & WithSelectBar) {
-        ItemFrame * frame = new ItemFrame(item_);
-        frame->addTopBar();
-        realItem_ = frame;
-        transform_ = new ControlTransform(
-                    static_cast<ControlTransform*>(transform_));
-        realItem_->setData(ITEM_KEY_CONTROL, QVariant::fromValue(this));
+        itemFrame()->addTopBar();
     } else {
         realItem_ = item_;
     }
     attaching();
     item_->setAcceptTouchEvents(true);
     item_->setFlag(QGraphicsItem::ItemIsFocusable);
-    if (realItem_ != item_)
-        realItem_->setTransformations({transform_});
     realItem_->setParentItem(parent);
     loadSettings();
     sizeChanged();
@@ -434,6 +427,7 @@ ItemFrame * Control::itemFrame()
     transform_ = new ControlTransform(
                 static_cast<ControlTransform*>(transform_));
     realItem_->setData(ITEM_KEY_CONTROL, QVariant::fromValue(this));
+    realItem_->setTransformations({transform_});
     return frame;
 }
 
@@ -465,8 +459,13 @@ void Control::exec(QString const & cmd, QGenericArgument arg0,
 void Control::exec(QString const & cmd, QStringList const & args)
 {
     int index = metaObject()->indexOfSlot(cmd.toUtf8());
-    if (index < 0)
+    if (index < 0) {
+        if (args.size() == 1) {
+            setProperty(cmd.toUtf8(), args[0]);
+            res_->setProperty(cmd.toUtf8(), args[0]);
+        }
         return;
+    }
     QMetaMethod method = metaObject()->method(index);
     if (method.parameterCount() >= 4)
         return;
@@ -484,15 +483,17 @@ void Control::exec(QString const & cmd, QStringList const & args)
     method.invoke(this, argv[0], argv[1], argv[2], argv[3]);
 }
 
-void Control::getToolButtons(QList<ToolButton *> & buttons, ToolButton * parent)
+void Control::getToolButtons(QList<ToolButton *> & buttons, QList<ToolButton *> const & parents)
 {
-    if (!parent) {
+    if (parents.isEmpty()) {
         if (res_->flags() & ResourceView::CanCopy)
             buttons.append(&btnCopy);
         if (res_->flags() & ResourceView::CanDelete)
             buttons.append(&btnDelete);
+        buttons.append(tools());
+    } else {
+        buttons.append(tools(parents.last()->name));
     }
-    buttons.append(tools());
 }
 
 void Control::handleToolButton(QList<ToolButton *> const & buttons)
@@ -500,7 +501,7 @@ void Control::handleToolButton(QList<ToolButton *> const & buttons)
     ToolButton * button = buttons.back();
     int i = 0;
     for (; i < buttons.size(); ++i) {
-        if (buttons[i]->flags & ToolButton::NameAsArgument) {
+        if (buttons[i]->flags & ToolButton::OptionsGroup) {
             button = buttons[i];
             break;
         }
@@ -516,6 +517,14 @@ void Control::handleToolButton(QList<ToolButton *> const & buttons)
         args.append(buttons[i]->name);
     }
     exec(button->name, args);
+    if (button->flags & ToolButton::NeedUpdate) {
+        updateToolButton(button);
+    }
+}
+
+void Control::updateToolButton(ToolButton *button)
+{
+    (void) button;
 }
 
 QList<ToolButton *> & Control::tools(QString const & parent)
@@ -528,22 +537,14 @@ QList<ToolButton *> & Control::tools(QString const & parent)
     }
     auto iter2 = iter->second.find(parent);
     if (iter2 == iter->second.end()) {
-        QList<ToolButton *> list;
         QString tools = this->toolsString(parent);
-        QStringList descs = tools.split(";", QString::SkipEmptyParts);
-        for (QString desc : descs) {
-            QStringList seps = desc.split("|");
-            if (seps.size() >= 1) {
-                ToolButton * btn = new ToolButton{
-                    seps[0],
-                    seps.size() > 1 ? seps[1] : seps[0],
-                    seps.size() > 3 ? ToolButton::makeFlags(seps[2]) : nullptr,
-                    seps.size() > 2 ? QVariant(seps.back()) : QVariant()
-                };
-                list.append(btn);
-            }
+        iter2 = iter->second.insert(
+                    std::make_pair(parent, ToolButton::makeButtons(tools))).first;
+    }
+    for (ToolButton * button : iter2->second) {
+        if (button->flags & ToolButton::NeedUpdate) {
+            updateToolButton(button);
         }
-        iter2 = iter->second.insert(std::make_pair(parent, std::move(list))).first;
     }
     return iter2->second;
 }

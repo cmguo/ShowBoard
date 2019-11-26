@@ -14,8 +14,11 @@ public:
     {
         Popup = 1,
         Dynamic = 2, // need delete
-        NameAsArgument = 4,
+        OptionsGroup = 4, // group of options
         HideSelector = 8,
+        NeedUpdate = 16,
+        Selected = 32,
+        Checked = 64
     };
 
     Q_ENUM(Flag)
@@ -28,7 +31,12 @@ public:
     Flags flags;
     QVariant icon;
 
-    static Flags makeFlags(QString const & str);
+    static Flags makeFlags(const QString &str);
+
+    static ToolButton * makeButton(QString const & desc);
+
+    static QList<ToolButton *> makeButtons(QString const & tools);
+
 };
 
 Q_DECLARE_METATYPE(ToolButton)

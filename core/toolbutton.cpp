@@ -9,3 +9,32 @@ ToolButton::Flags ToolButton::makeFlags(const QString &str)
    }
    return flags;
 }
+
+ToolButton * ToolButton::makeButton(const QString &desc)
+{
+    if (desc.startsWith("-"))
+        return nullptr;
+    QStringList seps = desc.split("|");
+    if (seps.size() >= 1) {
+        return new ToolButton{
+            seps[0],
+            seps.size() > 1 ? seps[1] : seps[0],
+            seps.size() > 3 ? ToolButton::makeFlags(seps[2]) : nullptr,
+            seps.size() > 2 ? QVariant(seps.back()) : QVariant()
+        };
+    }
+    return nullptr;
+}
+
+QList<ToolButton *> ToolButton::makeButtons(QString const & tools)
+{
+    QList<ToolButton *> list;
+    QStringList descs = tools.split(";", QString::SkipEmptyParts);
+    for (QString desc : descs) {
+        ToolButton * btn = makeButton(desc);
+        if (btn) {
+            list.append(btn);
+        }
+    }
+    return list;
+}

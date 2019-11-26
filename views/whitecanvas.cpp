@@ -31,6 +31,8 @@ WhiteCanvas::WhiteCanvas(QObject * parent)
     selector_->setRect(rect());
     void (ToolbarWidget::*sig)(QList<ToolButton *> const &) = &ToolbarWidget::buttonClicked;
     QObject::connect(selector_->toolBar(), sig, this, &WhiteCanvas::toolButtonClicked);
+    QObject::connect(selector_->toolBar(), &ToolbarWidget::popupButtonsRequired,
+                     this, &WhiteCanvas::popupButtonsRequired);
 }
 
 WhiteCanvas::~WhiteCanvas()
@@ -146,6 +148,12 @@ void WhiteCanvas::toolButtonClicked(QList<ToolButton *> const & buttons)
     } else {
         ct->handleToolButton(buttons);
     }
+}
+
+void WhiteCanvas::popupButtonsRequired(QList<ToolButton *> & buttons, QList<ToolButton *> const & parents)
+{
+    Control * ct = Control::fromItem(selector_->selected());
+    ct->getToolButtons(buttons, parents);
 }
 
 void WhiteCanvas::mousePressEvent(QGraphicsSceneMouseEvent *event)

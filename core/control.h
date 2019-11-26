@@ -150,7 +150,7 @@ public:
      *  other menus can be defined with toolsString()
      */
     virtual void getToolButtons(QList<ToolButton *> & buttons,
-                                ToolButton * parent = nullptr);
+                                QList<ToolButton *> const & parents = {});
 
     /*
      * handle button click,
@@ -158,7 +158,7 @@ public:
      */
     virtual void handleToolButton(QList<ToolButton *> const & buttons);
 
-    void sizeChanged();
+    virtual void updateToolButton(ToolButton * button);
 
 protected:
     /*
@@ -228,6 +228,8 @@ protected:
     void loadFinished(bool ok, QString const & iconOrMsg = QString());
 
     void initScale();
+
+    void sizeChanged();
 
 protected:
     QSizeF sizeHint();

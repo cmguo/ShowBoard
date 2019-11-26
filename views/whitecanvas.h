@@ -96,6 +96,8 @@ public:
 private slots:
     void toolButtonClicked(QList<ToolButton *> const & buttons);
 
+    void popupButtonsRequired(QList<ToolButton *> & buttons, QList<ToolButton *> const & parents);
+
 private:
     virtual QVariant itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value) override;
 

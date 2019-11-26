@@ -92,6 +92,21 @@ private:
             control_->event(event);
     }
 
+    virtual bool sceneEvent(QEvent * event) override
+    {
+        if (event->type() == QEvent::FocusOut)
+            hide();
+        return QGraphicsRectItem::sceneEvent(event);
+    }
+
+    virtual QVariant itemChange(GraphicsItemChange change, const QVariant &variant) override
+    {
+        if (change == ItemVisibleHasChanged && variant.toBool()) {
+            setFocus();
+        }
+        return QGraphicsRectItem::itemChange(change, variant);
+    }
+
 private:
     Control * control_;
     QGraphicsItem * finishItem_;
