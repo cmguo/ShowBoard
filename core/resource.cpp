@@ -49,15 +49,13 @@ QPromise<QIODevice *> Resource::getStream(bool all)
         file->open(QFile::ReadOnly | QFile::ExistingOnly);
         return QPromise<QIODevice *>::resolve(file);
     } else {
-        //if (network_ == nullptr) {
-        //    network_ = new QNetworkAccessManager();
-        //    network_->setRedirectPolicy(QNetworkRequest::NoLessSafeRedirectPolicy);
-        //}
-        QNetworkAccessManager * manager = new QNetworkAccessManager;
-        manager->setRedirectPolicy(QNetworkRequest::NoLessSafeRedirectPolicy);
+        if (network_ == nullptr) {
+            network_ = new QNetworkAccessManager();
+            network_->setRedirectPolicy(QNetworkRequest::NoLessSafeRedirectPolicy);
+        }
         QNetworkRequest request(url());
-        QNetworkReply * reply = manager->get(request);
-        return QPromise<QIODevice *>([reply, all, manager](
+        QNetworkReply * reply = network_->get(request);
+        return QPromise<QIODevice *>([reply, all](
                                          const QPromiseResolve<QIODevice *>& resolve,
                                          const QPromiseReject<QIODevice *>& reject) {
             auto readyRead = [=]() {
@@ -69,14 +67,13 @@ QPromise<QIODevice *> Resource::getStream(bool all)
                                QMetaEnum::fromType<QNetworkReply::NetworkError>().key(reply->error())));
                 else
                     resolve(reply);
-                //delete manager;
             };
             auto error = [=](QNetworkReply::NetworkError e) {
                 reject(std::exception(
                            QMetaEnum::fromType<QNetworkReply::NetworkError>().key(e)));
             };
             if (all)
-                QObject::connect(manager, &QNetworkAccessManager::finished, finished);
+                QObject::connect(reply, &QNetworkReply::finished, finished);
             else
                 QObject::connect(reply, &QNetworkReply::readyRead, readyRead);
             void (QNetworkReply::*p)(QNetworkReply::NetworkError) = &QNetworkReply::error;
@@ -93,9 +90,7 @@ QPromise<QByteArray> Resource::getData()
         return getStream(true).then([](QIODevice * io) {
             QByteArray data = io->readAll();
             io->close();
-            //io->deleteLater();
-            QNetworkReply * reply = static_cast<QNetworkReply *>(io);
-            delete reply->manager();
+            io->deleteLater();
             return data;
         });
     }
