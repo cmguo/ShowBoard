@@ -77,8 +77,9 @@ private:
             control_->event(event);
             if (control_->resource()->flags() & ResourceView::DrawFinised) {
                 DrawingTool * tool = static_cast<DrawingTool *>(Control::fromItem(this));
-                tool->finishControl(control_);
+                Control * control = control_;
                 control_ = nullptr;
+                tool->finishControl(control);
             } else if (event->flags() & 256) {
                 finishItem_->setPos(event->pos() + QPointF(20, 20));
                 finishItem_->show();
@@ -95,7 +96,7 @@ private:
     virtual bool sceneEvent(QEvent * event) override
     {
         if (event->type() == QEvent::FocusOut)
-            hide();
+            finish();
         return QGraphicsRectItem::sceneEvent(event);
     }
 

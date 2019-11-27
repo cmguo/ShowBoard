@@ -2,6 +2,8 @@
 #include "resource.h"
 #include "resourcepage.h"
 
+#include <QMetaMethod>
+
 ResourceView::ResourceView(Resource * res, Flags flags, Flags clearFlags)
     : res_(res)
     , flags_((DefaultFlags | flags) & ~clearFlags)
@@ -28,6 +30,10 @@ ResourceView::ResourceView(ResourceView const & o)
 
 ResourceView * ResourceView::clone() const
 {
+
+    QObject * clone = metaObject()->newInstance(QGenericArgument(metaObject()->className(), this));
+    if (clone)
+        return qobject_cast<ResourceView*>(clone);
     return new ResourceView(*this);
 }
 

@@ -18,11 +18,6 @@ Stroke::Stroke(Stroke const & o)
 {
 }
 
-Stroke * Stroke::clone() const
-{
-    return new Stroke(*this);
-}
-
 QPromise<void> Stroke::load()
 {
     QWeakPointer<int> life(this->life());

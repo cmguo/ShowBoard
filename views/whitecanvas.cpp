@@ -81,6 +81,11 @@ Control * WhiteCanvas::addResource(QUrl const & url)
     return canvas_->findControl(res);
 }
 
+void WhiteCanvas::removeResource(Control *control)
+{
+    canvas_->page()->removeResource(control->resource());
+}
+
 Control * WhiteCanvas::findControl(ResourceView * res)
 {
     return canvas_->findControl(res);

@@ -52,7 +52,7 @@ public:
      * add resource to attached resource page
      * use ResourcePage instead
      */
-    Control * addResource(ResourceView * res);
+    void removeResource(Control * control);
 
     /*
      * show tool control of type @type

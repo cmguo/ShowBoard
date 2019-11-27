@@ -26,6 +26,8 @@ class Stroke : public ResourceView
 public:
     Q_INVOKABLE Stroke(Resource * res);
 
+    Q_INVOKABLE Stroke(Stroke const & res);
+
 public:
     QtPromise::QPromise<void> load();
 
@@ -39,12 +41,6 @@ public:
     {
         return points_;
     }
-
-public:
-    virtual Stroke * clone() const override;
-
-protected:
-    Stroke(Stroke const & res);
 
 private:
     QSizeF canvasSize_;

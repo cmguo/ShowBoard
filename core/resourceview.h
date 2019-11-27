@@ -39,6 +39,7 @@ public:
         Splittable = 1 << 8,
         SavedSession = 1 << 9,
         DrawFinised = 1 << 10,
+        DrawAttach = 1 << 11, // stick to special position
     };
 
     Q_DECLARE_FLAGS(Flags, Flag)
