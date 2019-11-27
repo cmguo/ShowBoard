@@ -21,11 +21,20 @@ void ResourceFactory::onComposition()
 
 ResourceView * ResourceFactory::create(Resource *res, const QString &type)
 {
-    QMap<QString, QLazy*>::iterator iter = resources_.find(type);
+    QString type1(type);
+    QString type2;
+    int n = type.indexOf('.');
+    if (n > 0) {
+        type1 = type.left(n);
+        type2 = type.mid(n + 1);
+    }
+    QMap<QString, QLazy*>::iterator iter = resources_.find(type1);
     if (iter == resources_.end()) {
         return nullptr;
     }
-    res->setProperty(Resource::PROP_SUB_TYPE, type);
+    res->setProperty(Resource::PROP_SUB_TYPE, type1);
+    if (!type2.isEmpty())
+        res->setProperty(Resource::PROP_SUB_TYPE2, type2);
     return iter.value()->create<ResourceView>(Q_ARG(Resource *, res));
 }
 

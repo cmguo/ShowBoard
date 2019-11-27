@@ -24,6 +24,8 @@ class SHOWBOARD_EXPORT Resource : public LifeObject
 public:
     static constexpr char const * PROP_SUB_TYPE = "RES_SUB_TYPE";
 
+    static constexpr char const * PROP_SUB_TYPE2 = "RES_SUB_TYPE2";
+
 public:
     /*
      * new resource with type @type and url @url
