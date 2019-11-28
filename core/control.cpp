@@ -21,8 +21,8 @@ Control * Control::fromItem(QGraphicsItem * item)
     return item->data(ITEM_KEY_CONTROL).value<Control *>();
 }
 
-ToolButton Control::btnCopy = { "copy", "复制", nullptr, ":/showboard/icons/icon_copy.png" };
-ToolButton Control::btnDelete = { "delete", "删除", nullptr, ":/showboard/icons/icon_delete.png" };
+ToolButton Control::btnCopy = { "copy", "复制", nullptr, ":/showboard/icons/copy.svg" };
+ToolButton Control::btnDelete = { "delete", "删除", nullptr, ":/showboard/icons/delete.svg" };
 
 Control::Control(ResourceView *res, Flags flags, Flags clearFlags)
     : flags_((DefaultFlags | flags) & ~clearFlags)
@@ -55,10 +55,9 @@ void Control::attachTo(QGraphicsItem * parent)
     if (transform_)
         item_->setTransformations({transform_});
     item_->setData(ITEM_KEY_CONTROL, QVariant::fromValue(this));
+    realItem_ = item_;
     if (flags_ & WithSelectBar) {
         itemFrame()->addTopBar();
-    } else {
-        realItem_ = item_;
     }
     attaching();
     item_->setAcceptTouchEvents(true);

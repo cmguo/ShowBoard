@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="30px" height="30px" viewBox="0 0 30 30" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 60 (88103) - https://sketch.com -->
+    <title>01 icon/30px/深色/调节</title>
+    <desc>Created with Sketch.</desc>
+    <g id="01-icon/30px/深色/调节" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <path d="M7.99975653,18.8740452 L8,25 L6,25 L5.99907484,18.8737443 C6.31897329,18.9561625 6.65436725,19 7,19 C7.34521189,19 7.68020991,18.9562692 7.99975653,18.8740452 Z M8,5 L7.99975653,11.1259548 C7.68020991,11.0437308 7.34521189,11 7,11 C6.65436725,11 6.31897329,11.0438375 5.99907484,11.1262557 L6,5 L8,5 Z" id="形状结合" fill="#FFFFFF" fill-rule="nonzero"></path>
+        <path d="M15.9997565,21.8740452 L16,25 L14,25 L13.9990748,21.8737443 C14.3189733,21.9561625 14.6543673,22 15,22 C15.3452119,22 15.6802099,21.9562692 15.9997565,21.8740452 Z M16,5 L15.9997565,14.1259548 C15.6802099,14.0437308 15.3452119,14 15,14 C14.6543673,14 14.3189733,14.0438375 13.9990748,14.1262557 L14,5 L16,5 Z" id="形状结合" fill="#FFFFFF" fill-rule="nonzero"></path>
+        <path d="M23.9997565,15.8740452 L24,25 L22,25 L21.9990748,15.8737443 C22.3189733,15.9561625 22.6543673,16 23,16 C23.3452119,16 23.6802099,15.9562692 23.9997565,15.8740452 Z M24,5 L23.9997565,8.12595483 C23.6802099,8.04373079 23.3452119,8 23,8 C22.6543673,8 22.3189733,8.04383748 21.9990748,8.12625572 L22,5 L24,5 Z" id="形状结合" fill="#FFFFFF" fill-rule="nonzero"></path>
+        <circle id="椭圆形" fill="#FFFFFF" fill-rule="nonzero" cx="7" cy="15" r="2"></circle>
+        <circle id="椭圆形备份" fill="#FFFFFF" fill-rule="nonzero" cx="15" cy="18" r="2"></circle>
+        <circle id="椭圆形备份-2" fill="#FFFFFF" fill-rule="nonzero" cx="23" cy="12" r="2"></circle>
+    </g>
+</svg>

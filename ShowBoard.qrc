@@ -1,14 +1,15 @@
 <RCC>
     <qresource prefix="/showboard">
-        <file>icons/icon_copy.png</file>
-        <file>icons/icon_delete.png</file>
-        <file>icons/icon_top.png</file>
         <file>icons/loading.svg</file>
         <file>icons/play.normal.svg</file>
         <file>icons/play.press.svg</file>
         <file>icons/stop.normal.svg</file>
         <file>icons/stop.press.svg</file>
         <file>htmls/video.htm</file>
-        <file>icons/icon_refresh.png</file>
+        <file>icons/close.svg</file>
+        <file>icons/copy.svg</file>
+        <file>icons/delete.svg</file>
+        <file>icons/edit.svg</file>
+        <file>icons/erase.svg</file>
     </qresource>
 </RCC>
