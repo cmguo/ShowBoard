@@ -90,7 +90,7 @@ SelectBox::SelectBox(QGraphicsItem * parent)
     toolBar_ = proxy;
     QObject::connect(toolBar, &ToolbarWidget::sizeChanged, [this](QSizeF const & size) {
         QRectF rect(this->rect());
-        toolBar_->setPos(rect.right() - size.width(), rect.bottom() + 10);
+        toolBar_->setPos(rect.left() + (rect.width()-size.width())/2, rect.bottom() + 10);
     });
 
     setPen(QPen(Qt::white, 2));
@@ -102,7 +102,7 @@ void SelectBox::setRect(QRectF const & rect)
 {
     QRectF rect2(rect.adjusted(-2, -2, 2, 2));
     QGraphicsRectItem::setRect(rect2);
-    toolBar_->setPos(rect.right() - toolBar_->boundingRect().width(),
+    toolBar_->setPos(rect.left() + (rect.width()-toolBar_->boundingRect().width())/2,
                      rect.bottom() + 10);
     rect2.adjust(-CROSS_OFFSET, -CROSS_OFFSET,
                  CROSS_OFFSET, CROSS_OFFSET);
