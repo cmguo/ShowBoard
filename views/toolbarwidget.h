@@ -53,7 +53,7 @@ private:
     virtual void setVisible(bool visible) override;
 
 private:
-    void addToolButton(QLayout * layout, ToolButton * button, QMap<QWidget *, ToolButton *>& buttons);
+    void addToolButton(QLayout * layout, ToolButton * button, QMap<QWidget *, ToolButton *>& buttons,bool isPopButton);
 
     void clearButtons(QLayout * layout, QMap<QWidget *, ToolButton *>& buttons);
 
@@ -64,11 +64,11 @@ private:
     QLayout * layout_;
     QMap<QWidget *, ToolButton *> buttons_;
     QList<QWidget *> splitWidget_;
-    QStyleOptionButton * style_;
     //
-    QWidget * popUp_;
+    QWidget * popUp_ = nullptr;
     QMap<QWidget *, ToolButton *> popupButtons_;
     QList<ToolButton *> popupParents_;
+    QList<QWidget *> popupSplitWidget_;
 };
 
 #endif // TOOLBARWIDGET_H

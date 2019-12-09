@@ -485,11 +485,11 @@ void Control::exec(QString const & cmd, QStringList const & args)
 void Control::getToolButtons(QList<ToolButton *> & buttons, QList<ToolButton *> const & parents)
 {
     if (parents.isEmpty()) {
+        buttons.append(tools());
         if (res_->flags() & ResourceView::CanCopy)
             buttons.append(&btnCopy);
         if (res_->flags() & ResourceView::CanDelete)
             buttons.append(&btnDelete);
-        buttons.append(tools());
     } else {
         buttons.append(tools(parents.last()->name));
     }
