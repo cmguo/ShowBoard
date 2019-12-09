@@ -264,7 +264,8 @@ void ToolbarWidget::buttonClicked()
             updateButton(button);
         }
         popupParents_.pop_back();
-        popUp_->hide();
+        if(popUp_)
+         popUp_->hide();
     }
 }
 
