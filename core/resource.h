@@ -22,6 +22,8 @@ class SHOWBOARD_EXPORT Resource : public LifeObject
     Q_PROPERTY(QString const type READ type)
 
 public:
+    static constexpr char const * PROP_ORIGIN_TYPE = "RES_ORIGIN_TYPE";
+
     static constexpr char const * PROP_SUB_TYPE = "RES_SUB_TYPE";
 
     static constexpr char const * PROP_SUB_TYPE2 = "RES_SUB_TYPE2";

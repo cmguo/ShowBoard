@@ -1,12 +1,12 @@
 #ifndef GLDYNAMICSTROKE_H
 #define GLDYNAMICSTROKE_H
 
-#include "resources/stroke.h"
+#include "resources/strokes.h"
 #include "glstroke.h"
 
 class GLStrokeRenderer;
 
-class GLDynamicStroke : public GLStroke, IDynamicStroke
+class GLDynamicStroke : public GLStroke, IDynamicStrokes
 {
 public:
     GLDynamicStroke(GLStrokeRenderer * sr);

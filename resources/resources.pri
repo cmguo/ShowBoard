@@ -1,11 +1,11 @@
 HEADERS += \
     $$PWD/resources.h \
-    $$PWD/stroke.h \
-    $$PWD/strokeparser.h
+    $$PWD/strokeparser.h \
+    $$PWD/strokes.h
 
 SOURCES += \
-    $$PWD/stroke.cpp \
-    $$PWD/strokeparser.cpp
+    $$PWD/strokeparser.cpp \
+    $$PWD/strokes.cpp
 
 DISTFILES +=
 

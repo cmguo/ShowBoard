@@ -13,6 +13,8 @@ StrokeParser * StrokeParser::instance = nullptr;
 
 StrokeParser::StrokeParser(QObject *parent)
     : QObject(parent)
+    , strokeType_("stroke")
+    , manager_(nullptr)
 {
     instance = this;
 }
@@ -22,7 +24,7 @@ void StrokeParser::onComposition()
     for (auto & r : parser_types_) {
         QString types = r.part()->attr(IStrokeParser::EXPORT_ATTR_TYPE);
         for (auto t : types.split(",", QString::SkipEmptyParts)) {
-            manager_->mapResourceType(t, "storke");
+            manager_->mapResourceType(t, strokeType_);
             parsers_[t] = &r;
         }
     }
@@ -35,4 +37,9 @@ QSizeF StrokeParser::load(const QString & type, QIODevice *stream, QList<stroke_
         return QSizeF();
     IStrokeParser * p = iter->second->get<IStrokeParser>();
     return p->load(type, stream, points);
+}
+
+void StrokeParser::setManager(QObject *manager)
+{
+    manager_ = qobject_cast<ResourceManager*>(manager);
 }

@@ -1,5 +1,5 @@
-#ifndef STROKE_H
-#define STROKE_H
+#ifndef STROKES_H
+#define STROKES_H
 
 #include "core/resourceview.h"
 
@@ -9,14 +9,14 @@
 
 typedef std::array<float, 3> stroke_point_t;
 
-class IDynamicStroke
+class IDynamicStrokes
 {
 public:
-    virtual ~IDynamicStroke() {}
+    virtual ~IDynamicStrokes() {}
     virtual void addPoint(float point[3]) = 0;
 };
 
-class Stroke : public ResourceView
+class SHOWBOARD_EXPORT Strokes : public ResourceView
 {
     Q_OBJECT
 
@@ -24,9 +24,9 @@ class Stroke : public ResourceView
     Q_PROPERTY(QList<stroke_point_t> points READ points())
 
 public:
-    Q_INVOKABLE Stroke(Resource * res);
+    Q_INVOKABLE Strokes(Resource * res);
 
-    Q_INVOKABLE Stroke(Stroke const & res);
+    Q_INVOKABLE Strokes(Strokes const & res);
 
 public:
     QtPromise::QPromise<void> load();
@@ -47,4 +47,4 @@ private:
     QList<stroke_point_t> points_;
 };
 
-#endif // STROKE_H
+#endif // STROKES_H

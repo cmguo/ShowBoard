@@ -1,7 +1,8 @@
 #ifndef STROKEPARSER_H
 #define STROKEPARSER_H
 
-#include "stroke.h"
+#include "ShowBoard_global.h"
+#include "strokes.h"
 
 #include <qlazy.h>
 
@@ -10,7 +11,7 @@
 class QIODevice;
 class ResourceManager;
 
-class IStrokeParser : QObject
+class SHOWBOARD_EXPORT IStrokeParser : public QObject
 {
     Q_OBJECT
 public:
@@ -20,12 +21,13 @@ public:
 };
 
 #define REGISTER_STROKE_PARSER(ctype, type) \
-    static QExport<ctype, Control> const export_stroke_parser_##ctype(QPart::Attribute(IStrokeParser::EXPORT_ATTR_TYPE, type));
+    static QExport<ctype, IStrokeParser> const export_stroke_parser_##ctype(QPart::Attribute(IStrokeParser::EXPORT_ATTR_TYPE, type));
 
-class StrokeParser : public QObject
+class SHOWBOARD_EXPORT StrokeParser : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(ResourceManager * manager MEMBER manager_)
+    Q_PROPERTY(QString strokeType MEMBER strokeType_)
+    Q_PROPERTY(QObject* manager WRITE setManager)
     Q_PROPERTY(std::vector<QLazy> parser_types MEMBER parser_types_)
 
 public:
@@ -37,10 +39,13 @@ public:
 public:
     QSizeF load(QString const & ext, QIODevice * stream, QList<stroke_point_t> & points);
 
+    void setManager(QObject* manager);
+
 public slots:
     void onComposition();
 
 private:
+    QString strokeType_;
     ResourceManager * manager_;
     std::vector<QLazy> parser_types_;
     std::map<QString, QLazy *> parsers_;

@@ -45,42 +45,47 @@ static constexpr char DATA_SCHEME_SEP[] = { ';', ',' };
 ResourceView * ResourceManager::createResource(QUrl const & uri)
 {
     std::map<QString, QLazy*>::iterator iter = resources_.end();
+    QString originType = "";
     QString type = "";
     if (uri.scheme() == "data")
     {
         int n = uri.path().indexOf(DATA_SCHEME_SEP);
-        type = uri.path().left(n);
-        type = mapTypes_.value(type, type);
+        originType = uri.path().left(n);
+        type = mapTypes_.value(originType, originType);
         iter = resources_.find(type);
     }
     else
     {
-        type = uri.scheme();
-        type = mapTypes_.value(type, type);
+        originType = uri.scheme();
+        type = mapTypes_.value(originType, originType);
         iter = resources_.find(type);
         if (iter == resources_.end())
         {
             int n = uri.path().lastIndexOf('.');
             if (n > 0) {
-                type = uri.path().mid(n + 1);
-                type = mapTypes_.value(type, type);
+                originType = uri.path().mid(n + 1);
+                type = mapTypes_.value(originType, originType);
                 iter = resources_.find(type);
             }
         }
     }
+    ResourceView* rv = nullptr;
     if (iter == resources_.end()) {
         if (!type.isEmpty())
-            return new ResourceView(type, uri);
-        else
-            return nullptr;
+            rv = new ResourceView(type, uri);
+    } else {
+        Resource * res = new Resource(iter->first, uri);
+        char const * rfactory = iter->second->part()->attr(ResourceView::EXPORT_ATTR_FACTORY);
+        if (rfactory && strcmp(rfactory, "true") == 0) {
+            ResourceFactory * factory = iter->second->get<ResourceFactory>();
+            return factory->create(res);
+        }
+        rv = iter->second->create<ResourceView>(Q_ARG(Resource*, res));
     }
-    Resource * res = new Resource(iter->first, uri);
-    char const * rfactory = iter->second->part()->attr(ResourceView::EXPORT_ATTR_FACTORY);
-    if (rfactory && strcmp(rfactory, "true") == 0) {
-        ResourceFactory * factory = iter->second->get<ResourceFactory>();
-        return factory->create(res);
+    if (rv) {
+        rv->resource()->setProperty(Resource::PROP_ORIGIN_TYPE, originType);
     }
-    return iter->second->create<ResourceView>(Q_ARG(Resource*, res));
+    return rv;
 }
 
 ResourceFactory * ResourceManager::getFactory(QString const & type)

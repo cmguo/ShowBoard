@@ -1,30 +1,31 @@
-#include "stroke.h"
+#include "strokes.h"
 #include "strokeparser.h"
 #include "core/resource.h"
 
 using namespace QtPromise;
 
-REGISTER_RESOURCE_VIEW(Stroke, "stroke")
-
-Stroke::Stroke(Resource * res)
-    : ResourceView(res, {TopMost, Splittable})
+Strokes::Strokes(Resource * res)
+    : ResourceView(res, {TopMost})
 {
 }
 
-Stroke::Stroke(Stroke const & o)
+Strokes::Strokes(Strokes const & o)
     : ResourceView(o)
     , canvasSize_(o.canvasSize_)
     , points_(o.points_)
 {
 }
 
-QPromise<void> Stroke::load()
+QPromise<void> Strokes::load()
 {
     QWeakPointer<int> life(this->life());
+    if (url().scheme() == res_->type())
+        return QPromise<void>::resolve();
     return res_->getStream().then([this, life](QIODevice * stream) {
         if (life.isNull())
             return;
-        canvasSize_ = StrokeParser::instance->load(res_->type(), stream, points_);
+        canvasSize_ = StrokeParser::instance->load(
+                    res_->property(Resource::PROP_ORIGIN_TYPE).toString(), stream, points_);
         if (canvasSize_.isEmpty())
             throw std::exception("empty canvas size");
     });

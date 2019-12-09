@@ -476,7 +476,8 @@ void Control::exec(QString const & cmd, QStringList const & args)
         int t = method.parameterType(i);
         if (!varg[i].canConvert(t))
             return;
-        varg[i].convert(t);
+        if (!varg[i].convert(t))
+            return;
         argv[i] = QGenericArgument(QMetaType::typeName(t), varg[i].data());
     }
     method.invoke(this, argv[0], argv[1], argv[2], argv[3]);

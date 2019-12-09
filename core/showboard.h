@@ -1,9 +1,11 @@
 #ifndef SHOWBOARD_H
 #define SHOWBOARD_H
 
+#include "ShowBoard_global.h"
+
 class QComponentContainer;
 
-class ShowBoard
+class SHOWBOARD_EXPORT ShowBoard
 {
 public:
     static QComponentContainer & containter();
