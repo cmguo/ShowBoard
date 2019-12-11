@@ -410,6 +410,12 @@ void Control::scale(QRectF const & origin, QRectF const & direction,
     updateTransform();
 }
 
+void Control::rotate(const QPointF &origin, const QPointF &pos, qreal &result)
+{
+    QPointF center = item_->boundingRect().center();
+    center = item_->mapToItem(realItem_->parentItem(), center);
+}
+
 void Control::select(bool selected)
 {
     if (realItem_ != item_)

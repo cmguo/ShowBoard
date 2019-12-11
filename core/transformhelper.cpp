@@ -1,6 +1,23 @@
 #include "transformhelper.h"
 
 #include <QGraphicsItem>
+#include <QtMath>
+
+qreal TransformHelper::angle(QPointF const & vec)
+{
+    if (qFuzzyIsNull(vec.x()))
+        return vec.y() < 0 ? 270.0 : 90.0;
+    //if (qFuzzyIsNull(vec.y()))
+    //    return vec.x() > 0 ? 0.0 : 180.0;
+    qreal r = atan(vec.y() / vec.x());
+    if (vec.x() < 0)
+        r += M_PI;
+    if (r < 0)
+        r += M_PI * 2.0;
+    //qDebug() << vec << r * 180.0 / M_PI;
+    return r * 180.0 / M_PI;
+}
+
 
 void TransformHelper::apply(QTransform & tf, QGraphicsItem * item,
                             QRectF const & rect, qreal rotate)

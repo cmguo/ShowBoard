@@ -122,6 +122,11 @@ public:
                QPointF const & diff, QRectF & result);
 
     /*
+     * scale this item, is saved at transform
+     */
+    void rotate(QPointF const & origin, QPointF const & pos, qreal & result);
+
+    /*
      * invoke slot by name, use for lose relation call
      */
     void exec(QString const & cmd, QGenericArgument arg0 = QGenericArgument(),

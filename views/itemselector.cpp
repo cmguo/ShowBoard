@@ -157,6 +157,8 @@ void ItemSelector::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         selBox_->setRect(rect.normalized());
         } break;
     case Rotate:
+        selectControl_->rotate(start_, pt, rotate_);
+        selBox_->setRotation(rotate_);
         break;
     case Canvas: {
         QGraphicsItem * canvas = parentItem();
@@ -176,6 +178,10 @@ void ItemSelector::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     case TempNoMove:
     case AgainNoMove:
         if ((selectControl_->flags() & Control::CanMove) == 0) {
+            break;
+        }
+        if (qAbs(d.x() + d.y()) < 10) {
+            pt = start_;
             break;
         }
         type_ = static_cast<SelectType>(type_ + 1);

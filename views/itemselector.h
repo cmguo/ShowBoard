@@ -57,6 +57,7 @@ private:
     QPointF start_;
     QRectF direction_;
     QRectF rect_;
+    qreal rotate_;
 
     enum SelectType
     {
