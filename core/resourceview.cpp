@@ -25,7 +25,7 @@ ResourceView::ResourceView(ResourceView const & o)
 {
     flags_ &= ~SavedSession;
     res_->setParent(this);
-    transform_.translate(20 / transform_.m11(), 20 / transform_.m22());
+    transform_.translate({60, 60});
 }
 
 ResourceView * ResourceView::clone() const

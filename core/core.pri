@@ -8,6 +8,7 @@ HEADERS += \
     $$PWD/resourcemanager.h \
     $$PWD/resourcepackage.h \
     $$PWD/resourcepage.h \
+    $$PWD/resourcetransform.h \
     $$PWD/resourceview.h \
     $$PWD/showboard.h \
     $$PWD/svgcache.h \
@@ -25,6 +26,7 @@ SOURCES += \
     $$PWD/resourcemanager.cpp \
     $$PWD/resourcepackage.cpp \
     $$PWD/resourcepage.cpp \
+    $$PWD/resourcetransform.cpp \
     $$PWD/resourceview.cpp \
     $$PWD/showboard.cpp \
     $$PWD/svgcache.cpp \

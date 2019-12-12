@@ -3,15 +3,24 @@
 
 #include <QGraphicsTransform>
 
+class ResourceTransform;
+
 class ControlTransform : public QGraphicsTransform
 {
 public:
-    ControlTransform(QTransform * transform);
+    ControlTransform(ResourceTransform const & transform);
 
     ControlTransform(ControlTransform * itemTransform);
 
+    // for SelectBox like SelectBar
+    ControlTransform();
+
+    ControlTransform(ControlTransform * parentTransform, bool childNoRotate);
+
 public:
     void update();
+
+    void setResourceTransform(ResourceTransform const * transform);
 
 private:
     virtual void applyTo(QMatrix4x4 *matrix) const override;
@@ -20,10 +29,13 @@ private:
     enum Type {
         PureItem,
         ItemWithBar,
-        SelectBar
+        SelectBar,
+        SelectBox,
+        ChildItem,
+        ChildItemNoRotate,
     };
 
-    QTransform * transform_;
+    ResourceTransform const * transform_;
     Type type_;
 };
 

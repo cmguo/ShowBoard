@@ -1,6 +1,7 @@
 #include "itemselector.h"
 #include "core/control.h"
 #include "core/resourceview.h"
+#include "core/controltransform.h"
 #include "toolbarwidget.h"
 #include "whitecanvas.h"
 #include "selectbox.h"
@@ -16,6 +17,8 @@ ItemSelector::ItemSelector(QGraphicsItem * parent)
     , autoTop_(true)
     , select_(nullptr)
     , selectControl_(nullptr)
+    , transform_(new ControlTransform)
+    , rotate_(0)
     , type_(None)
 {
     setPen(QPen(Qt::NoPen));
@@ -23,6 +26,7 @@ ItemSelector::ItemSelector(QGraphicsItem * parent)
 
     selBox_ = new SelectBox(this);
     selBox_->setVisible(false);
+    selBox_->setTransformations({transform_});
 }
 
 void ItemSelector::select(QGraphicsItem *item)
@@ -32,21 +36,25 @@ void ItemSelector::select(QGraphicsItem *item)
             return;
     }
     if (item) {
-        rect_ = item->mapToParent(item->boundingRect()).boundingRect();
-        selBox_->setRect(rect_);
-        itemChange(ItemPositionHasChanged, pos());
         select_ = item;
         selectControl_ = Control::fromItem(item);
+        rect_ = selectControl_->boundRect();
+        selBox_->setRect(rect_);
+        transform_->setResourceTransform(&selectControl_->resource()->transform());
+        transform_->setParent(selectControl_->transform());
         QList<ToolButton *> buttons;
         selectControl_->getToolButtons(buttons);
         toolBar()->setToolButtons(buttons);
         selBox_->setVisible(true, selectControl_->flags() & Control::CanScale,
                             (selectControl_->flags() & Control::CanRotate));
         selectControl_->select(true);
+        //itemChange(ItemPositionHasChanged, pos());
     } else {
         select_ = nullptr;
         if (selectControl_)
             selectControl_->select(false);
+        transform_->setResourceTransform(nullptr);
+        transform_->setParent(nullptr);
         selectControl_ = nullptr;
         selBox_->setVisible(false);
     }
@@ -63,8 +71,7 @@ void ItemSelector::updateSelect()
 {
     if (!select_)
         return;
-    rect_ = select_->mapToParent(select_->boundingRect()).boundingRect();
-    selBox_->setRect(rect_);
+    selBox_->setRect(selectControl_->boundRect());
 }
 
 ToolbarWidget * ItemSelector::toolBar()
@@ -141,24 +148,23 @@ void ItemSelector::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     }
     QPointF pt = event->pos();
     QPointF d = pt - start_;
-    QRectF rect = rect_;
     switch (type_) {
     case Translate:
         if (selectControl_->flags() & Control::CanMove) {
-            rect.adjust(d.x(), d.y(), d.x(), d.y());
-            selBox_->setRect(rect);
-            selectControl_->move(pt - start_);
+            selectControl_->move(d);
         }
         break;
     case Scale: {
         //qDebug() << rect;
-        selectControl_->scale(rect_, direction_, d, rect);
-        pt = start_ + (rect.center() - rect_.center()) * 2;
-        selBox_->setRect(rect.normalized());
+        if (!selectControl_->scale(rect_, direction_, d)) {
+            pt = start_;
+            break;
+        }
+        pt = start_ + d;
+        selBox_->setRect(rect_);
         } break;
     case Rotate:
-        selectControl_->rotate(start_, pt, rotate_);
-        selBox_->setRotation(rotate_);
+        selectControl_->rotate(start_, pt);
         break;
     case Canvas: {
         QGraphicsItem * canvas = parentItem();
@@ -188,13 +194,12 @@ void ItemSelector::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         [[clang::fallthrough]];
     case TempMoved:
     case AgainMoved:
-        selectControl_->move(pt - start_);
+        selectControl_->move(d);
         break;
     default:
         break;
     }
     start_ = pt;
-    rect_ = rect;
 }
 
 void ItemSelector::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)

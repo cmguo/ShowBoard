@@ -65,10 +65,14 @@ void StateItem::setSharedRenderer(QSvgRenderer * renderer)
 
 void StateItem::updateTransform()
 {
+    /*
     QTransform t;
     TransformHelper::keepAtParent(t, this, {0, 0});
     QPointF center(boundingRect().center());
     setTransform(QTransform::fromTranslate(-center.x(), -center.y()) * t);
+    */
+    QPointF center(parentItem()->boundingRect().center() - boundingRect().center());
+    setTransform(QTransform::fromTranslate(center.x(), center.y()));
 }
 
 void StateItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,

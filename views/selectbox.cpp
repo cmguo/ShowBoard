@@ -28,12 +28,6 @@ private:
 SelectBox::SelectBox(QGraphicsItem * parent)
     : QGraphicsRectItem(parent)
 {
-    QPainterPath r;
-    r.addEllipse({-CROSS_LENGTH / 2, -CROSS_LENGTH / 2,
-                  CROSS_LENGTH, CROSS_LENGTH});
-    rotate_ = new BorderItem(r, this);
-    rotate_->setCursor(Qt::CrossCursor);
-
     QPainterPath lt(QPointF(0, CROSS_LENGTH));
     lt.lineTo(QPointF(0, 0));
     lt.lineTo(QPointF(CROSS_LENGTH, 0));
@@ -71,6 +65,12 @@ SelectBox::SelectBox(QGraphicsItem * parent)
     top_->setCursor(Qt::SizeVerCursor);
     bottom_ = new BorderItem(tb, this);
     bottom_->setCursor(Qt::SizeVerCursor);
+
+    QPainterPath r;
+    r.addEllipse({-CROSS_LENGTH / 2, -CROSS_LENGTH / 2,
+                  CROSS_LENGTH, CROSS_LENGTH});
+    rotate_ = new BorderItem(r, this);
+    rotate_->setCursor(Qt::CrossCursor);
 
     QPen pen1(QColor(Qt::white), 6);
     pen1.setJoinStyle(Qt::MiterJoin);
@@ -135,28 +135,28 @@ void SelectBox::setVisible(bool menu, bool scale, bool rotate)
 
 int SelectBox::hitTest(const QPointF &pos, QRectF &direction)
 {
-    if (rotate_->contains(rotate_->mapToParent(pos))) {
+    if (rotate_->contains(rotate_->mapFromParent(pos))) {
         return 3;
     } if (leftTop_->contains(leftTop_->mapFromParent(pos))) {
-        direction = QRectF(1, 1, 0, 0);
+        direction = QRectF(1, 1, -1, -1);
         return 2;
     } else if (rightTop_->contains(rightTop_->mapFromParent(pos))) {
-        direction = QRectF(0, 1, 1, 0);
+        direction = QRectF(0, 1, 1, -1);
         return 2;
     } else if (rightBottom_->contains(rightBottom_->mapFromParent(pos))) {
         direction = QRectF(0, 0, 1, 1);
         return 2;
     } else if (leftBottom_->contains(leftBottom_->mapFromParent(pos))) {
-        direction = QRectF(1, 0, 0, 1);
+        direction = QRectF(1, 0, -1, 1);
         return 2;
     } else if (left_->contains(left_->mapFromParent(pos))) {
-        direction = QRectF(1, 0, 0, 0);
+        direction = QRectF(1, 0, -1, 0);
         return 2;
     } else if (right_->contains(right_->mapFromParent(pos))) {
         direction = QRectF(0, 0, 1, 0);
         return 2;
     } else if (top_->contains(top_->mapFromParent(pos))) {
-        direction = QRectF(0, 1, 0, 0);
+        direction = QRectF(0, 1, 0, -1);
         return 2;
     } else if (bottom_->contains(bottom_->mapFromParent(pos))) {
         direction = QRectF(0, 0, 0, 1);

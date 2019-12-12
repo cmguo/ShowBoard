@@ -29,7 +29,7 @@ public:
         CanMove = 2,
         CanScale = 4,
         CanRotate = 8,
-        DefaultFlags = 7, // all can
+        DefaultFlags = 15, // all can
         KeepAspectRatio = 1 << 4,
         FullLayout = 1 << 5,
         HelpSelect = 1 << 6,
@@ -113,18 +113,24 @@ public:
     /*
      * move (shift) this item, is saved at transform
      */
-    void move(QPointF const & delta);
+    void move(QPointF & delta);
 
     /*
      * scale this item, is saved at transform
      */
-    void scale(QRectF const & origin, QRectF const & direction,
-               QPointF const & diff, QRectF & result);
+    bool scale(QRectF & rect, QRectF const & direction, QPointF & delta);
 
     /*
      * scale this item, is saved at transform
      */
-    void rotate(QPointF const & origin, QPointF const & pos, qreal & result);
+    void rotate(QPointF const & from, QPointF & to);
+
+    QRectF boundRect() const;
+
+    QGraphicsTransform* transform() const
+    {
+        return transform_;
+    }
 
     /*
      * invoke slot by name, use for lose relation call

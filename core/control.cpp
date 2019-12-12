@@ -255,7 +255,7 @@ void Control::initPosition()
         qreal dx3 = -dx * 3;
         rect.adjust(dx3, dy, dx3, dy);
     }
-    res_->transform()->translate(pos.x(), pos.y());
+    res_->transform().translate(pos);
 }
 
 void Control::loadFinished(bool ok, QString const & iconOrMsg)
@@ -263,6 +263,10 @@ void Control::loadFinished(bool ok, QString const & iconOrMsg)
     if (ok) {
         if (iconOrMsg.isNull()) {
             if (stateItem_) {
+                QList<QGraphicsTransform*> trs = stateItem_->transformations();
+                stateItem_->setTransformations({});
+                for (QGraphicsTransform* tr: trs)
+                    delete tr;
                 delete stateItem_;
                 stateItem_ = nullptr;
             }
@@ -329,8 +333,7 @@ void Control::initScale()
             scale *= 2.0;
         }
     }
-    QTransform * t = res_->transform();
-    t->scale(scale / t->m11(), scale / t->m22());
+    res_->transform().scaleTo(scale);
     updateTransform();
     if (realItem_ != item_)
         static_cast<ItemFrame *>(realItem_)->updateRect();
@@ -339,81 +342,53 @@ void Control::initScale()
     }
 }
 
-void Control::move(QPointF const & delta)
+void Control::move(QPointF & delta)
 {
-    QTransform * t = res_->transform();
-    t->translate(delta.x() / t->m11(), delta.y() / t->m22());
+    res_->transform().translate(delta);
     updateTransform();
 }
 
-void Control::scale(QRectF const & origin, QRectF const & direction,
-                    QPointF const & diff, QRectF & result)
+bool Control::scale(QRectF &rect, const QRectF &direction, QPointF &delta)
 {
-    //result = origin;
-    //result.adjust(0, 0, origin.width() / -2, origin.height() / -2);
-    qDebug() << origin << " -> " << result;
-    bool positive = qFuzzyIsNull(direction.left() - direction.top());
-    bool byWidth = qFuzzyIsNull(direction.top()) && qFuzzyIsNull(direction.height());
-    bool byHeight = qFuzzyIsNull(direction.left()) && qFuzzyIsNull(direction.width());
-    result = origin.adjusted(
-                diff.x() * direction.left(), diff.y() * direction.top(),
-                diff.x() * direction.width(), diff.y() * direction.height());
-    QPointF c0 = result.center();
-    QPointF d0 = c0 - origin.center();
+    QRectF padding;
+    if (realItem_ != item_)
+        padding = itemFrame()->padding();
+    bool result = res_->transform().scale(rect, direction, delta, padding,
+                            flags_ & KeepAspectRatio, flags_ & LayoutScale, 120.0);
+    if (!result)
+        return false;
+    QRectF origin = rect;
     if (item_ != realItem_) {
-        static_cast<ItemFrame *>(realItem_)->updateRectToChild(result);
-        if (result.width() < 0 || result.height() < 0) {
-            result = origin;
-            static_cast<ItemFrame *>(realItem_)->setRect(origin);
-            return;
-        }
-        c0 = result.center();
-    }
-    QSizeF s1 = item_->boundingRect().size();
-    QSizeF s2 = result.size();
-    QSizeF s(s2.width() / s1.width(), s2.height() / s1.height());
-    QPointF d = d0;
-    if (flags_ & KeepAspectRatio) {
-        qreal sign = positive ? 1.0 : -1.0;
-        if (byHeight || (s.width() < s.height() && !byWidth)) {
-            d.setX(d.y() * sign * s1.width() / s1.height());
-            //d.setX(d.x() * s.height() / s.width());
-            result.setWidth(s1.width() * s.height());
-        } else {
-            d.setY(d.x() * sign * s1.height() / s1.width());
-            //d.setY(d.y() * s.width() / s.height());
-            result.setHeight(s1.height() * s.width());
-        }
-        result.moveCenter(c0 - d0 + d);
-    } else {
-        s2.scale(1.0 / s1.width(), 1.0 / s1.height(), Qt::IgnoreAspectRatio);
-    }
-    if (result.height() < 120) {
-        result = origin;
-        if (item_ != realItem_) {
-            static_cast<ItemFrame *>(realItem_)->setRect(origin);
-        }
-        return;
+        static_cast<ItemFrame *>(realItem_)->updateRectToChild(origin);
     }
     if (flags_ & LayoutScale) {
-        resize(result.size());
+        resize(origin.size());
         sizeChanged();
-    }
-    QTransform * t = res_->transform();
-    TransformHelper::apply(*t, item_, result.normalized(), 0.0);
-    if (item_ != realItem_) {
-        static_cast<ItemFrame *>(realItem_)->updateRectFromChild(result);
-        qDebug() << "updateRectFromChild" << result;
+    } else {
+        updateTransform();
     }
     if (stateItem_)
         stateItem_->updateTransform();
-    updateTransform();
+    return true;
 }
 
-void Control::rotate(const QPointF &origin, const QPointF &pos, qreal &result)
+void Control::rotate(QPointF const & from, QPointF & to)
 {
-    QPointF center = item_->boundingRect().center();
-    center = item_->mapToItem(realItem_->parentItem(), center);
+    res_->transform().rotate(from, to);
+    updateTransform();
+    if (stateItem_)
+        stateItem_->updateTransform();
+}
+
+QRectF Control::boundRect() const
+{
+    QRectF rect = realItem_->boundingRect();
+    if (item_ == realItem_)
+        rect.moveCenter({0, 0});
+    QTransform const & scale = res_->transform().scale();
+    rect = QRectF(rect.x() * scale.m11(), rect.y() * scale.m22(),
+                  rect.width() * scale.m11(), rect.height() * scale.m22());
+    return rect;
 }
 
 void Control::select(bool selected)
@@ -442,6 +417,8 @@ StateItem * Control::stateItem()
         return stateItem_;
     stateItem_ = new StateItem(item_);
     stateItem_->setData(ITEM_KEY_CONTROL, QVariant::fromValue(this));
+    ControlTransform * ct = new ControlTransform(static_cast<ControlTransform*>(transform_), false);
+    stateItem_->setTransformations({ct});
     return stateItem_;
 }
 

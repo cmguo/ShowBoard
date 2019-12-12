@@ -3,6 +3,7 @@
 
 #include "ShowBoard_global.h"
 #include "lifeobject.h"
+#include "resourcetransform.h"
 
 #include <qexport.h>
 
@@ -17,7 +18,6 @@ class SHOWBOARD_EXPORT ResourceView : public LifeObject
     Q_PROPERTY(Resource * resource READ resource())
     Q_PROPERTY(Flags const flags READ flags())
     Q_PROPERTY(QString name MEMBER name_)
-    Q_PROPERTY(QTransform * transform READ transform())
 
 public:
     static constexpr char const * EXPORT_ATTR_TYPE = "rtype";
@@ -78,9 +78,9 @@ public:
      * for move, scale, rotate
      *  these are all saved in transform
      */
-    QTransform * transform()
+    ResourceTransform& transform()
     {
-        return &transform_;
+        return transform_;
     }
 
 public:
@@ -99,7 +99,7 @@ protected:
     Resource * res_;
     Flags flags_;
     QString name_;
-    QTransform transform_;
+    ResourceTransform transform_;
 };
 
 /*

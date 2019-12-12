@@ -9,6 +9,7 @@ class Control;
 class SelectBox;
 class WhiteCanvas;
 class ToolbarWidget;
+class ControlTransform;
 
 class SHOWBOARD_EXPORT ItemSelector : public QGraphicsRectItem
 {
@@ -52,6 +53,7 @@ private:
 private:
     QGraphicsItem * select_;
     Control * selectControl_;
+    ControlTransform* transform_;
 
 private:
     QPointF start_;
