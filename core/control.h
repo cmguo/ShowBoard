@@ -64,6 +64,7 @@ public:
      */
     static Control * fromItem(QGraphicsItem * item);
 
+    static ToolButton btnTop;
     static ToolButton btnCopy;
     static ToolButton btnDelete;
 
@@ -118,6 +119,8 @@ public:
      * scale this item, is saved at transform
      */
     bool scale(QRectF & rect, QRectF const & direction, QPointF & delta);
+
+    void gesture(QPointF const & from1, QPointF const & from2, QPointF & to1, QPointF & to2);
 
     /*
      * scale this item, is saved at transform

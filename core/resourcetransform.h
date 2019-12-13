@@ -5,10 +5,17 @@
 
 #include <QTransform>
 
+// transform orders:
+//   scale
+//   rotate
+//   translate
+
 class SHOWBOARD_EXPORT ResourceTransform
 {
 public:
     ResourceTransform();
+
+    ResourceTransform(ResourceTransform const & o);
 
 public:
     QTransform const & transform() const
@@ -52,6 +59,8 @@ public:
      */
     void rotate(QPointF const & from, QPointF & to);
 
+    bool rotate(qreal& delta, bool sync = true);
+
     void scaleTo(qreal scale);
 
     void scale(QSizeF const & delta);
@@ -64,6 +73,9 @@ public:
      */
     bool scale(QRectF & rect, QRectF const & direction, QPointF & delta,
                QRectF const & padding, bool KeepAspectRatio, bool layoutScale, qreal minSize);
+
+    void gesture(QPointF const & from1, QPointF const & from2, QPointF & to1, QPointF & to2,
+                 bool translate, bool scale, bool rotate);
 
 private:
     static qreal length(QPointF const & vec);

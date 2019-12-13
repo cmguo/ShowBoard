@@ -84,8 +84,6 @@ public:
     ItemSelector * selector();
 
 public:
-    void enableSelector(bool enable);
-
     void moveSelectionTop(bool enable);
 
     /*
@@ -100,15 +98,16 @@ private slots:
 
 private:
     virtual QVariant itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value) override;
-
+/*
     virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
 
     virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
 
     virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
-
+*/
 private:
     ResourcePackage * package_;
+    ResourcePageItem * globalCanvas_;
     ResourcePageItem * canvas_;
     ToolBoxItem * tools_;
     ItemSelector * selector_;

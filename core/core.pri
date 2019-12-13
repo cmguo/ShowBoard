@@ -13,7 +13,6 @@ HEADERS += \
     $$PWD/showboard.h \
     $$PWD/svgcache.h \
     $$PWD/toolbutton.h \
-    $$PWD/transformhelper.h \
     $$PWD/widgetcontrol.h
 
 SOURCES += \
@@ -31,5 +30,4 @@ SOURCES += \
     $$PWD/showboard.cpp \
     $$PWD/svgcache.cpp \
     $$PWD/toolbutton.cpp \
-    $$PWD/transformhelper.cpp \
     $$PWD/widgetcontrol.cpp

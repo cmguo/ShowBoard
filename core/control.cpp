@@ -5,8 +5,8 @@
 #include "views/stateitem.h"
 #include "views/itemframe.h"
 #include "views/itemselector.h"
-#include "core/transformhelper.h"
-#include "core/controltransform.h"
+#include "resourcetransform.h"
+#include "controltransform.h"
 
 #include <QGraphicsItem>
 #include <QGraphicsScene>
@@ -21,6 +21,7 @@ Control * Control::fromItem(QGraphicsItem * item)
     return item->data(ITEM_KEY_CONTROL).value<Control *>();
 }
 
+ToolButton Control::btnTop = { "top", "置顶", nullptr, ":/showboard/icons/copy.svg" };
 ToolButton Control::btnCopy = { "copy", "复制", nullptr, ":/showboard/icons/copy.svg" };
 ToolButton Control::btnDelete = { "delete", "删除", nullptr, ":/showboard/icons/delete.svg" };
 
@@ -342,9 +343,6 @@ void Control::initScale()
     updateTransform();
     if (realItem_ != item_)
         static_cast<ItemFrame *>(realItem_)->updateRect();
-    if (stateItem_) {
-        stateItem_->updateTransform();
-    }
 }
 
 void Control::move(QPointF & delta)
@@ -372,17 +370,20 @@ bool Control::scale(QRectF &rect, const QRectF &direction, QPointF &delta)
     } else {
         updateTransform();
     }
-    if (stateItem_)
-        stateItem_->updateTransform();
     return true;
+}
+
+void Control::gesture(const QPointF &from1, const QPointF &from2, QPointF &to1, QPointF &to2)
+{
+    res_->transform().gesture(from1, from2, to1, to2,
+                              flags_ & CanMove, flags_ & CanScale, flags_ & CanRotate);
+    updateTransform();
 }
 
 void Control::rotate(QPointF const & from, QPointF & to)
 {
     res_->transform().rotate(from, to);
     updateTransform();
-    if (stateItem_)
-        stateItem_->updateTransform();
 }
 
 QRectF Control::boundRect() const

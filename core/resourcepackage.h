@@ -25,6 +25,8 @@ public:
         return pages_;
     }
 
+    ResourcePage * globalPage();
+
     /*
      * insert a newly create page,
      *  new page is inserted before current one and became current
@@ -73,6 +75,7 @@ protected:
     void addPage(ResourcePage * page);
 
 private:
+    ResourcePage * globalPage_;
     QList<ResourcePage *> pages_;
     int current_;
 };

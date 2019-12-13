@@ -25,6 +25,8 @@ WhiteCanvas::WhiteCanvas(QObject * parent)
     //addToGroup(new ItemSelector());
     canvas_ = new ResourcePageItem(this);
     canvas_->setRect(rect());
+    globalCanvas_ = new ResourcePageItem(this);
+    globalCanvas_->setRect(rect());
     tools_ = new ToolBoxItem(this);
     tools_->setRect(rect());
     selector_ = new ItemSelector(this);
@@ -107,11 +109,6 @@ ItemSelector * WhiteCanvas::selector()
     return selector_;
 }
 
-void WhiteCanvas::enableSelector(bool enable)
-{
-    selector_->setForce(enable);
-}
-
 void WhiteCanvas::moveSelectionTop(bool enable)
 {
     selector_->autoTop(enable);
@@ -120,6 +117,7 @@ void WhiteCanvas::moveSelectionTop(bool enable)
 void WhiteCanvas::setGeometry(QRectF const & rect)
 {
     setRect(rect);
+    globalCanvas_->setGeometry(rect);
     canvas_->setGeometry(rect);
     tools_->setGeometry(rect);
     selector_->setRect(rect);
@@ -133,10 +131,12 @@ void WhiteCanvas::setResourcePackage(ResourcePackage * pack)
     }
     package_ = pack;
     if (package_) {
+        globalCanvas_->switchPage(package_->globalPage());
         switchPage(package_->currentPage());
         QObject::connect(package_, &ResourcePackage::currentPageChanged,
                          this, &WhiteCanvas::switchPage);
     } else {
+        globalCanvas_->switchPage(nullptr);
         switchPage(nullptr);
     }
 }
@@ -161,7 +161,7 @@ void WhiteCanvas::popupButtonsRequired(QList<ToolButton *> & buttons, QList<Tool
     Control * ct = Control::fromItem(selector_->selected());
     ct->getToolButtons(buttons, parents);
 }
-
+/*
 void WhiteCanvas::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     bool force = selector_->force_;
@@ -179,4 +179,4 @@ void WhiteCanvas::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
     selector_->mouseReleaseEvent(event);
 }
-
+*/

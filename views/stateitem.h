@@ -29,14 +29,15 @@ public:
 
     void setFailed(QString const & msg);
 
-    void updateTransform();
-
 signals:
     void clicked();
 
 private:
     void setSharedRenderer(QSvgRenderer * renderer);
 
+    void updateTransform();
+
+private:
     virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
 
     virtual QPainterPath shape() const override;

@@ -10,6 +10,7 @@ class SelectBox;
 class WhiteCanvas;
 class ToolbarWidget;
 class ControlTransform;
+class QTouchEvent;
 
 class SHOWBOARD_EXPORT ItemSelector : public QGraphicsRectItem
 {
@@ -35,13 +36,43 @@ public:
     void updateSelect();
 
 private:
-    friend class WhiteCanvas;
+    enum SelectType
+    {
+        None = 0,
+        Translate,
+        Scale,
+        Rotate,
+        Canvas,
+        TempNoMove,
+        TempMoved,
+        AgainNoMove,
+        AgainMoved,
+        FastClone,
+    };
+
+private:
+    void selectAt(QPointF const & pos);
+
+    void selectRelease();
+
+private:
+    virtual QVariant itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value) override;
 
     virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
 
     virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
 
     virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
+
+    virtual void touchBegin(QTouchEvent* event);
+
+    virtual void touchUpdate(QTouchEvent* event);
+
+    virtual void touchEnd(QTouchEvent* event);
+
+    virtual bool sceneEvent(QEvent *event) override;
+
+    virtual bool sceneEventFilter(QGraphicsItem *watched, QEvent *event) override;
 
 private:
     SelectBox * selBox_;
@@ -58,24 +89,9 @@ private:
 
 private:
     QPointF start_;
+    QMap<int, QPointF> lastPositions_;
     QRectF direction_;
     QRectF rect_;
-    qreal rotate_;
-
-    enum SelectType
-    {
-        None = 0,
-        Translate,
-        Scale,
-        Rotate,
-        Canvas,
-        TempNoMove,
-        TempMoved,
-        AgainNoMove,
-        AgainMoved,
-        FastClone,
-    };
-
     SelectType type_;
 };
 

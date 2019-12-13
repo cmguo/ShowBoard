@@ -3,13 +3,13 @@
 
 #include "ShowBoard_global.h"
 #include "lifeobject.h"
-#include "resourcetransform.h"
 
 #include <qexport.h>
 
 #include <QTransform>
 
 class Resource;
+class ResourceTransform;
 
 class SHOWBOARD_EXPORT ResourceView : public LifeObject
 {
@@ -80,7 +80,7 @@ public:
      */
     ResourceTransform& transform()
     {
-        return transform_;
+        return *transform_;
     }
 
 public:
@@ -99,7 +99,7 @@ protected:
     Resource * res_;
     Flags flags_;
     QString name_;
-    ResourceTransform transform_;
+    ResourceTransform* transform_;
 };
 
 /*

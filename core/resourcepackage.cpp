@@ -10,7 +10,13 @@ ResourcePackage::ResourcePackage(QObject *parent)
     : QObject(parent)
     , current_(-1)
 {
+    globalPage_ = new ResourcePage(this);
     newPage();
+}
+
+ResourcePage *ResourcePackage::globalPage()
+{
+    return globalPage_;
 }
 
 ResourcePage * ResourcePackage::newPage()

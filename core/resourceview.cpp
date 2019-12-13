@@ -1,5 +1,6 @@
 #include "resourceview.h"
 #include "resource.h"
+#include "resourcetransform.h"
 #include "resourcepage.h"
 
 #include <QMetaMethod>
@@ -7,6 +8,7 @@
 ResourceView::ResourceView(Resource * res, Flags flags, Flags clearFlags)
     : res_(res)
     , flags_((DefaultFlags | flags) & ~clearFlags)
+    , transform_(new ResourceTransform)
 {
     QString path = res->url().path();
     name_ = path.mid(path.lastIndexOf('/') + 1);
@@ -21,11 +23,11 @@ ResourceView::ResourceView(QString const & type, QUrl const & url)
 ResourceView::ResourceView(ResourceView const & o)
     : res_(new Resource(*o.res_))
     , flags_(o.flags_)
-    , transform_(o.transform_)
+    , transform_(new ResourceTransform(*o.transform_))
 {
     //flags_ &= ~SavedSession;
     res_->setParent(this);
-    transform_.translate({60, 60});
+    transform_->translate({60, 60});
 }
 
 ResourceView * ResourceView::clone() const

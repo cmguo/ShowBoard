@@ -5,6 +5,16 @@
 
 ResourceTransform::ResourceTransform()
 {
+}
+
+ResourceTransform::ResourceTransform(const ResourceTransform &o)
+    : scale_(o.scale_)
+    , rotate_(o.rotate_)
+    , translate_(o.translate_)
+    , transform_(o.transform_)
+    , scaleRotate_(o.scaleRotate_)
+    , rotateTranslate_(o.rotateTranslate_)
+{
 
 }
 
@@ -21,31 +31,42 @@ void ResourceTransform::rotate(QPointF const & from, QPointF & to)
     qreal a1 = angle(from - center);
     qreal a2 = angle(to - center);
     qreal da = a2 - a1;
-    rotate_.rotate(da);
+    bool adjusted = rotate(da);
+    if (adjusted) {
+        to = center + QTransform().rotate(da).map(to - center);
+    }
+}
+
+bool ResourceTransform::rotate(qreal& delta, bool sync)
+{
+    rotate_.rotate(delta);
     bool adjust = true;
     if (rotate_.m11() > 0.999) { // ±2.56°
+        delta = -asin(rotate_.m12());
         rotate_ = QTransform();
-        to = QPointF(0, -length(to - center)); // up
     } else if (qAbs(rotate_.m11()) < 0.0447) {
         if (rotate_.m12() > 0) {
+            delta = asin(rotate_.m11());
             rotate_ = QTransform(0, 1, -1, 0, 0, 0); // right
-            to = QPointF(length(to - center), 0);
         } else {
+            delta = -asin(rotate_.m11());
             rotate_ = QTransform(0, -1, 1, 0, 0, 0);
-            to = QPointF(-length(to - center), 0);
         }
     } else if (rotate_.m11() < -0.999) {// down
+        delta = asin(rotate_.m12());
         rotate_ = QTransform(-1, 0, 0, -1, 0, 0);
-        to = QPointF(0, length(to - center));
     } else {
         adjust = false;
     }
     if (adjust) {
-        to = center + to;
+        delta = delta * 180 / M_PI;
     }
-    scaleRotate_ = scale_ * rotate_;
-    rotateTranslate_ = rotate_ * translate_;
-    transform_ = scaleRotate_ * translate_;
+    if (sync) {
+        scaleRotate_ = scale_ * rotate_;
+        rotateTranslate_ = rotate_ * translate_;
+        transform_ = scaleRotate_ * translate_;
+    }
+    return adjust;
 }
 
 void ResourceTransform::scaleTo(qreal scale)
@@ -139,6 +160,43 @@ bool ResourceTransform::scale(QRectF & rect, QRectF const & direction, QPointF &
     return true;
 }
 
+void ResourceTransform::gesture(const QPointF &from1, const QPointF &from2, QPointF &to1, QPointF &to2,
+                                bool translate, bool scale, bool rotate)
+{
+    // line1: from1 -- from2
+    // line2: to1 -- to2
+    // split into scale, rotate and translate
+    //qDebug() << "from1" << from1 << "from2" << from2 << "to1" << to1 << "to2" << to2;
+    qreal s = scale ? length(to2 - to1) / length(from2 - from1) : 1;
+    qreal r = rotate ? angle(to2 - to1) - angle(from2 - from1) : 0;
+    QPointF t0 = QPointF(translate_.dx(), translate_.dy());
+    QPointF t = from2 - t0;
+    if (scale) {
+        scale_.scale(s, s);
+        if (translate)
+            t *= s;
+    }
+    if (rotate) {
+        qreal r1 = r;
+        bool adjusted = this->rotate(r1, false);
+        if (adjusted) {
+            r += r1;
+            QTransform tr; tr.rotate(r1);
+            to2 = to1 + tr.map(to2 - to1);
+        }
+        if (translate)
+            t = QTransform().rotate(r).map(t);
+    }
+    if (translate) {
+        t = to2 - t0 - t;
+        translate_.translate(t.x(), t.y());
+    }
+    //qDebug() << "scale" << s << "rotate" << r << "translate" << t;
+    scaleRotate_ = scale_ * rotate_;
+    rotateTranslate_ = rotate_ * translate_;
+    transform_ = scaleRotate_ * translate_;
+}
+
 qreal ResourceTransform::angle(QPointF const & vec)
 {
     if (qFuzzyIsNull(vec.x()))
@@ -158,4 +216,3 @@ qreal ResourceTransform::length(QPointF const & vec)
 {
     return sqrt(QPointF::dotProduct(vec, vec));
 }
-
