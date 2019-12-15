@@ -146,6 +146,7 @@ void WhiteCanvas::toolButtonClicked(QList<ToolButton *> const & buttons)
     Control * ct = Control::fromItem(selector_->selected());
     if (buttons.back() == &Control::btnCopy) {
         selector_->select(nullptr);
+        ct->beforeClone();
         canvas_->page()->copyResource(ct->resource());
     } else if (buttons.back() == &Control::btnDelete) {
         selector_->select(nullptr);

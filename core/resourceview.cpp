@@ -23,7 +23,7 @@ ResourceView::ResourceView(ResourceView const & o)
     , flags_(o.flags_)
     , transform_(o.transform_)
 {
-    flags_ &= ~SavedSession;
+    //flags_ &= ~SavedSession;
     res_->setParent(this);
     transform_.translate({60, 60});
 }

@@ -41,7 +41,6 @@ public:
         LayoutScale = 1 << 12,
         LoadFinished = 1 << 16,
         ExpandScale = 1 << 17,
-        DrawFinished = 1 << 18,
         SelfTransform = 1 << 19,
     };
 
@@ -154,6 +153,8 @@ public:
      * set when select state change
      */
     virtual void select(bool selected);
+
+    virtual void beforeClone();
 
     /*
      * collect context menu of this control

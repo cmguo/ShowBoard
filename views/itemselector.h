@@ -21,7 +21,7 @@ public:
 
     void selectImplied(QGraphicsItem * item);
 
-    void setForce(bool force);
+    void startFastClone();
 
     void autoTop(bool force);
 
@@ -49,6 +49,7 @@ private:
 private:
     bool force_;
     bool autoTop_;
+    bool fastClone_;
 
 private:
     QGraphicsItem * select_;
@@ -72,6 +73,7 @@ private:
         TempMoved,
         AgainNoMove,
         AgainMoved,
+        FastClone,
     };
 
     SelectType type_;

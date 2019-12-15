@@ -14,7 +14,8 @@
 ItemSelector::ItemSelector(QGraphicsItem * parent)
     : QGraphicsRectItem(parent)
     , force_(false)
-    , autoTop_(true)
+    , autoTop_(false)
+    , fastClone_(false)
     , select_(nullptr)
     , selectControl_(nullptr)
     , transform_(new ControlTransform)
@@ -195,6 +196,8 @@ void ItemSelector::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     case TempMoved:
     case AgainMoved:
         selectControl_->move(d);
+        break;
+    case FastClone:
         break;
     default:
         break;

@@ -96,6 +96,11 @@ void Control::relayout()
     }
 }
 
+void Control::beforeClone()
+{
+    saveSettings();
+}
+
 void Control::attaching()
 {
 }

@@ -135,7 +135,7 @@ void SelectBox::setVisible(bool menu, bool scale, bool rotate)
 
 int SelectBox::hitTest(const QPointF &pos, QRectF &direction)
 {
-    if (rotate_->contains(rotate_->mapFromParent(pos))) {
+    if (rotate_->isVisible() && rotate_->contains(rotate_->mapFromParent(pos))) {
         return 3;
     } if (leftTop_->contains(leftTop_->mapFromParent(pos))) {
         direction = QRectF(1, 1, -1, -1);
