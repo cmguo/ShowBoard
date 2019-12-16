@@ -8,6 +8,8 @@
 #include "resources/resources.h"
 #include "showboard.h"
 
+#include <QPair>
+
 ResourceManager * ResourceManager::instance()
 {
     static ResourceManager * manager = nullptr;
@@ -19,10 +21,29 @@ ResourceManager * ResourceManager::instance()
 static QExport<ResourceManager> export_(QPart::shared);
 static QImportMany<ResourceManager, ResourceView> import_resources("resource_types", QPart::nonshared, true);
 
+static QMap<char const *, QPair<ResourceView::Flags, ResourceView::Flags>>& commonResourceTypes()
+{
+    static QMap<char const *, QPair<ResourceView::Flags, ResourceView::Flags>> map;
+    return map;
+}
+
+CommonResourceTypes::CommonResourceTypes(const char *types, ResourceView::Flags flags, ResourceView::Flags clearFlags)
+{
+    commonResourceTypes()[types] = qMakePair(flags, clearFlags);
+}
+
 ResourceManager::ResourceManager(QObject *parent)
     : QObject(parent)
 {
     //Q_INIT_RESOURCE(ShowBoard);
+    auto iter = commonResourceTypes().keyValueBegin();
+    auto end = commonResourceTypes().keyValueEnd();
+    for (; iter != end; ++iter) {
+        for (auto t : QString((*iter).first).split(",", QString::SkipEmptyParts)) {
+            commonResources_[t] = qMakePair(static_cast<int>((*iter).second.first),
+                                      static_cast<int>((*iter).second.second));
+        }
+    }
 }
 
 void ResourceManager::onComposition()
@@ -71,8 +92,17 @@ ResourceView * ResourceManager::createResource(QUrl const & uri)
     }
     ResourceView* rv = nullptr;
     if (iter == resources_.end()) {
-        if (!type.isEmpty())
-            rv = new ResourceView(type, uri);
+        if (!type.isEmpty()) {
+            std::map<QString, QPair<int, int>>::iterator iter2 = commonResources_.find(type);
+            if (iter2 == commonResources_.end()) {
+                rv = new ResourceView(type, uri);
+            } else {
+                Resource * res = new Resource(type, uri);
+                rv = new ResourceView(res,
+                                      static_cast<ResourceView::Flags>(iter2->second.first),
+                                      static_cast<ResourceView::Flags>(iter2->second.second));
+            }
+        }
     } else {
         Resource * res = new Resource(iter->first, uri);
         char const * rfactory = iter->second->part()->attr(ResourceView::EXPORT_ATTR_FACTORY);

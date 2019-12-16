@@ -7,6 +7,7 @@
 #include "core/resourceview.h"
 #include "core/resourcepage.h"
 #include "core/resourcepackage.h"
+#include "core/resourcetransform.h"
 #include "toolbarwidget.h"
 
 #include <QBrush>
@@ -83,6 +84,13 @@ Control * WhiteCanvas::addResource(QUrl const & url)
     return canvas_->findControl(res);
 }
 
+Control *WhiteCanvas::copyResource(Control *control)
+{
+    control->beforeClone();
+    ResourceView * res = canvas_->page()->copyResource(control->resource());
+    return canvas_->findControl(res);
+}
+
 void WhiteCanvas::removeResource(Control *control)
 {
     canvas_->page()->removeResource(control->resource());
@@ -144,11 +152,19 @@ void WhiteCanvas::setResourcePackage(ResourcePackage * pack)
 void WhiteCanvas::toolButtonClicked(QList<ToolButton *> const & buttons)
 {
     Control * ct = Control::fromItem(selector_->selected());
-    if (buttons.back() == &Control::btnCopy) {
+    ToolButton * btn = buttons.back();
+    if (btn == &Control::btnTop) {
+        ct->resource()->moveTop();
+    } else if (btn == &Control::btnCopy) {
         selector_->select(nullptr);
         ct->beforeClone();
-        canvas_->page()->copyResource(ct->resource());
-    } else if (buttons.back() == &Control::btnDelete) {
+        ResourceView* res = canvas_->page()->copyResource(ct->resource());
+        res->transform().translate({60, 60});
+    } else if (btn == &Control::btnFastCopy) {
+        bool checked = !btn->flags.testFlag(ToolButton::Checked);
+        selector_->enableFastClone(checked);
+        btn->flags.setFlag(ToolButton::Checked, checked);
+    } else if (btn == &Control::btnDelete) {
         selector_->select(nullptr);
         canvas_->page()->removeResource(ct->resource());
     } else {

@@ -27,7 +27,9 @@ ResourceView::ResourceView(ResourceView const & o)
 {
     //flags_ &= ~SavedSession;
     res_->setParent(this);
-    transform_->translate({60, 60});
+    //transform_->translate({60, 60});
+    for (QByteArray & k : res_->dynamicPropertyNames())
+        setProperty(k, res_->property(k));
 }
 
 ResourceView * ResourceView::clone() const
@@ -59,7 +61,3 @@ void ResourceView::setSaved()
     flags_ |= SavedSession;
 }
 
-void ResourceView::setFlag(Flag f, bool on)
-{
-    flags_.setFlag(f, on);
-}

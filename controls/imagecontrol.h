@@ -3,6 +3,8 @@
 
 #include "core/control.h"
 
+class QPixmap;
+
 class ImageControl : public Control
 {
     Q_OBJECT
@@ -13,6 +15,8 @@ protected:
     virtual QGraphicsItem * create(ResourceView * res);
 
     virtual void attached() override;
+
+    virtual void detached() override;
 };
 
 #endif // IMAGECONTROL_H

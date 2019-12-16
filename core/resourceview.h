@@ -93,8 +93,6 @@ public:
 
     void removeFromPage();
 
-    void setFlag(Flag f, bool on = true);
-
 protected:
     Resource * res_;
     Flags flags_;
@@ -106,7 +104,16 @@ protected:
  * register resource view class @ctype with resource type @type
  *  @type is a list of strings seperate with ','
  */
-#define REGISTER_RESOURCE_VIEW(ctype, type) \
-    static QExport<ctype, ResourceView> const export_resource_##ctype(QPart::Attribute(ResourceView::EXPORT_ATTR_TYPE, type));
+#define REGISTER_RESOURCE_VIEW(ctype, types) \
+    static QExport<ctype, ResourceView> const export_resource_##ctype(QPart::Attribute(ResourceView::EXPORT_ATTR_TYPE, types));
+
+class CommonResourceTypes
+{
+public:
+    CommonResourceTypes(char const * types, ResourceView::Flags flags, ResourceView::Flags clearFlags);
+};
+
+#define REGISTER_COMMON_RESOURCE_TYPES(types, flags, clearFlags) \
+    static CommonResourceTypes export_common_resource_types(types, flags, clearFlags);
 
 #endif // RESOURCEVIEW_H

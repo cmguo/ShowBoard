@@ -22,7 +22,7 @@ public:
 
     void selectImplied(QGraphicsItem * item);
 
-    void startFastClone();
+    void enableFastClone(bool enable);
 
     void autoTop(bool force);
 
@@ -52,6 +52,8 @@ private:
 
 private:
     void selectAt(QPointF const & pos);
+
+    void selectMove(QPointF const & pos);
 
     void selectRelease();
 
@@ -86,6 +88,7 @@ private:
     QGraphicsItem * select_;
     Control * selectControl_;
     ControlTransform* transform_;
+    Control * cloneControl_;
 
 private:
     QPointF start_;

@@ -49,6 +49,12 @@ public:
     Control * addResource(QUrl const & url);
 
     /*
+     * copy resource to attached resource page
+     * use ResourcePage instead
+     */
+    Control * copyResource(Control * control);
+
+    /*
      * add resource to attached resource page
      * use ResourcePage instead
      */

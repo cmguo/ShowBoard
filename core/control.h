@@ -66,6 +66,7 @@ public:
 
     static ToolButton btnTop;
     static ToolButton btnCopy;
+    static ToolButton btnFastCopy;
     static ToolButton btnDelete;
 
 public:

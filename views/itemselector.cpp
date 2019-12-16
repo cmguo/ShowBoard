@@ -19,6 +19,7 @@ ItemSelector::ItemSelector(QGraphicsItem * parent)
     , select_(nullptr)
     , selectControl_(nullptr)
     , transform_(new ControlTransform)
+    , cloneControl_(nullptr)
     , type_(None)
 {
     setPen(QPen(Qt::NoPen));
@@ -58,6 +59,8 @@ void ItemSelector::select(QGraphicsItem *item)
         transform_->setParent(nullptr);
         selectControl_ = nullptr;
         selBox_->setVisible(false);
+        fastClone_ = false;
+        cloneControl_ = nullptr;
     }
 }
 
@@ -66,6 +69,11 @@ void ItemSelector::selectImplied(QGraphicsItem *item)
     if (item != select_)
         select(item);
     selBox_->hide();
+}
+
+void ItemSelector::enableFastClone(bool enable)
+{
+    fastClone_ = enable;
 }
 
 void ItemSelector::updateSelect()
@@ -78,9 +86,12 @@ void ItemSelector::updateSelect()
 void ItemSelector::selectAt(const QPointF &pos)
 {
     type_ = None;
-    if (select_ && selBox_->isVisible())
+    if (select_ && selBox_->isVisible()) {
         type_ = static_cast<SelectType>(
                     selBox_->hitTest(selBox_->mapFromParent(start_), direction_));
+        if (fastClone_ && type_ == Translate)
+            type_ = FastClone;
+    }
     if (type_ == None) {
         QList<QGraphicsItem*> items = scene()->items(pos);
         for (QGraphicsItem * item : items) {
@@ -119,8 +130,77 @@ void ItemSelector::selectAt(const QPointF &pos)
         //    type_ = Canvas;
         //}
     } else {
-        qDebug() << "select" << selectControl_->resource()->url();
+        qDebug() << "select" << type_ << selectControl_->resource()->url();
     }
+}
+
+void ItemSelector::selectMove(QPointF const & pos)
+{
+    QPointF pt = pos;
+    QPointF d = pt - start_;
+    switch (type_) {
+    case Translate:
+        if (selectControl_->flags() & Control::CanMove) {
+            selectControl_->move(d);
+        }
+        break;
+    case Scale: {
+        //qDebug() << rect;
+        if (!selectControl_->scale(rect_, direction_, d)) {
+            pt = start_;
+            break;
+        }
+        pt = start_ + d;
+        selBox_->setRect(rect_);
+        } break;
+    case Rotate:
+        selectControl_->rotate(start_, pt);
+        break;
+    case Canvas: {
+        QGraphicsItem * canvas = parentItem();
+        QRectF crect = canvas->boundingRect().adjusted(d.x(), d.y(), d.x(), d.y());
+        QRectF srect = canvas->mapFromScene(scene()->sceneRect()).boundingRect();
+        if (crect.left() > srect.left())
+            d.setX(d.x() + srect.left() - crect.left());
+        else if (crect.right() < srect.right())
+            d.setX(d.x() + srect.right() - crect.right());
+        if (crect.top() > srect.top())
+            d.setY(d.y() + srect.top() - crect.top());
+        else if (crect.bottom() < srect.bottom())
+            d.setY(d.y() + srect.bottom() - crect.bottom());
+        parentItem()->moveBy(d.x(), d.y());
+        pt = start_;
+        } break;
+    case TempNoMove:
+    case AgainNoMove:
+        if ((selectControl_->flags() & Control::CanMove) == 0) {
+            break;
+        }
+        if (qAbs(d.x()) + qAbs(d.y()) < 10) {
+            pt = start_;
+            break;
+        }
+        qDebug() << type_ << d;
+        type_ = static_cast<SelectType>(type_ + 1);
+        Q_FALLTHROUGH();
+    case TempMoved:
+    case AgainMoved:
+        selectControl_->move(d);
+        break;
+    case FastClone:
+        if (cloneControl_) {
+            cloneControl_->move(d);
+        } else if (qAbs(d.x()) + qAbs(d.y()) < 10) {
+            pt = start_;
+        } else {
+            cloneControl_ = static_cast<WhiteCanvas*>(
+                        parentItem())->copyResource(selectControl_);
+        }
+        break;
+    default:
+        break;
+    }
+    start_ = pt;
 }
 
 void ItemSelector::selectRelease()
@@ -140,6 +220,9 @@ void ItemSelector::selectRelease()
         Q_FALLTHROUGH();
     case TempMoved:
         select(nullptr);
+        break;
+    case FastClone:
+        cloneControl_ = nullptr;
         break;
     default:
         break;
@@ -188,62 +271,7 @@ void ItemSelector::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         QGraphicsRectItem::mouseMoveEvent(event);
         return;
     }
-    QPointF pt = event->pos();
-    QPointF d = pt - start_;
-    switch (type_) {
-    case Translate:
-        if (selectControl_->flags() & Control::CanMove) {
-            selectControl_->move(d);
-        }
-        break;
-    case Scale: {
-        //qDebug() << rect;
-        if (!selectControl_->scale(rect_, direction_, d)) {
-            pt = start_;
-            break;
-        }
-        pt = start_ + d;
-        selBox_->setRect(rect_);
-        } break;
-    case Rotate:
-        selectControl_->rotate(start_, pt);
-        break;
-    case Canvas: {
-        QGraphicsItem * canvas = parentItem();
-        QRectF crect = canvas->boundingRect().adjusted(d.x(), d.y(), d.x(), d.y());
-        QRectF srect = canvas->mapFromScene(scene()->sceneRect()).boundingRect();
-        if (crect.left() > srect.left())
-            d.setX(d.x() + srect.left() - crect.left());
-        else if (crect.right() < srect.right())
-            d.setX(d.x() + srect.right() - crect.right());
-        if (crect.top() > srect.top())
-            d.setY(d.y() + srect.top() - crect.top());
-        else if (crect.bottom() < srect.bottom())
-            d.setY(d.y() + srect.bottom() - crect.bottom());
-        parentItem()->moveBy(d.x(), d.y());
-        pt = start_;
-        } break;
-    case TempNoMove:
-    case AgainNoMove:
-        if ((selectControl_->flags() & Control::CanMove) == 0) {
-            break;
-        }
-        if (qAbs(d.x()) + qAbs(d.y()) < 10) {
-            pt = start_;
-            break;
-        }
-        type_ = static_cast<SelectType>(type_ + 1);
-        Q_FALLTHROUGH();
-    case TempMoved:
-    case AgainMoved:
-        selectControl_->move(d);
-        break;
-    case FastClone:
-        break;
-    default:
-        break;
-    }
-    start_ = pt;
+    selectMove(event->pos());
 }
 
 void ItemSelector::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
@@ -265,7 +293,7 @@ void ItemSelector::touchBegin(QTouchEvent *event)
     QTouchEvent::TouchPoint const & point(event->touchPoints().first());
     start_ = point.pos();
     selectAt(point.scenePos());
-    if (type_ == Translate || type_ == TempNoMove || type_ == AgainNoMove) {
+    if (type_ != None) {
         for (QTouchEvent::TouchPoint const & point : event->touchPoints()) {
             lastPositions_[point.id()] = point.pos();
         }
@@ -281,17 +309,10 @@ void ItemSelector::touchUpdate(QTouchEvent *event)
     for (QTouchEvent::TouchPoint const & point : event->touchPoints()) {
         positions[point.id()] = point.pos();
     }
-    if (event->touchPoints().size() != 2) {
+    if (event->touchPoints().size() != 2 || type_ == Scale || type_ == Rotate) {
         QTouchEvent::TouchPoint const & point(event->touchPoints().first());
-        if (selectControl_->flags() & Control::CanMove) {
-            QPointF d(point.pos() - lastPositions_[point.id()]);
-            if (type_ == TempNoMove || type_ == AgainNoMove) {
-                if (qAbs(d.x()) + qAbs(d.y()) < 10) {
-                    return;
-                }
-            }
-            selectControl_->move(d);
-        }
+        selectMove(point.pos());
+        positions[point.id()] = start_;
     } else {
         QTouchEvent::TouchPoint const & point1(event->touchPoints().at(0));
         QTouchEvent::TouchPoint const & point2(event->touchPoints().at(1));
@@ -303,10 +324,10 @@ void ItemSelector::touchUpdate(QTouchEvent *event)
                 positions[point1.id()], positions[point2.id()]);
         rect_ = selectControl_->boundRect();
         selBox_->setRect(rect_);
+        if (type_ == TempNoMove || type_ == AgainNoMove)
+            type_ = static_cast<SelectType>(type_ + 1);
     }
     lastPositions_.swap(positions);
-    if (type_ == TempNoMove || type_ == AgainNoMove)
-        type_ = static_cast<SelectType>(type_ + 1);
 }
 
 void ItemSelector::touchEnd(QTouchEvent *event)

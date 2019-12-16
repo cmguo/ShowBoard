@@ -39,6 +39,7 @@ public slots:
 private:
     std::vector<QLazy> resource_types_;
     std::map<QString, QLazy *> resources_;
+    std::map<QString, QPair<int, int>> commonResources_;
     QMap<QString, QString> mapTypes_;
 };
 

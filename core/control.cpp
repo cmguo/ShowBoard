@@ -23,6 +23,7 @@ Control * Control::fromItem(QGraphicsItem * item)
 
 ToolButton Control::btnTop = { "top", "置顶", nullptr, ":/showboard/icons/copy.svg" };
 ToolButton Control::btnCopy = { "copy", "复制", nullptr, ":/showboard/icons/copy.svg" };
+ToolButton Control::btnFastCopy = { "copy", "快速复制", nullptr, ":/showboard/icons/copy.svg" };
 ToolButton Control::btnDelete = { "delete", "删除", nullptr, ":/showboard/icons/delete.svg" };
 
 Control::Control(ResourceView *res, Flags flags, Flags clearFlags)
@@ -476,8 +477,13 @@ void Control::getToolButtons(QList<ToolButton *> & buttons, QList<ToolButton *> 
 {
     if (parents.isEmpty()) {
         buttons.append(tools());
+        btnFastCopy.flags.setFlag(ToolButton::Checked, false);
+        if (!(res_->flags() & (ResourceView::TopMost | ResourceView::BottomMost)))
+            buttons.append(&btnTop);
         if (res_->flags() & ResourceView::CanCopy)
             buttons.append(&btnCopy);
+        if (res_->flags() & ResourceView::CanCopy)
+            buttons.append(&btnFastCopy);
         if (res_->flags() & ResourceView::CanDelete)
             buttons.append(&btnDelete);
     } else {
