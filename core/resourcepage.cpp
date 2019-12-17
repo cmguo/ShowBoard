@@ -114,6 +114,26 @@ void ResourcePage::moveResourceBack(ResourceView *res)
     moveResource(index, resources_.size() - 1);
 }
 
+ResourceView * ResourcePage::previousNormalResource(ResourceView *res)
+{
+    int index = resources_.indexOf(res);
+    for (--index; index >= 0; --index) {
+        if (!(resources_[index]->flags() & ResourceView::ZOrderFlags))
+            return resources_[index];
+    }
+    return nullptr;
+}
+
+ResourceView * ResourcePage::nextNormalResource(ResourceView *res)
+{
+    int index = resources_.indexOf(res);
+    for (++index; index < resources_.size(); ++index) {
+        if (!(resources_[index]->flags() & ResourceView::ZOrderFlags))
+            return resources_[index];
+    }
+    return nullptr;
+}
+
 void ResourcePage::moveResource(int pos, int newPos)
 {
     int pos1 = pos;

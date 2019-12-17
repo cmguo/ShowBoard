@@ -84,6 +84,10 @@ public:
      */
     void moveResourceBack(ResourceView * res);
 
+    ResourceView * previousNormalResource(ResourceView * res);
+
+    ResourceView * nextNormalResource(ResourceView * res);
+
 public:
     QList<ResourceView *> const & resources()
     {

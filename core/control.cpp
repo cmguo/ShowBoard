@@ -92,7 +92,6 @@ void Control::relayout()
 {
     if (flags_ & FullLayout) {
         resize(realItem_->parentItem()->boundingRect().size());
-        sizeChanged();
     } else {
 
     }
@@ -195,8 +194,9 @@ void Control::resize(QSizeF const & size)
     if (item_->type() == QGraphicsRectItem::Type) {
         QRectF rect(QPointF(0, 0), size);
         rect.moveCenter({0, 0});
-        static_cast<QGraphicsRectItem*>(realItem_)->setRect(rect);
+        static_cast<QGraphicsRectItem*>(item_)->setRect(rect);
     }
+    sizeChanged();
 }
 
 static constexpr qreal CROSS_LENGTH = 20;
@@ -308,6 +308,7 @@ void Control::initScale()
         canvas->setGeometry(rect);
         return;
     }
+    /*
     if (flags_ & RestoreSession) {
         QVariant sizeHint = res_->property("sizeHint");
         if (sizeHint.isValid()) {
@@ -316,12 +317,10 @@ void Control::initScale()
                 adjustSizeHint(sh, ps);
             }
             resize(sh);
-            if (realItem_ != item_)
-                static_cast<ItemFrame *>(realItem_)->updateRect();
         }
         return;
-    }
-    if (flags_ & (FullLayout | LoadFinished)) {
+    }*/
+    if (flags_ & (FullLayout | LoadFinished | RestoreSession)) {
         return;
     }
     if (item_ != realItem_) {
@@ -367,7 +366,6 @@ bool Control::scale(QRectF &rect, const QRectF &direction, QPointF &delta)
     }
     if (flags_ & LayoutScale) {
         resize(origin.size());
-        sizeChanged();
     } else {
         updateTransform();
     }
@@ -390,11 +388,12 @@ void Control::rotate(QPointF const & from, QPointF & to)
 QRectF Control::boundRect() const
 {
     QRectF rect = realItem_->boundingRect();
-    if (item_ == realItem_)
+    if (item_ == realItem_) {
         rect.moveCenter({0, 0});
-    QTransform const & scale = res_->transform().scale();
-    rect = QRectF(rect.x() * scale.m11(), rect.y() * scale.m22(),
-                  rect.width() * scale.m11(), rect.height() * scale.m22());
+        QTransform const & scale = res_->transform().scale();
+        rect = QRectF(rect.x() * scale.m11(), rect.y() * scale.m22(),
+                      rect.width() * scale.m11(), rect.height() * scale.m22());
+    }
     return rect;
 }
 
@@ -478,7 +477,7 @@ void Control::getToolButtons(QList<ToolButton *> & buttons, QList<ToolButton *> 
     if (parents.isEmpty()) {
         buttons.append(tools());
         btnFastCopy.flags.setFlag(ToolButton::Checked, false);
-        if (!(res_->flags() & (ResourceView::TopMost | ResourceView::BottomMost)))
+        if (res_->canMoveTop())
             buttons.append(&btnTop);
         if (res_->flags() & ResourceView::CanCopy)
             buttons.append(&btnCopy);

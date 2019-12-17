@@ -1,11 +1,13 @@
 #ifndef CONTROLTRANSFORM_H
 #define CONTROLTRANSFORM_H
 
+#include "ShowBoard_global.h"
+
 #include <QGraphicsTransform>
 
 class ResourceTransform;
 
-class ControlTransform : public QGraphicsTransform
+class SHOWBOARD_EXPORT ControlTransform : public QGraphicsTransform
 {
 public:
     ControlTransform(ResourceTransform const & transform);

@@ -51,6 +51,13 @@ void ResourceView::moveTop()
     qobject_cast<ResourcePage*>(parent())->moveResourceBack(this);
 }
 
+bool ResourceView::canMoveTop()
+{
+    if (flags_ & (ResourceView::ZOrderFlags))
+        return false;
+    return qobject_cast<ResourcePage*>(parent())->nextNormalResource(this);
+}
+
 void ResourceView::removeFromPage()
 {
     qobject_cast<ResourcePage*>(parent())->removeResource(this);

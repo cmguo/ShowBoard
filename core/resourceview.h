@@ -30,6 +30,7 @@ public:
         BottomMost = 2,
         StickOn = 4, // moves together with it's previous resource
         StickUnder = 8, // moves together with it's next resource
+        ZOrderFlags = 15,
         CanCopy = 16,
         CanDelete = 32,
         DefaultFlags = CanCopy | CanDelete,
@@ -88,6 +89,8 @@ public:
      * move this resource to top in z-order
      */
     void moveTop();
+
+    bool canMoveTop();
 
     void setSaved();
 

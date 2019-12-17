@@ -92,12 +92,14 @@ void ResourcePageItem::resourceMoved(QModelIndex const &parent, int start, int e
             item->stackBefore(dest);
             ++start;
         }
+        dest->update();
     } else if (row > end) {
         QGraphicsItem * first = childItems()[start];
         while (++end < row) {
             QGraphicsItem * item = childItems()[end];
             item->stackBefore(first);
         }
+        first->update();
     }
 }
 
