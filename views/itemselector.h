@@ -42,7 +42,6 @@ private:
         Translate,
         Scale,
         Rotate,
-        Canvas,
         TempNoMove,
         TempMoved,
         AgainNoMove,
@@ -51,9 +50,9 @@ private:
     };
 
 private:
-    void selectAt(QPointF const & pos);
+    void selectAt(QPointF const & pos, QPointF const & scenePos);
 
-    void selectMove(QPointF const & pos);
+    void selectMove(QPointF const & pos, QPointF const & scenePos);
 
     void selectRelease();
 

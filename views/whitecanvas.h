@@ -104,6 +104,9 @@ private slots:
 
 private:
     virtual QVariant itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value) override;
+
+    virtual bool sceneEvent(QEvent *event) override;
+
 /*
     virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
 

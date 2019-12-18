@@ -22,6 +22,8 @@ class SHOWBOARD_EXPORT ResourcePage : public QAbstractItemModel
 public:
     explicit ResourcePage(QObject *parent = nullptr);
 
+    explicit ResourcePage(bool largeCanvas, QObject *parent = nullptr);
+
 public:
     /*
      * add resource from url
@@ -89,6 +91,11 @@ public:
     ResourceView * nextNormalResource(ResourceView * res);
 
 public:
+    ResourceView* canvasView()
+    {
+        return canvasView_;
+    }
+
     QList<ResourceView *> const & resources()
     {
         return resources_;
@@ -113,6 +120,7 @@ private:
     QModelIndex parent(const QModelIndex &child) const override;
 
 private:
+    ResourceView* canvasView_;
     QList<ResourceView *> resources_;
 };
 

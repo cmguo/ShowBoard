@@ -1,11 +1,20 @@
 #include "resourcepage.h"
 #include "resource.h"
+#include "resourcepackage.h"
 #include "resourceview.h"
 #include "resourcemanager.h"
 
 ResourcePage::ResourcePage(QObject *parent)
-    : QAbstractItemModel(parent)
+    : ResourcePage(false, parent)
 {
+}
+
+ResourcePage::ResourcePage(bool largeCanvas, QObject *parent)
+    : QAbstractItemModel(parent)
+    , canvasView_(nullptr)
+{
+    if (largeCanvas)
+        canvasView_ = new ResourceView("whitecanvas", QUrl("whitecanvas:///"));
 }
 
 ResourceView * ResourcePage::addResource(QUrl const & url, QVariantMap const & settings)
@@ -14,7 +23,11 @@ ResourceView * ResourcePage::addResource(QUrl const & url, QVariantMap const & s
     for (QString const & k : settings.keys()) {
         rv->setProperty(k.toUtf8(), settings.value(k));
     }
-    addResource(rv);
+    if (rv->flags() & ResourceView::VirtualScene) {
+        qobject_cast<ResourcePackage*>(parent())->newVirtualPage(rv);
+    } else {
+        addResource(rv);
+    }
     return rv;
 }
 

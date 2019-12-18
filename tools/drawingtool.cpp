@@ -9,7 +9,7 @@
 #include <QGraphicsProxyWidget>
 
 DrawingTool::DrawingTool(ResourceView *res)
-    : Control(res, FullLayout, CanSelect)
+    : Control(res, FullLayout, {DefaultFlags})
 {
 }
 

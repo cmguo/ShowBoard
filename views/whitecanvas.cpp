@@ -70,6 +70,19 @@ QVariant WhiteCanvas::itemChange(QGraphicsItem::GraphicsItemChange change, const
     return value;
 }
 
+bool WhiteCanvas::sceneEvent(QEvent *event)
+{
+    switch (event->type()) {
+    case QEvent::TouchBegin:
+    case QEvent::TouchUpdate:
+    case QEvent::TouchEnd:
+        break;
+    default:
+        return QGraphicsRectItem::sceneEvent(event);
+    }
+    return event->isAccepted();
+}
+
 void WhiteCanvas::switchPage(ResourcePage * page)
 {
     selector_->select(nullptr);

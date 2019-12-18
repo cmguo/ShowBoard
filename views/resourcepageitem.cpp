@@ -3,6 +3,7 @@
 #include "core/resourcemanager.h"
 #include "core/controlmanager.h"
 #include "core/control.h"
+#include "controls/whitecanvascontrol.h"
 
 #include <QGraphicsScene>
 
@@ -22,11 +23,17 @@ void ResourcePageItem::switchPage(ResourcePage * page)
         for (int i = page_->resources().size() - 1; i >= 0; --i) {
             removeResource(i);
         }
+        if (page_->canvasView()) {
+            delete Control::fromItem(parentItem());
+        }
         if (!page_->parent())
             page_->deleteLater();
     }
     page_ = page;
     if (page_ != nullptr) {
+        if (page_->canvasView()) {
+            new WhiteCanvasControl(page_->canvasView(), parentItem());
+        }
         for (int i = 0; i < page_->resources().size(); ++i)
             insertResource(i);
         QObject::connect(page_, &ResourcePage::rowsInserted,

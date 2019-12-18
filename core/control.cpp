@@ -44,7 +44,8 @@ Control::~Control()
 {
     if (transform_)
         delete transform_;
-    delete realItem_;
+    if (realItem_)
+        delete realItem_;
     realItem_ = nullptr;
     item_ = nullptr;
     transform_ = nullptr;
@@ -62,8 +63,6 @@ void Control::attachTo(QGraphicsItem * parent)
         itemFrame()->addTopBar();
     }
     attaching();
-    item_->setAcceptTouchEvents(true);
-    item_->setFlag(QGraphicsItem::ItemIsFocusable);
     realItem_->setParentItem(parent);
     loadSettings();
     sizeChanged();
@@ -294,19 +293,19 @@ void Control::initScale()
         static_cast<ItemFrame *>(realItem_)->updateRect();
     QSizeF ps = realItem_->parentItem()->boundingRect().size();
     QSizeF size = item_->boundingRect().size();
-    if (flags_ & CanvasBackground) {
+    if (res_->flags() & ResourceView::LargeCanvas) {
         if (size.width() > ps.width() || size.height() > ps.height()) {
             if (size.width() < ps.width())
                 size.setWidth(ps.width());
             if (size.height() < ps.height())
                 size.setHeight(ps.height());
         }
-        WhiteCanvas * canvas = static_cast<WhiteCanvas *>(
+        Control * canvasControl = fromItem(
                     realItem_->parentItem()->parentItem());
-        QRectF rect(QPointF(0, 0), size);
-        rect.moveCenter({0, 0});
-        canvas->setGeometry(rect);
-        return;
+        if (canvasControl) {
+            canvasControl->resize(size);
+            return;
+        }
     }
     /*
     if (flags_ & RestoreSession) {

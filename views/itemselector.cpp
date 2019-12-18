@@ -5,6 +5,7 @@
 #include "toolbarwidget.h"
 #include "whitecanvas.h"
 #include "selectbox.h"
+#include "controls/whitecanvascontrol.h"
 
 #include <QPen>
 #include <QDebug>
@@ -83,17 +84,18 @@ void ItemSelector::updateSelect()
     selBox_->setRect(selectControl_->boundRect());
 }
 
-void ItemSelector::selectAt(const QPointF &pos)
+void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos)
 {
+    start_ = pos;
     type_ = None;
     if (select_ && selBox_->isVisible()) {
         type_ = static_cast<SelectType>(
-                    selBox_->hitTest(selBox_->mapFromParent(start_), direction_));
+                    selBox_->hitTest(selBox_->mapFromParent(pos), direction_));
         if (fastClone_ && type_ == Translate)
             type_ = FastClone;
     }
     if (type_ == None) {
-        QList<QGraphicsItem*> items = scene()->items(pos);
+        QList<QGraphicsItem*> items = scene()->items(scenePos);
         for (QGraphicsItem * item : items) {
             Control * ct = Control::fromItem(item);
             if (!ct)
@@ -130,13 +132,17 @@ void ItemSelector::selectAt(const QPointF &pos)
         //    type_ = Canvas;
         //}
     } else {
+        if (selectControl_->metaObject() == &WhiteCanvasControl::staticMetaObject)
+            start_ = scenePos;
         qDebug() << "select" << type_ << selectControl_->resource()->url();
     }
 }
 
-void ItemSelector::selectMove(QPointF const & pos)
+void ItemSelector::selectMove(QPointF const & pos, QPointF const & scenePos)
 {
     QPointF pt = pos;
+    if (selectControl_->metaObject() == &WhiteCanvasControl::staticMetaObject)
+        pt = scenePos;
     QPointF d = pt - start_;
     switch (type_) {
     case Translate:
@@ -156,21 +162,6 @@ void ItemSelector::selectMove(QPointF const & pos)
     case Rotate:
         selectControl_->rotate(start_, pt);
         break;
-    case Canvas: {
-        QGraphicsItem * canvas = parentItem();
-        QRectF crect = canvas->boundingRect().adjusted(d.x(), d.y(), d.x(), d.y());
-        QRectF srect = canvas->mapFromScene(scene()->sceneRect()).boundingRect();
-        if (crect.left() > srect.left())
-            d.setX(d.x() + srect.left() - crect.left());
-        else if (crect.right() < srect.right())
-            d.setX(d.x() + srect.right() - crect.right());
-        if (crect.top() > srect.top())
-            d.setY(d.y() + srect.top() - crect.top());
-        else if (crect.bottom() < srect.bottom())
-            d.setY(d.y() + srect.bottom() - crect.bottom());
-        parentItem()->moveBy(d.x(), d.y());
-        pt = start_;
-        } break;
     case TempNoMove:
     case AgainNoMove:
         if ((selectControl_->flags() & Control::CanMove) == 0) {
@@ -243,6 +234,7 @@ void ItemSelector::autoTop(bool force)
 QVariant ItemSelector::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value)
 {
     if (change == ItemSceneHasChanged) {
+        parentItem()->setAcceptTouchEvents(true);
         parentItem()->installSceneEventFilter(this);
     }
     return value;
@@ -254,8 +246,7 @@ void ItemSelector::mousePressEvent(QGraphicsSceneMouseEvent *event)
         event->ignore();
         return;
     }
-    start_ = event->pos();
-    selectAt(event->scenePos());
+    selectAt(event->pos(), event->scenePos());
     if (type_ == None) {
         QGraphicsRectItem::mousePressEvent(event);
     }
@@ -271,7 +262,7 @@ void ItemSelector::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         QGraphicsRectItem::mouseMoveEvent(event);
         return;
     }
-    selectMove(event->pos());
+    selectMove(event->pos(), event->scenePos());
 }
 
 void ItemSelector::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
@@ -291,11 +282,11 @@ void ItemSelector::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 void ItemSelector::touchBegin(QTouchEvent *event)
 {
     QTouchEvent::TouchPoint const & point(event->touchPoints().first());
-    start_ = point.pos();
-    selectAt(point.scenePos());
+    selectAt(point.pos(), point.scenePos());
     if (type_ != None) {
+        bool isCanvas = selectControl_->metaObject() == &WhiteCanvasControl::staticMetaObject;
         for (QTouchEvent::TouchPoint const & point : event->touchPoints()) {
-            lastPositions_[point.id()] = point.pos();
+            lastPositions_[point.id()] = isCanvas ? point.scenePos() : point.pos();
         }
         return;
     }
@@ -306,19 +297,20 @@ void ItemSelector::touchBegin(QTouchEvent *event)
 void ItemSelector::touchUpdate(QTouchEvent *event)
 {
     QMap<int, QPointF> positions;
+    bool isCanvas = selectControl_->metaObject() == &WhiteCanvasControl::staticMetaObject;
     for (QTouchEvent::TouchPoint const & point : event->touchPoints()) {
-        positions[point.id()] = point.pos();
+        positions[point.id()] = isCanvas ? point.scenePos() : point.pos();
     }
     if (event->touchPoints().size() != 2 || type_ == Scale || type_ == Rotate) {
         QTouchEvent::TouchPoint const & point(event->touchPoints().first());
-        selectMove(point.pos());
+        selectMove(point.pos(), point.scenePos());
         positions[point.id()] = start_;
     } else {
         QTouchEvent::TouchPoint const & point1(event->touchPoints().at(0));
         QTouchEvent::TouchPoint const & point2(event->touchPoints().at(1));
         if (lastPositions_.size() < 2) {
             if (!lastPositions_.contains(point2.id()))
-                lastPositions_[point2.id()] = point2.lastPos();
+                lastPositions_[point2.id()] = isCanvas ? point2.lastScenePos() : point2.lastPos();
         }
         selectControl_->gesture(lastPositions_[point1.id()], lastPositions_[point2.id()],
                 positions[point1.id()], positions[point2.id()]);
@@ -352,22 +344,26 @@ bool ItemSelector::sceneEvent(QEvent *event)
     default:
         return QGraphicsRectItem::sceneEvent(event);
     }
-    return true;
+    return event->isAccepted();
 }
 
 bool ItemSelector::sceneEventFilter(QGraphicsItem *watched, QEvent *event)
 {
     (void) watched;
+    bool mouse = false;
     switch (event->type()) {
     case QEvent::GraphicsSceneMousePress:
+        mouse = true;
         force_ = true;
         mousePressEvent(static_cast<QGraphicsSceneMouseEvent*>(event));
         force_ = false;
         break;
     case QEvent::GraphicsSceneMouseMove:
+        mouse = true;
         mouseMoveEvent(static_cast<QGraphicsSceneMouseEvent*>(event));
         break;
     case QEvent::GraphicsSceneMouseRelease:
+        mouse = true;
         mouseReleaseEvent(static_cast<QGraphicsSceneMouseEvent*>(event));
         break;
     case QEvent::TouchBegin:
@@ -382,8 +378,12 @@ bool ItemSelector::sceneEventFilter(QGraphicsItem *watched, QEvent *event)
         touchEnd(static_cast<QTouchEvent*>(event));
         break;
     default:
-        event->ignore();
         break;
     }
-    return event->isAccepted();
+    // for mouse events, return true to stop handling,
+    //   this will cause sendEvent() return false,
+    //   but return value is not used by mousePressEventHandler()
+    //   if event is accepted, then grab take effect
+    // for touch events, return value is used, we can't cover here
+    return mouse && event->isAccepted();
 }

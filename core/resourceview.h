@@ -33,14 +33,17 @@ public:
         ZOrderFlags = 15,
         CanCopy = 16,
         CanDelete = 32,
+        VirtualScene = 64,
+        LargeCanvas = VirtualScene | 128,
         DefaultFlags = CanCopy | CanDelete,
         // when insert new resource under this resource,
         //  this resource will be split into two and new resource is insert between
         //  special used for stroke writen
         Splittable = 1 << 8,
-        SavedSession = 1 << 9,
-        DrawFinised = 1 << 10,
-        DrawAttach = 1 << 11, // stick to special position
+        DrawAttach = 1 << 9, // attach to when drawing
+        // States
+        SavedSession = 1 << 16,
+        DrawFinised = 1 << 17,
     };
 
     Q_DECLARE_FLAGS(Flags, Flag)
@@ -110,7 +113,7 @@ protected:
 #define REGISTER_RESOURCE_VIEW(ctype, types) \
     static QExport<ctype, ResourceView> const export_resource_##ctype(QPart::Attribute(ResourceView::EXPORT_ATTR_TYPE, types));
 
-class CommonResourceTypes
+class SHOWBOARD_EXPORT CommonResourceTypes
 {
 public:
     CommonResourceTypes(char const * types, ResourceView::Flags flags, ResourceView::Flags clearFlags);

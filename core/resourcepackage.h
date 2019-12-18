@@ -6,6 +6,7 @@
 #include <QObject>
 
 class ResourcePage;
+class ResourceView;
 
 /*
  * ResourcePackage manages a collection of resource pages
@@ -36,6 +37,21 @@ public:
     ResourcePage * currentPage();
 
     int currentNumber();
+
+public:
+    ResourcePage * newVirtualPage(ResourceView* mainRes = nullptr);
+
+    ResourcePage * topVirtualPage();
+
+    ResourcePage * findVirtualPage(QUrl const & mainUrl);
+
+    void showVirtualPage(ResourcePage* page, bool show);
+
+    void toggleVirtualPage(ResourcePage* page);
+
+    void hideAllVirtualPages();
+
+    void removeVirtualPage(ResourcePage* page);
 
 public slots:
     /*
@@ -72,11 +88,13 @@ signals:
     void currentPageChanged(ResourcePage * page);
 
 protected:
-    void addPage(ResourcePage * page);
+    int addPage(ResourcePage * page);
 
 private:
     ResourcePage * globalPage_;
     QList<ResourcePage *> pages_;
+    QList<ResourcePage *> visiblePages_;
+    QList<ResourcePage *> hiddenPages_;
     int current_;
 };
 

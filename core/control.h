@@ -34,14 +34,14 @@ public:
         FullLayout = 1 << 5,
         HelpSelect = 1 << 6,
         FullSelect = 1 << 7,
-        CanvasBackground = 1 << 8,
-        RestoreSession = 1 << 9,
-        WithSelectBar = 1 << 10,
-        PositionAtCenter = 1 << 11,
-        LayoutScale = 1 << 12,
+        WithSelectBar = 1 << 8,
+        PositionAtCenter = 1 << 9,
+        LayoutScale = 1 << 10,
+        ExpandScale = 1 << 11,
+        SelfTransform = 1 << 12,
+        // States
         LoadFinished = 1 << 16,
-        ExpandScale = 1 << 17,
-        SelfTransform = 1 << 19,
+        RestoreSession = 1 << 17,
     };
 
     Q_DECLARE_FLAGS(Flags, Flag)
@@ -55,7 +55,7 @@ public:
 
     static constexpr char const * EXPORT_ATTR_TYPE = "ctrl_type";
 
-private:
+protected:
     static constexpr int ITEM_KEY_CONTROL = 1000;
 
 public:

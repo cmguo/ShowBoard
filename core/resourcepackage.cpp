@@ -2,6 +2,7 @@
 #include "resourcepage.h"
 #include "qcomponentcontainer.h"
 #include "resourcemanager.h"
+#include "resourceview.h"
 
 extern QComponentContainer & ShowBoard_containter();
 
@@ -22,14 +23,13 @@ ResourcePage *ResourcePackage::globalPage()
 ResourcePage * ResourcePackage::newPage()
 {
     ResourcePage * page = new ResourcePage(this);
-    addPage(page);
-    emit currentPageChanged(page);
+    switchPage(addPage(page));
     return page;
 }
 
 ResourcePage * ResourcePackage::currentPage()
 {
-    return pages_[current_];
+    return visiblePages_.empty() ? pages_[current_] : visiblePages_.back();
 }
 
 int ResourcePackage::currentNumber()
@@ -37,38 +37,116 @@ int ResourcePackage::currentNumber()
     return current_ + 1;
 }
 
+ResourcePage * ResourcePackage::newVirtualPage(ResourceView *mainRes)
+{
+    bool largeCanvas = mainRes && (mainRes->flags() & ResourceView::LargeCanvas);
+    ResourcePage * page = new ResourcePage(largeCanvas, this);
+    if (mainRes)
+        page->addResource(mainRes);
+    visiblePages_.push_back(page);
+    emit currentPageChanged(page);
+    return page;
+}
+
+ResourcePage * ResourcePackage::topVirtualPage()
+{
+    return visiblePages_.empty() ? nullptr : visiblePages_.back();
+}
+
+ResourcePage * ResourcePackage::findVirtualPage(const QUrl &mainUrl)
+{
+    for (ResourcePage * p : visiblePages_) {
+        if (p->resources().first()->url() == mainUrl)
+            return p;
+    }
+    for (ResourcePage * p : hiddenPages_) {
+        if (p->resources().first()->url() == mainUrl)
+            return p;
+    }
+    return nullptr;
+}
+
+void ResourcePackage::showVirtualPage(ResourcePage *page, bool show)
+{
+    int idx1 = visiblePages_.indexOf(page);
+    int idx2 = hiddenPages_.indexOf(page);
+    if (idx1 < 0 && idx2 < 0)
+        return;
+    if (show) {
+        if (idx1 == visiblePages_.size() - 1)
+            return;
+        if (idx1 >= 0)
+            visiblePages_.removeAt(idx1);
+        if (idx2 >= 0)
+            hiddenPages_.removeAt(idx2);
+        visiblePages_.push_back(page);
+        emit currentPageChanged(page);
+    } else {
+        if (idx2 >= 0)
+            return;
+        visiblePages_.removeAt(idx1);
+        hiddenPages_.push_back(page);
+        emit currentPageChanged(currentPage());
+    }
+}
+
+void ResourcePackage::toggleVirtualPage(ResourcePage *page)
+{
+    int idx1 = visiblePages_.indexOf(page);
+    int idx2 = hiddenPages_.indexOf(page);
+    if (idx1 < 0 && idx2 < 0)
+        return;
+    if (idx1 >= 0) {
+        visiblePages_.removeAt(idx1);
+        hiddenPages_.push_back(page);
+        emit currentPageChanged(currentPage());
+    } else {
+        hiddenPages_.removeAt(idx2);
+        visiblePages_.push_back(page);
+        emit currentPageChanged(page);
+    }
+}
+
+void ResourcePackage::hideAllVirtualPages()
+{
+    hiddenPages_.append(visiblePages_);
+    visiblePages_.clear();
+    emit currentPageChanged(currentPage());
+}
+
+void ResourcePackage::removeVirtualPage(ResourcePage *page)
+{
+    showVirtualPage(page, false);
+    hiddenPages_.removeOne(page);
+}
+
 void ResourcePackage::gotoFront()
 {
-    current_ = 0;
-    emit currentPageChanged(pages_[current_]);
+    switchPage(0);
 }
 
 void ResourcePackage::gotoNext()
 {
-    if (++current_ < pages_.size())
-        emit currentPageChanged(pages_[current_]);
-    else
-        --current_;
+    if (current_ + 1 < pages_.size())
+        switchPage(current_ + 1);
 }
 
 void ResourcePackage::gotoPrevious()
 {
-    if (--current_ >= 0)
-        emit currentPageChanged(pages_[current_]);
-    else
-        ++current_;
+    if (current_ > 0)
+        switchPage(current_ - 1);
 }
 
 void ResourcePackage::gotoBack()
 {
-    current_ = pages_.size() - 1;
-    emit currentPageChanged(pages_[current_]);
+    switchPage(pages_.size() - 1);
 }
 
 void ResourcePackage::switchPage(int page)
 {
     current_ = page;
-    emit currentPageChanged(pages_[current_]);
+    if (visiblePages_.empty())
+        emit currentPageChanged(pages_[current_]);
 }
 
 void ResourcePackage::switchPage(ResourcePage * page)
@@ -79,9 +157,10 @@ void ResourcePackage::switchPage(ResourcePage * page)
     switchPage(n);
 }
 
-void ResourcePackage::addPage(ResourcePage * page)
+int ResourcePackage::addPage(ResourcePage * page)
 {
     page->setParent(this);
-    ++current_;
-    pages_.insert(current_, page);
+    int index = current_ + 1;
+    pages_.insert(index, page);
+    return index;
 }
