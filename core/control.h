@@ -38,7 +38,6 @@ public:
         PositionAtCenter = 1 << 9,
         LayoutScale = 1 << 10,
         ExpandScale = 1 << 11,
-        SelfTransform = 1 << 12,
         // States
         LoadFinished = 1 << 16,
         RestoreSession = 1 << 17,

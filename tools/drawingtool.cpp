@@ -35,7 +35,7 @@ public:
         setPen(QPen(Qt::NoPen));
         setCursor(Qt::CrossCursor);
         setAcceptHoverEvents(true);
-        QPushButton * button = new QPushButton("Finish");
+        QPushButton * button = new QPushButton("完成");
         QObject::connect(button, &QPushButton::clicked, [this](){finish();});
         QGraphicsProxyWidget * item = new QGraphicsProxyWidget(this);
         item->setWidget(button);
@@ -117,4 +117,12 @@ QGraphicsItem * DrawingTool::create(ResourceView *res)
 {
     (void) res;
     return new DrawingItem();
+}
+
+void DrawingTool::resize(const QSizeF &size)
+{
+    QPointF origin(0, 0);
+    QRectF rect(origin, size);
+    rect.moveCenter(origin);
+    static_cast<DrawingItem*>(item_)->setRect(rect);
 }

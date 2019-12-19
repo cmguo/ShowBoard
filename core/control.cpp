@@ -39,8 +39,7 @@ Control::Control(ResourceView *res, Flags flags, Flags clearFlags)
         flags_.setFlag(CanSelect, false);
         flags_.setFlag(CanRotate, false);
     }
-    if (!(flags_ & SelfTransform))
-        transform_ = new ControlTransform(res->transform());
+    transform_ = new ControlTransform(res->transform());
     if (res_->flags() & ResourceView::SavedSession) {
         flags_ |= RestoreSession;
         if (res_->flags() & ResourceView::LargeCanvas) {
@@ -199,11 +198,7 @@ void Control::setSizeHint(QSizeF const & size)
 
 void Control::resize(QSizeF const & size)
 {
-    if (item_->type() == QGraphicsRectItem::Type) {
-        QRectF rect(QPointF(0, 0), size);
-        rect.moveCenter({0, 0});
-        static_cast<QGraphicsRectItem*>(item_)->setRect(rect);
-    }
+    (void) size;
     sizeChanged();
 }
 

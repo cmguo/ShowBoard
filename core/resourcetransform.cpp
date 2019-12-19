@@ -23,16 +23,22 @@ ResourceTransform::ResourceTransform(const QTransform &o, QObject *parent)
     : QObject(parent)
     , transform_(o)
 {
-    QPointF off = o.map(QPointF(0, 0));
-    translate_.translate(off.x(), off.y());
-    scaleRotate_ = o * translate_.inverted();
-    QPointF agl = scaleRotate_.map(QPointF(1, 0));
-    rotate_ = QTransform().rotate(angle(agl));
-    rotateTranslate_ = rotate_ * translate_;
-    scale_ = scaleRotate_ * rotate_.inverted();
-    QPointF sle = scale_.map(QPointF(1, 1));
-    scale_ = QTransform::fromScale(sle.x(), sle.y());
-    scaleRotate_ = scale_ * rotate_;
+    if (o.type() <= QTransform::TxTranslate) {
+        rotateTranslate_ = translate_ = o;
+    } else if (o.type() < QTransform::TxRotate) {
+        translate_.translate(o.dx(), o.dy());
+        rotateTranslate_ = translate_;
+        scale_ = scaleRotate_ = o * translate_.inverted();
+    } else {
+        scaleRotate_ = o * translate_.inverted();
+        QPointF agl = scaleRotate_.map(QPointF(1, 0));
+        rotate_ = QTransform().rotate(angle(agl));
+        rotateTranslate_ = rotate_ * translate_;
+        scale_ = scaleRotate_ * rotate_.inverted();
+        QPointF sle = scale_.map(QPointF(1, 1));
+        scale_ = QTransform::fromScale(sle.x(), sle.y());
+        scaleRotate_ = scale_ * rotate_;
+    }
 }
 
 ResourceTransform &ResourceTransform::operator=(const ResourceTransform &o)
@@ -185,16 +191,18 @@ bool ResourceTransform::scale(QRectF & rect, QRectF const & direction, QPointF &
 
         }
     }
-    if (!layoutScale) {
+    if (layoutScale) {
+        scaleRotate_ = rotate_;
+    } else {
         scale_.scale(result.width() / origin.width(), result.height() / origin.height());
         scaleRotate_ = scale_ * rotate_;
-        QPointF d = result.center() - origin.center();
-        if (!rotate_.isIdentity())
-            d = rotate_.map(d);
-        translate(d);
     }
-    if (!rotate_.isIdentity())
+    QPointF d = result.center() - origin.center();
+    if (!rotate_.isIdentity()) {
         delta = rotate_.map(delta);
+        d = rotate_.map(d);
+    }
+    translate(d);
     result.moveCenter({0, 0});
     result.adjust(padding.x(), padding.y(), padding.right(), padding.bottom());
     rect = result;
@@ -286,9 +294,11 @@ void ResourceTransform::keepOuterOf(QRectF const &border, QRectF &self)
         d.setY(border.top() - crect.top());
     else if (crect.bottom() < border.bottom())
         d.setY(border.bottom() - crect.bottom());
-    crect.translate(d.x(), d.y());
-    translate_.translate(d.x(), d.y());
-    transform_ = scaleRotate_ * translate_;
+    if (!d.isNull()) {
+        crect.translate(d.x(), d.y());
+        translate_.translate(d.x(), d.y());
+        transform_ = scaleRotate_ * translate_;
+    }
     qDebug() << "after" << border << crect << transform_;
     self = crect;
 }

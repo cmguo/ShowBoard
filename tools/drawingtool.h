@@ -21,6 +21,8 @@ public:
 private:
     virtual QGraphicsItem * create(ResourceView *res) override;
 
+    virtual void resize(const QSizeF &size) override;
+
 private:
     QUrl newUrl_;
 };
