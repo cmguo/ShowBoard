@@ -12,7 +12,6 @@ ResourcePackage::ResourcePackage(QObject *parent)
     , current_(-1)
 {
     globalPage_ = new ResourcePage(this);
-    newPage();
 }
 
 ResourcePage *ResourcePackage::globalPage()
@@ -23,13 +22,15 @@ ResourcePage *ResourcePackage::globalPage()
 ResourcePage * ResourcePackage::newPage()
 {
     ResourcePage * page = new ResourcePage(this);
+    emit pageCreated(page);
     switchPage(addPage(page));
     return page;
 }
 
 ResourcePage * ResourcePackage::currentPage()
 {
-    return visiblePages_.empty() ? pages_[current_] : visiblePages_.back();
+    return visiblePages_.empty() ? (pages_.empty() ? nullptr : pages_[current_])
+                                 : visiblePages_.back();
 }
 
 int ResourcePackage::currentNumber()
@@ -39,10 +40,8 @@ int ResourcePackage::currentNumber()
 
 ResourcePage * ResourcePackage::newVirtualPage(ResourceView *mainRes)
 {
-    bool largeCanvas = mainRes && (mainRes->flags() & ResourceView::LargeCanvas);
-    ResourcePage * page = new ResourcePage(largeCanvas, this);
-    if (mainRes)
-        page->addResource(mainRes);
+    ResourcePage * page = new ResourcePage(mainRes, this);
+    emit pageCreated(page);
     visiblePages_.push_back(page);
     emit currentPageChanged(page);
     return page;

@@ -15,26 +15,42 @@ public:
     ControlTransform(ControlTransform * itemTransform);
 
     // for SelectBox like SelectBar
-    ControlTransform();
+    ControlTransform(int unused);
 
-    ControlTransform(ControlTransform * parentTransform, bool childNoRotate);
+    ControlTransform(ControlTransform * parentTransform, bool noScale, bool noRotate, bool noTranslate);
 
 public:
-    void update();
+    void attachTo(QGraphicsTransform * transform);
 
-    void setResourceTransform(ResourceTransform const * transform);
+protected:
+    void update();
 
 private:
     virtual void applyTo(QMatrix4x4 *matrix) const override;
 
 private:
     enum Type {
-        PureItem,
-        ItemWithBar,
-        SelectBar,
-        SelectBox,
-        ChildItem,
-        ChildItemNoRotate,
+        Identity = 0,
+        Translate,
+        Rotate,
+        RotateTranslate,
+        Scale,
+        ScaleTranslate,
+        ScaleRotate,
+        ScaleRotateTranslate,
+        NoInvert, // Identity
+        InvertTranslate,
+        InvertRotate,
+        InvertRotateTranslate,
+        InvertScale,
+        InvertScaleTranslate,
+        InvertScaleRotate,
+        InvertScaleRotateTranslate,
+        // alias
+        PureItem = ScaleRotateTranslate,
+        FrameItem = Scale,
+        Frame = RotateTranslate,
+        SelectBox = 16, // nullable RotateTranslate
     };
 
     ResourceTransform const * transform_;

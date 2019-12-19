@@ -195,8 +195,6 @@ protected:
      */
     virtual void resize(QSizeF const & size);
 
-    virtual void updateTransform();
-
     /*
      * called before item is attached to canvas
      * override this to do more preparing work

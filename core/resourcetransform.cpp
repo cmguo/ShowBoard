@@ -3,19 +3,54 @@
 #include <QtMath>
 #include <QDebug>
 
-ResourceTransform::ResourceTransform()
+ResourceTransform::ResourceTransform(QObject * parent)
+    : QObject(parent)
 {
 }
 
-ResourceTransform::ResourceTransform(const ResourceTransform &o)
-    : scale_(o.scale_)
+ResourceTransform::ResourceTransform(const ResourceTransform &o, QObject * parent)
+    : QObject(parent)
+    , scale_(o.scale_)
     , rotate_(o.rotate_)
     , translate_(o.translate_)
     , transform_(o.transform_)
     , scaleRotate_(o.scaleRotate_)
     , rotateTranslate_(o.rotateTranslate_)
 {
+}
 
+ResourceTransform::ResourceTransform(const QTransform &o, QObject *parent)
+    : QObject(parent)
+    , transform_(o)
+{
+    QPointF off = o.map(QPointF(0, 0));
+    translate_.translate(off.x(), off.y());
+    scaleRotate_ = o * translate_.inverted();
+    QPointF agl = scaleRotate_.map(QPointF(1, 0));
+    rotate_ = QTransform().rotate(angle(agl));
+    rotateTranslate_ = rotate_ * translate_;
+    scale_ = scaleRotate_ * rotate_.inverted();
+    QPointF sle = scale_.map(QPointF(1, 1));
+    scale_ = QTransform::fromScale(sle.x(), sle.y());
+    scaleRotate_ = scale_ * rotate_;
+}
+
+ResourceTransform &ResourceTransform::operator=(const ResourceTransform &o)
+{
+    scale_ = o.scale_;
+    rotate_ = o.rotate_;
+    translate_ = o.translate_;
+    scaleRotate_ = o.scaleRotate_;
+    rotateTranslate_ = o.rotateTranslate_;
+    transform_ = o.transform_;
+    emit beforeChanged();
+    emit changed();
+    return *this;
+}
+
+void ResourceTransform::translateTo(const QPointF &offset)
+{
+    translate(offset - QPointF(translate_.dx(), translate_.dy()));
 }
 
 void ResourceTransform::translate(const QPointF &delta)
@@ -23,6 +58,8 @@ void ResourceTransform::translate(const QPointF &delta)
     translate_.translate(delta.x(), delta.y());
     rotateTranslate_ = rotate_ * translate_;
     transform_ = scaleRotate_ * translate_;
+    emit beforeChanged();
+    emit changed();
 }
 
 void ResourceTransform::rotate(QPointF const & from, QPointF & to)
@@ -65,6 +102,8 @@ bool ResourceTransform::rotate(qreal& delta, bool sync)
         scaleRotate_ = scale_ * rotate_;
         rotateTranslate_ = rotate_ * translate_;
         transform_ = scaleRotate_ * translate_;
+        emit beforeChanged();
+        emit changed();
     }
     return adjust;
 }
@@ -79,6 +118,8 @@ void ResourceTransform::scale(QSizeF const & delta)
     scale_.scale(delta.width(), delta.height());
     scaleRotate_ = scale_ * rotate_;
     transform_ = scaleRotate_ * translate_;
+    emit beforeChanged();
+    emit changed();
 }
 
 bool ResourceTransform::scale(QRectF & rect, QRectF const & direction, QPointF & delta,
@@ -160,6 +201,32 @@ bool ResourceTransform::scale(QRectF & rect, QRectF const & direction, QPointF &
     return true;
 }
 
+void ResourceTransform::scaleKeepToCenter(const QRectF &border, QRectF &self, qreal scaleTo)
+{
+    QPointF center = transform_.inverted().map(border.center());
+    scale_.scale(scaleTo / scale_.m11(), scaleTo / scale_.m22());
+    scaleRotate_ = scale_ * rotate_;
+    transform_ = scale_ * rotateTranslate_;
+    QRectF rect = transform_.map(self).boundingRect();
+    center = rect.center() + border.center() - transform_.map(center);
+    rect.moveCenter(center);
+    if (rect.width() < border.width())
+        center.setX(border.center().x());
+    else if (rect.left() > border.left())
+        center.setX(center.x() + border.left() - rect.left());
+    else if (rect.right() < border.right())
+        center.setX(center.x() + border.right() - rect.right());
+    if (rect.height() < border.height())
+        center.setY(border.center().y());
+    else if (rect.top() > border.top())
+        center.setY(center.y() + border.top() - rect.top());
+    else if (rect.bottom() < border.bottom())
+        center.setY(center.y() + border.bottom() - rect.bottom());
+    rect.moveCenter(center);
+    self = rect;
+    translateTo(rect.topLeft());
+}
+
 void ResourceTransform::gesture(const QPointF &from1, const QPointF &from2, QPointF &to1, QPointF &to2,
                                 bool translate, bool scale, bool rotate)
 {
@@ -195,6 +262,53 @@ void ResourceTransform::gesture(const QPointF &from1, const QPointF &from2, QPoi
     scaleRotate_ = scale_ * rotate_;
     rotateTranslate_ = rotate_ * translate_;
     transform_ = scaleRotate_ * translate_;
+    emit beforeChanged();
+    emit changed();
+}
+
+void ResourceTransform::keepOuterOf(QRectF const &border, QRectF &self)
+{
+    QRectF crect = transform_.map(self).boundingRect();
+    qDebug() << "before" << border << crect << transform_;
+    if (border.width() > crect.width() || border.height() > crect.height()) {
+        qreal s = qMax(border.width() / crect.width(), border.height() / crect.height());
+        scale_.scale(s, s);
+        scaleRotate_ = scale_ * rotate_;
+        transform_ = scaleRotate_ * translate_;
+        crect = transform_.map(self).boundingRect();
+    }
+    QPointF d;
+    if (crect.left() > border.left())
+        d.setX(border.left() - crect.left());
+    else if (crect.right() < border.right())
+        d.setX(border.right() - crect.right());
+    if (crect.top() > border.top())
+        d.setY(border.top() - crect.top());
+    else if (crect.bottom() < border.bottom())
+        d.setY(border.bottom() - crect.bottom());
+    crect.translate(d.x(), d.y());
+    translate_.translate(d.x(), d.y());
+    transform_ = scaleRotate_ * translate_;
+    qDebug() << "after" << border << crect << transform_;
+    self = crect;
+}
+
+void ResourceTransform::attachTransform(ResourceTransform *other)
+{
+    QTransform t = other->transform();
+    QTransform it = t.inverted();
+    QTransform s = transform_;
+    QTransform is = s.inverted();
+    QObject::connect(other, &ResourceTransform::changed, this, [=]() {
+        if (other->sender())
+            return;
+        *this = ResourceTransform(it * other->transform() * s);
+    });
+    QObject::connect(this, &ResourceTransform::changed, other, [=]() {
+        if (this->sender())
+            return;
+        *other = ResourceTransform(t * this->transform_ * is);
+    });
 }
 
 qreal ResourceTransform::angle(QPointF const & vec)

@@ -17,7 +17,8 @@ private:
 
     virtual void resize(const QSizeF &size) override;
 
-    virtual void updateTransform() override;
+private:
+    void updateTransform();
 };
 
 #endif // WHITECANVASCONTROL_H

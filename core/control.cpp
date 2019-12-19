@@ -34,10 +34,19 @@ Control::Control(ResourceView *res, Flags flags, Flags clearFlags)
     , realItem_(nullptr)
     , stateItem_(nullptr)
 {
+    if (res_->flags() & ResourceView::LargeCanvas) {
+        flags_.setFlag(FullLayout, true);
+        flags_.setFlag(CanSelect, false);
+        flags_.setFlag(CanRotate, false);
+    }
     if (!(flags_ & SelfTransform))
         transform_ = new ControlTransform(res->transform());
-    if (res_->flags() & ResourceView::SavedSession)
+    if (res_->flags() & ResourceView::SavedSession) {
         flags_ |= RestoreSession;
+        if (res_->flags() & ResourceView::LargeCanvas) {
+            flags_.setFlag(DefaultFlags, false);
+        }
+    }
 }
 
 Control::~Control()
@@ -204,6 +213,8 @@ Control::SelectMode Control::selectTest(QPointF const & point)
 {
     if (flags_ & FullSelect)
         return Select;
+    if (res_->flags() & ResourceView::LargeCanvas)
+        return PassSelect;
     if ((flags_ & HelpSelect) == 0)
         return NotSelect;
     QRectF rect = item_->boundingRect();
@@ -291,6 +302,9 @@ void Control::initScale()
 {
     if (realItem_ != item_)
         static_cast<ItemFrame *>(realItem_)->updateRect();
+    if (flags_ & RestoreSession) {
+        return;
+    }
     QSizeF ps = realItem_->parentItem()->boundingRect().size();
     QSizeF size = item_->boundingRect().size();
     if (res_->flags() & ResourceView::LargeCanvas) {
@@ -303,7 +317,12 @@ void Control::initScale()
         Control * canvasControl = fromItem(
                     realItem_->parentItem()->parentItem());
         if (canvasControl) {
+            canvasControl->flags_.setFlag(CanScale, flags_.testFlag(CanScale));
+            flags_.setFlag(DefaultFlags, 0);
             canvasControl->resize(size);
+            size -= ps;
+            QPointF d(size.width(), size.height());
+            canvasControl->move(d);
             return;
         }
     }
@@ -319,7 +338,7 @@ void Control::initScale()
         }
         return;
     }*/
-    if (flags_ & (FullLayout | LoadFinished | RestoreSession)) {
+    if (flags_ & (FullLayout | LoadFinished)) {
         return;
     }
     if (item_ != realItem_) {
@@ -339,7 +358,6 @@ void Control::initScale()
         }
     }
     res_->transform().scaleTo(scale);
-    updateTransform();
     if (realItem_ != item_)
         static_cast<ItemFrame *>(realItem_)->updateRect();
 }
@@ -347,7 +365,6 @@ void Control::initScale()
 void Control::move(QPointF & delta)
 {
     res_->transform().translate(delta);
-    updateTransform();
 }
 
 bool Control::scale(QRectF &rect, const QRectF &direction, QPointF &delta)
@@ -365,8 +382,6 @@ bool Control::scale(QRectF &rect, const QRectF &direction, QPointF &delta)
     }
     if (flags_ & LayoutScale) {
         resize(origin.size());
-    } else {
-        updateTransform();
     }
     return true;
 }
@@ -375,13 +390,11 @@ void Control::gesture(const QPointF &from1, const QPointF &from2, QPointF &to1, 
 {
     res_->transform().gesture(from1, from2, to1, to2,
                               flags_ & CanMove, flags_ & CanScale, flags_ & CanRotate);
-    updateTransform();
 }
 
 void Control::rotate(QPointF const & from, QPointF & to)
 {
     res_->transform().rotate(from, to);
-    updateTransform();
 }
 
 QRectF Control::boundRect() const
@@ -422,14 +435,9 @@ StateItem * Control::stateItem()
         return stateItem_;
     stateItem_ = new StateItem(item_);
     stateItem_->setData(ITEM_KEY_CONTROL, QVariant::fromValue(this));
-    ControlTransform * ct = new ControlTransform(static_cast<ControlTransform*>(transform_), false);
+    ControlTransform * ct = new ControlTransform(static_cast<ControlTransform*>(transform_), true, false, false);
     stateItem_->setTransformations({ct});
     return stateItem_;
-}
-
-void Control::updateTransform()
-{
-    static_cast<ControlTransform *>(transform_)->update();
 }
 
 void Control::exec(QString const & cmd, QGenericArgument arg0,

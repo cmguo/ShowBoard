@@ -22,7 +22,7 @@ class SHOWBOARD_EXPORT ResourcePage : public QAbstractItemModel
 public:
     explicit ResourcePage(QObject *parent = nullptr);
 
-    explicit ResourcePage(bool largeCanvas, QObject *parent = nullptr);
+    explicit ResourcePage(ResourceView* mainRes, QObject *parent = nullptr);
 
 public:
     /*

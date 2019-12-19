@@ -19,7 +19,7 @@ ItemSelector::ItemSelector(QGraphicsItem * parent)
     , fastClone_(false)
     , select_(nullptr)
     , selectControl_(nullptr)
-    , transform_(new ControlTransform)
+    , transform_(new ControlTransform(1))
     , cloneControl_(nullptr)
     , type_(None)
 {
@@ -43,8 +43,7 @@ void ItemSelector::select(QGraphicsItem *item)
         selectControl_ = Control::fromItem(item);
         rect_ = selectControl_->boundRect();
         selBox_->setRect(rect_);
-        transform_->setResourceTransform(&selectControl_->resource()->transform());
-        transform_->setParent(selectControl_->transform());
+        transform_->attachTo(selectControl_->transform());
         QList<ToolButton *> buttons;
         selectControl_->getToolButtons(buttons);
         toolBar()->setToolButtons(buttons);
@@ -56,8 +55,7 @@ void ItemSelector::select(QGraphicsItem *item)
         select_ = nullptr;
         if (selectControl_)
             selectControl_->select(false);
-        transform_->setResourceTransform(nullptr);
-        transform_->setParent(nullptr);
+        transform_->attachTo(nullptr);
         selectControl_ = nullptr;
         selBox_->setVisible(false);
         fastClone_ = false;
@@ -102,7 +100,7 @@ void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos)
                 continue;
             Control::SelectMode mode = Control::NotSelect;
             if ((force_ && (ct->flags() & Control::DefaultFlags))
-                    || (mode = ct->selectTest(mapToItem(item, start_))) == Control::Select) {
+                    || (mode = ct->selectTest(mapToItem(item, pos))) == Control::Select) {
                 type_ = TempNoMove;
                 if (ct != selectControl_) {
                     select(nullptr);

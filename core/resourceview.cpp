@@ -8,7 +8,7 @@
 ResourceView::ResourceView(Resource * res, Flags flags, Flags clearFlags)
     : res_(res)
     , flags_((DefaultFlags | flags) & ~clearFlags)
-    , transform_(new ResourceTransform)
+    , transform_(new ResourceTransform(this))
 {
     QString path = res->url().path();
     name_ = path.mid(path.lastIndexOf('/') + 1);
@@ -20,10 +20,14 @@ ResourceView::ResourceView(QString const & type, QUrl const & url)
 {
 }
 
+ResourceView::~ResourceView()
+{
+}
+
 ResourceView::ResourceView(ResourceView const & o)
     : res_(new Resource(*o.res_))
     , flags_(o.flags_)
-    , transform_(new ResourceTransform(*o.transform_))
+    , transform_(new ResourceTransform(*o.transform_, this))
 {
     //flags_ &= ~SavedSession;
     res_->setParent(this);

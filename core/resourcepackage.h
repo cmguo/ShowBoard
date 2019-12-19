@@ -38,6 +38,11 @@ public:
 
     int currentNumber();
 
+signals:
+    void pageCreated(ResourcePage* page);
+
+    void currentPageChanged(ResourcePage* page);
+
 public:
     ResourcePage * newVirtualPage(ResourceView* mainRes = nullptr);
 
@@ -83,9 +88,6 @@ public slots:
      * set page @page to be current
      */
     void switchPage(ResourcePage * page);
-
-signals:
-    void currentPageChanged(ResourcePage * page);
 
 protected:
     int addPage(ResourcePage * page);

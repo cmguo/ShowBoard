@@ -33,7 +33,7 @@ public:
         ZOrderFlags = 15,
         CanCopy = 16,
         CanDelete = 32,
-        VirtualScene = 64,
+        VirtualScene = BottomMost | 64,
         LargeCanvas = VirtualScene | 128,
         DefaultFlags = CanCopy | CanDelete,
         // when insert new resource under this resource,
@@ -53,6 +53,8 @@ public:
                                       Flags flags = None, Flags clearFlags = None);
 
     ResourceView(QString const & type, QUrl const & url);
+
+    virtual ~ResourceView() override;
 
 public:
     virtual ResourceView * clone() const ;

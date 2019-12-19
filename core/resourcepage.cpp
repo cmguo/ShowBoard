@@ -5,16 +5,19 @@
 #include "resourcemanager.h"
 
 ResourcePage::ResourcePage(QObject *parent)
-    : ResourcePage(false, parent)
+    : ResourcePage(nullptr, parent)
 {
 }
 
-ResourcePage::ResourcePage(bool largeCanvas, QObject *parent)
+ResourcePage::ResourcePage(ResourceView* mainRes, QObject *parent)
     : QAbstractItemModel(parent)
     , canvasView_(nullptr)
 {
+    bool largeCanvas = mainRes && (mainRes->flags() & ResourceView::LargeCanvas);
     if (largeCanvas)
         canvasView_ = new ResourceView("whitecanvas", QUrl("whitecanvas:///"));
+    if (mainRes)
+        addResource(mainRes);
 }
 
 ResourceView * ResourcePage::addResource(QUrl const & url, QVariantMap const & settings)
