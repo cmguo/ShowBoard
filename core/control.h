@@ -123,11 +123,14 @@ public:
     void gesture(QPointF const & from1, QPointF const & from2, QPointF & to1, QPointF & to2);
 
     /*
-     * scale this item, is saved at transform
+     * rotate this item against it's center, is saved at transform
      */
     void rotate(QPointF const & from, QPointF & to);
 
-    void rotate(QPointF const & center,QPointF const & from, QPointF & to);
+    /*
+     * rotate this item against <center>, is saved at transform
+     */
+    void rotate(QPointF const & center, QPointF const & from, QPointF & to);
 
     QRectF boundRect() const;
 

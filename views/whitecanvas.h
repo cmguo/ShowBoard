@@ -90,8 +90,6 @@ public:
     ItemSelector * selector();
 
 public:
-    void moveSelectionTop(bool enable);
-
     /*
      * change canvas size
      */

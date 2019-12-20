@@ -23,9 +23,18 @@ public:
     ResourceTransform& operator=(ResourceTransform const & o);
 
 signals:
-    void beforeChanged();
+    /* emit before signal changed() is emited
+     *   you can't discard modification, but you can call adjust functions like
+     *   keepOuterOf() and keepInnerOf(), infact these funtions are only worked here
+     *   elements is 3 bits of [scale, rotate, translate],
+     *   for example, when only translate is changed, elements = 1
+     */
+    void beforeChanged(int elements);
 
-    void changed();
+    /* emit when changed
+     * <elements> is same as <elements> in beforeChanged()
+     */
+    void changed(int elements);
 
 public:
     QTransform const & transform() const
@@ -61,6 +70,13 @@ public:
         return rotateTranslate_;
     }
 
+    qreal angle() const;
+
+    QPointF offset() const
+    {
+        return QPointF(translate_.dx(), translate_.dy());
+    }
+
 public:
     void translateTo(QPointF const & delta);
 
@@ -71,12 +87,25 @@ public:
      */
     void rotate(QPointF const & from, QPointF & to);
 
+    /* rotate by handle
+     *   center at translate of center
+     */
     void rotate(QPointF const & center, QPointF const & from, QPointF & to);
 
+    /* add <delta> degree to rotation, adjust when total rotation is near 0/90/180/270 degree
+     *   when adjusted, adjust delta is save in <delta>
+     *   when sync is false, only update rotation_ and not triger signals
+     */
     bool rotate(qreal& delta, bool sync = true);
 
+    /*
+     * set x/y sacles to <scale> absolutely
+     */
     void scaleTo(qreal scale);
 
+    /*
+     * add <delta> to scale
+     */
     void scale(QSizeF const & delta);
 
     /* Scale by border handles
@@ -88,18 +117,32 @@ public:
     bool scale(QRectF & rect, QRectF const & direction, QPointF & delta,
                QRectF const & padding, bool KeepAspectRatio, bool layoutScale, qreal minSize);
 
+    /* scale to <scaleTo>, and adjust translate to keep view center moves smallest
+     */
     void scaleKeepToCenter(QRectF const & border, QRectF & self, qreal scaleTo);
 
+    /* adjust tranform by two fingers guesture
+     *   scale is averaged in x/y aixs
+     */
     void gesture(QPointF const & from1, QPointF const & from2, QPointF & to1, QPointF & to2,
                  bool translate, bool scale, bool rotate);
 
-    void multiple(ResourceTransform const & o);
+    /* take other tranform to modify at same time,
+     *    when attached, modify to one transform will affect another one, and keep
+     *    A*B' = A'*B, where A B is the transform states just before attaching
+     */
+    void attachTransform(ResourceTransform * other);
 
+public:
+    /* adjust scale and translate to keep edges out of border
+     *   assume there is no rotation
+     */
     void keepOuterOf(QRectF const & border, QRectF & self);
 
+    /* adjust scale and translate to keep edges in border
+     *   assume there is no rotation
+     */
     void keepInnerOf(QRectF const & border, QRectF & self);
-
-    void attachTransform(ResourceTransform * other);
 
 public:
     friend ResourceTransform operator*(ResourceTransform const & l, ResourceTransform const & r)
@@ -130,6 +173,8 @@ public:
     }
 
 private:
+    void translate(QPointF const & delta, int otherChanges);
+
     static qreal length(QPointF const & vec);
 
     static qreal angle(QPointF const & vec);

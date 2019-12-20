@@ -11,15 +11,18 @@
 #include <QDebug>
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsScene>
+#include <QGraphicsProxyWidget>
 
 ItemSelector::ItemSelector(QGraphicsItem * parent)
     : QGraphicsRectItem(parent)
     , force_(false)
     , autoTop_(false)
+    , hideMenu_(false)
     , fastClone_(false)
     , select_(nullptr)
     , selectControl_(nullptr)
-    , transform_(new ControlTransform(1))
+    , selBoxTransform_(new ControlTransform(ControlTransform::SelectBox))
+    , toolBarTransform_(new ControlTransform(ControlTransform::LargeCanvasTooBar))
     , cloneControl_(nullptr)
     , type_(None)
 {
@@ -29,7 +32,16 @@ ItemSelector::ItemSelector(QGraphicsItem * parent)
 
     selBox_ = new SelectBox(this);
     selBox_->setVisible(false);
-    selBox_->setTransformations({transform_});
+    selBox_->setTransformations({selBoxTransform_});
+
+    ToolbarWidget * toolBar = new ToolbarWidget();
+    QGraphicsProxyWidget * proxy = new QGraphicsProxyWidget(this);
+    proxy->setWidget(toolBar);
+    toolBar_ = proxy;
+    toolBar_->setTransformations({toolBarTransform_});
+    QObject::connect(toolBar, &ToolbarWidget::sizeChanged, [this](QSizeF const &) {
+        layoutToolbar();
+    });
 }
 
 void ItemSelector::select(QGraphicsItem *item)
@@ -43,21 +55,28 @@ void ItemSelector::select(QGraphicsItem *item)
         selectControl_ = Control::fromItem(item);
         rect_ = selectControl_->boundRect();
         selBox_->setRect(rect_);
-        transform_->attachTo(selectControl_->transform());
+        selBoxTransform_->attachTo(selectControl_->transform());
         QList<ToolButton *> buttons;
         selectControl_->getToolButtons(buttons);
+        Control * canvasControl = Control::fromItem(parentItem());
+        if (canvasControl)
+            toolBarTransform_->attachTo(canvasControl->transform());
         toolBar()->setToolButtons(buttons);
-        selBox_->setVisible(true, selectControl_->flags() & Control::CanScale,
+        layoutToolbar();
+        selBox_->setVisible(selectControl_->flags() & Control::CanScale,
                             (selectControl_->flags() & Control::CanRotate));
+        toolBar_->show();
         selectControl_->select(true);
         //itemChange(ItemPositionHasChanged, pos());
     } else {
         select_ = nullptr;
         if (selectControl_)
             selectControl_->select(false);
-        transform_->attachTo(nullptr);
+        selBoxTransform_->attachTo(nullptr);
+        toolBarTransform_->attachTo(nullptr);
         selectControl_ = nullptr;
         selBox_->setVisible(false);
+        toolBar_->hide();
         fastClone_ = false;
         cloneControl_ = nullptr;
     }
@@ -68,6 +87,7 @@ void ItemSelector::selectImplied(QGraphicsItem *item)
     if (item != select_)
         select(item);
     selBox_->hide();
+    toolBar_->hide();
 }
 
 void ItemSelector::enableFastClone(bool enable)
@@ -189,6 +209,10 @@ void ItemSelector::selectMove(QPointF const & pos, QPointF const & scenePos)
     default:
         break;
     }
+    if (hideMenu_)
+        toolBar_->hide();
+    else
+        layoutToolbar();
     start_ = pt;
 }
 
@@ -217,16 +241,45 @@ void ItemSelector::selectRelease()
         break;
     }
     type_ = None;
+    if (hideMenu_) {
+        toolBar_->setVisible(selBox_->isVisible());
+        layoutToolbar();
+    }
+}
+
+void ItemSelector::layoutToolbar()
+{
+    if (!toolBar_->isVisible())
+        return;
+    QRectF boxRect = selBox_->mapToScene(selBox_->boundingRect()).boundingRect();
+    QRectF sceneRect = scene()->sceneRect();
+    QSizeF size = toolBar()->size();
+    boxRect.adjust(0, 0, 0, size.height() + 10);
+    boxRect &= sceneRect;
+    QPointF pos(boxRect.center().x() - size.width() / 2, boxRect.bottom() - size.height());
+    if (pos.x() < sceneRect.left())
+        pos.setX(sceneRect.left());
+    if (pos.x() + size.width()  > sceneRect.right())
+        pos.setX(sceneRect.right() - size.width());
+    if (pos.y() < sceneRect.top())
+        pos.setY(sceneRect.top());
+    toolBar_->setPos(mapFromScene(pos));
 }
 
 ToolbarWidget * ItemSelector::toolBar()
 {
-    return selBox_->toolBar();
+    return static_cast<ToolbarWidget*>(
+                static_cast<QGraphicsProxyWidget*>(toolBar_)->widget());
 }
 
-void ItemSelector::autoTop(bool force)
+void ItemSelector::autoMoveSelectionTop(bool enable)
 {
-    autoTop_ = force;
+    autoTop_ = enable;
+}
+
+void ItemSelector::hideMenuWhenEditing(bool hide)
+{
+    hideMenu_ = hide;
 }
 
 QVariant ItemSelector::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value)
@@ -316,6 +369,10 @@ void ItemSelector::touchUpdate(QTouchEvent *event)
         selBox_->setRect(rect_);
         if (type_ == TempNoMove || type_ == AgainNoMove)
             type_ = static_cast<SelectType>(type_ + 1);
+        if (hideMenu_)
+            toolBar_->hide();
+        else
+            layoutToolbar();
     }
     lastPositions_.swap(positions);
 }

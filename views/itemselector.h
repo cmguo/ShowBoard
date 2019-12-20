@@ -24,7 +24,9 @@ public:
 
     void enableFastClone(bool enable);
 
-    void autoTop(bool force);
+    void autoMoveSelectionTop(bool enable);
+
+    void hideMenuWhenEditing(bool hide);
 
     ToolbarWidget * toolBar();
 
@@ -56,6 +58,8 @@ private:
 
     void selectRelease();
 
+    void layoutToolbar();
+
 private:
     virtual QVariant itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value) override;
 
@@ -77,16 +81,19 @@ private:
 
 private:
     SelectBox * selBox_;
+    QGraphicsItem * toolBar_;
 
 private:
     bool force_;
     bool autoTop_;
+    bool hideMenu_; // WhenEditing
     bool fastClone_;
 
 private:
     QGraphicsItem * select_;
     Control * selectControl_;
-    ControlTransform* transform_;
+    ControlTransform* selBoxTransform_;
+    ControlTransform* toolBarTransform_;
     Control * cloneControl_;
 
 private:

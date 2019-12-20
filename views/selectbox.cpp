@@ -1,8 +1,7 @@
 #include "selectbox.h"
-#include "toolbarwidget.h"
 
 #include <QPen>
-#include <QGraphicsProxyWidget>
+#include <QCursor>
 
 static constexpr qreal CROSS_LENGTH = 20;
 static constexpr qreal CROSS_OFFSET = 3;
@@ -84,15 +83,6 @@ SelectBox::SelectBox(QGraphicsItem * parent)
     right_->setPen(pen1);
     bottom_->setPen(pen1);
 
-    ToolbarWidget * toolBar = new ToolbarWidget();
-    QGraphicsProxyWidget * proxy = new QGraphicsProxyWidget(this);
-    proxy->setWidget(toolBar);
-    toolBar_ = proxy;
-    QObject::connect(toolBar, &ToolbarWidget::sizeChanged, [this](QSizeF const & size) {
-        QRectF rect(this->rect());
-        toolBar_->setPos(rect.left() + (rect.width()-size.width())/2, rect.bottom() + 10);
-    });
-
     setPen(QPen(Qt::white, 2));
     setOpacity(1.0);
     setCursor(Qt::ClosedHandCursor);
@@ -102,8 +92,6 @@ void SelectBox::setRect(QRectF const & rect)
 {
     QRectF rect2(rect.adjusted(-2, -2, 2, 2));
     QGraphicsRectItem::setRect(rect2);
-    toolBar_->setPos(rect.left() + (rect.width()-toolBar_->boundingRect().width())/2,
-                     rect.bottom() + 10);
     rect2.adjust(-CROSS_OFFSET, -CROSS_OFFSET,
                  CROSS_OFFSET, CROSS_OFFSET);
     QPointF center = rect.center();
@@ -118,10 +106,9 @@ void SelectBox::setRect(QRectF const & rect)
     bottom_->setPos(center.x(), rect2.bottom());
 }
 
-void SelectBox::setVisible(bool menu, bool scale, bool rotate)
+void SelectBox::setVisible(bool scale, bool rotate)
 {
-    QGraphicsRectItem::setVisible(menu || scale || rotate);
-    toolBar_->setVisible(menu);
+    QGraphicsRectItem::setVisible(scale || rotate);
     rotate_->setVisible(rotate);
     leftTop_->setVisible(scale);
     rightTop_->setVisible(scale);
@@ -165,11 +152,5 @@ int SelectBox::hitTest(const QPointF &pos, QRectF &direction)
         return 1;
     }
     return 0;
-}
-
-ToolbarWidget * SelectBox::toolBar()
-{
-    return static_cast<ToolbarWidget*>(
-                static_cast<QGraphicsProxyWidget*>(toolBar_)->widget());
 }
 

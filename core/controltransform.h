@@ -10,25 +10,6 @@ class ResourceTransform;
 class SHOWBOARD_EXPORT ControlTransform : public QGraphicsTransform
 {
 public:
-    ControlTransform(ResourceTransform const & transform);
-
-    ControlTransform(ControlTransform * itemTransform);
-
-    // for SelectBox like SelectBar
-    ControlTransform(int unused);
-
-    ControlTransform(ControlTransform * parentTransform, bool noScale, bool noRotate, bool noTranslate);
-
-public:
-    void attachTo(QGraphicsTransform * transform);
-
-protected:
-    void update();
-
-private:
-    virtual void applyTo(QMatrix4x4 *matrix) const override;
-
-private:
     enum Type {
         Identity = 0,
         Translate,
@@ -38,7 +19,7 @@ private:
         ScaleTranslate,
         ScaleRotate,
         ScaleRotateTranslate,
-        NoInvert, // Identity
+        NoInvert, // Identity = 8
         InvertTranslate,
         InvertRotate,
         InvertRotateTranslate,
@@ -50,9 +31,30 @@ private:
         PureItem = ScaleRotateTranslate,
         FrameItem = Scale,
         Frame = RotateTranslate,
-        SelectBox = 16, // nullable RotateTranslate
+        SelectBox = 16 | RotateTranslate, // nullable
+        LargeCanvasTooBar = 16 | InvertScale, // nullable
     };
 
+public:
+    ControlTransform(ResourceTransform const & transform);
+
+    ControlTransform(ControlTransform * itemTransform);
+
+    // for SelectBox, ToolBar
+    ControlTransform(Type type);
+
+    ControlTransform(ControlTransform * parentTransform, bool noScale, bool noRotate, bool noTranslate);
+
+public:
+    void attachTo(QGraphicsTransform * transform);
+
+protected:
+    void update(int changes = 7);
+
+private:
+    virtual void applyTo(QMatrix4x4 *matrix) const override;
+
+private:
     ResourceTransform const * transform_;
     Type type_;
 };

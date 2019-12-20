@@ -17,9 +17,9 @@ ControlTransform::ControlTransform(ControlTransform * itemTransform)
     itemTransform->setParent(this);
 }
 
-ControlTransform::ControlTransform(int)
+ControlTransform::ControlTransform(Type type)
     : transform_(nullptr)
-    , type_(SelectBox)
+    , type_(type)
 {
 }
 
@@ -30,15 +30,18 @@ ControlTransform::ControlTransform(ControlTransform *parentTransform, bool noSca
     setParent(parentTransform);
 }
 
-void ControlTransform::update()
+void ControlTransform::update(int changes)
 {
-    QGraphicsTransform::update();
+    if (type_ & changes)
+        QGraphicsTransform::update();
     for (QObject * c : children())
-        static_cast<ControlTransform *>(c)->update();
+        static_cast<ControlTransform *>(c)->update(changes);
 }
 
 void ControlTransform::attachTo(QGraphicsTransform *transform)
 {
+    if (parent() == transform)
+        return;
     transform_ = transform ? static_cast<ControlTransform *>(transform)->transform_
                            : nullptr;
     setParent(transform);
@@ -98,6 +101,9 @@ void ControlTransform::applyTo(QMatrix4x4 *matrix) const
         if (transform_)
             *matrix *= transform_->rotateTranslate().toAffine();
         break;
+    case LargeCanvasTooBar:
+        if (transform_)
+            *matrix *= transform_->scale().inverted().toAffine();
+        break;
     }
 }
-

@@ -20,14 +20,11 @@ public:
 public:
     void setRect(QRectF const & rect);
 
-    void setVisible(bool menu, bool scale = false, bool rotate = false);
+    void setVisible(bool scale = false, bool rotate = false);
 
     int hitTest(QPointF const & pos, QRectF & direction);
 
-    ToolbarWidget * toolBar();
-
 private:
-    QGraphicsItem * toolBar_;
     QGraphicsPathItem * rotate_;
     QGraphicsPathItem * leftTop_;
     QGraphicsPathItem * rightTop_;

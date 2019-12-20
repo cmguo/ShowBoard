@@ -130,11 +130,6 @@ ItemSelector * WhiteCanvas::selector()
     return selector_;
 }
 
-void WhiteCanvas::moveSelectionTop(bool enable)
-{
-    selector_->autoTop(enable);
-}
-
 void WhiteCanvas::setGeometry(QRectF const & rect)
 {
     setRect(rect);
