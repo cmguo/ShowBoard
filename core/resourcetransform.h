@@ -71,6 +71,8 @@ public:
      */
     void rotate(QPointF const & from, QPointF & to);
 
+    void rotate(QPointF const & center, QPointF const & from, QPointF & to);
+
     bool rotate(qreal& delta, bool sync = true);
 
     void scaleTo(qreal scale);

@@ -80,6 +80,23 @@ void ResourceTransform::rotate(QPointF const & from, QPointF & to)
     }
 }
 
+void ResourceTransform::rotate(const QPointF &center, const QPointF &from, QPointF &to)
+{
+    QPointF center2(translate_.dx(), translate_.dy());
+    qreal a1 = angle(from - center);
+    qreal a2 = angle(to - center);
+    qreal da = a2 - a1;
+    bool adjusted = rotate(da);
+    if (adjusted) {
+        to = center + QTransform().rotate(da).map(to - center);
+        da = a2 - a1 + da;
+    }
+    QPointF t = center2 - center;
+    t = QTransform().rotate(da).map(t);
+    t = t + center - center2;
+    translate(t);
+}
+
 bool ResourceTransform::rotate(qreal& delta, bool sync)
 {
     rotate_.rotate(delta);
