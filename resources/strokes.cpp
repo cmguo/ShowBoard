@@ -4,8 +4,8 @@
 
 using namespace QtPromise;
 
-Strokes::Strokes(Resource * res)
-    : ResourceView(res, {TopMost})
+Strokes::Strokes(Resource * res, Flags flags, Flags clearFlags)
+    : ResourceView(res, flags | TopMost, clearFlags | CanDelete)
 {
 }
 

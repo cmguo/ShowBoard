@@ -92,10 +92,25 @@ void ResourcePage::removeResource(ResourceView * res)
     int index = resources_.indexOf(res);
     if (index < 0)
         return;
-    beginRemoveRows(QModelIndex(), index, index);
-    resources_.removeAt(index);
+    int pos1 = index;
+    int pos2 = index;
+    while (pos1 > 0 && (resources_[pos1 - 1]->flags() & ResourceView::StickUnder)
+           && (resources_[pos1 - 1]->flags() & ResourceView::CanDelete)) {
+        --pos1;
+    }
+    while (pos2 < resources_.size() - 2 && (resources_[pos2 + 1]->flags() & ResourceView::StickOn)
+           && (resources_[pos2 + 1]->flags() & ResourceView::CanDelete)) {
+        ++pos2;
+    }
+    QList<ResourceView*> list = resources_.mid(pos1, pos2 - pos1 + 1);
+    beginRemoveRows(QModelIndex(), pos1, pos2);
+    while (pos1 <= pos2) {
+        resources_.removeAt(pos1);
+        --pos2;
+    }
     endRemoveRows();
-    delete res;
+    for (ResourceView* res : list)
+        delete res;
 }
 
 void ResourcePage::moveResourceFront(ResourceView *res)

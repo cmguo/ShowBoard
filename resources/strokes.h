@@ -24,9 +24,9 @@ class SHOWBOARD_EXPORT Strokes : public ResourceView
     Q_PROPERTY(QList<stroke_point_t> points READ points())
 
 public:
-    Q_INVOKABLE Strokes(Resource * res);
+    Q_INVOKABLE Strokes(Resource * res, Flags flags = nullptr, Flags clearFlags = nullptr);
 
-    Q_INVOKABLE Strokes(Strokes const & res);
+    Q_INVOKABLE Strokes(Strokes const & o);
 
 public:
     QtPromise::QPromise<void> load();
