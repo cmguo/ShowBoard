@@ -395,7 +395,6 @@ void Control::rotate(QPointF const & from, QPointF & to)
 void Control::rotate(QPointF const & center, QPointF const & from, QPointF &to)
 {
     res_->transform().rotate(center,from, to);
-    updateTransform();
 }
 
 QRectF Control::boundRect() const
