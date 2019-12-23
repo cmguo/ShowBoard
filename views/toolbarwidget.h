@@ -10,7 +10,7 @@
 #include <QList>
 
 class QLayout;
-class QStyleOptionButton;
+class ToolButtonProvider;
 
 class SHOWBOARD_EXPORT ToolbarWidget : public QWidget
 {
@@ -37,6 +37,9 @@ public:
 
     void clearPopup();
 
+public:
+    void attachProvider(ToolButtonProvider* provider);
+
 signals:
     void buttonClicked(QList<ToolButton *> const & buttons);
 
@@ -47,28 +50,37 @@ signals:
 public slots:
     void buttonClicked();
 
+protected:
+    virtual void getPopupButtons(QList<ToolButton *> & buttons,
+                                QList<ToolButton *> const & parents);
+
+    virtual void onButtonClicked(ToolButton * button);
+
 private:
     virtual void resizeEvent(QResizeEvent *event) override;
 
     virtual void setVisible(bool visible) override;
 
 private:
-    void addToolButton(QLayout * layout, ToolButton * button, QMap<QWidget *, ToolButton *>& buttons,bool isPopButton);
+    void addToolButton(QLayout * layout, ToolButton * button, QMap<QWidget *, ToolButton *>& buttons);
 
     void clearButtons(QLayout * layout, QMap<QWidget *, ToolButton *>& buttons);
 
     void createPopup();
 
+    void updateProvider();
+
 private:
     QMetaObject const * template_;
     QLayout * layout_;
     QMap<QWidget *, ToolButton *> buttons_;
-    QList<QWidget *> splitWidget_;
     //
     QWidget * popUp_ = nullptr;
     QMap<QWidget *, ToolButton *> popupButtons_;
     QList<ToolButton *> popupParents_;
     QList<QWidget *> popupSplitWidget_;
+    //
+    ToolButtonProvider * provider_;
 };
 
 #endif // TOOLBARWIDGET_H

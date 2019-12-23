@@ -18,10 +18,12 @@ WhiteCanvasControl::WhiteCanvasControl(ResourceView * view, QGraphicsItem * canv
     QObject::connect(&res_->transform(), &ResourceTransform::beforeChanged,
                      this, &WhiteCanvasControl::updateTransform);
     loadSettings();
+    qDebug() << "WhiteCanvasControl" << res_->transform().transform();
 }
 
 WhiteCanvasControl::~WhiteCanvasControl()
 {
+    qDebug() << "~WhiteCanvasControl" << res_->transform().transform();
     saveSettings();
     item_->setData(ITEM_KEY_CONTROL, QVariant());
     item_->setTransformations({});

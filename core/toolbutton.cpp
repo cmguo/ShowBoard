@@ -1,5 +1,7 @@
 #include "toolbutton.h"
 
+ToolButton ToolButton::SPLITER({"spliter", "", nullptr, QVariant()});
+
 ToolButton::Flags ToolButton::makeFlags(const QString &str)
 {
    QStringList tokens = str.split(",", QString::SkipEmptyParts);
@@ -14,6 +16,8 @@ ToolButton * ToolButton::makeButton(const QString &desc)
 {
     if (desc.startsWith("-"))
         return nullptr;
+    if (desc == "|")
+        return &SPLITER;
     QStringList seps = desc.split("|");
     if (seps.size() >= 1) {
         return new ToolButton{

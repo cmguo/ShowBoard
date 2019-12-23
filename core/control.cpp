@@ -34,7 +34,7 @@ Control::Control(ResourceView *res, Flags flags, Flags clearFlags)
     , realItem_(nullptr)
     , stateItem_(nullptr)
 {
-    if (res_->flags() & ResourceView::LargeCanvas) {
+    if (res_->flags().testFlag(ResourceView::LargeCanvas)) {
         flags_.setFlag(FullLayout, true);
         flags_.setFlag(CanSelect, false);
         flags_.setFlag(CanRotate, false);
@@ -42,7 +42,7 @@ Control::Control(ResourceView *res, Flags flags, Flags clearFlags)
     transform_ = new ControlTransform(res->transform());
     if (res_->flags() & ResourceView::SavedSession) {
         flags_ |= RestoreSession;
-        if (res_->flags() & ResourceView::LargeCanvas) {
+        if (res_->flags().testFlag(ResourceView::LargeCanvas)) {
             flags_.setFlag(DefaultFlags, false);
         }
     }
@@ -208,19 +208,13 @@ Control::SelectMode Control::selectTest(QPointF const & point)
 {
     if (flags_ & FullSelect)
         return Select;
-    if (res_->flags() & ResourceView::LargeCanvas)
+    if (res_->flags().testFlag(ResourceView::LargeCanvas))
         return PassSelect;
     if ((flags_ & HelpSelect) == 0)
         return NotSelect;
     QRectF rect = item_->boundingRect();
     rect.adjust(CROSS_LENGTH, CROSS_LENGTH, -CROSS_LENGTH, -CROSS_LENGTH);
     return rect.contains(point) ? NotSelect : Select;
-}
-
-QString Control::toolsString(QString const & parent) const
-{
-    (void) parent;
-    return nullptr;
 }
 
 static qreal polygonArea(QPolygonF const & p)
@@ -297,23 +291,17 @@ void Control::initScale()
 {
     if (realItem_ != item_)
         static_cast<ItemFrame *>(realItem_)->updateRect();
-    if (flags_ & RestoreSession) {
-        return;
-    }
     QSizeF ps = realItem_->parentItem()->boundingRect().size();
     QSizeF size = item_->boundingRect().size();
-    if (res_->flags() & ResourceView::LargeCanvas) {
-        if (size.width() > ps.width() || size.height() > ps.height()) {
-            if (size.width() < ps.width())
-                size.setWidth(ps.width());
-            if (size.height() < ps.height())
-                size.setHeight(ps.height());
-        }
+    if (res_->flags().testFlag(ResourceView::LargeCanvas)) {
         Control * canvasControl = fromItem(
                     realItem_->parentItem()->parentItem());
         if (canvasControl) {
             canvasControl->flags_.setFlag(CanScale, flags_.testFlag(CanScale));
             flags_.setFlag(DefaultFlags, 0);
+            if (flags_ & RestoreSession) {
+                return;
+            }
             canvasControl->resize(size);
             size -= ps;
             QPointF d(size.width(), size.height());
@@ -422,11 +410,36 @@ ItemFrame * Control::itemFrame()
     }
     ItemFrame * frame = new ItemFrame(item_);
     realItem_ = frame;
-    transform_ = new ControlTransform(
-                static_cast<ControlTransform*>(transform_));
+    ControlTransform* ct = static_cast<ControlTransform*>(transform_)->addFrameTransform();
     realItem_->setData(ITEM_KEY_CONTROL, QVariant::fromValue(this));
-    realItem_->setTransformations({transform_});
+    realItem_->setTransformations({ct});
     return frame;
+}
+
+void Control::getToolButtons(QList<ToolButton *> &buttons, const QList<ToolButton *> &parents)
+{
+    ToolButtonProvider::getToolButtons(buttons, parents);
+    if (parents.isEmpty()) {
+        btnFastCopy.flags.setFlag(ToolButton::Checked, false);
+        if (!buttons.empty())
+            buttons.append(&ToolButton::SPLITER);
+        if (res_->canMoveTop())
+            buttons.append(&btnTop);
+        if (res_->flags() & ResourceView::CanCopy)
+            buttons.append(&btnCopy);
+        if (res_->flags() & ResourceView::CanCopy)
+            buttons.append(&btnFastCopy);
+        if (res_->flags() & ResourceView::CanDelete)
+            buttons.append(&btnDelete);
+        if (buttons.endsWith(&ToolButton::SPLITER))
+            buttons.pop_back();
+    }
+}
+
+void Control::setOption(QString const & key, QVariant value)
+{
+    ToolButtonProvider::setOption(key, value);
+    res_->setProperty(key.toUtf8(), value);
 }
 
 StateItem * Control::stateItem()
@@ -440,112 +453,3 @@ StateItem * Control::stateItem()
     return stateItem_;
 }
 
-void Control::exec(QString const & cmd, QGenericArgument arg0,
-                   QGenericArgument arg1, QGenericArgument arg2)
-{
-    int index = metaObject()->indexOfSlot(cmd.toUtf8());
-    if (index < 0)
-        return;
-    QMetaMethod method = metaObject()->method(index);
-    method.parameterType(index);
-    method.invoke(this, arg0, arg1, arg2);
-}
-
-void Control::exec(QString const & cmd, QStringList const & args)
-{
-    int index = metaObject()->indexOfSlot(cmd.toUtf8());
-    if (index < 0) {
-        if (args.size() == 1) {
-            setProperty(cmd.toUtf8(), args[0]);
-            res_->setProperty(cmd.toUtf8(), args[0]);
-        }
-        return;
-    }
-    QMetaMethod method = metaObject()->method(index);
-    if (method.parameterCount() >= 4)
-        return;
-    QGenericArgument argv[4];
-    QVariant varg[4];
-    for (int i = 0; i < method.parameterCount(); ++i) {
-        if (i < args.size())
-            varg[i] = args[i];
-        int t = method.parameterType(i);
-        if (!varg[i].canConvert(t))
-            return;
-        if (!varg[i].convert(t))
-            return;
-        argv[i] = QGenericArgument(QMetaType::typeName(t), varg[i].data());
-    }
-    method.invoke(this, argv[0], argv[1], argv[2], argv[3]);
-}
-
-void Control::getToolButtons(QList<ToolButton *> & buttons, QList<ToolButton *> const & parents)
-{
-    if (parents.isEmpty()) {
-        buttons.append(tools());
-        btnFastCopy.flags.setFlag(ToolButton::Checked, false);
-        if (res_->canMoveTop())
-            buttons.append(&btnTop);
-        if (res_->flags() & ResourceView::CanCopy)
-            buttons.append(&btnCopy);
-        if (res_->flags() & ResourceView::CanCopy)
-            buttons.append(&btnFastCopy);
-        if (res_->flags() & ResourceView::CanDelete)
-            buttons.append(&btnDelete);
-    } else {
-        buttons.append(tools(parents.last()->name));
-    }
-}
-
-void Control::handleToolButton(QList<ToolButton *> const & buttons)
-{
-    ToolButton * button = buttons.back();
-    int i = 0;
-    for (; i < buttons.size(); ++i) {
-        if (buttons[i]->flags & ToolButton::OptionsGroup) {
-            button = buttons[i];
-            break;
-        }
-    }
-    if (button->flags & ToolButton::HideSelector) {
-        WhiteCanvas * canvas = static_cast<WhiteCanvas *>(
-                    realItem_->parentItem()->parentItem());
-        if (canvas->selector()->selected() == realItem_)
-            canvas->selector()->selectImplied(realItem_);
-    }
-    QStringList args;
-    for (++i; i < buttons.size(); ++i) {
-        args.append(buttons[i]->name);
-    }
-    exec(button->name, args);
-    if (button->flags & ToolButton::NeedUpdate) {
-        updateToolButton(button);
-    }
-}
-
-void Control::updateToolButton(ToolButton *button)
-{
-    (void) button;
-}
-
-QList<ToolButton *> & Control::tools(QString const & parent)
-{
-    static std::map<QMetaObject const *, std::map<QString, QList<ToolButton *>>> slist;
-    auto iter = slist.find(metaObject());
-    if (iter == slist.end()) {
-        std::map<QString, QList<ToolButton *>> t;
-        iter = slist.insert(std::make_pair(metaObject(), std::move(t))).first;
-    }
-    auto iter2 = iter->second.find(parent);
-    if (iter2 == iter->second.end()) {
-        QString tools = this->toolsString(parent);
-        iter2 = iter->second.insert(
-                    std::make_pair(parent, ToolButton::makeButtons(tools))).first;
-    }
-    for (ToolButton * button : iter2->second) {
-        if (button->flags & ToolButton::NeedUpdate) {
-            updateToolButton(button);
-        }
-    }
-    return iter2->second;
-}

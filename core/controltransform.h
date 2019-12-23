@@ -38,14 +38,16 @@ public:
 public:
     ControlTransform(ResourceTransform const & transform);
 
-    ControlTransform(ControlTransform * itemTransform);
+    ControlTransform(ControlTransform * parentTransform, Type type);
 
-    // for SelectBox, ToolBar
+    // for SelectBox, ToolBar, delay attach
     ControlTransform(Type type);
 
     ControlTransform(ControlTransform * parentTransform, bool noScale, bool noRotate, bool noTranslate);
 
 public:
+    ControlTransform * addFrameTransform();
+
     void attachTo(QGraphicsTransform * transform);
 
 protected:

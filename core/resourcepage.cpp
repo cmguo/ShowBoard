@@ -13,9 +13,9 @@ ResourcePage::ResourcePage(ResourceView* mainRes, QObject *parent)
     : QAbstractItemModel(parent)
     , canvasView_(nullptr)
 {
-    bool largeCanvas = mainRes && (mainRes->flags() & ResourceView::LargeCanvas);
+    bool largeCanvas = mainRes && (mainRes->flags().testFlag(ResourceView::LargeCanvas));
     if (largeCanvas)
-        canvasView_ = new ResourceView("whitecanvas", QUrl("whitecanvas:///"));
+        canvasView_ = new ResourceView(new Resource("whitecanvas", QUrl("whitecanvas:///")), ResourceView::BottomMost);
     if (mainRes)
         addResource(mainRes);
 }

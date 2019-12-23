@@ -317,6 +317,9 @@ void ResourceTransform::keepOuterOf(QRectF const &border, QRectF &self)
         crect.translate(d.x(), d.y());
         translate_.translate(d.x(), d.y());
         transform_ = scaleRotate_ * translate_;
+        if (sender()) {
+            qDebug() << "warning!!!!!!!!!!!" << d;
+        }
     }
     qDebug() << "after" << border << crect << transform_;
     self = crect;
@@ -333,6 +336,7 @@ void ResourceTransform::translate(const QPointF &delta, int otherChanges)
 
 void ResourceTransform::attachTransform(ResourceTransform *other)
 {
+    qDebug() << "attachTransform" << other->transform() << transform_;
     QTransform t = other->transform();
     QTransform it = t.inverted();
     QTransform s = transform_;

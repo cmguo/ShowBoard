@@ -52,6 +52,8 @@ QUrl const & ResourceView::url() const
 
 void ResourceView::moveTop()
 {
+    if (flags_ & (ResourceView::ZOrderFlags))
+        return;
     qobject_cast<ResourcePage*>(parent())->moveResourceBack(this);
 }
 

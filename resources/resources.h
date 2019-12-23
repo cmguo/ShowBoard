@@ -5,7 +5,7 @@
 #include "strokes.h"
 
 REGISTER_COMMON_RESOURCE_TYPES("bmp,gif,jpg,jpeg,png", {}, {}) // copyable
-REGISTER_RESOURCE_VIEW(Strokes, "stroke")
+REGISTER_RESOURCE_VIEW(Strokes, "stroke,glstroke")
 
 //export_resource_Stroke;
 

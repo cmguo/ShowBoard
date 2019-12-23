@@ -7,6 +7,9 @@ using namespace QtPromise;
 Strokes::Strokes(Resource * res, Flags flags, Flags clearFlags)
     : ResourceView(res, flags | TopMost, clearFlags | CanDelete)
 {
+    if (res_->type() == "glstroke") {
+        flags_.setFlag(TopMost, false);
+    }
 }
 
 Strokes::Strokes(Strokes const & o)

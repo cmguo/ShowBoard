@@ -161,6 +161,9 @@ void WhiteCanvas::toolButtonClicked(QList<ToolButton *> const & buttons)
 {
     Control * ct = Control::fromItem(selector_->selected());
     ToolButton * btn = buttons.back();
+    if (btn->flags & ToolButton::HideSelector) {
+        selector()->selectImplied(ct->item());
+    }
     if (btn == &Control::btnTop) {
         ct->resource()->moveTop();
     } else if (btn == &Control::btnCopy) {

@@ -9,12 +9,11 @@ ControlTransform::ControlTransform(ResourceTransform const & transform)
                      this, &ControlTransform::update);
 }
 
-ControlTransform::ControlTransform(ControlTransform * itemTransform)
-    : transform_(itemTransform->transform_)
-    , type_(Frame)
+ControlTransform::ControlTransform(ControlTransform *parentTransform, ControlTransform::Type type)
+    : transform_(parentTransform->transform_)
+    , type_(type)
 {
-    itemTransform->type_ = FrameItem;
-    itemTransform->setParent(this);
+    setParent(parentTransform);
 }
 
 ControlTransform::ControlTransform(Type type)
@@ -28,6 +27,12 @@ ControlTransform::ControlTransform(ControlTransform *parentTransform, bool noSca
     , type_(static_cast<Type>(NoInvert + (noScale ? 4 : 0) + (noRotate ? 2 : 0) + (noTranslate ? 1 : 0)))
 {
     setParent(parentTransform);
+}
+
+ControlTransform * ControlTransform::addFrameTransform()
+{
+    type_ = FrameItem;
+    return new ControlTransform(this, Frame);
 }
 
 void ControlTransform::update(int changes)

@@ -50,7 +50,7 @@ GLStrokeWidget::GLStrokeWidget(QWidget* parent)
     QSurfaceFormat format;
     format.setVersion(3, 3);
     format.setSamples(4);
-    format.setAlphaBufferSize(8);
+    //format.setAlphaBufferSize(8);
     setFormat(format);
     setUpdateBehavior(PartialUpdate);
     //setAttribute(Qt::WA_AlwaysStackOnTop);

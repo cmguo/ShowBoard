@@ -2,7 +2,7 @@
 #define RESOURCEVIEW_H
 
 #include "ShowBoard_global.h"
-#include "lifeobject.h"
+#include "toolbuttonprovider.h"
 
 #include <qexport.h>
 
@@ -11,7 +11,7 @@
 class Resource;
 class ResourceTransform;
 
-class SHOWBOARD_EXPORT ResourceView : public LifeObject
+class SHOWBOARD_EXPORT ResourceView : public ToolButtonProvider
 {
     Q_OBJECT
 
