@@ -78,7 +78,7 @@ void Control::attachTo(QGraphicsItem * parent)
     relayout();
     attached();
     if (!(flags_ & LoadFinished)) {
-        stateItem()->setLoading();
+        stateItem()->setLoading(res_->name());
     }
 }
 
@@ -283,7 +283,8 @@ void Control::loadFinished(bool ok, QString const & iconOrMsg)
         initScale();
         flags_ |= LoadFinished;
     } else {
-        stateItem()->setFailed(iconOrMsg);
+        stateItem()->setFailed("加载失败，点击即可重试");
+        QObject::connect(stateItem(), &StateItem::clicked, this, &Control::reload);
     }
 }
 
@@ -414,6 +415,15 @@ ItemFrame * Control::itemFrame()
     realItem_->setData(ITEM_KEY_CONTROL, QVariant::fromValue(this));
     realItem_->setTransformations({ct});
     return frame;
+}
+
+void Control::reload()
+{
+    QObject::disconnect(stateItem(), &StateItem::clicked, this, &Control::reload);
+    if (!(flags_ & LoadFinished)) {
+        stateItem()->setLoading(res_->name());
+        attached(); // reload
+    }
 }
 
 void Control::getToolButtons(QList<ToolButton *> &buttons, const QList<ToolButton *> &parents)

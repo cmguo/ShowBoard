@@ -223,6 +223,8 @@ protected:
 
     ItemFrame * itemFrame();
 
+    void reload();
+
 public:
     virtual void getToolButtons(QList<ToolButton *> &buttons, const QList<ToolButton *> &parents = {}) override;
 

@@ -103,7 +103,6 @@ QWidget * WebControl::createWidget(ResourceView * res)
 
 void WebControl::attached()
 {
-    stateItem()->setLoading();
     QWebEngineView * view = qobject_cast<QWebEngineView *>(widget_);
     view->load(res_->resource()->url());
 }

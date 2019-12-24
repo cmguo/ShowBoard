@@ -30,7 +30,6 @@ void ImageControl::attached()
         loadFinished(true);
         return;
     }
-    stateItem()->setLoading();
     QWeakPointer<int> life(this->life());
     res_->resource()->getData().then([this, life](QByteArray data) {
         if (life.isNull())

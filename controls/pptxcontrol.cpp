@@ -52,9 +52,6 @@ void PptxControl::attaching()
 
 void PptxControl::attached()
 {
-    QObject::connect(stateItem(), &StateItem::clicked, this, [this]() {
-        show();
-    });
     open();
 }
 
@@ -92,8 +89,13 @@ void PptxControl::opened(int total)
     bool first = (flags_ & LoadFinished) == 0;
     bool autoShow = !(flags_ & RestoreSession)
             && property("autoShow").toBool();
-    if (first && autoShow)
-        show();
+    if (first) {
+        QObject::connect(stateItem(), &StateItem::clicked, this, [this]() {
+            show();
+        });
+        if (autoShow)
+            show();
+    }
 }
 
 void PptxControl::failed(QString const & msg)
