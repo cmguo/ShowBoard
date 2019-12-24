@@ -21,7 +21,6 @@ static const QString STYLE = "QPushButton,.QLabel{color:#80ffffff;background-col
 ToolbarWidget::ToolbarWidget(QWidget *parent)
     : ToolbarWidget(true, parent)
 {
-    hide();
 }
 
 ToolbarWidget::ToolbarWidget(bool horizontal, QWidget *parent)
@@ -40,6 +39,7 @@ ToolbarWidget::ToolbarWidget(bool horizontal, QWidget *parent)
     if (horizontal)
         layout_->setContentsMargins(10,10,10,10);
     this->setLayout(layout_);
+    hide();
 }
 
 void ToolbarWidget::setButtonTemplate(int typeId)

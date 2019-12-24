@@ -31,6 +31,7 @@ StateItem::StateItem(QGraphicsItem * parent)
         loading_ = cache_->get(QString(":/showboard/icons/loading.svg"));
         failed_ = cache_->get(QString(":/showboard/icons/stop.normal.svg"));
     }
+    updateTransform();
 }
 
 void StateItem::setLoading(QString const & title)
@@ -87,8 +88,8 @@ void StateItem::setText(const QString &text)
 
 void StateItem::updateTransform()
 {
-    QPointF center(-iconItem_->boundingRect().center());
-    iconItem_->setTransform(QTransform::fromTranslate(center.x(), center.y()));
+    QPointF center(parentItem()->boundingRect().center());
+    setTransform(QTransform::fromTranslate(center.x(), center.y()));
 }
 
 QRectF StateItem::boundingRect() const

@@ -31,7 +31,7 @@ ItemSelector::ItemSelector(QGraphicsItem * parent)
     setAcceptTouchEvents(true);
 
     selBox_ = new SelectBox(this);
-    selBox_->setVisible(false);
+    selBox_->hide();
     selBox_->setTransformations({selBoxTransform_});
 
     ToolbarWidget * toolBar = new ToolbarWidget();
@@ -39,6 +39,7 @@ ItemSelector::ItemSelector(QGraphicsItem * parent)
     proxy->setWidget(toolBar);
     toolBar_ = proxy;
     toolBar_->setTransformations({toolBarTransform_});
+    toolBar_->hide();
     QObject::connect(toolBar, &ToolbarWidget::sizeChanged, [this](QSizeF const &) {
         layoutToolbar();
     });

@@ -29,6 +29,8 @@ public:
 
     void setFailed(QString const & msg);
 
+    void updateTransform();
+
 signals:
     void clicked();
 
@@ -36,8 +38,6 @@ private:
     void setSharedRenderer(QSvgRenderer * renderer);
 
     void setText(QString const & text);
-
-    void updateTransform();
 
 private:
     virtual QRectF boundingRect() const override;

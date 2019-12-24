@@ -161,6 +161,9 @@ void Control::sizeChanged()
     } else {
         item_->setTransform(QTransform::fromTranslate(-center.x(), -center.y()));
     }
+    if (stateItem_) {
+        stateItem_->updateTransform();
+    }
     WhiteCanvas * canvas = static_cast<WhiteCanvas *>(
                 realItem_->parentItem()->parentItem());
     if (canvas->selector()->selected() == realItem_)
