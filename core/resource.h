@@ -7,8 +7,10 @@
 #include <QtPromise>
 
 #include <QUrl>
+#include <QSharedPointer>
 
 class QNetworkAccessManager;
+class FileLRUCache;
 
 /*
  * Resource is pure data, while ResourceView is struct data
@@ -62,7 +64,7 @@ public:
     /*
      * get read stream
      */
-    QtPromise::QPromise<QIODevice *> getStream(bool all = false);
+    QtPromise::QPromise<QSharedPointer<QIODevice>> getStream(bool all = false);
 
     /*
      * get resource raw data
@@ -76,6 +78,7 @@ public:
 
 private:
     static QNetworkAccessManager * network_;
+    static FileLRUCache cache_;
 
 private:
     QUrl const url_;

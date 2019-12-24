@@ -6,6 +6,7 @@
 #include <QGraphicsSvgItem>
 #include <QGraphicsTextItem>
 #include <QPainter>
+#include <QDebug>
 
 SvgCache * StateItem::cache_ = nullptr;
 QSvgRenderer * StateItem::loading_ = nullptr;
@@ -111,7 +112,8 @@ void StateItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
 void StateItem::timerEvent(QTimerEvent * event)
 {
     (void) event;
-    iconItem_->setRotation(rotation() + rotate_);
+    //qDebug() << "timerEvent";
+    iconItem_->setRotation(iconItem_->rotation() + rotate_);
 }
 
 void StateItem::mousePressEvent(QGraphicsSceneMouseEvent * event)

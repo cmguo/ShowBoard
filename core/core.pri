@@ -3,6 +3,7 @@ HEADERS += \
     $$PWD/controlmanager.h \
     $$PWD/controltransform.h \
     $$PWD/lifeobject.h \
+    $$PWD/lrucache.h \
     $$PWD/resource.h \
     $$PWD/resourcefactory.h \
     $$PWD/resourcemanager.h \
@@ -21,6 +22,7 @@ SOURCES += \
     $$PWD/controlmanager.cpp \
     $$PWD/controltransform.cpp \
     $$PWD/lifeobject.cpp \
+    $$PWD/lrucache.cpp \
     $$PWD/resource.cpp \
     $$PWD/resourcefactory.cpp \
     $$PWD/resourcemanager.cpp \

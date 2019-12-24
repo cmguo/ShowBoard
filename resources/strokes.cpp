@@ -24,11 +24,11 @@ QPromise<void> Strokes::load()
     QWeakPointer<int> life(this->life());
     if (url().scheme() == res_->type())
         return QPromise<void>::resolve();
-    return res_->getStream().then([this, life](QIODevice * stream) {
+    return res_->getStream().then([this, life](QSharedPointer<QIODevice> stream) {
         if (life.isNull())
             return;
         canvasSize_ = StrokeParser::instance->load(
-                    res_->property(Resource::PROP_ORIGIN_TYPE).toString(), stream, points_);
+                    res_->property(Resource::PROP_ORIGIN_TYPE).toString(), stream.get(), points_);
         if (canvasSize_.isEmpty())
             throw std::exception("empty canvas size");
     });

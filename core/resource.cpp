@@ -1,4 +1,5 @@
 #include "resource.h"
+#include "lrucache.h"
 
 #include <QFile>
 #include <QNetworkAccessManager>
@@ -7,6 +8,7 @@
 #include <QDir>
 
 QNetworkAccessManager * Resource::network_ = nullptr;
+FileLRUCache Resource::cache_(QDir::current().filePath("rescache"), 1000 * 1024 * 1024); // 1G
 
 using namespace QtPromise;
 
@@ -27,57 +29,64 @@ QPromise<QUrl> Resource::getLocalUrl()
     if (url_.scheme() == "file") {
         return QPromise<QUrl>::resolve(url());
     }
+    QString file = cache_.getFile(url_);
+    if (!file.isEmpty()) {
+        return QPromise<QUrl>::resolve(QUrl::fromLocalFile(file));
+    }
     return getData().then([this, l = life()] (QByteArray data) {
         if (l.isNull())
             return QUrl();
-        QString path = url_.path();
-        path = QDir::currentPath() + path.mid(path.lastIndexOf('/'));
-        QFile * temp = new QFile(path, this);
-        temp->open(QFile::WriteOnly);
-        temp->write(data);
-        temp->close();
-        return QUrl::fromLocalFile(temp->fileName());
+        return QUrl::fromLocalFile(cache_.put(url_, data));
     });
 }
 
-QPromise<QIODevice *> Resource::getStream(bool all)
+QPromise<QSharedPointer<QIODevice>> Resource::getStream(bool all)
 {
     if (url_.scheme() == "data") {
-        return QPromise<QIODevice *>::resolve(nullptr);
+        return QPromise<QSharedPointer<QIODevice>>::resolve(nullptr);
     } else if (url_.scheme() == "" || url_.scheme() == "file") {
-        QFile * file = new QFile(url_.toLocalFile());
+        QSharedPointer<QIODevice> file(new QFile(url_.toLocalFile()));
         file->open(QFile::ReadOnly | QFile::ExistingOnly);
-        return QPromise<QIODevice *>::resolve(file);
+        return QPromise<QSharedPointer<QIODevice>>::resolve(file);
     } else {
+        QString path = cache_.getFile(url_);
+        if (!path.isEmpty()) {
+            QSharedPointer<QIODevice> file(new QFile(path));
+            file->open(QFile::ReadOnly | QFile::ExistingOnly);
+            return QPromise<QSharedPointer<QIODevice>>::resolve(file);
+        }
         if (network_ == nullptr) {
             network_ = new QNetworkAccessManager();
             network_->setRedirectPolicy(QNetworkRequest::NoLessSafeRedirectPolicy);
         }
         QNetworkRequest request(url());
-        QNetworkReply * reply = network_->get(request);
-        return QPromise<QIODevice *>([reply, all](
-                                         const QPromiseResolve<QIODevice *>& resolve,
-                                         const QPromiseReject<QIODevice *>& reject) {
+        QSharedPointer<QNetworkReply> reply(network_->get(request));
+        return QPromise<QSharedPointer<QIODevice>>([reply, all](
+                                         const QPromiseResolve<QSharedPointer<QIODevice>>& resolve,
+                                         const QPromiseReject<QSharedPointer<QIODevice>>& reject) {
             auto readyRead = [=]() {
                 resolve(reply);
             };
             auto finished = [=]() {
-                if (reply->error())
+                if (reply->error()) {
+                    reply->deleteLater();
                     reject(std::exception(
                                QMetaEnum::fromType<QNetworkReply::NetworkError>().key(reply->error())));
-                else
+                } else {
                     resolve(reply);
+                }
             };
             auto error = [=](QNetworkReply::NetworkError e) {
+                reply->deleteLater();
                 reject(std::exception(
                            QMetaEnum::fromType<QNetworkReply::NetworkError>().key(e)));
             };
             if (all)
-                QObject::connect(reply, &QNetworkReply::finished, finished);
+                QObject::connect(reply.get(), &QNetworkReply::finished, finished);
             else
-                QObject::connect(reply, &QNetworkReply::readyRead, readyRead);
+                QObject::connect(reply.get(), &QNetworkReply::readyRead, readyRead);
             void (QNetworkReply::*p)(QNetworkReply::NetworkError) = &QNetworkReply::error;
-            QObject::connect(reply, p, error);
+            QObject::connect(reply.get(), p, error);
         });
     }
 }
@@ -87,10 +96,11 @@ QPromise<QByteArray> Resource::getData()
     if (url_.scheme() == "data") {
         return QPromise<QByteArray>::resolve(QByteArray());
     } else {
-        return getStream(true).then([](QIODevice * io) {
+        return getStream(true).then([url = url_](QSharedPointer<QIODevice> io) {
             QByteArray data = io->readAll();
             io->close();
-            io->deleteLater();
+            if (io->metaObject() != &QFile::staticMetaObject)
+                cache_.put(url, data);
             return data;
         });
     }
