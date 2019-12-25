@@ -11,10 +11,21 @@
 
 class QLayout;
 class ToolButtonProvider;
+class QPushButton;
 
 class SHOWBOARD_EXPORT ToolbarWidget : public QWidget
 {
     Q_OBJECT
+public:
+    enum PopupPosition
+    {
+        TopLeft,
+        TopCenter,
+        TopRight,
+        BottomLeft,
+        BottomCenter,
+        BottomRight,
+    };
 public:
     explicit ToolbarWidget(QWidget *parent = nullptr);
 
@@ -23,6 +34,9 @@ public:
 public:
     void setButtonTemplate(int typeId);
 
+    void setPopupPosition(PopupPosition pos);
+
+public:
     void setToolButtons(QList<ToolButton *> const & buttons);
 
     void setToolButtons(ToolButton buttons[], int count);
@@ -64,17 +78,24 @@ private:
 private:
     void addToolButton(QLayout * layout, ToolButton * button, QMap<QWidget *, ToolButton *>& buttons);
 
+    void applyButton(QPushButton * btn, ToolButton * parent, ToolButton * button);
+
+    void updateButton(QPushButton * btn, ToolButton * parent, ToolButton * button);
+
     void clearButtons(QLayout * layout, QMap<QWidget *, ToolButton *>& buttons);
 
     void createPopup();
 
     void updateProvider();
 
+    QPointF popupPosition(QPushButton * btn, QGraphicsProxyWidget * popup);
+
 private:
     QMetaObject const * template_;
     QLayout * layout_;
     QMap<QWidget *, ToolButton *> buttons_;
     //
+    PopupPosition popupPosition_;
     QWidget * popUp_ = nullptr;
     QMap<QWidget *, ToolButton *> popupButtons_;
     QList<ToolButton *> popupParents_;

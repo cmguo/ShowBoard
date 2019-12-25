@@ -1,6 +1,8 @@
 #include "toolbutton.h"
 
-ToolButton ToolButton::SPLITER({"spliter", "", nullptr, QVariant()});
+ToolButton ToolButton::SPLITER({"spliter", nullptr, nullptr, QVariant()});
+
+ToolButton ToolButton::LINE_BREAK({"lineBreak", nullptr, nullptr, QVariant()});
 
 ToolButton::Flags ToolButton::makeFlags(const QString &str)
 {

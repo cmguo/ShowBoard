@@ -13,7 +13,7 @@
 #include <QLabel>
 
 static const QString STYLE = "QPushButton,.QLabel{color:#80ffffff;background-color:#00000000;border:none;font-size:16pt;spacing: 30px;border:none;} "
-                "QPushButton{qproperty-iconSize: 30px 30px; font-family: '微软雅黑'} "
+                "QPushButton{qproperty-iconSize: 30px 30px; font-family: '微软雅黑';background-color:#00000000} "
                 "QPushButton:checked{color:#1AA9EF;}"
                 "#toolbarwidget{background-color:#C8000000;border-radius:3px;}"
                 "#popupwidget{background-color:#C8000000;border-radius:3px;}";
@@ -26,6 +26,7 @@ ToolbarWidget::ToolbarWidget(QWidget *parent)
 ToolbarWidget::ToolbarWidget(bool horizontal, QWidget *parent)
     : QWidget(parent)
     , template_(nullptr)
+    , popupPosition_(BottomRight)
     , popUp_(nullptr)
     , provider_(nullptr)
 {
@@ -49,10 +50,16 @@ void ToolbarWidget::setButtonTemplate(int typeId)
         template_ = meta;
 }
 
+void ToolbarWidget::setPopupPosition(PopupPosition pos)
+{
+    popupPosition_ = pos;
+}
+
 static QPixmap widgetToPixmap(QWidget * widget, bool destroy)
 {
     QPixmap pm(widget->size());
     QPainter pt(&pm);
+    pt.setRenderHint(QPainter::HighQualityAntialiasing);
     widget->render(&pt);
     if (destroy)
         widget->deleteLater();
@@ -63,8 +70,12 @@ static QPixmap itemToPixmap(QGraphicsItem * item, bool destroy)
 {
     QPixmap pm(item->boundingRect().size().toSize());
     QPainter pt(&pm);
+    pt.setRenderHint(QPainter::HighQualityAntialiasing);
     QStyleOptionGraphicsItem style;
     item->paint(&pt, &style);
+    for (QGraphicsItem * c : item->childItems()) {
+        c->paint(&pt, &style);
+    }
     if (destroy)
         delete item;
     return pm;
@@ -115,12 +126,12 @@ void ToolbarWidget::setToolButtons(ToolButton buttons[], int count)
 
 void ToolbarWidget::updateButton(ToolButton *button)
 {
+    ToolButton * parent = popupParents_.empty() ? nullptr : popupParents_.back();
     for (QWidget * w : buttons_.keys()) {
-        if (buttons_.value(w) != button)
-            continue;
-        QPushButton * btn = qobject_cast<QPushButton*>(w);
-        btn->setIcon(getIcon(button->icon, !(button->flags & ToolButton::Dynamic)));
-        btn->setText(QString(" %1").arg(button->title));
+        if (buttons_.value(w) == button) {
+            updateButton(qobject_cast<QPushButton*>(w), parent, button);
+            return;
+        }
     }
 }
 
@@ -130,6 +141,7 @@ void ToolbarWidget::showPopupButtons(const QList<ToolButton *> &buttons)
     for (ToolButton * b : buttons) {
         addToolButton(popUp_->layout(), b, popupButtons_);
     }
+    popUp_->updateGeometry();
     popUp_->show();
 }
 
@@ -142,8 +154,12 @@ void ToolbarWidget::showPopupButtons(ToolButton *buttons, int count)
     popUp_->show();
 }
 
+static int row = 0;
+static int col = 0;
+
 void ToolbarWidget::clearPopup()
 {
+    row = col = 0;
     if (popUp_) {
         popUp_->hide();
         clearButtons(popUp_->layout(), popupButtons_);
@@ -178,6 +194,9 @@ void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWi
         QLabel *splitLabel = new QLabel(this);
         splitLabel->setText("|");
         widget = splitLabel;
+    } else if (button == &ToolButton::LINE_BREAK) {
+        ++row; col = 0;
+        return;
     } else if (button->flags & ToolButton::CustomWidget) {
         widget = button->icon.value<QWidget*>();
         button = nullptr;
@@ -185,26 +204,68 @@ void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWi
         QPushButton * btn = template_
                 ? qobject_cast<QPushButton *>(template_->newInstance())
                 : new QPushButton;
-        btn->setIcon(getIcon(button->icon, !(button->flags & ToolButton::Dynamic)));
-        btn->setIconSize(QSize(40,40));
-        btn->setText(QString(" %1").arg(button->title));
-        if (parent && (parent->flags & ToolButton::OptionsGroup)) {
-            btn->setCheckable(true);
-            btn->setChecked(button->flags & ToolButton::Selected);
-        }
+        applyButton(btn, parent, button);
         void (ToolbarWidget::*slot)() = &ToolbarWidget::buttonClicked;
         QObject::connect(btn, &QPushButton::clicked, this, slot);
         widget = btn;
     }
-    int count = buttons.size();
     if (parent) {
         QGridLayout *gridLayout = static_cast<QGridLayout*>(layout);
-        gridLayout->addWidget(widget, count / 4, count % 4);
+        gridLayout->addWidget(widget, row, col);
+        ++col;
     } else {
         layout->addWidget(widget);
     }
-    if (button)
+    if (button) {
+        widget->setObjectName(button->name);
         buttons.insert(widget, button);
+    }
+}
+
+void ToolbarWidget::applyButton(QPushButton * btn, ToolButton * parent, ToolButton *button)
+{
+    btn->setIconSize(QSize(40,40));
+    btn->setIcon(getIcon(button->icon, !(button->flags & ToolButton::Dynamic)));
+    btn->setText(QString(" %1").arg(button->title));
+    if (parent && (parent->flags & ToolButton::OptionsGroup)) {
+        btn->setCheckable(true);
+        btn->setChecked(button->flags & ToolButton::Selected);
+    }
+    if (button->flags & ToolButton::Checkable) {
+        btn->setCheckable(true);
+        btn->setChecked(button->flags & ToolButton::Checked);
+    }
+}
+
+void ToolbarWidget::updateButton(QPushButton * btn, ToolButton * parent, ToolButton *button)
+{
+    applyButton(btn, parent, button);
+    if (button->flags & ToolButton::UnionUpdate) {
+        QList<QObject*> list = children();
+        int n = list.indexOf(btn);
+        for (int i = n - 1; i >= 0; --i) {
+            QWidget * widget2 = qobject_cast<QWidget *>(list[i]);
+            if (widget2 == nullptr || (button = buttons_.value(widget2)) == nullptr)
+                continue;
+            if (button->flags & ToolButton::UnionUpdate) {
+                QPushButton * btn2 = qobject_cast<QPushButton *>(widget2);
+                applyButton(btn2, parent, button);
+            } else {
+                break;
+            }
+        }
+        for (int i = n + 1; i < list.size(); ++i) {
+            QWidget * widget2 = qobject_cast<QWidget *>(list[i]);
+            if (widget2 == nullptr || (button = buttons_.value(widget2)) == nullptr)
+                continue;
+            if (button->flags & ToolButton::UnionUpdate) {
+                QPushButton * btn2 = qobject_cast<QPushButton *>(widget2);
+                applyButton(btn2, parent, button);
+            } else {
+                break;
+            }
+        }
+    }
 }
 
 void ToolbarWidget::clear()
@@ -233,7 +294,6 @@ void ToolbarWidget::clearButtons(QLayout *layout, QMap<QWidget *, ToolButton *> 
 
 void ToolbarWidget::createPopup()
 {
-    delete popUp_;
     popUp_ = new QWidget();
     popUp_->setStyleSheet(STYLE);
     popUp_->setObjectName(QString::fromUtf8("popupwidget"));
@@ -254,9 +314,49 @@ void ToolbarWidget::updateProvider()
     setToolButtons(buttons);
 }
 
+QPointF ToolbarWidget::popupPosition(QPushButton *btn, QGraphicsProxyWidget *popup)
+{
+    QGraphicsProxyWidget* proxy = graphicsProxyWidget();
+    QGraphicsItem* parent = proxy->parentItem();
+    QPointF topLeft = btn->mapTo(this, QPoint(0, 0));
+    topLeft = proxy->mapToParent(topLeft);
+    QSizeF size = popup->size();
+    switch (popupPosition_) {
+    case TopLeft:
+        topLeft += QPointF(-size.width(), -size.height() - 15);
+        break;
+    case TopCenter:
+        topLeft += QPointF(-(size.width() - btn->width()) / 2, -size.height() - 15);
+        break;
+    case TopRight:
+        topLeft += QPointF(0, -size.height() - 15);
+        break;
+    case BottomLeft:
+        topLeft += QPointF(-size.width(), btn->height() + 15);
+        break;
+    case BottomCenter:
+        topLeft += QPointF(-(size.width() - btn->width()) / 2, btn->height() + 15);
+        break;
+    case BottomRight:
+        topLeft += QPointF(0, btn->height() + 15);
+        break;
+    }
+    QRectF bound = parent->boundingRect();
+    QRectF bound2(topLeft, size);
+    if (bound2.left() < bound.left())
+        topLeft.setX(bound.left());
+    else if (bound2.right() > bound.right())
+        topLeft.setX(bound.left() + bound.right() - bound2.right());
+    if (bound2.top() < bound.top())
+        topLeft.setY(topLeft.y() + size.height() + btn->height() + 30);
+    else if (bound2.bottom() > bound.bottom())
+        topLeft.setY(topLeft.y() - size.height() - btn->height() - 30);
+    return parent->mapToItem(popup->parentItem(), topLeft);
+}
+
 void ToolbarWidget::buttonClicked()
 {
-    QWidget * btn = qobject_cast<QWidget *>(sender());
+    QPushButton * btn = qobject_cast<QPushButton *>(sender());
     ToolButton * button = popupButtons_.value(btn);
     if (!button) {
         button = buttons_.value(btn);
@@ -264,24 +364,26 @@ void ToolbarWidget::buttonClicked()
         clearPopup();
         popupParents_.clear();
     }
+    ToolButton * parent = popupParents_.empty() ? nullptr : popupParents_.back();
     popupParents_.append(button);
     if (button->flags & ToolButton::Popup) {
+        if (button->flags & ToolButton::Checkable) {
+            applyButton(btn, parent, button);
+        }
         QList<ToolButton *> buttons;
         getPopupButtons(buttons, popupParents_);
         if (popUp_ == nullptr) {
             createPopup();
         }
+        showPopupButtons(buttons);
         QGraphicsProxyWidget * proxy = graphicsProxyWidget();
         if (proxy) {
             QGraphicsProxyWidget * proxy2 = popUp_->graphicsProxyWidget();
-            QPoint pos = btn->mapTo(this, QPoint(0, btn->height() + 15));
-            QPointF pos2 = proxy->mapToItem(proxy2->parentItem(), QPointF(pos));
-            proxy2->setPos(pos2);
+            proxy2->setPos(popupPosition(btn, proxy2));
         } else {
             QPoint pos = btn->mapTo(popUp_->parentWidget(), QPoint(0, btn->height() + 10));
             popUp_->move(pos);
         }
-        showPopupButtons(buttons);
     } else {
         onButtonClicked(button);
         int i = 0;
@@ -292,11 +394,17 @@ void ToolbarWidget::buttonClicked()
             }
         }
         if (button->flags & ToolButton::NeedUpdate) {
-            updateButton(button);
+            ToolButton * parent = i == 0 ? nullptr : popupParents_[i - 1];
+            for (QWidget * w : buttons_.keys()) {
+                if (buttons_.value(w) == button) {
+                    updateButton(qobject_cast<QPushButton*>(w), parent, button);
+                    break;
+                }
+            }
         }
         popupParents_.pop_back();
-        if(popUp_)
-         popUp_->hide();
+        if (popUp_)
+            popUp_->hide();
     }
 }
 

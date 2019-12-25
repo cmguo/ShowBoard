@@ -15,11 +15,13 @@ public:
         Popup = 1,
         Dynamic = 2, // need delete
         OptionsGroup = 4, // group of options
-        HideSelector = 8,
+        Checkable = 8,
         NeedUpdate = 16,
-        Selected = 32,
-        Checked = 64,
-        CustomWidget = 1 << 16
+        UnionUpdate = 32,
+        CustomWidget = 64,
+        Selected = 1 << 8,
+        Checked = 1 << 9,
+        HideSelector = 1 << 16,
     };
 
     Q_ENUM(Flag)
@@ -27,6 +29,7 @@ public:
     Q_DECLARE_FLAGS(Flags, Flag)
 
     static ToolButton SPLITER;
+    static ToolButton LINE_BREAK;
 
 public:
     QString name;

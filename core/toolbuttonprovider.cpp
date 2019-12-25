@@ -66,8 +66,11 @@ void ToolButtonProvider::getToolButtons(QList<ToolButton *> &buttons, ToolButton
         buttons.pop_back();
 }
 
+static bool inHandle = false;
+
 void ToolButtonProvider::handleToolButton(QList<ToolButton *> const & buttons)
 {
+    inHandle = true;
     ToolButton * button = buttons.back();
     int i = 0;
     for (; i < buttons.size(); ++i) {
@@ -83,7 +86,27 @@ void ToolButtonProvider::handleToolButton(QList<ToolButton *> const & buttons)
     exec(button->name, args);
     if (button->flags & ToolButton::NeedUpdate) {
         updateToolButton(button);
+        if (button->flags & ToolButton::UnionUpdate) {
+            QList<ToolButton *> siblins;
+            getToolButtons(siblins, buttons.mid(0, buttons.size() - 1));
+            int n = siblins.indexOf(button);
+            for (int i = n - 1; i >= 0; --i) {
+                if (siblins[i]->flags & ToolButton::UnionUpdate) {
+                    updateToolButton(siblins[i]);
+                } else {
+                    break;
+                }
+            }
+            for (int i = n + 1; i < siblins.size(); ++i) {
+                if (siblins[i]->flags & ToolButton::UnionUpdate) {
+                    updateToolButton(siblins[i]);
+                } else {
+                    break;
+                }
+            }
+        }
     }
+    inHandle = false;
 }
 
 void ToolButtonProvider::updateToolButton(ToolButton *button)
@@ -117,6 +140,8 @@ QList<ToolButton *> & ToolButtonProvider::tools(QString const & parent)
         iter2 = iter->second.insert(
                     std::make_pair(parent, ToolButton::makeButtons(tools))).first;
     }
+    if (inHandle)
+        return iter2->second;
     for (ToolButton * button : iter2->second) {
         if (button->flags & ToolButton::NeedUpdate) {
             updateToolButton(button);
