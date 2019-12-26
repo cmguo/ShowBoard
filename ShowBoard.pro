@@ -23,6 +23,9 @@ SOURCES += \
 HEADERS += \
     ShowBoard_global.h \
 
+RESOURCES += \
+    ShowBoard.qrc
+
 
 include(core/core.pri)
 include(resources/resources.pri)
@@ -73,7 +76,6 @@ INCLUDEPATH += $$PWD/../QtPromise/src
 INCLUDEPATH += $$PWD/../qtpromise/src/qtpromise $$PWD/../qtpromise/include
 #DEPENDPATH += $$PWD/../qtpromise/src/qtpromise
 
-RESOURCES += \
-    ShowBoard.qrc
-
-
+win32 {
+    LIBS += -lGdiplus
+}

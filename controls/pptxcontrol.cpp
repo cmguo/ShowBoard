@@ -4,6 +4,7 @@
 #include "views/stateitem.h"
 //#include "views/itemframe.h"
 #include "office/powerpoint.h"
+#include "office/workthread.h"
 
 #include <QUrl>
 #include <QDir>
@@ -78,7 +79,7 @@ void PptxControl::open()
 void PptxControl::open(QUrl const & url)
 {
     PowerPoint * p = powerpoint_;
-    postWork(p, [p, url]() {
+    WorkThread::postWork(p, [p, url]() {
        p->open(url.toLocalFile());
     });
 }
@@ -148,7 +149,7 @@ void PptxControl::setSlideNumber(int n)
 void PptxControl::show(int page)
 {
     PowerPoint * p = powerpoint_;
-    postWork(p, [p, page]() {
+    WorkThread::postWork(p, [p, page]() {
         p->show(page);
     });
 }
@@ -173,7 +174,7 @@ void PptxControl::showStopButton()
 void PptxControl::next()
 {
     PowerPoint * p = powerpoint_;
-    postWork(p, [p]() {
+    WorkThread::postWork(p, [p]() {
         p->next();
     });
 }
@@ -181,7 +182,7 @@ void PptxControl::next()
 void PptxControl::jump(int page)
 {
     PowerPoint * p = powerpoint_;
-    postWork(p, [p, page]() {
+    WorkThread::postWork(p, [p, page]() {
         p->jump(page);
     });
 }
@@ -189,7 +190,7 @@ void PptxControl::jump(int page)
 void PptxControl::prev()
 {
     PowerPoint * p = powerpoint_;
-    postWork(p, [p]() {
+    WorkThread::postWork(p, [p]() {
         p->prev();
     });
 }
@@ -197,7 +198,7 @@ void PptxControl::prev()
 void PptxControl::hide()
 {
     PowerPoint * p = powerpoint_;
-    postWork(p, [p]() {
+    WorkThread::postWork(p, [p]() {
         p->hide();
     });
     item_->setCursor(Qt::ArrowCursor);
@@ -210,7 +211,7 @@ void PptxControl::close()
         stopButton_ = nullptr;
     }
     PowerPoint * p = powerpoint_;
-    postWork(p, [p]() {
+    WorkThread::postWork(p, [p]() {
         p->close();
     });
 }

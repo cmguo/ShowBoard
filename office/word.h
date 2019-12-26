@@ -1,18 +1,18 @@
-#ifndef POWERPOINT_H
-#define POWERPOINT_H
+#ifndef WORD_H
+#define WORD_H
 
 #include <QObject>
 #include <QPixmap>
 
 class QAxObject;
 
-class PowerPoint : public QObject
+class Word : public QObject
 {
     Q_OBJECT
 public:
-    PowerPoint(QObject * parent = nullptr);
+    Word(QObject * parent = nullptr);
 
-    virtual ~PowerPoint() override;
+    virtual ~Word() override;
 
 public:
     void open(QString const & file);
@@ -32,20 +32,15 @@ public:
     void close();
 
 public:
-    int slideNumber()
+    int page()
     {
-        return slideNumber_;
+        return page_;
     }
 
-    void setSlideNumber(int n)
+    void setPage(int n)
     {
-        slideNumber_ = n;
+        page_ = n;
     }
-
-public:
-    void attachButton(intptr_t hwnd);
-
-    void moveButton(intptr_t hwnd, QPoint const & diff);
 
 signals:
     void opened(int total);
@@ -71,20 +66,15 @@ private:
     void reopen();
 
 private:
-    virtual void timerEvent(QTimerEvent * event) override;
-
-private:
     static QAxObject * application_;
 
 private:
-    QAxObject * presentations_;
+    QAxObject * documents_;
     QString file_;
-    QAxObject * presentation_;
+    QAxObject * document_;
     int total_;
-    int slideNumber_;
+    int page_;
     QAxObject * view_;
-    intptr_t hwnd_;
-    int timerId_;
 };
 
-#endif // POWERPOINT_H
+#endif // WORD_H

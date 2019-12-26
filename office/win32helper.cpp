@@ -1,4 +1,6 @@
 #include <Windows.h>
+#include <gdiplus.h>
+#include <gdiplusheaders.h>
 
 BOOL CALLBACK EnumWindowsProc(_In_ HWND hwnd, _In_ LPARAM lParam)
 {
@@ -97,4 +99,25 @@ void moveChildWindow(intptr_t hwnd, int dx, int dy)
 void setArrowCursor()
 {
     SetCursor(LoadCursor(GetModuleHandle(nullptr), IDC_ARROW));
+}
+
+bool saveGdiImage(char* data, int size, wchar_t * file)
+{
+    WCHAR gdiPath[1024];
+    WCHAR * l = wcsstr(file, L".png");
+    size_t n = static_cast<size_t>(l - file);
+    wcsncpy_s(gdiPath, file, n);
+    wcscpy_s(gdiPath + n, 1024 - n, L".gdip");
+    HANDLE f = ::CreateFileW(gdiPath, GENERIC_WRITE, FILE_SHARE_WRITE, nullptr, CREATE_ALWAYS, 0, nullptr);
+    DWORD bytesWriten = static_cast<DWORD>(size);
+    ::WriteFile(f, data, bytesWriten, &bytesWriten, nullptr);
+    ::CloseHandle(f);
+    Gdiplus::Image * image = Gdiplus::Image::FromFile(gdiPath);
+    if (!image)
+        return false;
+    CLSID pngClsid = {0x557cf406, 0x1a04, 0x11d3, {0x9a, 0x73, 0x00, 0x00, 0xf8, 0x1e, 0xf3, 0x2e}};
+    //Gdiplus::GetEncoderClsid(L"image/png", &pngClsid);
+    image->Save(file, &pngClsid, nullptr);
+    delete image;
+    return true;
 }

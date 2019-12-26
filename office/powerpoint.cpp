@@ -1,4 +1,5 @@
 #include "powerpoint.h"
+#include "workthread.h"
 
 #include <QAxObject>
 #include <QThread>
@@ -21,30 +22,6 @@ extern void setArrowCursor();
 QAxObject * PowerPoint::application_ = nullptr;
 
 static char const * titleParts[] = {"PowerPoint", "ppt", nullptr};
-
-class WorkThread : public QThread
-{
-public:
-    WorkThread(char const * name = nullptr)
-    {
-        if (name)
-            setObjectName(name);
-        start();
-    }
-    virtual ~WorkThread() override
-    {
-        quit();
-        wait();
-    }
-private:
-    virtual void run() override
-    {
-        CoInitialize(nullptr);
-        CoInitializeEx(nullptr, COINIT_MULTITHREADED);
-        exec();
-        CoUninitialize();
-    }
-};
 
 static QThread & workThread() {
     static WorkThread thread("PowerPoint");
@@ -161,7 +138,7 @@ void PowerPoint::show(int page)
     if (page)
         jump(page);
     intptr_t hwnd = hwnd_;
-    postWork(&workThread(), [hwnd](){
+    WorkThread::postWork(&workThread(), [hwnd](){
         setWindowAtTop(hwnd);
     });
     emit showed();
