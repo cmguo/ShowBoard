@@ -9,6 +9,7 @@
 ItemFrame::ItemFrame(QGraphicsItem * item, QGraphicsItem * parent)
     : QGraphicsRectItem(parent)
     , item_(item)
+    , hasTopBar_(false)
     , selected_(false)
 {
     setPen(Qt::NoPen);
@@ -20,10 +21,18 @@ ItemFrame::ItemFrame(QGraphicsItem * item, QGraphicsItem * parent)
 
 void ItemFrame::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    QGraphicsRectItem::paint(painter, option, widget);
+    QRectF rect(boundingRect());
+    if (hasTopBar_) {
+        painter->save();
+        painter->setBrush(brush());
+        painter->setPen(pen());
+        painter->drawRect(rect.adjusted(0, HEIGHT, 0, 0));
+        painter->restore();
+    } else {
+        QGraphicsRectItem::paint(painter, option, widget);
+    }
     //(void) option;
     //(void) widget;
-    QRectF rect(boundingRect());
     for (DockItem & i : dockItems_) {
         QRectF rect2(rect);
         switch (i.dock) {
@@ -76,6 +85,7 @@ void ItemFrame::drawTopBar(QPainter *painter, QRectF const & rect, ItemFrame * f
 
 void ItemFrame::addTopBar()
 {
+    hasTopBar_ = dockItems_.isEmpty();
     addDockItem({Top, HEIGHT, QVariant::fromValue(&drawTopBar)});
 }
 

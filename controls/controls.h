@@ -8,6 +8,7 @@
 #include "webcontrol.h"
 #include "pptxcontrol.h"
 #include "qmlcontrol.h"
+#include "wordcontrol.h"
 
 #include <qexport.h>
 
@@ -17,5 +18,6 @@ REGISTER_CONTROL(StrokeControl, "glstroke")
 REGISTER_CONTROL(WebControl, "htm,html,http")
 REGISTER_CONTROL(PptxControl, "ppt,pptx")
 REGISTER_CONTROL(QmlControl, "qml")
+REGISTER_CONTROL(WordControl, "doc,docx")
 
 #endif // CONTROLS_H

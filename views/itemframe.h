@@ -85,6 +85,7 @@ private:
 
 private:
     QGraphicsItem * item_;
+    bool hasTopBar_;
     bool selected_;
     QRectF padding_;
     QVector<DockItem> dockItems_;

@@ -6,7 +6,8 @@ HEADERS += \
     $$PWD/strokecontrol.h \
     $$PWD/videocontrol.h \
     $$PWD/webcontrol.h \
-    $$PWD/whitecanvascontrol.h
+    $$PWD/whitecanvascontrol.h \
+    $$PWD/wordcontrol.h
 
 SOURCES += \
     $$PWD/imagecontrol.cpp \
@@ -15,4 +16,5 @@ SOURCES += \
     $$PWD/strokecontrol.cpp \
     $$PWD/videocontrol.cpp \
     $$PWD/webcontrol.cpp \
-    $$PWD/whitecanvascontrol.cpp
+    $$PWD/whitecanvascontrol.cpp \
+    $$PWD/wordcontrol.cpp
