@@ -9,6 +9,7 @@
 #include "pptxcontrol.h"
 #include "qmlcontrol.h"
 #include "wordcontrol.h"
+#include "textcontrol.h"
 
 #include <qexport.h>
 
@@ -19,5 +20,6 @@ REGISTER_CONTROL(WebControl, "htm,html,http")
 REGISTER_CONTROL(PptxControl, "ppt,pptx")
 REGISTER_CONTROL(QmlControl, "qml")
 REGISTER_CONTROL(WordControl, "doc,docx")
+REGISTER_CONTROL(TextControl, "txt,js,cpp,h")
 
 #endif // CONTROLS_H

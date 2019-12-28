@@ -4,6 +4,7 @@ HEADERS += \
     $$PWD/pptxcontrol.h \
     $$PWD/qmlcontrol.h \
     $$PWD/strokecontrol.h \
+    $$PWD/textcontrol.h \
     $$PWD/videocontrol.h \
     $$PWD/webcontrol.h \
     $$PWD/whitecanvascontrol.h \
@@ -14,6 +15,7 @@ SOURCES += \
     $$PWD/pptxcontrol.cpp \
     $$PWD/qmlcontrol.cpp \
     $$PWD/strokecontrol.cpp \
+    $$PWD/textcontrol.cpp \
     $$PWD/videocontrol.cpp \
     $$PWD/webcontrol.cpp \
     $$PWD/whitecanvascontrol.cpp \

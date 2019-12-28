@@ -3,6 +3,8 @@
 #include "resourceview.h"
 #include "resource.h"
 #include "showboard.h"
+#include "unknowncontrol.h"
+
 #include "controls/controls.h"
 #include "tools/tools.h"
 
@@ -36,19 +38,11 @@ void ControlManager::onComposition()
     }
 }
 
-Control * ControlManager::createControl(QString const & type)
-{
-    std::map<QString, QLazy *>::iterator iter = controls_.find(type);
-    if (iter == controls_.end())
-        return nullptr;
-    return iter->second->create<Control>();
-}
-
 Control * ControlManager::createControl(ResourceView * res)
 {
     std::map<QString, QLazy *>::iterator iter = controls_.find(res->resource()->type());
     if (iter == controls_.end())
-        return nullptr;
+        return new UnknownControl(res);
     return iter->second->create<Control>(Q_ARG(ResourceView*, res));
 }
 

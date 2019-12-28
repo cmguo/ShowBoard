@@ -23,11 +23,6 @@ public:
     static ControlManager * instance();
 
     /*
-     * create control with type @type, not backed by resource
-     */
-    Control * createControl(QString const & type);
-
-    /*
      * create control according to resource type
      */
     Control * createControl(ResourceView * res);

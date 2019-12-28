@@ -50,10 +50,14 @@ msvc:CONFIG(release, debug|release) {
 includes.files = $$PWD/*.h
 includes.core.files = $$PWD/core/*.h
 includes.views.files = $$PWD/views/*.h
+includes.tools.files = $$PWD/tools/*.h
+includes.resources.files = $$PWD/resources/*.h
 win32 {
     includes.path = $$[QT_INSTALL_HEADERS]/ShowBoard
     includes.core.path = $$[QT_INSTALL_HEADERS]/ShowBoard/core
     includes.views.path = $$[QT_INSTALL_HEADERS]/ShowBoard/views
+    includes.tools.path = $$[QT_INSTALL_HEADERS]/ShowBoard/tools
+    includes.resources.path = $$[QT_INSTALL_HEADERS]/ShowBoard/resources
     target.path = $$[QT_INSTALL_LIBS]
 }
 INSTALLS += includes includes.core includes.views
