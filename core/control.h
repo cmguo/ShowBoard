@@ -12,6 +12,7 @@ class QGraphicsTransform;
 class StateItem;
 class ToolButton;
 class ItemFrame;
+class QIODevice;
 
 class SHOWBOARD_EXPORT Control : public ToolButtonProvider
 {
@@ -41,6 +42,8 @@ public:
         // States
         LoadFinished = 1 << 16,
         RestoreSession = 1 << 17,
+        Selected = 1 << 18,
+        Adjusting = 1 << 19,
     };
 
     Q_DECLARE_FLAGS(Flags, Flag)
@@ -151,6 +154,11 @@ public:
      */
     virtual void select(bool selected);
 
+    /*
+     * set when adjusting state change
+     */
+    virtual void adjusting(bool be);
+
     virtual void beforeClone();
 
 protected:
@@ -212,6 +220,11 @@ protected:
 
     void initScale();
 
+    /*
+     * called by child, delay changed when adjusting
+     */
+    void setSize(QSizeF const & size);
+
     void sizeChanged();
 
 protected:
@@ -223,7 +236,20 @@ protected:
 
     ItemFrame * itemFrame();
 
+protected:
+    void loadStream();
+
+    void loadData();
+
+    void loadText();
+
     void reload();
+
+    virtual void onStream(QIODevice* stream);
+
+    virtual void onData(QByteArray data);
+
+    virtual void onText(QString text);
 
 public:
     virtual void getToolButtons(QList<ToolButton *> &buttons, const QList<ToolButton *> &parents = {}) override;

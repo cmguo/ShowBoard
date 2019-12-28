@@ -22,6 +22,10 @@ public:
 
     void selectImplied(QGraphicsItem * item);
 
+    void updateSelect(QGraphicsItem * item);
+
+    bool adjusting(QGraphicsItem * item);
+
     void enableFastClone(bool enable);
 
     void autoMoveSelectionTop(bool enable);
@@ -34,8 +38,6 @@ public:
     {
         return select_;
     }
-
-    void updateSelect();
 
 private:
     enum SelectType

@@ -40,4 +40,5 @@ void WidgetControl::resize(QSizeF const & size)
 {
     QGraphicsProxyWidget * item = static_cast<QGraphicsProxyWidget*>(item_);
     item->resize(size);
+    sizeChanged();
 }

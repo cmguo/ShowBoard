@@ -12,9 +12,11 @@ public:
     Q_INVOKABLE ImageControl(ResourceView *res);
 
 protected:
-    virtual QGraphicsItem * create(ResourceView * res);
+    virtual QGraphicsItem * create(ResourceView * res) override;
 
     virtual void attached() override;
+
+    virtual void onData(QByteArray data) override;
 
     virtual void detached() override;
 };

@@ -64,7 +64,7 @@ private:
 
 
 WebControl::WebControl(ResourceView * res)
-    : WidgetControl(res, {WithSelectBar, ExpandScale})
+    : WidgetControl(res, {WithSelectBar, ExpandScale, LayoutScale})
 {
     static bool init = false;
     if (!init) {
@@ -80,12 +80,17 @@ WebControl::WebControl(ResourceView * res)
                     QWebEngineSettings::ShowScrollBars, false);
         init = true;
     }
+    setToolsString(toolstr);
 }
 
-QString WebControl::toolsString(QString const & parent) const
+bool WebControl::layoutScale() const
 {
-    (void) parent;
-    return toolstr;
+    return flags_.testFlag(LayoutScale);
+}
+
+void WebControl::setLayoutScale(bool b)
+{
+    flags_.setFlag(LayoutScale, b);
 }
 
 QWidget * WebControl::createWidget(ResourceView * res)
@@ -118,13 +123,12 @@ void WebControl::loadFinished(bool ok)
 
 void WebControl::contentsSizeChanged(const QSizeF &size)
 {
-    qDebug() << "contentsSizeChanged: " << size;
     QSizeF d = size - QSizeF(widget_->size());
     if ((d.width() + d.height()) < 10
             || size.height() > realItem_->parentItem()->boundingRect().height())
         return;
-    resize(size);
-    sizeChanged();
+    qDebug() << "contentsSizeChanged: " << size;
+    setSize(size);
 }
 
 void WebControl::reload()

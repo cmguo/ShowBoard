@@ -106,9 +106,9 @@ void SelectBox::setRect(QRectF const & rect)
     bottom_->setPos(center.x(), rect2.bottom());
 }
 
-void SelectBox::setVisible(bool scale, bool rotate)
+void SelectBox::setVisible(bool select, bool scale, bool rotate)
 {
-    QGraphicsRectItem::setVisible(scale || rotate);
+    QGraphicsRectItem::setVisible(select || scale || rotate);
     rotate_->setVisible(rotate);
     leftTop_->setVisible(scale);
     rightTop_->setVisible(scale);

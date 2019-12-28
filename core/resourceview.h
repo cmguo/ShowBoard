@@ -121,7 +121,7 @@ public:
     CommonResourceTypes(char const * types, ResourceView::Flags flags, ResourceView::Flags clearFlags);
 };
 
-#define REGISTER_COMMON_RESOURCE_TYPES(types, flags, clearFlags) \
-    static CommonResourceTypes export_common_resource_types(types, flags, clearFlags);
+#define REGISTER_COMMON_RESOURCE_TYPES(group, types, flags, clearFlags) \
+    static CommonResourceTypes export_common_resource_##group(types, flags, clearFlags);
 
 #endif // RESOURCEVIEW_H

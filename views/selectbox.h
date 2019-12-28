@@ -20,7 +20,7 @@ public:
 public:
     void setRect(QRectF const & rect);
 
-    void setVisible(bool scale = false, bool rotate = false);
+    void setVisible(bool select, bool scale = false, bool rotate = false);
 
     int hitTest(QPointF const & pos, QRectF & direction);
 

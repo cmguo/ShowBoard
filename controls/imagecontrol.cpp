@@ -30,22 +30,17 @@ void ImageControl::attached()
         loadFinished(true);
         return;
     }
-    QWeakPointer<int> life(this->life());
-    res_->resource()->getData().then([this, life](QByteArray data) {
-        if (life.isNull())
-            return;
-        QPixmap pixmap;
-        pixmap.loadFromData(data);
-        cachedImages[res_->url()] = pixmap;
-        QGraphicsPixmapItem * item = static_cast<QGraphicsPixmapItem *>(item_);
-        item->setPixmap(pixmap);
-        item->setOffset(pixmap.width() / -2, pixmap.height() / -2);
-        loadFinished(true);
-    }).fail([this, life](std::exception & e) {
-        if (life.isNull())
-            return;
-        loadFinished(false, e.what());
-    });
+    loadData();
+}
+
+void ImageControl::onData(QByteArray data)
+{
+    QPixmap pixmap;
+    pixmap.loadFromData(data);
+    cachedImages[res_->url()] = pixmap;
+    QGraphicsPixmapItem * item = static_cast<QGraphicsPixmapItem *>(item_);
+    item->setPixmap(pixmap);
+    item->setOffset(pixmap.width() / -2, pixmap.height() / -2);
 }
 
 void ImageControl::detached()

@@ -127,6 +127,7 @@ void PptxControl::thumbed(QPixmap pixmap)
         bool first = (flags_ & LoadFinished) == 0;
         if (first) {
             loadFinished(true, QString(":/showboard/icons/play.svg"));
+            stateItem()->setPos(item_->boundingRect().bottomRight() - QPointF(100, 100));
         }
     }
     item_->setCursor(Qt::ArrowCursor);

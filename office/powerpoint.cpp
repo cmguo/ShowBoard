@@ -67,7 +67,7 @@ void PowerPoint::open(QString const & file)
                          this, SLOT(onException(int,QString,QString,QString)));
     }
     if (!presentations_) {
-        emit failed("No PPT Application");
+        emit failed("未检测到PPT放映软件，请下载软件");
         return;
     }
     file_ = file;

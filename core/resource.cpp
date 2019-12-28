@@ -6,6 +6,7 @@
 #include <QNetworkReply>
 #include <QMetaEnum>
 #include <QDir>
+#include <QTextCodec>
 
 QNetworkAccessManager * Resource::network_ = nullptr;
 FileLRUCache Resource::cache_(QDir::current().filePath("rescache"), 1000 * 1024 * 1024); // 1G
@@ -46,8 +47,10 @@ QPromise<QSharedPointer<QIODevice>> Resource::getStream(bool all)
         return QPromise<QSharedPointer<QIODevice>>::resolve(nullptr);
     } else if (url_.scheme() == "" || url_.scheme() == "file") {
         QSharedPointer<QIODevice> file(new QFile(url_.toLocalFile()));
-        file->open(QFile::ReadOnly | QFile::ExistingOnly);
-        return QPromise<QSharedPointer<QIODevice>>::resolve(file);
+        if (file->open(QFile::ReadOnly | QFile::ExistingOnly))
+            return QPromise<QSharedPointer<QIODevice>>::resolve(file);
+        else
+            return QPromise<QSharedPointer<QIODevice>>::reject(std::exception("文件打开失败，请确认文件是否存在"));
     } else {
         QString path = cache_.getFile(url_);
         if (!path.isEmpty()) {
@@ -64,22 +67,19 @@ QPromise<QSharedPointer<QIODevice>> Resource::getStream(bool all)
         return QPromise<QSharedPointer<QIODevice>>([reply, all](
                                          const QPromiseResolve<QSharedPointer<QIODevice>>& resolve,
                                          const QPromiseReject<QSharedPointer<QIODevice>>& reject) {
-            auto readyRead = [=]() {
+            auto readyRead = [reply, resolve]() {
                 resolve(reply);
             };
-            auto finished = [=]() {
+            auto error = [reply, reject](QNetworkReply::NetworkError e) {
+                qDebug() << "Resource NetworkError " << e;
+                reject(std::exception("文件打开失败，请检查网络再试"));
+            };
+            auto finished = [reply, resolve, error]() {
                 if (reply->error()) {
-                    reply->deleteLater();
-                    reject(std::exception(
-                               QMetaEnum::fromType<QNetworkReply::NetworkError>().key(reply->error())));
+                    error(reply->error());
                 } else {
                     resolve(reply);
                 }
-            };
-            auto error = [=](QNetworkReply::NetworkError e) {
-                reply->deleteLater();
-                reject(std::exception(
-                           QMetaEnum::fromType<QNetworkReply::NetworkError>().key(e)));
             };
             if (all)
                 QObject::connect(reply.get(), &QNetworkReply::finished, finished);
@@ -106,9 +106,22 @@ QPromise<QByteArray> Resource::getData()
     }
 }
 
+static QString fromMulticode(QByteArray bytes);
+
 QPromise<QString> Resource::getText()
 {
     return getData().then([](QByteArray data) {
-        return QString(data);
+        return fromMulticode(data);
     });
+}
+
+static QString fromMulticode(QByteArray bytes)
+{
+    QTextCodec::ConverterState state;
+    QTextCodec *codec = QTextCodec::codecForName("UTF-8");
+    QString text = codec->toUnicode(bytes.constData(), bytes.size(), &state);
+    if (state.invalidChars > 0) {
+        text = QTextCodec::codecForName("GBK")->toUnicode(bytes);
+    }
+    return text;
 }

@@ -114,6 +114,8 @@ void ResourcePageItem::insertResource(int layer)
 {
     ResourceView *res = page_->resources()[layer];
     Control * ct = control_manager_->createControl(res);
+    if (ct == nullptr)
+        return;
     ct->attachTo(this);
     if (layer < childItems().size() - 1) {
         ct->item()->stackBefore(childItems()[layer]);

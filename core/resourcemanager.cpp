@@ -56,61 +56,82 @@ void ResourceManager::onComposition()
     }
 }
 
-void ResourceManager::mapResourceType(QString const & from, QString const & to)
-{
-    mapTypes_[from] = to;
-}
-
 static constexpr char DATA_SCHEME_SEP[] = { ';', ',' };
 
-ResourceView * ResourceManager::createResource(QUrl const & uri)
+QString ResourceManager::findType(QUrl const & uri, QString& originType, QLazy *&lazy, QPair<int, int> *&flags)
 {
     std::map<QString, QLazy*>::iterator iter = resources_.end();
-    QString originType = "";
-    QString type = "";
-    if (uri.scheme() == "data")
-    {
+    std::map<QString, QPair<int, int>>::iterator iter2 = commonResources_.end();
+    QString type;
+    if (uri.scheme() == "data") {
         int n = uri.path().indexOf(DATA_SCHEME_SEP);
         originType = uri.path().left(n);
         type = mapTypes_.value(originType, originType);
         iter = resources_.find(type);
-    }
-    else
-    {
+        iter2 = commonResources_.find(type);
+    } else {
         originType = uri.scheme();
         type = mapTypes_.value(originType, originType);
         iter = resources_.find(type);
-        if (iter == resources_.end())
-        {
+        iter2 = commonResources_.find(type);
+        if (iter == resources_.end() && iter2 == commonResources_.end()) {
             int n = uri.path().lastIndexOf('.');
             if (n > 0) {
                 originType = uri.path().mid(n + 1);
                 type = mapTypes_.value(originType, originType);
                 iter = resources_.find(type);
+                iter2 = commonResources_.find(type);
             }
         }
     }
+    if (iter != resources_.end()) {
+        lazy = iter->second;
+    }
+    if (iter2 != commonResources_.end()) {
+        flags = &iter2->second;
+    }
+    return type;
+}
+
+void ResourceManager::mapResourceType(QString const & from, QString const & to)
+{
+    mapTypes_[from] = to;
+}
+
+bool ResourceManager::isExplitSupported(const QUrl &uri)
+{
+    QString originType;
+    QLazy * lazy = nullptr;
+    QPair<int, int>* flags = nullptr;
+    QString type = findType(uri, originType, lazy, flags);
+    return lazy || flags;
+}
+
+ResourceView * ResourceManager::createResource(QUrl const & uri)
+{
+    QString originType;
+    QLazy * lazy = nullptr;
+    QPair<int, int>* flags = nullptr;
+    QString type = findType(uri, originType, lazy, flags);
     ResourceView* rv = nullptr;
-    if (iter == resources_.end()) {
+    if (lazy == nullptr) {
         if (!type.isEmpty()) {
-            std::map<QString, QPair<int, int>>::iterator iter2 = commonResources_.find(type);
-            if (iter2 == commonResources_.end()) {
+            if (flags == nullptr) {
                 rv = new ResourceView(type, uri);
             } else {
                 Resource * res = new Resource(type, uri);
-                rv = new ResourceView(res,
-                                      static_cast<ResourceView::Flags>(iter2->second.first),
-                                      static_cast<ResourceView::Flags>(iter2->second.second));
+                rv = new ResourceView(res, static_cast<ResourceView::Flags>(flags->first),
+                                      static_cast<ResourceView::Flags>(flags->second));
             }
         }
     } else {
-        Resource * res = new Resource(iter->first, uri);
-        char const * rfactory = iter->second->part()->attr(ResourceView::EXPORT_ATTR_FACTORY);
+        Resource * res = new Resource(type, uri);
+        char const * rfactory = lazy->part()->attr(ResourceView::EXPORT_ATTR_FACTORY);
         if (rfactory && strcmp(rfactory, "true") == 0) {
-            ResourceFactory * factory = iter->second->get<ResourceFactory>();
+            ResourceFactory * factory = lazy->get<ResourceFactory>();
             return factory->create(res);
         }
-        rv = iter->second->create<ResourceView>(Q_ARG(Resource*, res));
+        rv = lazy->create<ResourceView>(Q_ARG(Resource*, res));
     }
     if (rv) {
         rv->resource()->setProperty(Resource::PROP_ORIGIN_TYPE, originType);

@@ -28,9 +28,9 @@ StateItem::StateItem(QGraphicsItem * parent)
     textItem_ = textItem;
     if (!cache_) {
         cache_ = SvgCache::instance();
-        loading_ = cache_->get(QString(":/showboard/icons/loading.svg"));
-        failed_ = cache_->get(QString(":/showboard/icons/stop.normal.svg"));
     }
+    loading_ = cache_->get(QString(":/showboard/icons/loading.svg"));
+    failed_ = cache_->get(QString(":/showboard/icons/stop.normal.svg"));
     updateTransform();
 }
 

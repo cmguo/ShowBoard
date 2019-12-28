@@ -64,8 +64,9 @@ void ItemSelector::select(QGraphicsItem *item)
             toolBarTransform_->attachTo(canvasControl->transform());
         toolBar()->setToolButtons(buttons);
         layoutToolbar();
-        selBox_->setVisible(selectControl_->flags() & Control::CanScale,
-                            (selectControl_->flags() & Control::CanRotate));
+        selBox_->setVisible(true,
+                            selectControl_->flags() & Control::CanScale,
+                            selectControl_->flags() & Control::CanRotate);
         toolBar_->show();
         selectControl_->select(true);
         //itemChange(ItemPositionHasChanged, pos());
@@ -91,16 +92,25 @@ void ItemSelector::selectImplied(QGraphicsItem *item)
     toolBar_->hide();
 }
 
+void ItemSelector::updateSelect(QGraphicsItem *item)
+{
+    if (item != select_)
+        return;
+    rect_ = selectControl_->boundRect();
+    selBox_->setRect(rect_);
+    layoutToolbar();
+}
+
+bool ItemSelector::adjusting(QGraphicsItem *item)
+{
+    if (item != select_)
+        return false;
+    return type_ != None;
+}
+
 void ItemSelector::enableFastClone(bool enable)
 {
     fastClone_ = enable;
-}
-
-void ItemSelector::updateSelect()
-{
-    if (!select_)
-        return;
-    selBox_->setRect(selectControl_->boundRect());
 }
 
 void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos)
@@ -154,6 +164,7 @@ void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos)
         if (selectControl_->metaObject() == &WhiteCanvasControl::staticMetaObject)
             start_ = scenePos;
         qDebug() << "select" << type_ << selectControl_->resource()->url();
+        selectControl_->adjusting(true);
     }
 }
 
@@ -219,6 +230,9 @@ void ItemSelector::selectMove(QPointF const & pos, QPointF const & scenePos)
 
 void ItemSelector::selectRelease()
 {
+    if (type_ == None)
+        return;
+    selectControl_->adjusting(false);
     switch (type_) {
     case AgainNoMove:
         select(select_);

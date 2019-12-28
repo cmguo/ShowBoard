@@ -23,6 +23,7 @@ ResourcePage::ResourcePage(ResourceView* mainRes, QObject *parent)
 ResourceView * ResourcePage::addResource(QUrl const & url, QVariantMap const & settings)
 {
     ResourceView * rv = ResourceManager::instance()->createResource(url);
+    if (rv == nullptr) return nullptr;
     for (QString const & k : settings.keys()) {
         rv->setProperty(k.toUtf8(), settings.value(k));
     }

@@ -39,7 +39,7 @@ private:
 
     void setText(QString const & text);
 
-private:
+public:
     virtual QRectF boundingRect() const override;
 
     virtual QPainterPath shape() const override;

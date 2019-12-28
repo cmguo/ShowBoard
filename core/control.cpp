@@ -1,4 +1,5 @@
 #include "control.h"
+#include "resource.h"
 #include "resourceview.h"
 #include "toolbutton.h"
 #include "views/whitecanvas.h"
@@ -77,7 +78,7 @@ void Control::attachTo(QGraphicsItem * parent)
     initPosition();
     relayout();
     attached();
-    if (!(flags_ & LoadFinished)) {
+    if (!(flags_ & LoadFinished) && !stateItem_) {
         stateItem()->setLoading(res_->name());
     }
 }
@@ -151,11 +152,16 @@ void Control::sizeChanged()
     QRectF rect = item_->boundingRect();
     QPointF center(rect.center());
     if (flags_ & LoadFinished) {
-        QTransform t = item_->transform();
-        center = t.map(center);
-        move(center);
-        t.translate(-center.x(), -center.y());
-        item_->setTransform(t);
+        if (flags_ & Adjusting) {
+            item_->setTransform(QTransform::fromTranslate(-center.x(), -center.y()));
+        } else {
+            // keep top left
+            QTransform t = item_->transform();
+            center = t.map(center);
+            move(center);
+            t.translate(-center.x(), -center.y());
+            item_->setTransform(t);
+        }
         if (realItem_ != item_)
             static_cast<ItemFrame *>(realItem_)->updateRect();
     } else {
@@ -164,10 +170,9 @@ void Control::sizeChanged()
     if (stateItem_) {
         stateItem_->updateTransform();
     }
-    WhiteCanvas * canvas = static_cast<WhiteCanvas *>(
-                realItem_->parentItem()->parentItem());
-    if (canvas->selector()->selected() == realItem_)
-        canvas->selector()->updateSelect();
+    ItemSelector * selector = static_cast<WhiteCanvas *>(
+                realItem_->parentItem()->parentItem())->selector();
+    selector->updateSelect(realItem_);
 }
 
 QSizeF Control::sizeHint()
@@ -286,7 +291,7 @@ void Control::loadFinished(bool ok, QString const & iconOrMsg)
         initScale();
         flags_ |= LoadFinished;
     } else {
-        stateItem()->setFailed("加载失败，点击即可重试");
+        stateItem()->setFailed(iconOrMsg.isEmpty() ? "加载失败，点击即可重试" : iconOrMsg);
         QObject::connect(stateItem(), &StateItem::clicked, this, &Control::reload);
     }
 }
@@ -329,9 +334,9 @@ void Control::initScale()
         return;
     }
     if (item_ != realItem_) {
-        QRectF rect(static_cast<ItemFrame *>(realItem_)->padding());
-        ps.setWidth(ps.height() - rect.width());
-        ps.setHeight(ps.height() - rect.height());
+        QRectF padding(static_cast<ItemFrame *>(realItem_)->padding());
+        ps.setWidth(ps.height() - padding.width());
+        ps.setHeight(ps.height() - padding.height());
     }
     qreal scale = 1.0;
     while (size.width() > ps.width() || size.height() > ps.height()) {
@@ -344,9 +349,22 @@ void Control::initScale()
             scale *= 2.0;
         }
     }
-    res_->transform().scaleTo(scale);
+    if (flags_ & LayoutScale) {
+        resize(size);
+    } else {
+        res_->transform().scaleTo(scale);
+    }
     if (realItem_ != item_)
         static_cast<ItemFrame *>(realItem_)->updateRect();
+}
+
+void Control::setSize(const QSizeF &size)
+{
+    if (flags_ & Adjusting) {
+        setProperty("delayResize", size);
+    } else {
+        resize(size);
+    }
 }
 
 void Control::move(QPointF & delta)
@@ -403,8 +421,21 @@ QRectF Control::boundRect() const
 
 void Control::select(bool selected)
 {
+    flags_.setFlag(Selected, selected);
     if (realItem_ != item_)
         static_cast<ItemFrame *>(realItem_)->setSelected(selected);
+}
+
+void Control::adjusting(bool be)
+{
+    flags_.setFlag(Adjusting, be);
+    if (!be) {
+        QVariant delayResize = property("delayResize");
+        if (delayResize.isValid()) {
+            resize(delayResize.toSizeF());
+            setProperty("delayResize", QVariant());
+        }
+    }
 }
 
 ItemFrame * Control::itemFrame()
@@ -420,6 +451,39 @@ ItemFrame * Control::itemFrame()
     return frame;
 }
 
+void Control::loadStream()
+{
+    res_->resource()->getStream().then([this, l = life()] (QSharedPointer<QIODevice> stream) {
+        if (l.isNull()) return;
+        onStream(stream.get());
+        loadFinished(true);
+    }).fail([this, l = life()](std::exception& e) {
+        loadFinished(true, e.what());
+    });
+}
+
+void Control::loadData()
+{
+    res_->resource()->getData().then([this, l = life()] (QByteArray data) {
+        if (l.isNull()) return;
+        onData(data);
+        loadFinished(true);
+    }).fail([this, l = life()](std::exception& e) {
+        loadFinished(true, e.what());
+    });
+}
+
+void Control::loadText()
+{
+    res_->resource()->getText().then([this, l = life()] (QString text) {
+        if (l.isNull()) return;
+        onText(text);
+        loadFinished(true);
+    }).fail([this, l = life()](std::exception& e) {
+        loadFinished(true, e.what());
+    });
+}
+
 void Control::reload()
 {
     QObject::disconnect(stateItem(), &StateItem::clicked, this, &Control::reload);
@@ -427,6 +491,24 @@ void Control::reload()
         stateItem()->setLoading(res_->name());
         attached(); // reload
     }
+}
+
+void Control::onStream(QIODevice *stream)
+{
+    (void) stream;
+    throw std::exception("Not implemets onStream");
+}
+
+void Control::onData(QByteArray data)
+{
+    (void) data;
+    throw std::exception("Not implemets onData");
+}
+
+void Control::onText(QString text)
+{
+    (void) text;
+    throw std::exception("Not implemets onText");
 }
 
 void Control::getToolButtons(QList<ToolButton *> &buttons, const QList<ToolButton *> &parents)
