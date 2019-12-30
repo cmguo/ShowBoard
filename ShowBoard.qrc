@@ -11,5 +11,6 @@
         <file>icons/delete.svg</file>
         <file>icons/edit.svg</file>
         <file>icons/erase.svg</file>
+        <file>qml/WhiteCanvas.qml</file>
     </qresource>
 </RCC>
