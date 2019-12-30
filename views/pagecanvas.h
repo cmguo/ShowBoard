@@ -1,8 +1,9 @@
-#ifndef RESOURCEPAGEITEM_H
-#define RESOURCEPAGEITEM_H
+#ifndef PAGECANVAS_H
+#define PAGECANVAS_H
+
+#include "canvasitem.h"
 
 #include <QObject>
-#include <QGraphicsRectItem>
 
 class ResourceManager;
 class ControlManager;
@@ -10,11 +11,11 @@ class ResourceView;
 class ResourcePage;
 class Control;
 
-class ResourcePageItem : public QObject, public QGraphicsRectItem
+class PageCanvas : public QObject, public CanvasItem
 {
     Q_OBJECT
 public:
-    ResourcePageItem(QGraphicsItem * parent = nullptr);
+    PageCanvas(QGraphicsItem * parent = nullptr);
 
 public:
     void switchPage(ResourcePage * page);
@@ -51,4 +52,4 @@ protected:
     ResourcePage * page_;
 };
 
-#endif // RESOURCEPAGEITEM_H
+#endif // PAGECANVAS_H

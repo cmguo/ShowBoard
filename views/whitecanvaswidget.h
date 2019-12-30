@@ -15,6 +15,8 @@ class SHOWBOARD_EXPORT WhiteCanvasWidget : public QGraphicsView
 public:
     explicit WhiteCanvasWidget(QWidget *parent = nullptr);
 
+    explicit WhiteCanvasWidget(WhiteCanvasWidget* mainView, QWidget *parent = nullptr);
+
     virtual ~WhiteCanvasWidget() override;
 
     static WhiteCanvasWidget * mainInstance();
@@ -39,10 +41,6 @@ private:
 private:
     QGraphicsScene * scene_;
     WhiteCanvas * canvas_;
-
-private:
-    QPointF start_;
-    bool started_;
 };
 
 #endif // WHITECANVASWIDGET_H

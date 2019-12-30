@@ -1,12 +1,12 @@
-#ifndef TOOLBOXITEM_H
-#define TOOLBOXITEM_H
+#ifndef TOOLCANVAS_H
+#define TOOLCANVAS_H
 
-#include "resourcepageitem.h"
+#include "pagecanvas.h"
 
-class ToolBoxItem : public ResourcePageItem
+class ToolCanvas : public PageCanvas
 {
 public:
-    ToolBoxItem(QGraphicsItem * parent = nullptr);
+    ToolCanvas(QGraphicsItem * parent = nullptr);
 
 public:
     void showToolControl(QString const & type);
@@ -26,4 +26,4 @@ private:
     QGraphicsItem * shown_;
 };
 
-#endif // TOOLBOXITEM_H
+#endif // TOOLCANVAS_H

@@ -19,7 +19,6 @@ WhiteCanvasWidget * WhiteCanvasWidget::mainInstance()
 
 WhiteCanvasWidget::WhiteCanvasWidget(QWidget *parent)
     : QGraphicsView(parent)
-    , started_(false)
 {
     QRectF rect(QApplication::primaryScreen()->geometry());
     qDebug() << "scene rect " << rect;
@@ -41,6 +40,18 @@ WhiteCanvasWidget::WhiteCanvasWidget(QWidget *parent)
     //setDragMode(QGraphicsView::ScrollHandDrag);
 
     mainInstance_ = this;
+}
+
+WhiteCanvasWidget::WhiteCanvasWidget(WhiteCanvasWidget *mainView, QWidget *parent)
+    : QGraphicsView(mainView->scene_, parent)
+    , scene_(mainView->scene_)
+    , canvas_(mainView->canvas_)
+{
+    setStyleSheet("border: 0px;");
+    setRenderHint(QPainter::Antialiasing);
+    setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 }
 
 WhiteCanvasWidget::~WhiteCanvasWidget()

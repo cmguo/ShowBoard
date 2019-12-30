@@ -3,7 +3,7 @@
 
 #include "ShowBoard_global.h"
 
-#include <QGraphicsRectItem>
+#include "canvasitem.h"
 
 class Control;
 class SelectBox;
@@ -12,7 +12,7 @@ class ToolbarWidget;
 class ControlTransform;
 class QTouchEvent;
 
-class SHOWBOARD_EXPORT ItemSelector : public QGraphicsRectItem
+class SHOWBOARD_EXPORT ItemSelector : public CanvasItem
 {
 public:
     ItemSelector(QGraphicsItem * parent = nullptr);

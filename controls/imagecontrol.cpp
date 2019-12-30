@@ -9,7 +9,7 @@
 static QMap<QUrl, QPixmap> cachedImages;
 
 ImageControl::ImageControl(ResourceView * res)
-    : Control(res, {KeepAspectRatio})
+    : Control(res, {KeepAspectRatio, FullSelect})
 {
 }
 

@@ -1,22 +1,22 @@
-#include "toolboxitem.h"
+#include "toolcanvas.h"
 #include "core/resourcepage.h"
 #include "core/control.h"
 
 #include <QUrl>
 
-ToolBoxItem::ToolBoxItem(QGraphicsItem * parent)
-    : ResourcePageItem(parent)
+ToolCanvas::ToolCanvas(QGraphicsItem * parent)
+    : PageCanvas(parent)
     , shown_(nullptr)
 {
     switchPage(new ResourcePage);
 }
 
-void ToolBoxItem::showToolControl(const QString &type)
+void ToolCanvas::showToolControl(const QString &type)
 {
     showItem(getToolControl(type)->item());
 }
 
-void ToolBoxItem::hideToolControl(const QString &type)
+void ToolCanvas::hideToolControl(const QString &type)
 {
     QUrl url(type + ":");
     Control * ct = findControl(url);
@@ -24,7 +24,7 @@ void ToolBoxItem::hideToolControl(const QString &type)
         hideItem(ct->item());
 }
 
-Control * ToolBoxItem::getToolControl(const QString &type)
+Control * ToolCanvas::getToolControl(const QString &type)
 {
     QUrl url(type + ":");
     ResourceView * res = page_->findResource(url);
@@ -34,7 +34,7 @@ Control * ToolBoxItem::getToolControl(const QString &type)
     return findControl(res);
 }
 
-void ToolBoxItem::showItem(QGraphicsItem *item)
+void ToolCanvas::showItem(QGraphicsItem *item)
 {
     if (item == shown_)
         return;
@@ -45,7 +45,7 @@ void ToolBoxItem::showItem(QGraphicsItem *item)
         shown_->show();
 }
 
-void ToolBoxItem::hideItem(QGraphicsItem *item)
+void ToolCanvas::hideItem(QGraphicsItem *item)
 {
     if (item == shown_) {
         shown_->hide();
@@ -53,7 +53,7 @@ void ToolBoxItem::hideItem(QGraphicsItem *item)
     }
 }
 
-QVariant ToolBoxItem::itemChange(QGraphicsItem::GraphicsItemChange change,
+QVariant ToolCanvas::itemChange(QGraphicsItem::GraphicsItemChange change,
                                          const QVariant &value)
 {
     if (change == QGraphicsItem::ItemChildAddedChange) {

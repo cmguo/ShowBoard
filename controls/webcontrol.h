@@ -28,6 +28,8 @@ private slots:
     void contentsSizeChanged(const QSizeF &size);
 
     void reload();
+
+    void full();
 };
 
 #endif // WEBCONTROL_H

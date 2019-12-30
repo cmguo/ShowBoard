@@ -2,16 +2,16 @@
 #define WHITECANVAS_H
 
 #include "ShowBoard_global.h"
+#include "canvasitem.h"
 
 #include <QObject>
-#include <QGraphicsRectItem>
 
 class ResourceView;
 class ResourcePage;
 class ResourcePackage;
 class Control;
-class ResourcePageItem;
-class ToolBoxItem;
+class PageCanvas;
+class ToolCanvas;
 class ItemSelector;
 
 class ToolButton;
@@ -23,7 +23,7 @@ class ToolButton;
  *   SelectBox is one of them.
  */
 
-class SHOWBOARD_EXPORT WhiteCanvas : public QObject, public QGraphicsRectItem
+class SHOWBOARD_EXPORT WhiteCanvas : public QObject, public CanvasItem
 {
     Q_OBJECT
 public:
@@ -114,9 +114,9 @@ private:
 */
 private:
     ResourcePackage * package_;
-    ResourcePageItem * globalCanvas_;
-    ResourcePageItem * canvas_;
-    ToolBoxItem * tools_;
+    PageCanvas * globalCanvas_;
+    PageCanvas * canvas_;
+    ToolCanvas * tools_;
     ItemSelector * selector_;
 };
 

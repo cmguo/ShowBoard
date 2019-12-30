@@ -1,7 +1,7 @@
 #include "whitecanvas.h"
 
-#include "resourcepageitem.h"
-#include "toolboxitem.h"
+#include "pagecanvas.h"
+#include "toolcanvas.h"
 #include "itemselector.h"
 #include "core/control.h"
 #include "core/resourceview.h"
@@ -21,14 +21,13 @@ WhiteCanvas::WhiteCanvas(QObject * parent)
 {
     setAcceptedMouseButtons(Qt::LeftButton);
     //setFlags(ItemIsMovable);
-    setPen(QPen(Qt::NoPen));
     //setBrush(QBrush(Qt::green));
     //addToGroup(new ItemSelector());
-    canvas_ = new ResourcePageItem(this);
+    canvas_ = new PageCanvas(this);
     canvas_->setRect(rect());
-    globalCanvas_ = new ResourcePageItem(this);
+    globalCanvas_ = new PageCanvas(this);
     globalCanvas_->setRect(rect());
-    tools_ = new ToolBoxItem(this);
+    tools_ = new ToolCanvas(this);
     tools_->setRect(rect());
     selector_ = new ItemSelector(this);
     selector_->setRect(rect());
@@ -78,7 +77,7 @@ bool WhiteCanvas::sceneEvent(QEvent *event)
     case QEvent::TouchEnd:
         break;
     default:
-        return QGraphicsRectItem::sceneEvent(event);
+        return CanvasItem::sceneEvent(event);
     }
     return event->isAccepted();
 }

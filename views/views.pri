@@ -1,21 +1,25 @@
 HEADERS += \
+    $$PWD/canvasitem.h \
     $$PWD/itemframe.h \
     $$PWD/itemselector.h \
-    $$PWD/resourcepageitem.h \
+    $$PWD/pagecanvas.h \
+    $$PWD/quickwidgetitem.h \
     $$PWD/selectbox.h \
     $$PWD/stateitem.h \
     $$PWD/toolbarwidget.h \
-    $$PWD/toolboxitem.h \
+    $$PWD/toolcanvas.h \
     $$PWD/whitecanvas.h \
     $$PWD/whitecanvaswidget.h
 
 SOURCES += \
+    $$PWD/canvasitem.cpp \
     $$PWD/itemframe.cpp \
     $$PWD/itemselector.cpp \
-    $$PWD/resourcepageitem.cpp \
+    $$PWD/pagecanvas.cpp \
+    $$PWD/quickwidgetitem.cpp \
     $$PWD/selectbox.cpp \
     $$PWD/stateitem.cpp \
     $$PWD/toolbarwidget.cpp \
-    $$PWD/toolboxitem.cpp \
+    $$PWD/toolcanvas.cpp \
     $$PWD/whitecanvas.cpp \
     $$PWD/whitecanvaswidget.cpp

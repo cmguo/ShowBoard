@@ -14,7 +14,7 @@
 #include <QGraphicsProxyWidget>
 
 ItemSelector::ItemSelector(QGraphicsItem * parent)
-    : QGraphicsRectItem(parent)
+    : CanvasItem(parent)
     , force_(false)
     , autoTop_(false)
     , hideMenu_(false)
@@ -26,7 +26,6 @@ ItemSelector::ItemSelector(QGraphicsItem * parent)
     , cloneControl_(nullptr)
     , type_(None)
 {
-    setPen(QPen(Qt::NoPen));
     setAcceptedMouseButtons(Qt::LeftButton);
     setAcceptTouchEvents(true);
 
@@ -314,7 +313,7 @@ void ItemSelector::mousePressEvent(QGraphicsSceneMouseEvent *event)
     }
     selectAt(event->pos(), event->scenePos());
     if (type_ == None) {
-        QGraphicsRectItem::mousePressEvent(event);
+        CanvasItem::mousePressEvent(event);
     }
 }
 
@@ -325,7 +324,7 @@ void ItemSelector::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         return;
     }
     if (type_ == None) {
-        QGraphicsRectItem::mouseMoveEvent(event);
+        CanvasItem::mouseMoveEvent(event);
         return;
     }
     selectMove(event->pos(), event->scenePos());
@@ -338,7 +337,7 @@ void ItemSelector::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
         return;
     }
     if (type_ == None) {
-        QGraphicsRectItem::mouseReleaseEvent(event);
+        CanvasItem::mouseReleaseEvent(event);
         return;
     }
     qDebug() << "mouseRelease";
@@ -412,7 +411,7 @@ bool ItemSelector::sceneEvent(QEvent *event)
         touchEnd(static_cast<QTouchEvent*>(event));
         break;
     default:
-        return QGraphicsRectItem::sceneEvent(event);
+        return CanvasItem::sceneEvent(event);
     }
     return event->isAccepted();
 }

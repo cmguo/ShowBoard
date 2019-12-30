@@ -360,10 +360,12 @@ void Control::initScale()
 
 void Control::setSize(const QSizeF &size)
 {
+    QSizeF size2(size);
+    adjustSizeHint(size2, realItem_->parentItem()->boundingRect().size());
     if (flags_ & Adjusting) {
-        setProperty("delayResize", size);
+        setProperty("delayResize", size2);
     } else {
-        resize(size);
+        resize(size2);
     }
 }
 

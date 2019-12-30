@@ -9,7 +9,8 @@
 #include <QGraphicsItem>
 
 static char const * toolstr =
-        "reload()|刷新|:/showboard/icons/icon_refresh.png;";
+        "reload()|刷新|:/showboard/icons/icon_refresh.png;"
+        "full()|全屏|:/showboard/icons/icon_refresh.png;";
 
 class TouchEventForwarder : public QObject
 {
@@ -64,7 +65,7 @@ private:
 
 
 WebControl::WebControl(ResourceView * res)
-    : WidgetControl(res, {WithSelectBar, ExpandScale, LayoutScale})
+    : WidgetControl(res, {WithSelectBar, ExpandScale, LayoutScale, PositionAtCenter})
 {
     static bool init = false;
     if (!init) {
@@ -135,4 +136,9 @@ void WebControl::reload()
 {
     QWebEngineView * view = qobject_cast<QWebEngineView *>(widget_);
     view->reload();
+}
+
+void WebControl::full()
+{
+    setSize({1.0, 1.0});
 }

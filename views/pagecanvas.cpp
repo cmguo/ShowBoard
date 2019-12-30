@@ -1,4 +1,4 @@
-#include "resourcepageitem.h"
+#include "pagecanvas.h"
 #include "core/resourcepage.h"
 #include "core/resourcemanager.h"
 #include "core/controlmanager.h"
@@ -7,16 +7,15 @@
 
 #include <QGraphicsScene>
 
-ResourcePageItem::ResourcePageItem(QGraphicsItem * parent)
-    : QGraphicsRectItem(parent)
+PageCanvas::PageCanvas(QGraphicsItem * parent)
+    : CanvasItem(parent)
     , page_(nullptr)
 {
     resource_manager_ = ResourceManager::instance();
     control_manager_ = ControlManager::instance();
-    setPen(QPen(Qt::NoPen));
 }
 
-void ResourcePageItem::switchPage(ResourcePage * page)
+void PageCanvas::switchPage(ResourcePage * page)
 {
     if (page_ != nullptr) {
         page_->disconnect(this);
@@ -37,15 +36,15 @@ void ResourcePageItem::switchPage(ResourcePage * page)
         for (int i = 0; i < page_->resources().size(); ++i)
             insertResource(i);
         QObject::connect(page_, &ResourcePage::rowsInserted,
-                         this, &ResourcePageItem::resourceInserted);
+                         this, &PageCanvas::resourceInserted);
         QObject::connect(page_, &ResourcePage::rowsRemoved,
-                         this, &ResourcePageItem::resourceRemoved);
+                         this, &PageCanvas::resourceRemoved);
         QObject::connect(page_, &ResourcePage::rowsMoved,
-                         this, &ResourcePageItem::resourceMoved);
+                         this, &PageCanvas::resourceMoved);
     }
 }
 
-void ResourcePageItem::setGeometry(QRectF const & rect)
+void PageCanvas::setGeometry(QRectF const & rect)
 {
     setRect(rect);
     for (QGraphicsItem * item : childItems()) {
@@ -54,7 +53,7 @@ void ResourcePageItem::setGeometry(QRectF const & rect)
     }
 }
 
-Control * ResourcePageItem::findControl(ResourceView * res)
+Control * PageCanvas::findControl(ResourceView * res)
 {
     int index = page_->resources().indexOf(res);
     if (index < 0)
@@ -63,12 +62,12 @@ Control * ResourcePageItem::findControl(ResourceView * res)
     return Control::fromItem(item);
 }
 
-Control * ResourcePageItem::findControl(QUrl const & url)
+Control * PageCanvas::findControl(QUrl const & url)
 {
     return findControl(page_->findResource(url));
 }
 
-void ResourcePageItem::resourceInserted(QModelIndex const &parent, int first, int last)
+void PageCanvas::resourceInserted(QModelIndex const &parent, int first, int last)
 {
     (void) parent;
     (void) last;
@@ -78,7 +77,7 @@ void ResourcePageItem::resourceInserted(QModelIndex const &parent, int first, in
     }
 }
 
-void ResourcePageItem::resourceRemoved(QModelIndex const &parent, int first, int last)
+void PageCanvas::resourceRemoved(QModelIndex const &parent, int first, int last)
 {
     (void) parent;
     while (first <= last) {
@@ -87,7 +86,7 @@ void ResourcePageItem::resourceRemoved(QModelIndex const &parent, int first, int
     }
 }
 
-void ResourcePageItem::resourceMoved(QModelIndex const &parent, int start, int end,
+void PageCanvas::resourceMoved(QModelIndex const &parent, int start, int end,
                                 QModelIndex const &destination, int row)
 {
     (void) parent;
@@ -110,7 +109,7 @@ void ResourcePageItem::resourceMoved(QModelIndex const &parent, int start, int e
     }
 }
 
-void ResourcePageItem::insertResource(int layer)
+void PageCanvas::insertResource(int layer)
 {
     ResourceView *res = page_->resources()[layer];
     Control * ct = control_manager_->createControl(res);
@@ -122,7 +121,7 @@ void ResourcePageItem::insertResource(int layer)
     }
 }
 
-void ResourcePageItem::removeResource(int layer)
+void PageCanvas::removeResource(int layer)
 {
     QGraphicsItem * item = childItems()[layer];
     Control * ct = Control::fromItem(item);
