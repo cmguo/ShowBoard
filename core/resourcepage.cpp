@@ -41,9 +41,13 @@ ResourceView * ResourcePage::addResourceOrBringTop(QUrl const & url, QVariantMap
     if (rv) {
         moveResourceBack(rv);
         return rv;
-    } else {
-        return addResource(url, settings);
     }
+    ResourcePage * page = qobject_cast<ResourcePackage*>(parent())->findVirtualPage(url);
+    if (page) {
+        qobject_cast<ResourcePackage*>(parent())->showVirtualPage(page, true);
+        return page->resources().first();
+    }
+    return addResource(url, settings);
 }
 
 ResourceView * ResourcePage::findResource(QUrl const & url)

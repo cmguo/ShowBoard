@@ -31,6 +31,10 @@ public:
     static ToolButton SPLITER;
     static ToolButton LINE_BREAK;
 
+    static constexpr char const * ACTION_PROPERTY = "toolaction";
+
+    typedef std::function<void()> action_t;
+
 public:
     QString name;
     QString title;
@@ -45,5 +49,6 @@ public:
 };
 
 Q_DECLARE_METATYPE(ToolButton)
+Q_DECLARE_METATYPE(ToolButton::action_t)
 
 #endif // TOOLBUTTON_H

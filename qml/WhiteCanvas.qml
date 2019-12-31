@@ -6,10 +6,10 @@ Rectangle {
     children: {
         whiteCanvas
     }
-    onParentChanged: {
-        whiteCanvas.x = 0;
-        whiteCanvas.y = 0;
-        whiteCanvas.width = width;
+    onWidthChanged: {
+        whiteCanvas.width = width
+    }
+    onHeightChanged: {
         whiteCanvas.height = height;
     }
 }

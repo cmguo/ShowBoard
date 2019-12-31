@@ -21,16 +21,18 @@ QuickWidgetItem::~QuickWidgetItem()
     qDebug() << "QuickWidgetItem desctruct";
 }
 
-void QuickWidgetItem::geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry)
+void QuickWidgetItem::onActiveChanged(bool active)
 {
-    if (!newGeometry.isEmpty())
-        updateMask();
+    for (QWidget* w : widgets_) {
+        w->setVisible(active);
+    }
 }
 
-void QuickWidgetItem::windowDeactivateEvent()
+void QuickWidgetItem::geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry)
 {
-    qDebug() << "QuickWidgetItem windowDeactivateEvent";
-    updateMask();
+    qDebug() << "QuickWidgetItem geometryChanged" << newGeometry;
+    if (!newGeometry.isEmpty())
+        updateMask();
 }
 
 void QuickWidgetItem::itemChange(QQuickItem::ItemChange change, const QQuickItem::ItemChangeData & value)
@@ -50,10 +52,12 @@ void QuickWidgetItem::updateMask()
 {
     QRect rect = quickwidget_->rect();
     QRegion mask(rect);
+    bool active = false;
     if (window() && isVisible()) {
         QRect rect2 = mapRectToScene(boundingRect()).toRect();
         mask = QRegion(rect) - QRegion(rect2);
         rect = rect2;
+        active = true;
     }
     qDebug() << "QuickWidgetItem" << mask;
     quickwidget_->setMask(mask);
@@ -64,5 +68,9 @@ void QuickWidgetItem::updateMask()
     for (QWidget* w : widgets_) {
         w->resize(sz);
         w->move(pt);
+    }
+    if (active != active_) {
+        active_ = active;
+        onActiveChanged(active_);
     }
 }

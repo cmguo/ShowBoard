@@ -19,10 +19,11 @@ public:
 
     virtual ~QuickWidgetItem() override;
 
+protected:
+    virtual void onActiveChanged(bool active);
+
 private:
     virtual void geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry) override;
-
-    virtual void windowDeactivateEvent() override;
 
     virtual void itemChange(ItemChange change, const ItemChangeData & value) override;
 
@@ -32,6 +33,7 @@ private:
 private:
     QList<QWidget*> widgets_;
     QQuickWidget* quickwidget_;
+    bool active_ = false;
 };
 
 #endif // QUICKWIDGETITEM_H

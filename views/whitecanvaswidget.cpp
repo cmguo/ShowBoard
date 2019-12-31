@@ -65,14 +65,13 @@ WhiteCanvasWidget::~WhiteCanvasWidget()
 
 void WhiteCanvasWidget::resizeEvent(QResizeEvent *event)
 {
-    qDebug() << "view size " << event->size();
+    qDebug() << "WhiteCanvasWidget resizeEvent" << event->size();
     QRectF rect(QPointF(0, 0), QSizeF(event->size()));
     rect.moveCenter({0, 0});
     //scene_->setSceneRect(rect);
     //canvas_->setGeometry(rect);
     QSize ns = event->size();
-    QTransform t = transform();
-    scale(ns.width() / scene_->width() / t.m11(), ns.height() / scene_->height() / t.m22());
+    setTransform(QTransform::fromScale(ns.width() / scene_->width(), ns.height() / scene_->height()));
     QGraphicsView::resizeEvent(event);
 }
 

@@ -88,6 +88,8 @@ private:
 
     void updateProvider();
 
+    void buttonClicked(QWidget * btn);
+
     QPointF popupPosition(QPushButton * btn, QGraphicsProxyWidget * popup);
 
 private:

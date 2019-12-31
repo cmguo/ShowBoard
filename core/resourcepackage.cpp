@@ -72,12 +72,13 @@ void ResourcePackage::showVirtualPage(ResourcePage *page, bool show)
     if (idx1 < 0 && idx2 < 0)
         return;
     if (show) {
-        if (idx1 == visiblePages_.size() - 1)
-            return;
-        if (idx1 >= 0)
+        if (idx1 >= 0) {
+            if (idx1 == visiblePages_.size() - 1)
+                return;
             visiblePages_.removeAt(idx1);
-        if (idx2 >= 0)
+        } else {
             hiddenPages_.removeAt(idx2);
+        }
         visiblePages_.push_back(page);
         emit currentPageChanged(page);
     } else {

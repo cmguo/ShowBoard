@@ -9,6 +9,7 @@ HEADERS += \
     $$PWD/toolbarwidget.h \
     $$PWD/toolcanvas.h \
     $$PWD/whitecanvas.h \
+    $$PWD/whitecanvasquick.h \
     $$PWD/whitecanvaswidget.h
 
 SOURCES += \
@@ -22,4 +23,5 @@ SOURCES += \
     $$PWD/toolbarwidget.cpp \
     $$PWD/toolcanvas.cpp \
     $$PWD/whitecanvas.cpp \
+    $$PWD/whitecanvasquick.cpp \
     $$PWD/whitecanvaswidget.cpp
