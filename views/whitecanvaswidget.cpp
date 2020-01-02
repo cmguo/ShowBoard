@@ -19,9 +19,9 @@ WhiteCanvasWidget * WhiteCanvasWidget::mainInstance()
 
 WhiteCanvasWidget::WhiteCanvasWidget(QWidget *parent)
     : QGraphicsView(parent)
+    , sceneSize_(QApplication::primaryScreen()->geometry().size())
 {
-    QRectF rect(QApplication::primaryScreen()->geometry());
-    qDebug() << "scene rect " << rect;
+    QRectF rect(QPointF(0, 0), sceneSize_);
     rect.moveCenter({0, 0});
     scene_ = new QGraphicsScene(rect);
     scene_->setBackgroundBrush(QBrush());
@@ -66,13 +66,8 @@ WhiteCanvasWidget::~WhiteCanvasWidget()
 void WhiteCanvasWidget::resizeEvent(QResizeEvent *event)
 {
     qDebug() << "WhiteCanvasWidget resizeEvent" << event->size();
-    QRectF rect(QPointF(0, 0), QSizeF(event->size()));
-    rect.moveCenter({0, 0});
-    //scene_->setSceneRect(rect);
-    //canvas_->setGeometry(rect);
-    QSize ns = event->size();
-    setTransform(QTransform::fromScale(ns.width() / scene_->width(), ns.height() / scene_->height()));
     QGraphicsView::resizeEvent(event);
+    onPageChanged(canvas_->package() ? canvas_->package()->currentPage() : nullptr);
 }
 
 void WhiteCanvasWidget::showEvent(QShowEvent *event)
@@ -90,6 +85,21 @@ bool WhiteCanvasWidget::eventFilter(QObject *watched, QEvent *event)
     return false;
 }
 
+void WhiteCanvasWidget::onPageChanged(ResourcePage *page)
+{
+    if (page && page->canvasView()) { // large canvas
+        QRectF rect(QPointF(0, 0), size());
+        rect.moveCenter({0, 0});
+        scene_->setSceneRect(rect);
+        setTransform(QTransform());
+    } else {
+        QRectF rect(QPointF(0, 0), sceneSize_);
+        rect.moveCenter({0, 0});
+        scene_->setSceneRect(rect);
+        setTransform(QTransform::fromScale(width() / scene_->width(), height() / scene_->height()));
+    }
+}
+
 
 ResourcePackage * WhiteCanvasWidget::package()
 {
@@ -98,5 +108,16 @@ ResourcePackage * WhiteCanvasWidget::package()
 
 void WhiteCanvasWidget::setResourcePackage(ResourcePackage * pack)
 {
+    ResourcePackage* old = canvas_->package();
+    canvas_->setResourcePackage(nullptr);
+    if (old) {
+        QObject::disconnect(old, &ResourcePackage::currentPageChanged, this, &WhiteCanvasWidget::onPageChanged);
+        onPageChanged(nullptr);
+    }
+    if (pack) {
+        // handle before whitecanvas, whitecanvas depends on sceneRect
+        QObject::connect(pack, &ResourcePackage::currentPageChanged, this, &WhiteCanvasWidget::onPageChanged);
+        onPageChanged(pack->currentPage());
+    }
     canvas_->setResourcePackage(pack);
 }

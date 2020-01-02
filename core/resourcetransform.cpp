@@ -296,7 +296,7 @@ void ResourceTransform::gesture(const QPointF &from1, const QPointF &from2, QPoi
 void ResourceTransform::keepOuterOf(QRectF const &border, QRectF &self)
 {
     QRectF crect = transform_.map(self).boundingRect();
-    qDebug() << "before" << border << crect << transform_;
+    //qDebug() << "before" << border << crect << transform_;
     if (border.width() > crect.width() || border.height() > crect.height()) {
         qreal s = qMax(border.width() / crect.width(), border.height() / crect.height());
         scale_.scale(s, s);
@@ -321,7 +321,7 @@ void ResourceTransform::keepOuterOf(QRectF const &border, QRectF &self)
             qDebug() << "warning!!!!!!!!!!!" << d;
         }
     }
-    qDebug() << "after" << border << crect << transform_;
+    //qDebug() << "after" << border << crect << transform_;
     self = crect;
 }
 

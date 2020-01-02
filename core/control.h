@@ -172,6 +172,8 @@ protected:
      */
     virtual void resize(QSizeF const & size);
 
+    virtual void sizeChanged();
+
     /*
      * called before item is attached to canvas
      * override this to do more preparing work
@@ -224,8 +226,6 @@ protected:
      * called by child, delay changed when adjusting
      */
     void setSize(QSizeF const & size);
-
-    void sizeChanged();
 
 protected:
     QSizeF sizeHint();

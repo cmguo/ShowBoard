@@ -100,6 +100,7 @@ void Control::relayout()
 {
     if (flags_ & FullLayout) {
         resize(realItem_->parentItem()->boundingRect().size());
+        sizeChanged();
     } else {
 
     }
@@ -207,7 +208,6 @@ void Control::setSizeHint(QSizeF const & size)
 void Control::resize(QSizeF const & size)
 {
     (void) size;
-    sizeChanged();
 }
 
 static constexpr qreal CROSS_LENGTH = 20;
@@ -318,19 +318,7 @@ void Control::initScale()
             return;
         }
     }
-    /*
-    if (flags_ & RestoreSession) {
-        QVariant sizeHint = res_->property("sizeHint");
-        if (sizeHint.isValid()) {
-            QSizeF sh = sizeHint.toSizeF();
-            if (sh.width() < 10.0 || sh.height() < 10.0) {
-                adjustSizeHint(sh, ps);
-            }
-            resize(sh);
-        }
-        return;
-    }*/
-    if (flags_ & (FullLayout | LoadFinished)) {
+    if (flags_ & (FullLayout | LoadFinished | RestoreSession)) {
         return;
     }
     if (item_ != realItem_) {
@@ -351,6 +339,7 @@ void Control::initScale()
     }
     if (flags_ & LayoutScale) {
         resize(size);
+        sizeChanged();
     } else {
         res_->transform().scaleTo(scale);
     }
@@ -366,6 +355,7 @@ void Control::setSize(const QSizeF &size)
         setProperty("delayResize", size2);
     } else {
         resize(size2);
+        sizeChanged();
     }
 }
 
@@ -389,6 +379,7 @@ bool Control::scale(QRectF &rect, const QRectF &direction, QPointF &delta)
     }
     if (flags_ & LayoutScale) {
         resize(origin.size());
+        sizeChanged();
     }
     return true;
 }
@@ -434,8 +425,9 @@ void Control::adjusting(bool be)
     if (!be) {
         QVariant delayResize = property("delayResize");
         if (delayResize.isValid()) {
-            resize(delayResize.toSizeF());
             setProperty("delayResize", QVariant());
+            resize(delayResize.toSizeF());
+            sizeChanged();
         }
     }
 }

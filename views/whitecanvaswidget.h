@@ -8,6 +8,7 @@
 class QGraphicsScene;
 class WhiteCanvas;
 class ResourcePackage;
+class ResourcePage;
 
 class SHOWBOARD_EXPORT WhiteCanvasWidget : public QGraphicsView
 {
@@ -29,6 +30,8 @@ public:
 
     ResourcePackage * package();
 
+    void setSceneSize(QSizeF size);
+
     void setResourcePackage(ResourcePackage * pack);
 
 private:
@@ -39,8 +42,12 @@ private:
     virtual bool eventFilter(QObject *watched, QEvent *event) override;
 
 private:
+    void onPageChanged(ResourcePage* page);
+
+private:
     QGraphicsScene * scene_;
     WhiteCanvas * canvas_;
+    QSizeF sceneSize_;
 };
 
 #endif // WHITECANVASWIDGET_H
