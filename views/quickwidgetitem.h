@@ -22,6 +22,8 @@ public:
 protected:
     virtual void onActiveChanged(bool active);
 
+    bool isActive() const { return active_; }
+
 private:
     virtual void geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry) override;
 
@@ -29,6 +31,10 @@ private:
 
 private:
     void updateMask();
+
+    void addOverlayItemRegion(QRegion & region);
+
+    static void addOverlayItemRegion(QRegion & region, QQuickItem* item);
 
 private:
     QList<QWidget*> widgets_;

@@ -3,18 +3,34 @@
 #include "core/resourcepackage.h"
 #include "core/resourcepage.h"
 
-WhiteCanvasQuick::WhiteCanvasQuick(WhiteCanvasWidget *canvas, QQuickWidget *quickwidget, const QUrl &url)
+#include <QDebug>
+
+WhiteCanvasQuick::WhiteCanvasQuick(WhiteCanvasWidget *canvas, QQuickWidget *quickwidget)
     : QuickWidgetItem(canvas, quickwidget)
     , canvas_(canvas)
-    , mainUrl_(url)
 {
+}
+
+void WhiteCanvasQuick::setUrl(const QUrl &url)
+{
+    if (mainUrl_ == url)
+        return;
+    if (isActive())
+        onActiveChanged(false);
+    mainUrl_ = url;
+    if (isActive())
+        onActiveChanged(true);
 }
 
 void WhiteCanvasQuick::onActiveChanged(bool active)
 {
+    qDebug() << "WhiteCanvasQuick onActiveChanged" << active;
+    if (mainUrl_.isEmpty())
+        return;
     if (active) {
         canvas_->package()->currentPage()->addResourceOrBringTop(mainUrl_);
     } else {
-        canvas_->package()->showVirtualPage(canvas_->package()->findVirtualPage(mainUrl_), false);
+        if (canvas_->package())
+            canvas_->package()->showVirtualPage(canvas_->package()->findVirtualPage(mainUrl_), false);
     }
 }
