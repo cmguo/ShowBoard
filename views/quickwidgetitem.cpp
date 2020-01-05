@@ -30,9 +30,9 @@ void QuickWidgetItem::onActiveChanged(bool active)
 
 void QuickWidgetItem::geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry)
 {
+    (void) oldGeometry;
     qDebug() << "QuickWidgetItem geometryChanged" << newGeometry;
-    if (!newGeometry.isEmpty())
-        updateMask();
+    updateState();
 }
 
 void QuickWidgetItem::itemChange(QQuickItem::ItemChange change, const QQuickItem::ItemChangeData & value)
@@ -40,14 +40,13 @@ void QuickWidgetItem::itemChange(QQuickItem::ItemChange change, const QQuickItem
     qDebug() << "QuickWidgetItem itemChange" << change;
     (void) value;
     if (change == ItemSceneChange) {
-        if (window())
-            updateMask();
+        updateState();
     } else if (change == ItemVisibleHasChanged) {
-        updateMask();
+        updateState();
     }
 }
 
-void QuickWidgetItem::updateMask()
+void QuickWidgetItem::updateState()
 {
     QRect rect = quickwidget_->rect();
     if (rect.isEmpty())
@@ -62,6 +61,9 @@ void QuickWidgetItem::updateMask()
         addOverlayItemRegion(mask);
         rect = rect3;
         active = true;
+        quickwidget_->property("activeWidgetItem");
+    } else if (!active_) {
+        return;
     }
     qDebug() << "QuickWidgetItem setMask" << mask;
     quickwidget_->setMask(mask);
@@ -69,7 +71,22 @@ void QuickWidgetItem::updateMask()
     for (QWidget* w : widgets_) {
         w->setGeometry(rect);
     }
+    setActive(active);
+}
+
+void QuickWidgetItem::setActive(bool active)
+{
     if (active != active_) {
+        QVariant activeItem = quickwidget_->property("activeWidgetItem");
+        if (!active_) {
+            if (activeItem.isValid()) {
+                qvariant_cast<QuickWidgetItem*>(activeItem)->setActive(false);
+            }
+            activeItem.setValue(this);
+        } else if (qvariant_cast<QuickWidgetItem*>(activeItem) == this) {
+            activeItem.clear();
+        }
+        quickwidget_->setProperty("activeWidgetItem", activeItem);
         active_ = active;
         onActiveChanged(active_);
     }

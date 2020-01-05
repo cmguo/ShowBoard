@@ -19,6 +19,9 @@ public:
 
     virtual ~QuickWidgetItem() override;
 
+public slots:
+    void updateState();
+
 protected:
     virtual void onActiveChanged(bool active);
 
@@ -30,7 +33,7 @@ private:
     virtual void itemChange(ItemChange change, const ItemChangeData & value) override;
 
 private:
-    void updateMask();
+    void setActive(bool active);
 
     void addOverlayItemRegion(QRegion & region);
 
