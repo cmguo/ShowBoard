@@ -6,6 +6,11 @@ Rectangle {
     children: {
         whiteCanvas
     }
+
+    function updateGeometry() {
+        whiteCanvas.updateState();
+    }
+
     onWidthChanged: {
         whiteCanvas.width = width
     }
