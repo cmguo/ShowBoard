@@ -86,19 +86,19 @@ void ToolButtonProvider::handleToolButton(QList<ToolButton *> const & buttons)
     exec(button->name, args);
     if (button->flags & ToolButton::NeedUpdate) {
         updateToolButton(button);
-        if (button->flags & ToolButton::UnionUpdate) {
+        if (button->flags.testFlag(ToolButton::UnionUpdate)) {
             QList<ToolButton *> siblins;
             getToolButtons(siblins, buttons.mid(0, buttons.size() - 1));
             int n = siblins.indexOf(button);
             for (int i = n - 1; i >= 0; --i) {
-                if (siblins[i]->flags & ToolButton::UnionUpdate) {
+                if (siblins[i]->flags.testFlag(ToolButton::UnionUpdate)) {
                     updateToolButton(siblins[i]);
                 } else {
                     break;
                 }
             }
             for (int i = n + 1; i < siblins.size(); ++i) {
-                if (siblins[i]->flags & ToolButton::UnionUpdate) {
+                if (siblins[i]->flags.testFlag(ToolButton::UnionUpdate)) {
                     updateToolButton(siblins[i]);
                 } else {
                     break;

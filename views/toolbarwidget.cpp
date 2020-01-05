@@ -44,6 +44,11 @@ ToolbarWidget::ToolbarWidget(bool horizontal, QWidget *parent)
     hide();
 }
 
+ToolbarWidget::~ToolbarWidget()
+{
+    clear();
+}
+
 void ToolbarWidget::setButtonTemplate(int typeId)
 {
     QMetaObject const * meta = QMetaType::metaObjectForType(typeId);
@@ -254,14 +259,14 @@ void ToolbarWidget::applyButton(QPushButton * btn, ToolButton * parent, ToolButt
 void ToolbarWidget::updateButton(QPushButton * btn, ToolButton * parent, ToolButton *button)
 {
     applyButton(btn, parent, button);
-    if (button->flags & ToolButton::UnionUpdate) {
+    if (button->flags.testFlag(ToolButton::UnionUpdate)) {
         QList<QObject*> list = children();
         int n = list.indexOf(btn);
         for (int i = n - 1; i >= 0; --i) {
             QWidget * widget2 = qobject_cast<QWidget *>(list[i]);
             if (widget2 == nullptr || (button = buttons_.value(widget2)) == nullptr)
                 continue;
-            if (button->flags & ToolButton::UnionUpdate) {
+            if (button->flags.testFlag(ToolButton::UnionUpdate)) {
                 QPushButton * btn2 = qobject_cast<QPushButton *>(widget2);
                 applyButton(btn2, parent, button);
             } else {
@@ -272,7 +277,7 @@ void ToolbarWidget::updateButton(QPushButton * btn, ToolButton * parent, ToolBut
             QWidget * widget2 = qobject_cast<QWidget *>(list[i]);
             if (widget2 == nullptr || (button = buttons_.value(widget2)) == nullptr)
                 continue;
-            if (button->flags & ToolButton::UnionUpdate) {
+            if (button->flags.testFlag(ToolButton::UnionUpdate)) {
                 QPushButton * btn2 = qobject_cast<QPushButton *>(widget2);
                 applyButton(btn2, parent, button);
             } else {
@@ -302,6 +307,7 @@ void ToolbarWidget::clearButtons(QLayout *layout, QMap<QWidget *, ToolButton *> 
             delete btn;
         if (btn && btn->flags & ToolButton::CustomWidget) {
             widget->hide();
+            widget->setParent(nullptr);
             widget->setProperty(ToolButton::ACTION_PROPERTY, QVariant());
         } else {
             widget->deleteLater();

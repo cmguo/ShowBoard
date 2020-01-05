@@ -15,6 +15,7 @@ ItemFrame::ItemFrame(QGraphicsItem * item, QGraphicsItem * parent)
     setPen(Qt::NoPen);
     setBrush(Qt::transparent);
     setCursor(Qt::ClosedHandCursor);
+    //setFlag(ItemIsPanel);
     item->setParentItem(this);
     updateRect();
 }
@@ -205,4 +206,20 @@ void ItemFrame::updateRectToChild(QRectF & rect)
     rect.adjust(-padding_.x(), -padding_.y(), -padding_.right(), -padding_.bottom());
     rect2.moveCenter(padding_.center());
     setRect(rect2);
+}
+
+bool ItemFrame::hitTest(const QPointF &pt)
+{
+    QRectF rect = boundingRect();
+    rect.adjust(-padding_.left(), -padding_.top(), -padding_.right(), -padding_.bottom());
+    if (rect.contains(pt))
+        return false;
+    for (DockItem & i : dockItems_) {
+        if (i.item.userType() == qMetaTypeId<QGraphicsItem*>()) {
+            QGraphicsItem * item = i.item.value<QGraphicsItem*>();
+            if (item->contains(mapToItem(item, pt)))
+                return false;
+        }
+    }
+    return true;
 }

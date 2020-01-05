@@ -130,7 +130,7 @@ void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos)
                 continue;
             Control::SelectMode mode = Control::NotSelect;
             if ((force_ && (ct->flags() & Control::DefaultFlags))
-                    || (mode = ct->selectTest(mapToItem(item, pos))) == Control::Select) {
+                    || (mode = ct->selectTest(mapToItem(ct->item(), pos))) == Control::Select) {
                 type_ = TempNoMove;
                 if (ct != selectControl_) {
                     select(nullptr);

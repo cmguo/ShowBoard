@@ -31,6 +31,8 @@ public:
 
     explicit ToolbarWidget(bool horizontal, QWidget *parent = nullptr);
 
+    virtual ~ToolbarWidget() override;
+
 public:
     void setButtonTemplate(int typeId);
 

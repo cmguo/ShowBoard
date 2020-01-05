@@ -17,7 +17,7 @@ public:
         OptionsGroup = 4, // group of options
         Checkable = 8,
         NeedUpdate = 16,
-        UnionUpdate = 32,
+        UnionUpdate = NeedUpdate | 32,
         CustomWidget = 64,
         Selected = 1 << 8,
         Checked = 1 << 9,

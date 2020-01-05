@@ -218,11 +218,15 @@ Control::SelectMode Control::selectTest(QPointF const & point)
         return Select;
     if (res_->flags().testFlag(ResourceView::LargeCanvas))
         return PassSelect;
-    if ((flags_ & HelpSelect) == 0)
+    if (item_ != realItem_) {
+        return static_cast<ItemFrame*>(realItem_)->hitTest(point) ? Select : NotSelect;
+    } else if ((flags_ & HelpSelect) != 0) {
+        QRectF rect = item_->boundingRect();
+        rect.adjust(CROSS_LENGTH, CROSS_LENGTH, -CROSS_LENGTH, -CROSS_LENGTH);
+        return rect.contains(point) ? NotSelect : Select;
+    } else {
         return NotSelect;
-    QRectF rect = item_->boundingRect();
-    rect.adjust(CROSS_LENGTH, CROSS_LENGTH, -CROSS_LENGTH, -CROSS_LENGTH);
-    return rect.contains(point) ? NotSelect : Select;
+    }
 }
 
 static qreal polygonArea(QPolygonF const & p)
