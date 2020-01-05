@@ -31,6 +31,11 @@ QGraphicsItem * WidgetControl::create(ResourceView *res)
     return item;
 }
 
+void WidgetControl::attaching()
+{
+    itemObj_ = widget_;
+}
+
 void WidgetControl::detached()
 {
     static_cast<QGraphicsProxyWidget*>(item_)->setWidget(nullptr);

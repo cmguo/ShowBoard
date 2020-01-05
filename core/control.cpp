@@ -10,6 +10,8 @@
 #include "controltransform.h"
 
 #include <QGraphicsItem>
+#include <QGraphicsProxyWidget>
+#include <QWidget>
 #include <QGraphicsScene>
 #include <QTransform>
 #include <QGraphicsTransform>
@@ -32,6 +34,7 @@ Control::Control(ResourceView *res, Flags flags, Flags clearFlags)
     , res_(res)
     , transform_(nullptr)
     , item_(nullptr)
+    , itemObj_(nullptr)
     , realItem_(nullptr)
     , stateItem_(nullptr)
 {
@@ -64,6 +67,7 @@ Control::~Control()
 void Control::attachTo(QGraphicsItem * parent)
 {
     item_ = create(res_);
+    itemObj_ = item_->toGraphicsObject();
     if (transform_)
         item_->setTransformations({transform_});
     item_->setData(ITEM_KEY_CONTROL, QVariant::fromValue(this));
@@ -130,21 +134,48 @@ void Control::detached()
 
 void Control::loadSettings()
 {
-    for (QByteArray & k : res_->dynamicPropertyNames())
-        setProperty(k, res_->property(k));
+    int count = 0;
+    if (itemObj_) {
+        QMetaObject const * meta = itemObj_->metaObject();
+        while (meta->className()[0] != 'Q')
+            meta = meta->superClass();
+        count = meta->propertyCount();
+    }
+    int index;
+    for (QByteArray & k : res_->dynamicPropertyNames()) {
+        if (itemObj_ && (index = itemObj_->metaObject()->indexOfProperty(k)) >= count) {
+            QMetaProperty p = metaObject()->property(index);
+            itemObj_->setProperty(k, res_->property(k));
+        } else {
+            setProperty(k, res_->property(k));
+        }
+    }
 }
 
 void Control::saveSettings()
 {
-    for (int i = Control::metaObject()->propertyCount();
+    for (QByteArray & k : dynamicPropertyNames())
+        res_->setProperty(k, property(k));
+    for (int i = Control::staticMetaObject.propertyCount();
             i < metaObject()->propertyCount(); ++i) {
         QMetaProperty p = metaObject()->property(i);
         res_->setProperty(p.name(), p.read(this));
     }
     // special one
     res_->setProperty("sizeHint", sizeHint());
-    for (QByteArray & k : dynamicPropertyNames())
-        res_->setProperty(k, property(k));
+    // object item
+    int count = 0;
+    if (itemObj_) {
+        QMetaObject const * meta = itemObj_->metaObject();
+        while (meta->className()[0] != 'Q')
+            meta = meta->superClass();
+        count = meta->propertyCount();
+        for (int i = count;
+                i < itemObj_->metaObject()->propertyCount(); ++i) {
+            QMetaProperty p = itemObj_->metaObject()->property(i);
+            res_->setProperty(p.name(), p.read(itemObj_));
+        }
+    }
     res_->setSaved();
 }
 

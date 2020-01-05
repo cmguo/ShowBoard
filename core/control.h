@@ -261,6 +261,7 @@ protected:
     ResourceView * res_;
     QGraphicsTransform * transform_;
     QGraphicsItem * item_;
+    QObject* itemObj_;
     QGraphicsItem * realItem_;
     StateItem * stateItem_;
 };

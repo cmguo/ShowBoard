@@ -17,6 +17,8 @@ protected:
 
     virtual QWidget * createWidget(ResourceView * res) = 0;
 
+    virtual void attaching() override;
+
     virtual void resize(QSizeF const & size) override;
 
     virtual void detached() override;
