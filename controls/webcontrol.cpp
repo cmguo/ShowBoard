@@ -65,7 +65,7 @@ private:
 
 
 WebControl::WebControl(ResourceView * res)
-    : WidgetControl(res, {WithSelectBar, ExpandScale, LayoutScale, PositionAtCenter})
+    : WidgetControl(res, {WithSelectBar, ExpandScale, LayoutScale})
 {
     static bool init = false;
     if (!init) {

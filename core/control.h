@@ -36,7 +36,7 @@ public:
         HelpSelect = 1 << 6,
         FullSelect = 1 << 7,
         WithSelectBar = 1 << 8,
-        PositionAtCenter = 1 << 9,
+        AutoPosition = 1 << 9,
         LayoutScale = 1 << 10,
         ExpandScale = 1 << 11,
         // States

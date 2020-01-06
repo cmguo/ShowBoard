@@ -275,7 +275,9 @@ void Control::initPosition()
 {
     if (realItem_ != item_)
         static_cast<ItemFrame *>(realItem_)->updateRect();
-    if (flags_ & (FullLayout | RestoreSession | PositionAtCenter))
+    if (flags_ & (FullLayout | RestoreSession))
+        return;
+    if (!(flags_ & AutoPosition))
         return;
     QGraphicsItem *parent = realItem_->parentItem();
     QPolygonF polygon;

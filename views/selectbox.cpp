@@ -84,8 +84,9 @@ SelectBox::SelectBox(QGraphicsItem * parent)
     bottom_->setPen(pen1);
 
     setPen(QPen(Qt::white, 2));
-    setOpacity(1.0);
-    setCursor(Qt::ClosedHandCursor);
+    setBrush(QColor("#40808080"));
+    //setOpacity(1.0);
+    setCursor(Qt::SizeAllCursor);
 }
 
 void SelectBox::setRect(QRectF const & rect)

@@ -2,7 +2,7 @@
 #include "views/toolbarwidget.h"
 
 MenuTool::MenuTool(ResourceView *res)
-    : WidgetControl(res, {PositionAtCenter}, {CanSelect, CanRotate, CanScale})
+    : WidgetControl(res, {}, {CanSelect, CanRotate, CanScale})
 {
 }
 

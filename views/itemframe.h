@@ -76,7 +76,7 @@ private:
     {
         int dock;
         qreal size; // width or height
-        QVariant item;
+        QVariant item; // QColor or QGraphicsItem or PaintFunc
     };
 
     void addDockItem(DockItem const & item);
