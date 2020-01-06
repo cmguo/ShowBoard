@@ -137,14 +137,13 @@ void Control::loadSettings()
     int count = 0;
     if (itemObj_) {
         QMetaObject const * meta = itemObj_->metaObject();
-        while (meta->className()[0] != 'Q')
+        while (meta->className()[0] != 'Q' || meta->className()[1] >= 'a')
             meta = meta->superClass();
         count = meta->propertyCount();
     }
     int index;
     for (QByteArray & k : res_->dynamicPropertyNames()) {
         if (itemObj_ && (index = itemObj_->metaObject()->indexOfProperty(k)) >= count) {
-            QMetaProperty p = metaObject()->property(index);
             itemObj_->setProperty(k, res_->property(k));
         } else {
             setProperty(k, res_->property(k));
@@ -167,7 +166,7 @@ void Control::saveSettings()
     int count = 0;
     if (itemObj_) {
         QMetaObject const * meta = itemObj_->metaObject();
-        while (meta->className()[0] != 'Q')
+        while (meta->className()[0] != 'Q' || meta->className()[1] >= 'a')
             meta = meta->superClass();
         count = meta->propertyCount();
         for (int i = count;
@@ -446,6 +445,9 @@ QRectF Control::boundRect() const
         rect = QRectF(rect.x() * scale.m11(), rect.y() * scale.m22(),
                       rect.width() * scale.m11(), rect.height() * scale.m22());
     }
+    if (!(flags_ & LoadFinished) && stateItem_) {
+        rect |= stateItem_->boundingRect();
+    }
     return rect;
 }
 
@@ -500,7 +502,7 @@ void Control::loadData()
         onData(data);
         loadFinished(true);
     }).fail([this, l = life()](std::exception& e) {
-        loadFinished(true, e.what());
+        loadFinished(false, e.what());
     });
 }
 

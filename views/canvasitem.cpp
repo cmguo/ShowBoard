@@ -3,6 +3,7 @@
 CanvasItem::CanvasItem(QGraphicsItem * parent)
     : QGraphicsItem(parent)
 {
+    setFlag(ItemHasNoContents);
 }
 
 void CanvasItem::setRect(const QRectF &rect)
