@@ -103,7 +103,7 @@ void Control::detachFrom(QGraphicsItem *parent)
 void Control::relayout()
 {
     if (flags_ & FullLayout) {
-        resize(realItem_->parentItem()->boundingRect().size());
+        resize(whiteCanvas()->rect().size());
         sizeChanged();
     } else {
 
@@ -201,8 +201,7 @@ void Control::sizeChanged()
     if (stateItem_) {
         stateItem_->updateTransform();
     }
-    ItemSelector * selector = static_cast<WhiteCanvas *>(
-                realItem_->parentItem()->parentItem())->selector();
+    ItemSelector * selector = whiteCanvas()->selector();
     selector->updateSelect(realItem_);
 }
 
@@ -227,12 +226,17 @@ void Control::setSizeHint(QSizeF const & size)
 {
     if (size.width() < 10.0 || size.height() < 10.0) {
         QSizeF size2 = size;
-        QRectF rect = realItem_->parentItem()->boundingRect();
+        QRectF rect = whiteCanvas()->rect();
         adjustSizeHint(size2, rect.size());
         resize(size2);
     } else {
         resize(size);
     }
+}
+
+WhiteCanvas *Control::whiteCanvas()
+{
+    return static_cast<WhiteCanvas*>(realItem_->parentItem()->parentItem());
 }
 
 void Control::resize(QSizeF const & size)
@@ -336,11 +340,10 @@ void Control::initScale()
 {
     if (realItem_ != item_)
         static_cast<ItemFrame *>(realItem_)->updateRect();
-    QSizeF ps = realItem_->parentItem()->boundingRect().size();
+    QSizeF ps = whiteCanvas()->rect().size();
     QSizeF size = item_->boundingRect().size();
     if (res_->flags().testFlag(ResourceView::LargeCanvas)) {
-        Control * canvasControl = fromItem(
-                    realItem_->parentItem()->parentItem());
+        Control * canvasControl = fromItem(whiteCanvas());
         if (canvasControl) {
             canvasControl->flags_.setFlag(CanScale, flags_.testFlag(CanScale));
             flags_.setFlag(DefaultFlags, 0);
@@ -386,7 +389,7 @@ void Control::initScale()
 void Control::setSize(const QSizeF &size)
 {
     QSizeF size2(size);
-    adjustSizeHint(size2, realItem_->parentItem()->boundingRect().size());
+    adjustSizeHint(size2, whiteCanvas()->rect().size());
     if (flags_ & Adjusting) {
         setProperty("delayResize", size2);
     } else {

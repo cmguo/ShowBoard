@@ -2,6 +2,7 @@
 #include "core/resource.h"
 #include "core/resourceview.h"
 #include "views/stateitem.h"
+#include "views/whitecanvas.h"
 
 #include <QWebEngineView>
 #include <QWebEngineSettings>
@@ -126,7 +127,7 @@ void WebControl::contentsSizeChanged(const QSizeF &size)
 {
     QSizeF d = size - QSizeF(widget_->size());
     if ((d.width() + d.height()) < 10
-            || size.height() > realItem_->parentItem()->boundingRect().height())
+            || size.height() > whiteCanvas()->rect().height())
         return;
     qDebug() << "contentsSizeChanged: " << size;
     setSize(size);

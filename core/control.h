@@ -13,6 +13,7 @@ class StateItem;
 class ToolButton;
 class ItemFrame;
 class QIODevice;
+class WhiteCanvas;
 
 class SHOWBOARD_EXPORT Control : public ToolButtonProvider
 {
@@ -231,6 +232,8 @@ protected:
     QSizeF sizeHint();
 
     void setSizeHint(QSizeF const & size);
+
+    WhiteCanvas * whiteCanvas();
 
     StateItem * stateItem();
 

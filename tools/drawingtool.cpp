@@ -15,15 +15,13 @@ DrawingTool::DrawingTool(ResourceView *res)
 
 Control * DrawingTool::newControl()
 {
-    WhiteCanvas * canvas = static_cast<WhiteCanvas *>(item_->parentItem()->parentItem());
-    return canvas->addResource(newUrl_);
+    return whiteCanvas()->addResource(newUrl_);
 }
 
 void DrawingTool::finishControl(Control * control)
 {
     (void) control;
-    WhiteCanvas * canvas = static_cast<WhiteCanvas *>(item_->parentItem()->parentItem());
-    canvas->hideToolControl("drawing");
+    whiteCanvas()->hideToolControl("drawing");
 }
 
 class DrawingItem : public QGraphicsRectItem

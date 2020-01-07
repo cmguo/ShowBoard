@@ -129,13 +129,22 @@ ItemSelector * WhiteCanvas::selector()
     return selector_;
 }
 
+void WhiteCanvas::enableSelector(bool enable)
+{
+    if (enable)
+        selector_->setRect(rect());
+    else
+        selector_->setRect(QRectF());
+}
+
 void WhiteCanvas::setGeometry(QRectF const & rect)
 {
     setRect(rect);
-    globalCanvas_->setGeometry(rect);
-    canvas_->setGeometry(rect);
-    tools_->setGeometry(rect);
-    selector_->setRect(rect);
+    //globalCanvas_->setGeometry(rect);
+    //canvas_->setGeometry(rect);
+    //tools_->setGeometry(rect);
+    if (!selector_->rect().isEmpty())
+        selector_->setRect(rect);
 }
 
 void WhiteCanvas::setResourcePackage(ResourcePackage * pack)
