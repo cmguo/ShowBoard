@@ -28,6 +28,7 @@ ItemSelector::ItemSelector(QGraphicsItem * parent)
 {
     setAcceptedMouseButtons(Qt::LeftButton);
     setAcceptTouchEvents(true);
+    setRect(QRectF(-1, -1, 1, 1));
 
     selBox_ = new SelectBox(this);
     selBox_->hide();
