@@ -24,7 +24,7 @@ public:
 
     Control * findControl(QUrl const & url);
 
-    void setGeometry(QRectF const & rect);
+    void relayout();
 
     ResourcePage * page()
     {

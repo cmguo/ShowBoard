@@ -136,9 +136,9 @@ void WhiteCanvas::enableSelector(bool enable)
 void WhiteCanvas::setGeometry(QRectF const & rect)
 {
     setRect(rect);
-    //globalCanvas_->setGeometry(rect);
-    //canvas_->setGeometry(rect);
-    //tools_->setGeometry(rect);
+    globalCanvas_->relayout();
+    canvas_->relayout();
+    tools_->relayout();
     if (!selector_->rect().isEmpty())
         selector_->setRect(rect);
 }

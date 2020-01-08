@@ -44,9 +44,8 @@ void PageCanvas::switchPage(ResourcePage * page)
     }
 }
 
-void PageCanvas::setGeometry(QRectF const & rect)
+void PageCanvas::relayout()
 {
-    setRect(rect);
     for (QGraphicsItem * item : childItems()) {
         Control * ct = Control::fromItem(item);
         ct->relayout();
