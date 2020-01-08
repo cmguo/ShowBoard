@@ -13,6 +13,8 @@
 #include <QGraphicsScene>
 #include <QGraphicsProxyWidget>
 
+#define ENBALE_TOUCH 0
+
 ItemSelector::ItemSelector(QGraphicsItem * parent)
     : CanvasItem(parent)
     , force_(false)
@@ -27,7 +29,9 @@ ItemSelector::ItemSelector(QGraphicsItem * parent)
     , type_(None)
 {
     setAcceptedMouseButtons(Qt::LeftButton);
+#if ENBALE_TOUCH
     setAcceptTouchEvents(true);
+#endif
     setRect(QRectF(-1, -1, 1, 1));
 
     selBox_ = new SelectBox(this);
@@ -300,7 +304,10 @@ void ItemSelector::hideMenuWhenEditing(bool hide)
 QVariant ItemSelector::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value)
 {
     if (change == ItemSceneHasChanged) {
+#if ENBALE_TOUCH
         parentItem()->setAcceptTouchEvents(true);
+#endif
+        parentItem()->setAcceptedMouseButtons(Qt::LeftButton);
         parentItem()->installSceneEventFilter(this);
     }
     return value;
@@ -308,10 +315,12 @@ QVariant ItemSelector::itemChange(QGraphicsItem::GraphicsItemChange change, cons
 
 void ItemSelector::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
+#if ENBALE_TOUCH
     if (event->source() != Qt::MouseEventNotSynthesized) {
         event->ignore();
         return;
     }
+#endif
     selectAt(event->pos(), event->scenePos());
     if (type_ == None) {
         CanvasItem::mousePressEvent(event);
@@ -320,10 +329,12 @@ void ItemSelector::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
 void ItemSelector::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
+#if ENBALE_TOUCH
     if (event->source() != Qt::MouseEventNotSynthesized) {
         event->ignore();
         return;
     }
+#endif
     if (type_ == None) {
         CanvasItem::mouseMoveEvent(event);
         return;
@@ -333,10 +344,12 @@ void ItemSelector::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 
 void ItemSelector::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
+#if ENBALE_TOUCH
     if (event->source() != Qt::MouseEventNotSynthesized) {
         event->ignore();
         return;
     }
+#endif
     if (type_ == None) {
         CanvasItem::mouseReleaseEvent(event);
         return;
