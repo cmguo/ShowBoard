@@ -126,14 +126,14 @@ ResourceView * ResourceManager::createResource(QUrl const & uri, QString const &
     }
     ResourceView* rv = nullptr;
     if (lazy == nullptr) {
-        if (!type.isEmpty()) {
-            if (flags == nullptr) {
-                rv = new ResourceView(type, uri);
-            } else {
-                Resource * res = new Resource(type, uri);
-                rv = new ResourceView(res, static_cast<ResourceView::Flags>(flags->first),
-                                      static_cast<ResourceView::Flags>(flags->second));
-            }
+        if (type.isEmpty())
+            type = originType = "unknown";
+        if (flags == nullptr) {
+            rv = new ResourceView(type, uri);
+        } else {
+            Resource * res = new Resource(type, uri);
+            rv = new ResourceView(res, static_cast<ResourceView::Flags>(flags->first),
+                                  static_cast<ResourceView::Flags>(flags->second));
         }
     } else {
         Resource * res = new Resource(type, uri);
@@ -144,7 +144,7 @@ ResourceView * ResourceManager::createResource(QUrl const & uri, QString const &
         }
         rv = lazy->create<ResourceView>(Q_ARG(Resource*, res));
     }
-    if (rv) {
+    if (rv && originType != type) {
         rv->resource()->setProperty(Resource::PROP_ORIGIN_TYPE, originType);
     }
     return rv;

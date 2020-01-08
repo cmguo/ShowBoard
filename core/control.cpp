@@ -338,7 +338,9 @@ void Control::loadFinished(bool ok, QString const & iconOrMsg)
         initScale();
         flags_ |= LoadFinished;
     } else {
-        stateItem()->setFailed(iconOrMsg.isEmpty() ? "加载失败，点击即可重试" : iconOrMsg);
+        QString msg = res_->name() + "\n"
+                + (iconOrMsg.isEmpty() ? "加载失败，点击即可重试" : iconOrMsg);
+        stateItem()->setFailed(msg);
         QObject::connect(stateItem(), &StateItem::clicked, this, &Control::reload);
     }
 }

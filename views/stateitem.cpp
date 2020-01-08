@@ -77,13 +77,15 @@ void StateItem::setSharedRenderer(QSvgRenderer * renderer)
 
 void StateItem::setText(const QString &text)
 {
+    QGraphicsTextItem* textItem = static_cast<QGraphicsTextItem*>(textItem_);
     if (text.startsWith("<") && text.endsWith(">"))
-        static_cast<QGraphicsTextItem*>(textItem_)->setHtml(text);
+        textItem->setHtml(text);
     else
-        static_cast<QGraphicsTextItem*>(textItem_)->setPlainText(text);
-    QPointF center(textItem_->boundingRect().center());
-    center.setY(-iconItem_->boundingRect().height() / 2 - 20 + center.y());
-    textItem_->setPos(-center);
+        textItem->setPlainText(text);
+    textItem->adjustSize();
+    QPointF center(textItem->boundingRect().center());
+    center.setY(-iconItem_->boundingRect().height() / 2 - 10);
+    textItem->setPos(-center);
 }
 
 void StateItem::updateTransform()
@@ -120,6 +122,10 @@ void StateItem::timerEvent(QTimerEvent * event)
 void StateItem::mousePressEvent(QGraphicsSceneMouseEvent * event)
 {
     (void) event;
+    if (receivers(SIGNAL(clicked())) == 0) {
+        event->ignore();
+        return;
+    }
     if (pressed_)
         static_cast<QGraphicsSvgItem*>(iconItem_)->setSharedRenderer(pressed_);
 }
