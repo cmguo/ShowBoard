@@ -362,6 +362,8 @@ void ItemSelector::touchBegin(QTouchEvent *event)
 
 void ItemSelector::touchUpdate(QTouchEvent *event)
 {
+    if (selectControl_ == nullptr)
+        return;
     QMap<int, QPointF> positions;
     bool isCanvas = selectControl_->metaObject() == &WhiteCanvasControl::staticMetaObject;
     for (QTouchEvent::TouchPoint const & point : event->touchPoints()) {

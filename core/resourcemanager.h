@@ -29,7 +29,7 @@ public:
 
     bool isExplitSupported(QUrl const & uri);
 
-    ResourceView * createResource(QUrl const & uri);
+    ResourceView * createResource(QUrl const & uri, QString const & typeHint = nullptr);
 
     ResourceView * createResource(QString const & mine, QByteArray const & data);
 

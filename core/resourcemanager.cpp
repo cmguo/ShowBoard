@@ -107,12 +107,23 @@ bool ResourceManager::isExplitSupported(const QUrl &uri)
     return lazy || flags;
 }
 
-ResourceView * ResourceManager::createResource(QUrl const & uri)
+ResourceView * ResourceManager::createResource(QUrl const & uri, QString const & typeHint)
 {
+    QString type;
     QString originType;
     QLazy * lazy = nullptr;
     QPair<int, int>* flags = nullptr;
-    QString type = findType(uri, originType, lazy, flags);
+    if (typeHint.isEmpty()) {
+        type = findType(uri, originType, lazy, flags);
+    } else {
+        type = originType = typeHint;
+        auto iter = resources_.find(type);
+        if (iter != resources_.end())
+            lazy = iter->second;
+        auto iter2 = commonResources_.find(type);
+        if (iter2 != commonResources_.end())
+            flags = &iter2->second;
+    }
     ResourceView* rv = nullptr;
     if (lazy == nullptr) {
         if (!type.isEmpty()) {

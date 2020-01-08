@@ -15,14 +15,16 @@ ResourcePage::ResourcePage(ResourceView* mainRes, QObject *parent)
 {
     bool largeCanvas = mainRes && (mainRes->flags().testFlag(ResourceView::LargeCanvas));
     if (largeCanvas)
-        canvasView_ = new ResourceView(new Resource("whitecanvas", QUrl("whitecanvas:///")), ResourceView::BottomMost);
+        canvasView_ = new ResourceView(new Resource("whitecanvas", QUrl("whitecanvas:///")),
+                                       ResourceView::BottomMost, ResourceView::DefaultFlags);
     if (mainRes)
         addResource(mainRes);
 }
 
 ResourceView * ResourcePage::addResource(QUrl const & url, QVariantMap const & settings)
 {
-    ResourceView * rv = ResourceManager::instance()->createResource(url);
+    QVariant type = settings.value("resourceType");
+    ResourceView * rv = ResourceManager::instance()->createResource(url, type.toString());
     if (rv == nullptr) return nullptr;
     for (QString const & k : settings.keys()) {
         rv->setProperty(k.toUtf8(), settings.value(k));
