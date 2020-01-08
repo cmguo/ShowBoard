@@ -136,7 +136,7 @@ void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos)
                 children[i] = item;
             QGraphicsItem * parent = item->parentItem();
             while (parent) {
-                int j = children.indexOf(parent, i + 1);
+                int j = items.indexOf(parent, i + 1);
                 if (j > i && children[j] == nullptr)
                     children[j] = item;
                 parent = parent->parentItem();
