@@ -24,13 +24,9 @@ WhiteCanvas::WhiteCanvas(QObject * parent)
     //setBrush(QBrush(Qt::green));
     //addToGroup(new ItemSelector());
     canvas_ = new PageCanvas(this);
-    canvas_->setRect(rect());
     globalCanvas_ = new PageCanvas(this);
-    globalCanvas_->setRect(rect());
     tools_ = new ToolCanvas(this);
-    tools_->setRect(rect());
     selector_ = new ItemSelector(this);
-    selector_->setRect(rect());
     void (ToolbarWidget::*sig)(QList<ToolButton *> const &) = &ToolbarWidget::buttonClicked;
     QObject::connect(selector_->toolBar(), sig, this, &WhiteCanvas::toolButtonClicked);
     QObject::connect(selector_->toolBar(), &ToolbarWidget::popupButtonsRequired,

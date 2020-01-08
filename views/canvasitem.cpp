@@ -8,6 +8,7 @@ CanvasItem::CanvasItem(QGraphicsItem * parent)
 
 void CanvasItem::setRect(const QRectF &rect)
 {
+    prepareGeometryChange();
     rect_ = rect;
 }
 

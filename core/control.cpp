@@ -246,20 +246,27 @@ void Control::resize(QSizeF const & size)
 
 static constexpr qreal CROSS_LENGTH = 20;
 
-Control::SelectMode Control::selectTest(QPointF const & point)
+Control::SelectMode Control::selectTest(const QPointF &point)
+{
+    return NotSelect;
+}
+
+Control::SelectMode Control::selectTest(QGraphicsItem * child, QGraphicsItem * item, QPointF const & point)
 {
     if (flags_ & FullSelect)
         return Select;
     if (res_->flags().testFlag(ResourceView::LargeCanvas))
         return PassSelect;
-    if (item_ != realItem_) {
-        return static_cast<ItemFrame*>(realItem_)->hitTest(point) ? Select : NotSelect;
-    } else if ((flags_ & HelpSelect) != 0) {
+    if (item_ != realItem_ && item == realItem_) {
+        return static_cast<ItemFrame*>(realItem_)->hitTest(child, point) ? Select : NotSelect;
+    } else if (stateItem_ == item && (flags_ & LoadFinished) == 0) {
+        return Select;
+    } else if (item_ == item && (flags_ & HelpSelect)) {
         QRectF rect = item_->boundingRect();
         rect.adjust(CROSS_LENGTH, CROSS_LENGTH, -CROSS_LENGTH, -CROSS_LENGTH);
         return rect.contains(point) ? NotSelect : Select;
     } else {
-        return NotSelect;
+        return selectTest(point);
     }
 }
 

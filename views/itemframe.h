@@ -67,7 +67,7 @@ public:
 
     //void update();
 
-    bool hitTest(QPointF const & pt);
+    bool hitTest(QGraphicsItem * child, QPointF const & pt);
 
 private:
     virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;

@@ -129,13 +129,27 @@ void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos)
     }
     if (type_ == None) {
         QList<QGraphicsItem*> items = scene()->items(scenePos);
-        for (QGraphicsItem * item : items) {
+        QVector<QGraphicsItem*> children(items.size(), nullptr); // first child
+        for (int i = 0; i < items.size(); ++i) {
+            QGraphicsItem * item = items[i];
+            if (children[i] == nullptr)
+                children[i] = item;
+            QGraphicsItem * parent = item->parentItem();
+            while (parent) {
+                int j = children.indexOf(parent, i + 1);
+                if (j > i && children[j] == nullptr)
+                    children[j] = item;
+                parent = parent->parentItem();
+            }
             Control * ct = Control::fromItem(item);
             if (!ct)
                 continue;
             Control::SelectMode mode = Control::NotSelect;
-            if ((force_ && (ct->flags() & Control::DefaultFlags))
-                    || (mode = ct->selectTest(mapToItem(ct->item(), pos))) == Control::Select) {
+            bool force = force_ && (ct->flags() & Control::DefaultFlags);
+            if (!force) {
+                mode = ct->selectTest(children[i], item, mapToItem(ct->item(), pos));
+            }
+            if (force || mode == Control::Select) {
                 type_ = TempNoMove;
                 if (ct != selectControl_) {
                     select(nullptr);

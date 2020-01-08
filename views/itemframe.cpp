@@ -208,18 +208,11 @@ void ItemFrame::updateRectToChild(QRectF & rect)
     setRect(rect2);
 }
 
-bool ItemFrame::hitTest(const QPointF &pt)
+bool ItemFrame::hitTest(QGraphicsItem * child, const QPointF &pt)
 {
     QRectF rect = boundingRect();
     rect.adjust(-padding_.left(), -padding_.top(), -padding_.right(), -padding_.bottom());
     if (rect.contains(pt))
         return false;
-    for (DockItem & i : dockItems_) {
-        if (i.item.userType() == qMetaTypeId<QGraphicsItem*>()) {
-            QGraphicsItem * item = i.item.value<QGraphicsItem*>();
-            if (item->contains(mapToItem(item, pt)))
-                return false;
-        }
-    }
-    return true;
+    return child == this || child->parentItem() == this;
 }

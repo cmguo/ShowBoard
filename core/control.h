@@ -150,6 +150,8 @@ public:
      */
     virtual SelectMode selectTest(QPointF const & point);
 
+    virtual SelectMode selectTest(QGraphicsItem * child, QGraphicsItem * parent, QPointF const & point);
+
     /*
      * set when select state change
      */
