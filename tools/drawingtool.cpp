@@ -45,8 +45,10 @@ private:
     void finish()
     {
         if (control_) {
-            QEvent event(QEvent::User);
-            control_->event(&event);
+            if (!(control_->resource()->flags() & ResourceView::DrawFinised)) {
+                QEvent event(QEvent::User);
+                control_->event(&event);
+            }
             DrawingTool * tool = static_cast<DrawingTool *>(Control::fromItem(this));
             tool->finishControl(control_);
             control_ = nullptr;
@@ -74,10 +76,7 @@ private:
         if (control_) {
             control_->event(event);
             if (control_->resource()->flags() & ResourceView::DrawFinised) {
-                DrawingTool * tool = static_cast<DrawingTool *>(Control::fromItem(this));
-                Control * control = control_;
-                control_ = nullptr;
-                tool->finishControl(control);
+                finish();
             } else if (event->flags() & 256) {
                 finishItem_->setPos(event->pos() + QPointF(20, 20));
                 finishItem_->show();

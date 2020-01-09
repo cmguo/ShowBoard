@@ -164,6 +164,8 @@ public:
 
     virtual void beforeClone();
 
+    virtual void afterClone(ResourceView * res);
+
 protected:
     /*
      * override this to do really creation of item

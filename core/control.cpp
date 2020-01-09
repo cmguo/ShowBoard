@@ -115,6 +115,10 @@ void Control::beforeClone()
     saveSettings();
 }
 
+void Control::afterClone(ResourceView *res)
+{
+}
+
 void Control::attaching()
 {
 }
@@ -265,8 +269,10 @@ Control::SelectMode Control::selectTest(QGraphicsItem * child, QGraphicsItem * i
         QRectF rect = item_->boundingRect();
         rect.adjust(CROSS_LENGTH, CROSS_LENGTH, -CROSS_LENGTH, -CROSS_LENGTH);
         return rect.contains(point) ? NotSelect : Select;
-    } else {
+    } else if (item_ == realItem_) {
         return selectTest(point);
+    } else {
+        return selectTest(realItem_->mapToItem(item_, point));
     }
 }
 

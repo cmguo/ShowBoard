@@ -13,12 +13,13 @@ TextControl::TextControl(ResourceView * res)
 QWidget *TextControl::createWidget(ResourceView *res)
 {
     (void) res;
-    QTextEdit* text = new QTextEdit;
-    text->setReadOnly(true);
-    text->setTextColor(QColor(Qt::black));
-    text->setStyleSheet(QString("QTextEdit{background-color:#FFFFFF; border: 1px solid #FFFFFF; font: %1pt \"Microsoft YaHei UI\";}")
+    QTextEdit* textEdit = new QTextEdit;
+    textEdit->setReadOnly(true);
+    textEdit->setTextColor(QColor(Qt::black));
+    textEdit->setAttribute(Qt::WA_StyledBackground);
+    textEdit->setStyleSheet(QString("QTextEdit{background-color:#FFFFFFFF; border: 1px solid #FFFFFF; font: %1pt \"Microsoft YaHei UI\";}")
                         .arg(24));
-    return text;
+    return textEdit;
 }
 
 void TextControl::attached()
@@ -28,6 +29,8 @@ void TextControl::attached()
 
 void TextControl::onText(QString text)
 {
-    qobject_cast<QTextEdit*>(widget_)->setText(text);
+    QTextEdit* textEdit = qobject_cast<QTextEdit*>(widget_);
+    textEdit->setText(text);
+    textEdit->adjustSize();
 }
 

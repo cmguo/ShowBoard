@@ -11,7 +11,10 @@ ResourceView::ResourceView(Resource * res, Flags flags, Flags clearFlags)
     , transform_(new ResourceTransform(this))
 {
     QString path = res->url().path();
-    name_ = path.mid(path.lastIndexOf('/') + 1);
+    if (path.size() > 1)
+        name_ = path.mid(path.lastIndexOf('/') + 1);
+    else
+        name_ = res->url().toString();
     res_->setParent(this);
 }
 
@@ -32,8 +35,8 @@ ResourceView::ResourceView(ResourceView const & o)
     //flags_ &= ~SavedSession;
     res_->setParent(this);
     //transform_->translate({60, 60});
-    for (QByteArray & k : res_->dynamicPropertyNames())
-        setProperty(k, res_->property(k));
+    for (QByteArray & k : o.dynamicPropertyNames())
+        setProperty(k, o.property(k));
 }
 
 ResourceView * ResourceView::clone() const

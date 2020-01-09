@@ -21,7 +21,6 @@ QGraphicsItem * WidgetControl::create(ResourceView *res)
 {
     res_ = res;
     widget_ = createWidget(res);
-    widget_->setAttribute(Qt::WA_NoSystemBackground);
     QGraphicsProxyWidget * item = new QGraphicsProxyWidget();
     item->setAcceptTouchEvents(true);
     item->setFocusPolicy(Qt::NoFocus);

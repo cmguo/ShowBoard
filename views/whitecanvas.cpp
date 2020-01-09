@@ -175,6 +175,7 @@ void WhiteCanvas::toolButtonClicked(QList<ToolButton *> const & buttons)
         ct->beforeClone();
         ResourceView* res = canvas_->page()->copyResource(ct->resource());
         res->transform().translate({60, 60});
+        ct->afterClone(res);
     } else if (btn == &Control::btnFastCopy) {
         bool checked = !btn->flags.testFlag(ToolButton::Checked);
         selector_->enableFastClone(checked);
