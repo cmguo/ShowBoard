@@ -90,7 +90,8 @@ void Control::attachTo(QGraphicsItem * parent)
 void Control::detachFrom(QGraphicsItem *parent)
 {
     detaching();
-    saveSettings();
+    if (flags_ & LoadFinished)
+        saveSettings();
     (void) parent;
     realItem_->scene()->removeItem(realItem_);
     realItem_->setTransformations({});
@@ -112,7 +113,8 @@ void Control::relayout()
 
 void Control::beforeClone()
 {
-    saveSettings();
+    if (flags_ & LoadFinished)
+        saveSettings();
 }
 
 void Control::afterClone(ResourceView *res)
