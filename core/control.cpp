@@ -379,7 +379,7 @@ void Control::initScale()
     }
     if (item_ != realItem_) {
         QRectF padding(static_cast<ItemFrame *>(realItem_)->padding());
-        ps.setWidth(ps.height() - padding.width());
+        ps.setWidth(ps.width() - padding.width());
         ps.setHeight(ps.height() - padding.height());
     }
     qreal scale = 1.0;

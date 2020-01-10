@@ -219,7 +219,6 @@ void ItemSelector::selectMove(QPointF const & pos, QPointF const & scenePos)
             pt = start_;
             break;
         }
-        qDebug() << type_ << d;
         type_ = static_cast<SelectType>(type_ + 1);
         Q_FALLTHROUGH();
     case TempMoved:
