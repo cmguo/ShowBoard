@@ -38,6 +38,11 @@ WhiteCanvas::~WhiteCanvas()
     switchPage(nullptr);
 }
 
+ResourcePage *WhiteCanvas::page()
+{
+    return canvas_->page();
+}
+
 void WhiteCanvas::showToolControl(const QString &type)
 {
     tools_->showToolControl(type);

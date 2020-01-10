@@ -3,8 +3,6 @@
 #include "core/resourcepackage.h"
 #include "core/resourcepage.h"
 
-#include <QDebug>
-
 WhiteCanvasQuick::WhiteCanvasQuick(WhiteCanvasWidget *canvas, QQuickWidget *quickwidget)
     : QuickWidgetItem(canvas, quickwidget)
     , canvas_(canvas)
@@ -24,7 +22,6 @@ void WhiteCanvasQuick::setUrl(const QUrl &url)
 
 void WhiteCanvasQuick::onActiveChanged(bool active)
 {
-    qDebug() << "WhiteCanvasQuick onActiveChanged" << active;
     if (mainUrl_.isEmpty())
         return;
     if (active) {

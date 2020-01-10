@@ -37,6 +37,8 @@ public:
         return package_;
     }
 
+    ResourcePage* page();
+
     void setResourcePackage(ResourcePackage * pack);
 
     void switchPage(ResourcePage * page);

@@ -87,19 +87,16 @@ bool WhiteCanvasWidget::eventFilter(QObject *watched, QEvent *event)
 
 void WhiteCanvasWidget::onPageChanged(ResourcePage *page)
 {
-    if (page && page->canvasView()) { // large canvas
-        QRectF rect(QPointF(0, 0), size());
-        rect.moveCenter({0, 0});
-        scene_->setSceneRect(rect);
-        setTransform(QTransform());
-    } else {
-        QRectF rect(QPointF(0, 0), sceneSize_);
-        rect.moveCenter({0, 0});
-        scene_->setSceneRect(rect);
-        setTransform(QTransform::fromScale(width() / scene_->width(), height() / scene_->height()));
-    }
+    bool oldLarge = canvas_->page() && canvas_->page()->canvasView();
+    bool newLarge = page && page->canvasView();
+    if (oldLarge == newLarge)
+        return;
+    QRectF rect(QPointF(0, 0), newLarge ? size() : sceneSize_);
+    rect.moveCenter({0, 0});
+    scene_->setSceneRect(rect);
+    setTransform(newLarge ? QTransform()
+                          : QTransform::fromScale(width() / scene_->width(), height() / scene_->height()));
 }
-
 
 ResourcePackage * WhiteCanvasWidget::package()
 {
