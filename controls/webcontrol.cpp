@@ -11,7 +11,7 @@
 
 static char const * toolstr =
         "reload()|刷新|:/showboard/icons/icon_refresh.png;"
-        "full()|全屏|:/showboard/icons/icon_refresh.png;";
+        "-full()|全屏|:/showboard/icons/icon_refresh.png;";
 
 class TouchEventForwarder : public QObject
 {
@@ -141,5 +141,8 @@ void WebControl::reload()
 
 void WebControl::full()
 {
-    setSize({1.0, 1.0});
+    adjusting(true);
+    resize(whiteCanvas()->rect().size());
+    sizeChanged();
+    adjusting(false);
 }
