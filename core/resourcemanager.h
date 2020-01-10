@@ -27,19 +27,19 @@ signals:
 public:
     static ResourceManager * instance();
 
-    bool isExplitSupported(QUrl const & uri);
+    bool isExplitSupported(QUrl const & uri) const;
 
-    ResourceView * createResource(QUrl const & uri, QString const & typeHint = nullptr);
+    ResourceView * createResource(QUrl const & uri, QString const & typeHint = nullptr) const;
 
-    ResourceView * createResource(QString const & mine, QByteArray const & data);
+    ResourceView * createResource(QString const & mine, QByteArray const & data) const;
 
-    ResourceFactory * getFactory(QString const & type);
+    ResourceFactory * getFactory(QString const & type) const;
 
 public slots:
     void onComposition();
 
 private:
-    QString findType(QUrl const & uri, QString& originType, QLazy*& lazy, QPair<int, int>*& flags);
+    QString findType(QUrl const & uri, QString& originType, QLazy*& lazy, QPair<int, int> const*& flags) const;
 
 private:
     std::vector<QLazy> resource_types_;

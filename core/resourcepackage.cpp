@@ -14,26 +14,34 @@ ResourcePackage::ResourcePackage(QObject *parent)
     globalPage_ = new ResourcePage(this);
 }
 
-ResourcePage *ResourcePackage::globalPage()
+ResourcePage *ResourcePackage::globalPage() const
 {
     return globalPage_;
 }
 
 ResourcePage * ResourcePackage::newPage()
 {
-    ResourcePage * page = new ResourcePage(this);
-    emit pageCreated(page);
-    switchPage(addPage(page));
+    int index = current_ + 1;
+    ResourcePage * page = newPage(index);
+    switchPage(index);
     return page;
 }
 
-ResourcePage * ResourcePackage::currentPage()
+ResourcePage *ResourcePackage::newPage(int index)
+{
+    ResourcePage * page = new ResourcePage(this);
+    emit pageCreated(page);
+    addPage(index, page);
+    return page;
+}
+
+ResourcePage * ResourcePackage::currentPage() const
 {
     return visiblePages_.empty() ? (pages_.empty() ? nullptr : pages_[current_])
                                  : visiblePages_.back();
 }
 
-int ResourcePackage::currentNumber()
+int ResourcePackage::currentNumber() const
 {
     return current_ + 1;
 }
@@ -47,12 +55,12 @@ ResourcePage * ResourcePackage::newVirtualPage(ResourceView *mainRes)
     return page;
 }
 
-ResourcePage * ResourcePackage::topVirtualPage()
+ResourcePage * ResourcePackage::topVirtualPage() const
 {
     return visiblePages_.empty() ? nullptr : visiblePages_.back();
 }
 
-ResourcePage * ResourcePackage::findVirtualPage(const QUrl &mainUrl)
+ResourcePage * ResourcePackage::findVirtualPage(const QUrl &mainUrl) const
 {
     for (ResourcePage * p : visiblePages_) {
         if (p->resources().first()->url() == mainUrl)
@@ -157,10 +165,8 @@ void ResourcePackage::switchPage(ResourcePage * page)
     switchPage(n);
 }
 
-int ResourcePackage::addPage(ResourcePage * page)
+void ResourcePackage::addPage(int index, ResourcePage * page)
 {
-    page->setParent(this);
-    int index = current_ + 1;
     pages_.insert(index, page);
-    return index;
+    emit pageCountChanged(pages_.size());
 }

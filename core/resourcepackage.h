@@ -26,29 +26,56 @@ public:
         return pages_;
     }
 
-    ResourcePage * globalPage();
+    /*
+     *  total page count
+     */
+    int pageCount() const
+    {
+        return pages_.size();
+    }
+
+    ResourcePage * globalPage() const;
 
     /*
      * insert a newly create page,
-     *  new page is inserted before current one and became current
+     *  new page is inserted after current one and became current
      */
     ResourcePage * newPage();
 
-    ResourcePage * currentPage();
+    /*
+     * insert a newly create page,
+     *  new page is inserted at index, current page is not changed
+     */
+    ResourcePage * newPage(int index);
 
-    int currentNumber();
+    ResourcePage * currentPage() const;
+
+    /*
+     *  current page index, start from 0
+     */
+    int currentIndex() const
+    {
+        return current_;
+    }
+
+    /*
+     *  current page number, start from 1
+     */
+    int currentNumber() const;
 
 signals:
     void pageCreated(ResourcePage* page);
 
     void currentPageChanged(ResourcePage* page);
 
+    void pageCountChanged(int count);
+
 public:
     ResourcePage * newVirtualPage(ResourceView* mainRes = nullptr);
 
-    ResourcePage * topVirtualPage();
+    ResourcePage * topVirtualPage() const;
 
-    ResourcePage * findVirtualPage(QUrl const & mainUrl);
+    ResourcePage * findVirtualPage(QUrl const & mainUrl) const;
 
     void showVirtualPage(ResourcePage* page, bool show);
 
@@ -90,7 +117,7 @@ public slots:
     void switchPage(ResourcePage * page);
 
 protected:
-    int addPage(ResourcePage * page);
+    void addPage(int index, ResourcePage * page);
 
 private:
     ResourcePage * globalPage_;

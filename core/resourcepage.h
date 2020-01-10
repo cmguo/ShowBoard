@@ -44,7 +44,7 @@ public:
     /*
      * find resource by url
      */
-    ResourceView * findResource(QUrl const & url);
+    ResourceView * findResource(QUrl const & url) const;
 
     /*
      * add resource at back (top), but under resources with flag TopMost
@@ -86,17 +86,17 @@ public:
      */
     void moveResourceBack(ResourceView * res);
 
-    ResourceView * previousNormalResource(ResourceView * res);
+    ResourceView * previousNormalResource(ResourceView * res) const;
 
-    ResourceView * nextNormalResource(ResourceView * res);
+    ResourceView * nextNormalResource(ResourceView * res) const;
 
 public:
-    ResourceView* canvasView()
+    ResourceView* canvasView() const
     {
         return canvasView_;
     }
 
-    QList<ResourceView *> const & resources()
+    QList<ResourceView *> const & resources() const
     {
         return resources_;
     }

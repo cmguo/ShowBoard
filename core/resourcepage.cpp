@@ -52,7 +52,7 @@ ResourceView * ResourcePage::addResourceOrBringTop(QUrl const & url, QVariantMap
     return addResource(url, settings);
 }
 
-ResourceView * ResourcePage::findResource(QUrl const & url)
+ResourceView * ResourcePage::findResource(QUrl const & url) const
 {
     for (ResourceView * res : resources()) {
         if (res->url() == url)
@@ -152,7 +152,7 @@ void ResourcePage::moveResourceBack(ResourceView *res)
     moveResource(index, resources_.size() - 1);
 }
 
-ResourceView * ResourcePage::previousNormalResource(ResourceView *res)
+ResourceView * ResourcePage::previousNormalResource(ResourceView *res) const
 {
     int index = resources_.indexOf(res);
     for (--index; index >= 0; --index) {
@@ -162,7 +162,7 @@ ResourceView * ResourcePage::previousNormalResource(ResourceView *res)
     return nullptr;
 }
 
-ResourceView * ResourcePage::nextNormalResource(ResourceView *res)
+ResourceView * ResourcePage::nextNormalResource(ResourceView *res) const
 {
     int index = resources_.indexOf(res);
     for (++index; index < resources_.size(); ++index) {
