@@ -11,7 +11,7 @@ class SHOWBOARD_EXPORT WhiteCanvasQuick : public QuickWidgetItem
 public:
     WhiteCanvasQuick(WhiteCanvasWidget* canvas, QQuickWidget* quickwidget);
 
-    void setUrl(QUrl const & url);
+    void setUrl(QUrl const & url, QVariantMap settings);
 
 protected:
     virtual void onActiveChanged(bool active) override;
@@ -19,6 +19,7 @@ protected:
 private:
     WhiteCanvasWidget * canvas_;
     QUrl mainUrl_;
+    QVariantMap urlSettings_;
 };
 
 #endif // WHITECANVASQUICK_H
