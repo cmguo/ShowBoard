@@ -189,7 +189,7 @@ void Control::sizeChanged()
     QRectF rect = item_->boundingRect();
     QPointF center(rect.center());
     if (flags_ & LoadFinished) {
-        if (flags_ & Adjusting) {
+        if (flags_ & (Adjusting | FullLayout)) {
             item_->setTransform(QTransform::fromTranslate(-center.x(), -center.y()));
         } else {
             // keep top left
