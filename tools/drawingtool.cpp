@@ -92,7 +92,8 @@ private:
 
     virtual bool sceneEvent(QEvent * event) override
     {
-        if (event->type() == QEvent::FocusOut)
+        if (event->type() == QEvent::FocusOut
+                || event->type() == QEvent::WindowDeactivate)
             finish();
         return QGraphicsRectItem::sceneEvent(event);
     }
