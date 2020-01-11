@@ -5,8 +5,7 @@
 #include <QDebug>
 
 QuickWidgetItem::QuickWidgetItem(QWidget *widget, QQuickWidget* quickwidget)
-    : widgets_({widget})
-    , quickwidget_(quickwidget)
+    : QuickWidgetItem(QList<QWidget*>{widget}, quickwidget)
 {
 }
 
@@ -14,6 +13,11 @@ QuickWidgetItem::QuickWidgetItem(QList<QWidget*> widgets, QQuickWidget* quickwid
     : widgets_(widgets)
     , quickwidget_(quickwidget)
 {
+    for (QWidget* w : widgets_) {
+        QObject::connect(w, &QObject::destroyed, this, [this] () {
+            widgets_.removeOne(qobject_cast<QWidget*>(sender()));
+        });
+    }
 }
 
 QuickWidgetItem::~QuickWidgetItem()

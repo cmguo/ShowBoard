@@ -27,6 +27,8 @@ protected:
 
     bool isActive() const { return active_; }
 
+    QList<QWidget*> const & widgets() { return widgets_; }
+
 private:
     virtual void geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry) override;
 

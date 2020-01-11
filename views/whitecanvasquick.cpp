@@ -23,7 +23,7 @@ void WhiteCanvasQuick::setUrl(const QUrl &url, QVariantMap settings)
 
 void WhiteCanvasQuick::onActiveChanged(bool active)
 {
-    if (mainUrl_.isEmpty())
+    if (mainUrl_.isEmpty() || widgets().empty())
         return;
     if (active) {
         canvas_->package()->currentPage()->addResourceOrBringTop(mainUrl_, urlSettings_);
