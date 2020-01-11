@@ -31,6 +31,9 @@ public:
 
     virtual ~WhiteCanvas() override;
 
+signals:
+    void loadFinished();
+
 public:
     ResourcePackage * package()
     {
@@ -94,6 +97,10 @@ public:
 
     void enableSelector(bool enable);
 
+    bool loading();
+
+    void onControlLoad(bool startOrFinished);
+
 public:
     /*
      * change canvas size
@@ -123,6 +130,7 @@ private:
     PageCanvas * canvas_;
     ToolCanvas * tools_;
     ItemSelector * selector_;
+    int loadingCount_;
 };
 
 #endif // WHITECANVAS_H

@@ -18,6 +18,7 @@
 WhiteCanvas::WhiteCanvas(QObject * parent)
     : QObject(parent)
     , package_(nullptr)
+    , loadingCount_(0)
 {
     setAcceptedMouseButtons(Qt::LeftButton);
     //setFlags(ItemIsMovable);
@@ -136,6 +137,19 @@ void WhiteCanvas::enableSelector(bool enable)
         selector_->setRect(rect());
     else
         selector_->setRect(QRectF());
+}
+
+bool WhiteCanvas::loading()
+{
+    return loadingCount_;
+}
+
+void WhiteCanvas::onControlLoad(bool startOrFinished)
+{
+    if (startOrFinished)
+        ++loadingCount_;
+    else if (--loadingCount_ == 0)
+        emit loadFinished();
 }
 
 void WhiteCanvas::setGeometry(QRectF const & rect)

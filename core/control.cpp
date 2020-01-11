@@ -75,6 +75,7 @@ void Control::attachTo(QGraphicsItem * parent)
     if (flags_ & WithSelectBar) {
         itemFrame()->addTopBar();
     }
+    static_cast<WhiteCanvas*>(parent->parentItem())->onControlLoad(true);
     attaching();
     realItem_->setParentItem(parent);
     loadSettings();
@@ -351,6 +352,7 @@ void Control::loadFinished(bool ok, QString const & iconOrMsg)
         stateItem()->setFailed(msg);
         QObject::connect(stateItem(), &StateItem::clicked, this, &Control::reload);
     }
+    whiteCanvas()->onControlLoad(false);
 }
 
 void Control::initScale()

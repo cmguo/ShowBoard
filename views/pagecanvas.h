@@ -31,7 +31,7 @@ public:
         return page_;
     }
 
-private slots:
+private:
     void resourceInserted(QModelIndex const &parent, int first, int last);
 
     void resourceRemoved(QModelIndex const &parent, int first, int last);
