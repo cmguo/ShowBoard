@@ -21,6 +21,8 @@ WhiteCanvasControl::WhiteCanvasControl(ResourceView * view, QGraphicsItem * canv
                      this, &WhiteCanvasControl::updateTransform);
     loadSettings();
     posBar_ = new PositionBar(canvas);
+    // adjust to scene, this is done before attaching transform
+    res_->transform().translate(QPointF(0, 0));
     qDebug() << "WhiteCanvasControl" << res_->transform().transform();
 }
 
