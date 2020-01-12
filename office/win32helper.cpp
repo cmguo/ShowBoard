@@ -103,6 +103,7 @@ void setArrowCursor()
 
 bool saveGdiImage(char* data, int size, wchar_t * file)
 {
+    /*
     WCHAR gdiPath[1024];
     WCHAR * l = wcsstr(file, L".png");
     size_t n = static_cast<size_t>(l - file);
@@ -119,5 +120,6 @@ bool saveGdiImage(char* data, int size, wchar_t * file)
     //Gdiplus::GetEncoderClsid(L"image/png", &pngClsid);
     image->Save(file, &pngClsid, nullptr);
     delete image;
+    */
     return true;
 }

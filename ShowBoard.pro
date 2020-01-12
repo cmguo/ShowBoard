@@ -80,6 +80,6 @@ INCLUDEPATH += $$PWD/../QtPromise/src
 INCLUDEPATH += $$PWD/../qtpromise/src/qtpromise $$PWD/../qtpromise/include
 #DEPENDPATH += $$PWD/../qtpromise/src/qtpromise
 
-win32 {
-    LIBS += -lGdiplus
-}
+#win32 {
+#    LIBS += -lGdiplus
+#}
