@@ -98,7 +98,13 @@ void moveChildWindow(intptr_t hwnd, int dx, int dy)
 
 void setArrowCursor()
 {
-    SetCursor(LoadCursor(GetModuleHandle(nullptr), IDC_ARROW));
+    HCURSOR hCursor = ::LoadCursor(nullptr, IDC_ARROW);
+    ::SetCursor(hCursor);
+}
+
+void showCursor()
+{
+    ::ShowCursor(true);
 }
 
 bool saveGdiImage(char* data, int size, wchar_t * file)

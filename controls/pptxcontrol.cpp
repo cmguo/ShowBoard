@@ -12,6 +12,7 @@
 #include <QAxObject>
 #include <QGraphicsTextItem>
 #include <QToolButton>
+#include <QApplication>
 
 static char const * toolstr =
         "show()|开始演示|:/showboard/icons/icon_delete.png;"
@@ -130,7 +131,6 @@ void PptxControl::thumbed(QPixmap pixmap)
             stateItem()->setPos(item_->boundingRect().bottomRight() - QPointF(100, 100));
         }
     }
-    item_->setCursor(Qt::ArrowCursor);
 }
 
 void PptxControl::closed()
@@ -202,7 +202,6 @@ void PptxControl::hide()
     WorkThread::postWork(p, [p]() {
         p->hide();
     });
-    item_->setCursor(Qt::ArrowCursor);
 }
 
 void PptxControl::close()

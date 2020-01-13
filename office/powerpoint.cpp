@@ -18,6 +18,7 @@ extern void setWindowAtTop(intptr_t hwnd);
 extern void attachWindow(intptr_t hwndParent, intptr_t hwnd, int left, int top);
 extern void moveChildWindow(intptr_t hwnd, int dx, int dy);
 extern void setArrowCursor();
+extern void showCursor();
 
 QAxObject * PowerPoint::application_ = nullptr;
 
@@ -92,6 +93,7 @@ void PowerPoint::reopen()
     hwnd_ = 0;
     presentation_ = nullptr;
     open(file_); // reopen
+    showCursor();
     emit reopened();
 }
 
@@ -159,7 +161,10 @@ void PowerPoint::jump(int page)
 {
     if (view_) {
         view_->dynamicCall("GotoSlide(int)", page);
-        thumb(0);
+        if (slideNumber_ != page) {
+            slideNumber_ = page;
+            thumb(0);
+        }
     } else if (presentation_ && page > 0 && page <= total_) {
         thumb(slideNumber_ = page);
     }
@@ -188,7 +193,8 @@ void PowerPoint::prev()
 void PowerPoint::hide()
 {
     hideWindow(hwnd_);
-    thumb(slideNumber_);
+    thumb(0);
+    showCursor();
 }
 
 void PowerPoint::close()
