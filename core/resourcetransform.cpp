@@ -171,22 +171,22 @@ bool ResourceTransform::scale(QRectF & rect, QRectF const & direction, QPointF &
             result.setHeight(origin.height() * s.width());
         }
         if (minSize > 0) {
-            if (result.width() < minSize) {
+            if (origin.width() >= minSize && result.width() < minSize) {
                 result.setHeight(result.height() * minSize / result.width());
                 result.setWidth(minSize);
             }
-            if (result.height() < minSize) {
+            if (origin.height() >= minSize && result.height() < minSize) {
                 result.setWidth(result.width() * minSize / result.height());
                 result.setHeight(minSize);
             }
         }
     } else {
         if (minSize > 0) {
-            if (result.width() < minSize) {
+            if (origin.width() >= minSize && result.width() < minSize) {
                 result.setWidth(minSize);
                 KeepAspectRatio = true;
             }
-            if (result.height() < minSize) {
+            if (origin.height() >= minSize && result.height() < minSize) {
                 result.setHeight(minSize);
                 KeepAspectRatio = true;
             }
