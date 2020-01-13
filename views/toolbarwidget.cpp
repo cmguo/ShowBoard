@@ -333,7 +333,7 @@ void ToolbarWidget::createPopup()
         proxy->setWidget(popUp_);
         proxy->hide();
     } else {
-        popUp_->setParent(parentWidget()->parentWidget());
+        popUp_->setParent(parentWidget());
         popUp_->hide();
     }
     popUp_->setLayout(new QGridLayout());

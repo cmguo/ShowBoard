@@ -68,6 +68,7 @@ void WhiteCanvasControl::updatingTransform()
 void WhiteCanvasControl::updateTransform()
 {
     ResourceTransform & transform = res_->transform();
+    //qDebug() << "WhiteCanvasControl" << transform.transform();
     QRectF srect = item_->scene()->sceneRect();
     QRectF crect = item_->boundingRect();
     posBar_->update(srect, crect, transform.scale().m11(), transform.offset());

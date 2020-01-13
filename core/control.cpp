@@ -371,7 +371,7 @@ void Control::initScale()
             }
             canvasControl->resize(size);
             size -= ps;
-            QPointF d(size.width(), size.height());
+            QPointF d(size.width() / 2, size.height() / 2);
             canvasControl->move(d);
             return;
         }
