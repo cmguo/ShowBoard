@@ -86,6 +86,7 @@ bool WhiteCanvas::sceneEvent(QEvent *event)
 
 void WhiteCanvas::switchPage(ResourcePage * page)
 {
+    loadingCount_ = 0;
     selector_->select(nullptr);
     canvas_->switchPage(nullptr);
     setGeometry(scene()->sceneRect());

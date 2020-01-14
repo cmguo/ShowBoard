@@ -75,15 +75,16 @@ void Control::attachTo(QGraphicsItem * parent)
     if (flags_ & WithSelectBar) {
         itemFrame()->addTopBar();
     }
-    static_cast<WhiteCanvas*>(parent->parentItem())->onControlLoad(true);
     attaching();
     realItem_->setParentItem(parent);
     loadSettings();
     sizeChanged();
     initPosition();
     relayout();
+    flags_ |= Loading;
+    whiteCanvas()->onControlLoad(true);
     attached();
-    if (!(flags_ & LoadFinished) && !stateItem_) {
+    if (flags_ & Loading) {
         stateItem()->setLoading(res_->name());
     }
 }
@@ -91,6 +92,8 @@ void Control::attachTo(QGraphicsItem * parent)
 void Control::detachFrom(QGraphicsItem *parent)
 {
     detaching();
+    if (flags_ & Loading)
+        whiteCanvas()->onControlLoad(false);
     if (flags_ & LoadFinished)
         saveSettings();
     (void) parent;
@@ -352,6 +355,7 @@ void Control::loadFinished(bool ok, QString const & iconOrMsg)
         stateItem()->setFailed(msg);
         QObject::connect(stateItem(), &StateItem::clicked, this, &Control::reload);
     }
+    flags_ &= ~Loading;
     whiteCanvas()->onControlLoad(false);
 }
 
@@ -543,7 +547,9 @@ void Control::reload()
 {
     QObject::disconnect(stateItem(), &StateItem::clicked, this, &Control::reload);
     if (!(flags_ & LoadFinished)) {
+        flags_ |= Loading;
         stateItem()->setLoading(res_->name());
+        whiteCanvas()->onControlLoad(true);
         attached(); // reload
     }
 }

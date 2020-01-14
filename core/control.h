@@ -41,10 +41,11 @@ public:
         LayoutScale = 1 << 10,
         ExpandScale = 1 << 11,
         // States
-        LoadFinished = 1 << 16,
-        RestoreSession = 1 << 17,
-        Selected = 1 << 18,
-        Adjusting = 1 << 19,
+        Loading = 1 << 16,
+        LoadFinished = 1 << 17,
+        RestoreSession = 1 << 18,
+        Selected = 1 << 19,
+        Adjusting = 1 << 20,
     };
 
     Q_DECLARE_FLAGS(Flags, Flag)
