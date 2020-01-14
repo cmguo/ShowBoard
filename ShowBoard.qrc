@@ -12,5 +12,6 @@
         <file>icons/edit.svg</file>
         <file>icons/erase.svg</file>
         <file>qml/WhiteCanvas.qml</file>
+        <file>htmls/embed.htm</file>
     </qresource>
 </RCC>

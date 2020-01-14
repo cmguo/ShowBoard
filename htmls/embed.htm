@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta charset="UTF-8"/>
-        <title>Video Sample Page</title>
+        <title>Embed Sample Page</title>
         <script src="https://code.jquery.com/jquery-1.7.2.min.js" type="text/javascript" charset="utf-8" async defer></script>
         <script type="text/javascript">
             function findGetParameter(parameterName) {
@@ -18,17 +18,17 @@
                 return result;
             }
             function onLoad() {
+                var type = findGetParameter("type");
                 var url = findGetParameter("url");
-                var video = $("#video")[0];
-                video.src = url;
-                video.load();
+                var embed = $("#embed")[0];
+                embed.type = type;
+                embed.src = url;
             }
         </script>
     </head>
-    <body style="margin: 0 auto; background: black" onload="onLoad()">
-        <video id='video' controls="controls"
-                style="width: 100%; height: auto;">
-            <p>Your user agent does not support the HTML5 Video element.</p>
-        </video>
+    <body onload="onLoad()">
+        <embed id="embed" width="100%" height="100%" >
+            <param name="quality" value="high" />
+        </embed>
     </body>
 </html>
