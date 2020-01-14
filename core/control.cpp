@@ -577,7 +577,7 @@ void Control::getToolButtons(QList<ToolButton *> &buttons, const QList<ToolButto
             buttons.append(&btnTop);
         if (res_->flags() & ResourceView::CanCopy)
             buttons.append(&btnCopy);
-        if (res_->flags() & ResourceView::CanCopy)
+        if (res_->flags().testFlag(ResourceView::CanFastCopy))
             buttons.append(&btnFastCopy);
         if (res_->flags() & ResourceView::CanDelete)
             buttons.append(&btnDelete);

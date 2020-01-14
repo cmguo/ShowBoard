@@ -33,14 +33,15 @@ public:
         ZOrderFlags = 15,
         CanCopy = 16,
         CanDelete = 32,
-        VirtualScene = BottomMost | 64,
-        LargeCanvas = VirtualScene | 128,
+        CanFastCopy = CanCopy | 64,
         DefaultFlags = CanCopy | CanDelete,
         // when insert new resource under this resource,
         //  this resource will be split into two and new resource is insert between
         //  special used for stroke writen
         Splittable = 1 << 8,
         DrawAttach = 1 << 9, // attach to when drawing
+        VirtualScene = BottomMost | (1 << 10),
+        LargeCanvas = VirtualScene | (1 << 11),
         // States
         SavedSession = 1 << 16,
         DrawFinised = 1 << 17,
