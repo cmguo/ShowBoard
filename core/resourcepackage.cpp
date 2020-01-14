@@ -128,6 +128,21 @@ void ResourcePackage::removeVirtualPage(ResourcePage *page)
     hiddenPages_.removeOne(page);
 }
 
+void ResourcePackage::showVirtualPage(const QUrl &mainUrl, bool show)
+{
+    showVirtualPage(findVirtualPage(mainUrl), show);
+}
+
+void ResourcePackage::toggleVirtualPage(const QUrl &mainUrl)
+{
+    toggleVirtualPage(findVirtualPage(mainUrl));
+}
+
+void ResourcePackage::removeVirtualPage(const QUrl &mainUrl)
+{
+    removeVirtualPage(findVirtualPage(mainUrl));
+}
+
 void ResourcePackage::gotoFront()
 {
     switchPage(0);

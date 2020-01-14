@@ -29,6 +29,6 @@ void WhiteCanvasQuick::onActiveChanged(bool active)
         canvas_->package()->currentPage()->addResourceOrBringTop(mainUrl_, urlSettings_);
     } else {
         if (canvas_->package())
-            canvas_->package()->showVirtualPage(canvas_->package()->findVirtualPage(mainUrl_), false);
+            canvas_->package()->showVirtualPage(mainUrl_, false);
     }
 }

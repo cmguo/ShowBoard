@@ -81,9 +81,15 @@ public:
 
     void toggleVirtualPage(ResourcePage* page);
 
-    void hideAllVirtualPages();
-
     void removeVirtualPage(ResourcePage* page);
+
+    void showVirtualPage(QUrl const & mainUrl, bool show);
+
+    void toggleVirtualPage(QUrl const & mainUrl);
+
+    void removeVirtualPage(QUrl const & mainUrl);
+
+    void hideAllVirtualPages();
 
 public slots:
     /*
