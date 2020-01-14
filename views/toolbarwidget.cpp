@@ -64,6 +64,7 @@ void ToolbarWidget::setPopupPosition(PopupPosition pos)
 static QPixmap widgetToPixmap(QWidget * widget, bool destroy)
 {
     QPixmap pm(widget->size());
+    pm.fill(Qt::transparent);
     QPainter pt(&pm);
     pt.setRenderHint(QPainter::HighQualityAntialiasing);
     widget->render(&pt);
@@ -75,6 +76,7 @@ static QPixmap widgetToPixmap(QWidget * widget, bool destroy)
 static QPixmap itemToPixmap(QGraphicsItem * item, bool destroy)
 {
     QPixmap pm(item->boundingRect().size().toSize());
+    pm.fill(Qt::transparent);
     QPainter pt(&pm);
     pt.setRenderHint(QPainter::HighQualityAntialiasing);
     QStyleOptionGraphicsItem style;
@@ -232,6 +234,11 @@ void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWi
         QGridLayout *gridLayout = static_cast<QGridLayout*>(layout);
         gridLayout->addWidget(widget, row, col);
         ++col;
+        if(button->flags & ToolButton::CustomWidget){
+            gridLayout->setContentsMargins(0,0,0,0);
+        }else{
+           gridLayout->setContentsMargins(10,10,10,10);
+        }
     } else {
         layout->addWidget(widget);
     }
@@ -244,12 +251,7 @@ void ToolbarWidget::applyButton(QPushButton * btn, ToolButton * parent, ToolButt
 {
     btn->setIconSize(QSize(40,40));
     btn->setIcon(getIcon(button->icon, !(button->flags & ToolButton::Dynamic)));
-    if (!button->title.isEmpty()) {
-        if (button->icon.isValid())
-            btn->setText(" " + button->title);
-        else
-            btn->setText(button->title);
-    }
+    btn->setText(button->title);
     if (parent && (parent->flags & ToolButton::OptionsGroup)) {
         btn->setCheckable(true);
         btn->setChecked(button->flags & ToolButton::Selected);
@@ -325,6 +327,8 @@ void ToolbarWidget::clearButtons(QLayout *layout, QMap<QWidget *, ToolButton *> 
 void ToolbarWidget::createPopup()
 {
     popUp_ = new QWidget();
+    popUp_->setWindowFlags(Qt::FramelessWindowHint);
+    //popUp_->setAttribute(Qt::WA_TranslucentBackground);
     popUp_->setStyleSheet(STYLE);
     popUp_->setObjectName(QString::fromUtf8("popupwidget"));
     QGraphicsProxyWidget * proxy = graphicsProxyWidget();
