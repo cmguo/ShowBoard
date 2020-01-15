@@ -40,6 +40,8 @@ public:
         AutoPosition = 1 << 9,
         LayoutScale = 1 << 10,
         ExpandScale = 1 << 11,
+        Touchable = 1 << 12,
+        ImpliedEditable = 1 << 13,
         // States
         Loading = 1 << 16,
         LoadFinished = 1 << 17,

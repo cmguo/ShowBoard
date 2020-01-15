@@ -13,7 +13,7 @@
 #include <QGraphicsScene>
 #include <QGraphicsProxyWidget>
 
-#define ENBALE_TOUCH 0
+#define ENBALE_TOUCH 1
 
 ItemSelector::ItemSelector(QGraphicsItem * parent)
     : CanvasItem(parent)
@@ -117,7 +117,7 @@ void ItemSelector::enableFastClone(bool enable)
     fastClone_ = enable;
 }
 
-void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos)
+void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos, bool fromTouch)
 {
     start_ = pos;
     type_ = None;
@@ -126,6 +126,9 @@ void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos)
                     selBox_->hitTest(selBox_->mapFromParent(pos), direction_));
         if (fastClone_ && type_ == Translate)
             type_ = FastClone;
+        if (type_ == None && fromTouch) { // maybe hit menu bar
+            return;
+        }
     }
     if (type_ == None) {
         QList<QGraphicsItem*> items = scene()->items(scenePos);
@@ -146,6 +149,11 @@ void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos)
                 continue;
             Control::SelectMode mode = Control::NotSelect;
             bool force = force_ && (ct->flags() & Control::DefaultFlags);
+            // if item can not handle touch events, we also pass through all touch events here
+            // but let selectTest take effect
+            if (fromTouch
+                    && !(ct->flags() & (Control::Touchable | Control::FullSelect)))
+                force = false;
             if (!force) {
                 mode = ct->selectTest(children[i], item, mapToItem(ct->item(), pos));
             }
@@ -171,7 +179,7 @@ void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos)
         }
     }
     if (type_ == None) {
-        if (select_) {
+        if (select_ && !fromTouch) {
             select(nullptr);
             qDebug() << "select null";
         }
@@ -329,12 +337,12 @@ QVariant ItemSelector::itemChange(QGraphicsItem::GraphicsItemChange change, cons
 void ItemSelector::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
 #if ENBALE_TOUCH
-    if (event->source() != Qt::MouseEventNotSynthesized) {
-        event->ignore();
+    if (!lastPositions_.empty()) {
+        //event->ignore();
         return;
     }
 #endif
-    selectAt(event->pos(), event->scenePos());
+    selectAt(event->pos(), event->scenePos(), false);
     if (type_ == None) {
         CanvasItem::mousePressEvent(event);
     }
@@ -343,8 +351,8 @@ void ItemSelector::mousePressEvent(QGraphicsSceneMouseEvent *event)
 void ItemSelector::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
 #if ENBALE_TOUCH
-    if (event->source() != Qt::MouseEventNotSynthesized) {
-        event->ignore();
+    if (!lastPositions_.empty()) {
+        //event->ignore();
         return;
     }
 #endif
@@ -358,8 +366,8 @@ void ItemSelector::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 void ItemSelector::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
 #if ENBALE_TOUCH
-    if (event->source() != Qt::MouseEventNotSynthesized) {
-        event->ignore();
+    if (!lastPositions_.empty()) {
+        //event->ignore();
         return;
     }
 #endif
@@ -374,7 +382,7 @@ void ItemSelector::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 void ItemSelector::touchBegin(QTouchEvent *event)
 {
     QTouchEvent::TouchPoint const & point(event->touchPoints().first());
-    selectAt(point.pos(), point.scenePos());
+    selectAt(point.pos(), point.scenePos(), true);
     if (type_ != None) {
         bool isCanvas = selectControl_->metaObject() == &WhiteCanvasControl::staticMetaObject;
         for (QTouchEvent::TouchPoint const & point : event->touchPoints()) {
@@ -397,15 +405,18 @@ void ItemSelector::touchUpdate(QTouchEvent *event)
     }
     if (event->touchPoints().size() != 2 || type_ == Scale || type_ == Rotate) {
         QTouchEvent::TouchPoint const & point(event->touchPoints().first());
-        selectMove(point.pos(), point.scenePos());
-        positions[point.id()] = start_;
+        if (lastPositions_.contains(point.id())) {
+            start_ = lastPositions_[point.id()];
+            selectMove(point.pos(), point.scenePos());
+            positions[point.id()] = start_;
+        }
     } else {
         QTouchEvent::TouchPoint const & point1(event->touchPoints().at(0));
         QTouchEvent::TouchPoint const & point2(event->touchPoints().at(1));
-        if (lastPositions_.size() < 2) {
+        //if (lastPositions_.size() < 2) {
             if (!lastPositions_.contains(point2.id()))
-                lastPositions_[point2.id()] = isCanvas ? point2.lastScenePos() : point2.lastPos();
-        }
+                lastPositions_[point2.id()] = positions[point2.id()];
+        //}
         selectControl_->gesture(lastPositions_[point1.id()], lastPositions_[point2.id()],
                 positions[point1.id()], positions[point2.id()]);
         rect_ = selectControl_->boundRect();

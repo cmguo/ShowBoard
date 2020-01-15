@@ -54,7 +54,7 @@ private:
     };
 
 private:
-    void selectAt(QPointF const & pos, QPointF const & scenePos);
+    void selectAt(QPointF const & pos, QPointF const & scenePos, bool fromTouch);
 
     void selectMove(QPointF const & pos, QPointF const & scenePos);
 

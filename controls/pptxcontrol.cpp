@@ -21,7 +21,7 @@ static char const * toolstr =
         "hide()|结束演示|:/showboard/icons/icon_delete.png";
 
 PptxControl::PptxControl(ResourceView * res)
-    : Control(res, {KeepAspectRatio})
+    : Control(res, {KeepAspectRatio, Touchable})
     , stopButton_(nullptr)
 {
     powerpoint_ = new PowerPoint;

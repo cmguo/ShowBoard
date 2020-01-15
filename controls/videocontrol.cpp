@@ -6,7 +6,7 @@
 #include <QMediaPlayer>
 
 VideoControl::VideoControl(ResourceView * res)
-    : Control(res, {LayoutScale})
+    : Control(res, {LayoutScale, Touchable})
 {
 }
 
