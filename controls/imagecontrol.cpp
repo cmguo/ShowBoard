@@ -17,6 +17,7 @@ QGraphicsItem * ImageControl::create(ResourceView * res)
 {
     (void)res;
     QGraphicsPixmapItem * item = new QGraphicsPixmapItem();
+    item->setTransformationMode(Qt::SmoothTransformation);
     return item;
 }
 

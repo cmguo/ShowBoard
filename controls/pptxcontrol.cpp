@@ -43,7 +43,8 @@ PptxControl::~PptxControl()
 QGraphicsItem * PptxControl::create(ResourceView * res)
 {
     (void) res;
-    QGraphicsItem * item = new QGraphicsPixmapItem;
+    QGraphicsPixmapItem * item = new QGraphicsPixmapItem;
+    item->setTransformationMode(Qt::SmoothTransformation);
     return item;
 }
 
