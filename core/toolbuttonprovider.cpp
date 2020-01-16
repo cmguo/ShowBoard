@@ -9,6 +9,13 @@ ToolButtonProvider::ToolButtonProvider(QObject * parent)
 {
 }
 
+ToolButtonProvider::~ToolButtonProvider()
+{
+    for (ToolButton * btn : nonSharedButtons_)
+        delete btn;
+    nonSharedButtons_.clear();
+}
+
 void ToolButtonProvider::exec(QString const & cmd, QGenericArgument arg0,
                    QGenericArgument arg1, QGenericArgument arg2)
 {
@@ -126,7 +133,7 @@ void ToolButtonProvider::setOption(QString const & key, QVariant value)
     LifeObject::setProperty(key.toUtf8(), value);
 }
 
-QList<ToolButton *> & ToolButtonProvider::tools(QString const & parent)
+QList<ToolButton *> ToolButtonProvider::tools(QString const & parent)
 {
     static std::map<QMetaObject const *, std::map<QString, QList<ToolButton *>>> slist;
     auto iter = slist.find(metaObject());
@@ -140,12 +147,18 @@ QList<ToolButton *> & ToolButtonProvider::tools(QString const & parent)
         iter2 = iter->second.insert(
                     std::make_pair(parent, ToolButton::makeButtons(tools))).first;
     }
-    if (inHandle)
-        return iter2->second;
-    for (ToolButton * button : iter2->second) {
+    QList<ToolButton*> btns(iter2->second);
+    for (ToolButton *& button : btns) {
         if (button->flags & ToolButton::NeedUpdate) {
-            updateToolButton(button);
+            ToolButton* button2 = nonSharedButtons_.value(button);
+            if (button2 == nullptr) {
+                button2 = new ToolButton(*button);
+                nonSharedButtons_.insert(button, button2);
+            }
+            if (!inHandle)
+                updateToolButton(button2);
+            button = button2;
         }
     }
-    return iter2->second;
+    return btns;
 }

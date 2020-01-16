@@ -406,8 +406,11 @@ void ToolbarWidget::buttonClicked(QWidget * widget)
             for (QWidget * w : buttons_.keys()) {
                 if (buttons_.value(w) == button) {
                     updateButton(qobject_cast<QPushButton*>(w), parent, button);
-                    if (graphicsProxyWidget())
+                    layout_->activate();
+                    if (graphicsProxyWidget()) {
                         graphicsProxyWidget()->update();
+                        graphicsProxyWidget()->resize(minimumSize());
+                    }
                     break;
                 }
             }

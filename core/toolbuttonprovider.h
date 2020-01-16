@@ -5,6 +5,7 @@
 #include "lifeobject.h"
 
 #include <QObject>
+#include <QMap>
 
 class ToolButton;
 
@@ -13,6 +14,8 @@ class SHOWBOARD_EXPORT ToolButtonProvider : public LifeObject
     Q_OBJECT
 public:
     ToolButtonProvider(QObject * parent = nullptr);
+
+    virtual ~ToolButtonProvider() override;
 
 signals:
     void buttonsChanged();
@@ -62,7 +65,10 @@ protected:
 
     virtual void setOption(QString const & key, QVariant value);
 
-    QList<ToolButton *> & tools(QString const & parent = QString());
+    QList<ToolButton *> tools(QString const & parent = QString());
+
+private:
+    QMap<ToolButton*, ToolButton*> nonSharedButtons_;
 };
 
 #endif // TOOLBUTTONPROVIDER_H
