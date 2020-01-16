@@ -63,11 +63,13 @@ WhiteCanvasWidget::~WhiteCanvasWidget()
     scene_ = nullptr;
 }
 
+static ResourcePage * CurrentPage = reinterpret_cast<ResourcePage*>(1);
+
 void WhiteCanvasWidget::resizeEvent(QResizeEvent *event)
 {
     qDebug() << "WhiteCanvasWidget resizeEvent" << event->size();
     QGraphicsView::resizeEvent(event);
-    onPageChanged(canvas_->package() ? canvas_->package()->currentPage() : nullptr);
+    onPageChanged(CurrentPage);
 }
 
 void WhiteCanvasWidget::showEvent(QShowEvent *event)
@@ -88,8 +90,8 @@ bool WhiteCanvasWidget::eventFilter(QObject *watched, QEvent *event)
 void WhiteCanvasWidget::onPageChanged(ResourcePage *page)
 {
     bool oldLarge = canvas_->page() && canvas_->page()->canvasView();
-    bool newLarge = page && page->canvasView();
-    if (oldLarge == newLarge)
+    bool newLarge = (page == CurrentPage) ? oldLarge : page && page->canvasView();
+    if (oldLarge == newLarge && page != CurrentPage)
         return;
     QRectF rect(QPointF(0, 0), newLarge ? size() : sceneSize_);
     rect.moveCenter({0, 0});
