@@ -33,6 +33,7 @@ public:
         setPen(QPen(Qt::NoPen));
         setCursor(Qt::CrossCursor);
         setAcceptHoverEvents(true);
+        setFlag(ItemIsFocusable);
         QPushButton * button = new QPushButton("完成");
         QObject::connect(button, &QPushButton::clicked, [this](){finish();});
         QGraphicsProxyWidget * item = new QGraphicsProxyWidget(this);
@@ -49,11 +50,11 @@ private:
                 QEvent event(QEvent::User);
                 control_->event(&event);
             }
-            DrawingTool * tool = static_cast<DrawingTool *>(Control::fromItem(this));
-            tool->finishControl(control_);
             control_ = nullptr;
             finishItem_->hide();
         }
+        DrawingTool * tool = static_cast<DrawingTool *>(Control::fromItem(this));
+        tool->finishControl(control_);
     }
 
     virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override
