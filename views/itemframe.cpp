@@ -24,36 +24,20 @@ void ItemFrame::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
 {
     QRectF rect(boundingRect());
     if (hasTopBar_) {
-        painter->save();
-        painter->setBrush(brush());
-        painter->setPen(pen());
-        painter->drawRect(rect.adjusted(0, HEIGHT, 0, 0));
-        painter->restore();
+//        painter->save();
+//        painter->setBrush(brush());
+//        painter->setPen(pen());
+//        QRectF rect2 = rect.adjusted(TOP_BAR_WIDTH, TOP_BAR_WIDTH + TOP_BAR_HEIGHT,
+//                   -TOP_BAR_WIDTH, -TOP_BAR_WIDTH);
+//        painter->drawRect(rect2);
+//        painter->restore();
     } else {
         QGraphicsRectItem::paint(painter, option, widget);
     }
     //(void) option;
     //(void) widget;
     for (DockItem & i : dockItems_) {
-        QRectF rect2(rect);
-        switch (i.dock) {
-        case Left:
-            rect2.setWidth(i.size);
-            rect.adjust(i.size, 0, 0, 0);
-            break;
-        case Right:
-            rect.adjust(0, 0, -i.size, 0);
-            rect2.adjust(rect.width(), 0, 0, 0);
-            break;
-        case Top:
-            rect2.setHeight(i.size);
-            rect.adjust(0, i.size, 0, 0);
-            break;
-        case Buttom:
-            rect.adjust(0, 0, 0, -i.size);
-            rect2.adjust(0, rect.height(), 0, 0);
-            break;
-        }
+        QRectF rect2 = reversePadding(i, rect);
         if (i.item.userType() == qMetaTypeId<PaintFunc>()) {
             painter->save();
             i.item.value<PaintFunc>()(painter, rect2, this);
@@ -68,15 +52,22 @@ void ItemFrame::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     }
 }
 
-void ItemFrame::drawTopBar(QPainter *painter, QRectF const & rect, ItemFrame * frame)
+void ItemFrame::drawTopBar(QPainter *painter, QRectF const & rect, ItemFrame *)
 {
     painter->setPen(Qt::NoPen);
-    painter->setBrush(Qt::gray);
-    painter->setOpacity(frame->selected_ ? 1.0 : 0.2);
+    painter->setBrush(QColor("#FFF4F4F4"));
+    //painter->setOpacity(frame->selected_ ? 1.0 : 0.2);
     painter->drawRect(rect);
+    QRectF rect2 = rect;
+    rect2.setHeight(TOP_BAR_WIDTH + TOP_BAR_HEIGHT);
+    QLinearGradient gradient(rect2.left(), rect2.top(), rect2.left(), rect2.bottom());
+    gradient.setColorAt(0, QColor("#FFF9F9F9"));
+    gradient.setColorAt(1, QColor("#FFECECEC"));
+    painter->setBrush(gradient);
+    painter->drawRect(rect2);
+    qreal diff = rect2.height() / 5;
     painter->setPen(Qt::white);
-    qreal diff = rect.height() / 5;
-    QPointF pt(-10, rect.center().y() - diff);
+    QPointF pt(-10, rect2.center().y() - diff);
     painter->drawLine(pt, pt + QPointF(20, 0));
     pt.setY(pt.y() + diff);
     painter->drawLine(pt, pt + QPointF(20, 0));
@@ -87,22 +78,25 @@ void ItemFrame::drawTopBar(QPainter *painter, QRectF const & rect, ItemFrame * f
 void ItemFrame::addTopBar()
 {
     hasTopBar_ = dockItems_.isEmpty();
-    addDockItem({Top, HEIGHT, QVariant::fromValue(&drawTopBar)});
+    QRectF pad(-TOP_BAR_WIDTH, -TOP_BAR_WIDTH - TOP_BAR_HEIGHT,
+               TOP_BAR_WIDTH * 2, TOP_BAR_WIDTH * 2 + TOP_BAR_HEIGHT);
+    padding_ = pad;
+    dockItems_.append({Surround, pad, QVariant::fromValue(&drawTopBar)});
 }
 
 void ItemFrame::addDockItem(Dock dock, qreal size)
 {
-    addDockItem({dock, size, QVariant()});
+    addDockItem(dock, size, QVariant());
 }
 
 void ItemFrame::addDockItem(Dock dock, qreal size, QColor color)
 {
-    addDockItem({dock, size, color});
+    addDockItem(dock, size, QVariant(color));
 }
 
 void ItemFrame::addDockItem(Dock dock, qreal size, PaintFunc paint)
 {
-    addDockItem({dock, size, QVariant::fromValue(paint)});
+    addDockItem(dock, size, QVariant::fromValue(paint));
 }
 
 void ItemFrame::addDockItem(Dock dock, QGraphicsItem * item)
@@ -110,26 +104,47 @@ void ItemFrame::addDockItem(Dock dock, QGraphicsItem * item)
     QRectF rect(item->boundingRect());
     qreal size = dock < Top ? rect.width() : rect.height();
     item->setParentItem(this);
-    addDockItem({dock, size, QVariant::fromValue(item)});
+    addDockItem(dock, size, QVariant::fromValue(item));
 }
 
-void ItemFrame::addDockItem(DockItem const & item)
+void ItemFrame::addDockItem(Dock dock, qreal size, QVariant item)
 {
-    switch (item.dock) {
+    QRectF pad;
+    switch (dock) {
     case Left:
-        padding_.setX(padding_.x() - item.size);
+        pad = QRectF(-size, 0, size, 0);
         break;
     case Right:
-        padding_.setWidth(padding_.width() + item.size);
+        pad = QRectF(0, 0, size, 0);
         break;
     case Top:
-        padding_.setY(padding_.y() - item.size);
+        pad = QRectF(0, -size, 0, size);
         break;
     case Buttom:
-        padding_.setHeight(padding_.height() + item.size);
+        pad = QRectF(0, 0, 0, size);
+        break;
+    default:
         break;
     }
-    dockItems_.append(item);
+    padding_.adjust(pad.left(), pad.top(), pad.right(), pad.bottom());
+    dockItems_.append({dock, pad, item});
+}
+
+QRectF ItemFrame::reversePadding(DockItem & i, QRectF &rect)
+{
+    QRectF rect2(rect);
+    // (0, 0, 4, 4)
+    // (-1, 0, 1, 0) -> (0, 0, 1, 4)
+    // (0, -1, 0, 1) -> (0, 0, 4, 1)
+    // (0, 0, 1, 0) -> (3, 0, 1, 4)
+    // (0, 0, 0, 1) -> (0, 3, 4, 1)
+    rect.adjust(-i.pad.left(), -i.pad.top(), -i.pad.right(), -i.pad.bottom());
+    if (i.dock < Surround)
+        rect2 = QRectF(qFuzzyIsNull(i.pad.right()) ? rect2.left() : rect.right(),
+                       qFuzzyIsNull(i.pad.bottom()) ? rect2.top() : rect.bottom(),
+                       qFuzzyIsNull(i.pad.width()) ? rect2.width() : i.pad.width(),
+                       qFuzzyIsNull(i.pad.height()) ? rect2.height() : i.pad.height());
+    return rect2;
 }
 
 void ItemFrame::setSelected(bool selected)
@@ -146,25 +161,7 @@ void ItemFrame::setRect(const QRectF &rect3)
     rect.moveCenter(padding_.center());
     QGraphicsRectItem::setRect(rect);
     for (DockItem & i : dockItems_) {
-        QRectF rect2(rect);
-        switch (i.dock) {
-        case Left:
-            rect2.setWidth(i.size);
-            rect.adjust(i.size, 0, 0, 0);
-            break;
-        case Right:
-            rect.adjust(0, 0, -i.size, 0);
-            rect2.adjust(rect.width(), 0, 0, 0);
-            break;
-        case Top:
-            rect2.setHeight(i.size);
-            rect.adjust(0, i.size, 0, 0);
-            break;
-        case Buttom:
-            rect.adjust(0, 0, 0, -i.size);
-            rect2.adjust(0, rect.height(), 0, 0);
-            break;
-        }
+        QRectF rect2 = reversePadding(i, rect);
         if (i.item.userType() == qMetaTypeId<QGraphicsItem*>()) {
             QGraphicsItem * item = i.item.value<QGraphicsItem*>();
             QGraphicsSceneResizeEvent event;

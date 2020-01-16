@@ -14,7 +14,8 @@ public:
         Left,
         Right,
         Top,
-        Buttom
+        Buttom,
+        Surround,
     };
 
     ItemFrame(QGraphicsItem * item, QGraphicsItem * parent = nullptr);
@@ -74,14 +75,17 @@ private:
 
     struct DockItem
     {
-        int dock;
-        qreal size; // width or height
+        Dock dock;
+        QRectF pad; // width or height
         QVariant item; // QColor or QGraphicsItem or PaintFunc
     };
 
-    void addDockItem(DockItem const & item);
+    void addDockItem(Dock dock, qreal size, QVariant item);
 
-    static constexpr qreal HEIGHT = 48.0;
+    QRectF reversePadding(DockItem & i, QRectF & rect);
+
+    static constexpr qreal TOP_BAR_WIDTH = 20.0;
+    static constexpr qreal TOP_BAR_HEIGHT = 28.0;
 
     static void drawTopBar(QPainter *painter, QRectF const & rect, ItemFrame * frame);
 
