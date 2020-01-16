@@ -32,7 +32,7 @@ public:
     virtual ~WhiteCanvas() override;
 
 signals:
-    void loadFinished();
+    void loadingChanged(bool loading);
 
 public:
     ResourcePackage * package()

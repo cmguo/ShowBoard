@@ -147,10 +147,12 @@ bool WhiteCanvas::loading()
 
 void WhiteCanvas::onControlLoad(bool startOrFinished)
 {
-    if (startOrFinished)
-        ++loadingCount_;
-    else if (--loadingCount_ == 0)
-        emit loadFinished();
+    if (startOrFinished) {
+        if (++loadingCount_ == 1)
+            emit loadingChanged(true);
+    } else if (--loadingCount_ == 0) {
+        emit loadingChanged(false);
+    }
 }
 
 void WhiteCanvas::setGeometry(QRectF const & rect)
