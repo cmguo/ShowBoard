@@ -83,6 +83,7 @@ void ItemSelector::select(QGraphicsItem *item)
         selectControl_ = nullptr;
         selBox_->setVisible(false);
         toolBar_->hide();
+        toolBar()->clear();
         fastClone_ = false;
         cloneControl_ = nullptr;
     }

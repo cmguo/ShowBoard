@@ -390,6 +390,8 @@ void ToolbarWidget::buttonClicked(QWidget * widget)
         popUp_->show();
     } else {
         onButtonClicked(button);
+        if (buttons_.empty()) // may delete & clear
+            return;
         popupParents_.pop_back();
         int i = 0;
         ToolButton * parent = popupParents_.empty() ? nullptr : popupParents_.back();
