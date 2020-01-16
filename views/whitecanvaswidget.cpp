@@ -105,6 +105,12 @@ ResourcePackage * WhiteCanvasWidget::package()
     return canvas_->package();
 }
 
+void WhiteCanvasWidget::setSceneSize(QSizeF size)
+{
+    sceneSize_ = size;
+    onPageChanged(CurrentPage);
+}
+
 void WhiteCanvasWidget::setResourcePackage(ResourcePackage * pack)
 {
     ResourcePackage* old = canvas_->package();

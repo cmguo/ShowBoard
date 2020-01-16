@@ -450,6 +450,13 @@ void Control::gesture(const QPointF &from1, const QPointF &from2, QPointF &to1, 
 {
     res_->transform().gesture(from1, from2, to1, to2,
                               flags_ & CanMove, flags_ & CanScale, flags_ & CanRotate);
+    if (flags_ & LayoutScale) {
+        // TODO:
+        //sizeChanged();
+    }
+    if (item_ != realItem_) {
+        static_cast<ItemFrame *>(realItem_)->updateRect();
+    }
 }
 
 void Control::rotate(QPointF const & from, QPointF & to)

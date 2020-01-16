@@ -199,6 +199,8 @@ void ItemSelector::selectMove(QPointF const & pos, QPointF const & scenePos)
     QPointF pt = pos;
     if (selectControl_->metaObject() == &WhiteCanvasControl::staticMetaObject)
         pt = scenePos;
+    if (!scene()->sceneRect().contains(scenePos))
+        return;
     QPointF d = pt - start_;
     switch (type_) {
     case Translate:
@@ -413,20 +415,23 @@ void ItemSelector::touchUpdate(QTouchEvent *event)
     } else {
         QTouchEvent::TouchPoint const & point1(event->touchPoints().at(0));
         QTouchEvent::TouchPoint const & point2(event->touchPoints().at(1));
-        //if (lastPositions_.size() < 2) {
-            if (!lastPositions_.contains(point2.id()))
-                lastPositions_[point2.id()] = positions[point2.id()];
-        //}
-        selectControl_->gesture(lastPositions_[point1.id()], lastPositions_[point2.id()],
-                positions[point1.id()], positions[point2.id()]);
-        rect_ = selectControl_->boundRect();
-        selBox_->setRect(rect_);
-        if (type_ == TempNoMove || type_ == AgainNoMove)
-            type_ = static_cast<SelectType>(type_ + 1);
-        if (hideMenu_)
-            toolBar_->hide();
-        else
-            layoutToolbar();
+        if (scene()->sceneRect().contains(point1.scenePos())
+                && scene()->sceneRect().contains(point2.scenePos())) {
+            //if (lastPositions_.size() < 2) {
+                if (!lastPositions_.contains(point2.id()))
+                    lastPositions_[point2.id()] = positions[point2.id()];
+            //}
+            selectControl_->gesture(lastPositions_[point1.id()], lastPositions_[point2.id()],
+                    positions[point1.id()], positions[point2.id()]);
+            rect_ = selectControl_->boundRect();
+            selBox_->setRect(rect_);
+            if (type_ == TempNoMove || type_ == AgainNoMove)
+                type_ = static_cast<SelectType>(type_ + 1);
+            if (hideMenu_)
+                toolBar_->hide();
+            else
+                layoutToolbar();
+        }
     }
     lastPositions_.swap(positions);
 }
