@@ -302,16 +302,22 @@ void Control::initPosition()
         static_cast<ItemFrame *>(realItem_)->updateRect();
     if (flags_ & (FullLayout | RestoreSession))
         return;
+    QGraphicsItem *parent = realItem_->parentItem();
+    QRectF rect = parent->boundingRect();
+    Control * canvasControl = fromItem(whiteCanvas());
+    if (canvasControl) {
+        rect = parent->mapFromScene(parent->scene()->sceneRect()).boundingRect();
+        if (!(flags_ & AutoPosition))
+            res_->transform().translate(rect.center());
+    }
     if (!(flags_ & AutoPosition))
         return;
-    QGraphicsItem *parent = realItem_->parentItem();
     QPolygonF polygon;
     for (QGraphicsItem * c : parent->childItems()) {
         if (c == realItem_ || Control::fromItem(c)->flags() & FullLayout)
             continue;
         polygon = polygon.united(c->mapToParent(c->boundingRect()));
     }
-    QRectF rect = parent->boundingRect();
     qreal dx = rect.width() / 3.0;
     qreal dy = rect.height() / 3.0;
     rect.adjust(0, 0, -dx - dx, -dy - dy);
@@ -385,6 +391,10 @@ void Control::initScale()
     if (flags_ & (FullLayout | LoadFinished | RestoreSession)) {
         return;
     }
+    Control * canvasControl = fromItem(whiteCanvas());
+    if (canvasControl) {
+        ps = item_->scene()->sceneRect().size();
+    }
     QVariant delaySizeHint = property("delaySizeHint");
     if (delaySizeHint.isValid()) {
         ps = delaySizeHint.toSizeF();
@@ -411,6 +421,10 @@ void Control::initScale()
         resize(size);
     } else {
         res_->transform().scaleTo(scale);
+    }
+    if (canvasControl) {
+        qreal s = 1 / canvasControl->resource()->transform().scale().m11();
+        res_->transform().scale(QSizeF(s, s));
     }
     if (item_ != realItem_) {
         res_->transform().translate(
