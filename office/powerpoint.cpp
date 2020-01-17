@@ -192,6 +192,8 @@ void PowerPoint::prev()
 
 void PowerPoint::hide()
 {
+    killTimer(timerId_);
+    timerId_ = 0;
     hideWindow(hwnd_);
     thumb(0);
     showCursor();
@@ -201,6 +203,8 @@ void PowerPoint::close()
 {
     if (!presentation_)
         return;
+    killTimer(timerId_);
+    timerId_ = 0;
     qDebug() << "PowerPoint::close()";
     view_ = nullptr;
     hwnd_ = 0;
