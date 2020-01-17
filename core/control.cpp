@@ -251,7 +251,10 @@ WhiteCanvas *Control::whiteCanvas()
 
 void Control::resize(QSizeF const & size)
 {
-    (void) size;
+    if (flags_ & (LoadFinished | RestoreSession)) {
+        return;
+    }
+    setProperty("delaySizeHint", size);
 }
 
 static constexpr qreal CROSS_LENGTH = 20;
@@ -382,6 +385,12 @@ void Control::initScale()
     if (flags_ & (FullLayout | LoadFinished | RestoreSession)) {
         return;
     }
+    QVariant delaySizeHint = property("delaySizeHint");
+    if (delaySizeHint.isValid()) {
+        ps = delaySizeHint.toSizeF();
+        delaySizeHint.clear();
+        setProperty("delaySizeHint", delaySizeHint);
+    }
     if (item_ != realItem_) {
         QRectF padding(static_cast<ItemFrame *>(realItem_)->padding());
         ps.setWidth(ps.width() - padding.width());
@@ -402,6 +411,10 @@ void Control::initScale()
         resize(size);
     } else {
         res_->transform().scaleTo(scale);
+    }
+    if (item_ != realItem_) {
+        res_->transform().translate(
+                    -static_cast<ItemFrame *>(realItem_)->padding().center());
     }
 }
 
