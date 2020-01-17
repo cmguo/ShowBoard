@@ -17,29 +17,19 @@ static char const * toolstr =
         #endif
         ;
 
-class TouchEventForwarder : public QObject
+class WebView : public QWebEngineView
 {
 public:
-    TouchEventForwarder(QWebEngineView *w, QObject *parent)
-        : QObject(parent)
-        , webView(w)
-        , m_waState(w->testAttribute(Qt::WA_AcceptTouchEvents))
+    WebView()
     {
+        sinit();
         // make sure that touch events are delivered at all
-        w->setAttribute(Qt::WA_AcceptTouchEvents);
-        w->installEventFilter(this);
-    }
-
-    virtual ~TouchEventForwarder() override
-    {
-        if (webView) {
-            webView->removeEventFilter(this);
-            webView->setAttribute(Qt::WA_AcceptTouchEvents, m_waState);
-        }
+        setAttribute(Qt::WA_AcceptTouchEvents);
     }
 
 protected:
-    bool eventFilter(QObject *obj, QEvent *event) override {
+    virtual bool event(QEvent * event) override
+    {
         if (event->type() == QEvent::TouchBegin
                 || event->type() == QEvent::TouchEnd
                 || event->type() == QEvent::TouchUpdate
@@ -50,45 +40,52 @@ protected:
             qDebug() << "eventFilter: " << event->type();
             QApplication::sendEvent(childWidget, event);
             return true;
+        } else if (event->type() == QEvent::Wheel) {
+            QWebEngineView::event(event);
+            event->accept();
+            return true;
         }
-        return QObject::eventFilter(obj, event);
+        return QWebEngineView::event(event);
+    }
+
+private:
+    static void sinit()
+    {
+        static bool init = false;
+        if (!init) {
+            char const * flags =
+                    "--allow-running-insecure-content"
+                    " --disable-web-security"
+                    " --register-pepper-plugins="
+                        "./pepflashplayer64_32_0_0_270.dll;application/x-shockwave-flash";
+            ::_putenv_s("QTWEBENGINE_CHROMIUM_FLAGS", flags);
+    #ifdef _DEBUG
+            ::_putenv_s("QTWEBENGINE_REMOTE_DEBUGGING", "7777");
+    #endif
+            QWebEngineSettings::defaultSettings()->setAttribute(
+                        QWebEngineSettings::PluginsEnabled, true);
+            QWebEngineSettings::defaultSettings()->setAttribute(
+                        QWebEngineSettings::ShowScrollBars, false);
+            init = true;
+        }
     }
 
 private:
     QWidget *findChildWidget(const QString &className) const
     {
-        for (auto w: webView->findChildren<QWidget*>())
+        for (auto w: findChildren<QWidget*>())
             if (className == QString::fromLatin1(w->metaObject()->className()))
                 return w;
         return nullptr;
     }
 
-    QPointer<QWidget> webView;
+private:
     QPointer<QWidget> childWidget;
-    bool m_waState;
 };
-
 
 WebControl::WebControl(ResourceView * res)
     : WidgetControl(res, {WithSelectBar, ExpandScale, LayoutScale, Touchable}, {CanRotate})
 {
-    static bool init = false;
-    if (!init) {
-        char const * flags =
-                "--allow-running-insecure-content"
-                " --disable-web-security"
-                " --register-pepper-plugins="
-                    "./pepflashplayer64_32_0_0_270.dll;application/x-shockwave-flash";
-        ::_putenv_s("QTWEBENGINE_CHROMIUM_FLAGS", flags);
-#ifdef _DEBUG
-        ::_putenv_s("QTWEBENGINE_REMOTE_DEBUGGING", "7777");
-#endif
-        QWebEngineSettings::defaultSettings()->setAttribute(
-                    QWebEngineSettings::PluginsEnabled, true);
-        QWebEngineSettings::defaultSettings()->setAttribute(
-                    QWebEngineSettings::ShowScrollBars, false);
-        init = true;
-    }
     setToolsString(toolstr);
 }
 
@@ -105,8 +102,7 @@ void WebControl::setLayoutScale(bool b)
 QWidget * WebControl::createWidget(ResourceView * res)
 {
     (void)res;
-    QWebEngineView * view = new QWebEngineView();
-    new TouchEventForwarder(view, this);
+    QWebEngineView * view = new WebView();
     view->resize(1024, 576);
     QObject::connect(view->page(), &QWebEnginePage::loadFinished,
                      this, &WebControl::loadFinished);
