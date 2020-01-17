@@ -406,6 +406,7 @@ void ItemSelector::touchUpdate(QTouchEvent *event)
     for (QTouchEvent::TouchPoint const & point : event->touchPoints()) {
         positions[point.id()] = isCanvas ? point.scenePos() : point.pos();
     }
+    //qDebug() << positions;
     if (event->touchPoints().size() != 2 || type_ == Scale || type_ == Rotate) {
         QTouchEvent::TouchPoint const & point(event->touchPoints().first());
         if (lastPositions_.contains(point.id())) {
@@ -418,10 +419,16 @@ void ItemSelector::touchUpdate(QTouchEvent *event)
         QTouchEvent::TouchPoint const & point2(event->touchPoints().at(1));
         if (scene()->sceneRect().contains(point1.scenePos())
                 && scene()->sceneRect().contains(point2.scenePos())) {
-            //if (lastPositions_.size() < 2) {
-                if (!lastPositions_.contains(point2.id()))
-                    lastPositions_[point2.id()] = positions[point2.id()];
-            //}
+            if (!lastPositions_.contains(point1.id())) {
+                lastPositions_[point1.id()] = positions[point1.id()];
+                //qDebug() << lastPositions_[point1.id()] << lastPositions_[point2.id()] << "<->"
+                //        << positions[point1.id()] << positions[point2.id()];
+            }
+            if (!lastPositions_.contains(point2.id())) {
+                lastPositions_[point2.id()] = positions[point2.id()];
+                //qDebug() << lastPositions_[point1.id()] << lastPositions_[point2.id()] << "<->"
+                //        << positions[point1.id()] << positions[point2.id()];
+            }
             selectControl_->gesture(lastPositions_[point1.id()], lastPositions_[point2.id()],
                     positions[point1.id()], positions[point2.id()]);
             rect_ = selectControl_->boundRect();

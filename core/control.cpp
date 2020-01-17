@@ -203,11 +203,11 @@ void Control::sizeChanged()
             t.translate(-center.x(), -center.y());
             item_->setTransform(t);
         }
-        if (realItem_ != item_)
-            static_cast<ItemFrame *>(realItem_)->updateRect();
     } else {
         item_->setTransform(QTransform::fromTranslate(-center.x(), -center.y()));
     }
+    if (realItem_ != item_)
+        static_cast<ItemFrame *>(realItem_)->updateRect();
     if (stateItem_) {
         stateItem_->updateTransform();
     }
@@ -346,14 +346,15 @@ void Control::loadFinished(bool ok, QString const & iconOrMsg)
         } else {
             stateItem()->setLoaded(iconOrMsg);
         }
-        sizeChanged();
         initScale();
+        sizeChanged();
         flags_ |= LoadFinished;
     } else {
         QString msg = res_->name() + "\n"
                 + (iconOrMsg.isEmpty() ? "加载失败，点击即可重试" : iconOrMsg);
         stateItem()->setFailed(msg);
         QObject::connect(stateItem(), &StateItem::clicked, this, &Control::reload);
+        sizeChanged();
     }
     flags_ &= ~Loading;
     whiteCanvas()->onControlLoad(false);
@@ -361,8 +362,6 @@ void Control::loadFinished(bool ok, QString const & iconOrMsg)
 
 void Control::initScale()
 {
-    if (realItem_ != item_)
-        static_cast<ItemFrame *>(realItem_)->updateRect();
     QSizeF ps = whiteCanvas()->rect().size();
     QSizeF size = item_->boundingRect().size();
     if (res_->flags().testFlag(ResourceView::LargeCanvas)) {
@@ -401,12 +400,9 @@ void Control::initScale()
     }
     if (flags_ & LayoutScale) {
         resize(size);
-        sizeChanged();
     } else {
         res_->transform().scaleTo(scale);
     }
-    if (realItem_ != item_)
-        static_cast<ItemFrame *>(realItem_)->updateRect();
 }
 
 void Control::setSize(const QSizeF &size)
