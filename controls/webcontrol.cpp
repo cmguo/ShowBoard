@@ -11,7 +11,11 @@
 
 static char const * toolstr =
         "reload()|刷新|:/showboard/icons/icon_refresh.png;"
-        "-full()|全屏|:/showboard/icons/icon_refresh.png;";
+        "-full()|全屏|:/showboard/icons/icon_refresh.png;"
+        #ifdef _DEBUG
+        "debug()|调试|"
+        #endif
+        ;
 
 class TouchEventForwarder : public QObject
 {
@@ -66,7 +70,7 @@ private:
 
 
 WebControl::WebControl(ResourceView * res)
-    : WidgetControl(res, {WithSelectBar, ExpandScale, LayoutScale, Touchable})
+    : WidgetControl(res, {WithSelectBar, ExpandScale, LayoutScale, Touchable}, {CanRotate})
 {
     static bool init = false;
     if (!init) {
@@ -76,6 +80,9 @@ WebControl::WebControl(ResourceView * res)
                 " --register-pepper-plugins="
                     "./pepflashplayer64_32_0_0_270.dll;application/x-shockwave-flash";
         ::_putenv_s("QTWEBENGINE_CHROMIUM_FLAGS", flags);
+#ifdef _DEBUG
+        ::_putenv_s("QTWEBENGINE_REMOTE_DEBUGGING", "7777");
+#endif
         QWebEngineSettings::defaultSettings()->setAttribute(
                     QWebEngineSettings::PluginsEnabled, true);
         QWebEngineSettings::defaultSettings()->setAttribute(
@@ -110,6 +117,7 @@ QWidget * WebControl::createWidget(ResourceView * res)
 
 void WebControl::attached()
 {
+    item_->setFlag(QGraphicsItem::ItemIsFocusable);
     QWebEngineView * view = qobject_cast<QWebEngineView *>(widget_);
     view->load(res_->resource()->url());
 }
@@ -145,4 +153,13 @@ void WebControl::full()
     resize(whiteCanvas()->rect().size());
     sizeChanged();
     adjusting(false);
+}
+
+void WebControl::debug()
+{
+    QWebEngineView * web = new QWebEngineView();
+    web->setWindowFlags(Qt::WindowStaysOnTopHint | Qt::Window);
+    web->setMinimumSize(500, 300);
+    web->load(QUrl("http://localhost:7777"));
+    web->show();
 }

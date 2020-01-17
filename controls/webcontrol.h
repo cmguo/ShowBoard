@@ -30,6 +30,8 @@ private slots:
     void reload();
 
     void full();
+
+    void debug();
 };
 
 #endif // WEBCONTROL_H

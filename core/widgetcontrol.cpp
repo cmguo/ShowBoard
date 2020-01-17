@@ -23,7 +23,6 @@ QGraphicsItem * WidgetControl::create(ResourceView *res)
     widget_ = createWidget(res);
     QGraphicsProxyWidget * item = new QGraphicsProxyWidget();
     item->setAcceptTouchEvents(true);
-    item->setFocusPolicy(Qt::NoFocus);
     item->setAutoFillBackground(false);
     item->setWidget(widget_);
     //resize(widget_->size());
