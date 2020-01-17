@@ -7,6 +7,8 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QPushButton>
 #include <QGraphicsProxyWidget>
+#include <QGraphicsScene>
+#include <QGraphicsView>
 
 DrawingTool::DrawingTool(ResourceView *res)
     : Control(res, FullLayout, {DefaultFlags})
@@ -103,6 +105,7 @@ private:
     {
         if (change == ItemVisibleHasChanged && variant.toBool()) {
             setFocus();
+            scene()->views().first()->setFocus();
         }
         return QGraphicsRectItem::itemChange(change, variant);
     }
