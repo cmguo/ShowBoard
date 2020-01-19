@@ -9,6 +9,7 @@
 #include <QStyleOptionButton>
 #include <QGraphicsItem>
 #include <QGraphicsProxyWidget>
+#include <QGraphicsScene>
 #include <QPushButton>
 #include <QLabel>
 
@@ -426,10 +427,8 @@ void ToolbarWidget::buttonClicked(QWidget * widget)
 
 QPointF ToolbarWidget::popupPosition(QPushButton *btn, QGraphicsProxyWidget *popup)
 {
-    QGraphicsProxyWidget* proxy = graphicsProxyWidget();
-    QGraphicsItem* parent = proxy->parentItem();
+    QGraphicsItem* parent = graphicsProxyWidget();
     QPointF topLeft = btn->mapTo(this, QPoint(0, 0));
-    topLeft = proxy->mapToParent(topLeft);
     QSizeF size = popup->size();
     switch (popupPosition_) {
     case TopLeft:
@@ -451,7 +450,7 @@ QPointF ToolbarWidget::popupPosition(QPushButton *btn, QGraphicsProxyWidget *pop
         topLeft += QPointF(0, btn->height() + 15);
         break;
     }
-    QRectF bound = parent->boundingRect();
+    QRectF bound = parent->mapFromScene(parent->scene()->sceneRect()).boundingRect();
     QRectF bound2(topLeft, size);
     if (bound2.left() < bound.left())
         topLeft.setX(bound.left());
