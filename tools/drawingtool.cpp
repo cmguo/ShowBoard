@@ -27,13 +27,12 @@ void DrawingTool::finishControl(Control * control)
     whiteCanvas()->hideToolControl("drawing");
 }
 
-class DrawingItem : public QGraphicsRectItem
+class DrawingItem : public CanvasItem
 {
 public:
     DrawingItem()
         : control_(nullptr)
     {
-        setPen(QPen(Qt::NoPen));
         setCursor(Qt::CrossCursor);
         setAcceptHoverEvents(true);
         setFlag(ItemIsFocusable);
@@ -105,7 +104,7 @@ private:
         if (event->type() == QEvent::FocusOut
                 || event->type() == QEvent::WindowDeactivate)
             finish();
-        return QGraphicsRectItem::sceneEvent(event);
+        return CanvasItem::sceneEvent(event);
     }
 
     virtual QVariant itemChange(GraphicsItemChange change, const QVariant &variant) override
@@ -114,7 +113,7 @@ private:
             setFocus();
             scene()->views().first()->setFocus();
         }
-        return QGraphicsRectItem::itemChange(change, variant);
+        return CanvasItem::itemChange(change, variant);
     }
 
 private:

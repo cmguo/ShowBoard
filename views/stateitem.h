@@ -12,6 +12,7 @@ class StateItem : public QGraphicsObject
 public:
     enum State
     {
+        None,
         Loading,
         Loaded,
         Failed,
@@ -23,6 +24,8 @@ public:
     StateItem(QGraphicsItem * parent = nullptr);
 
 public:
+    void showBackground(bool show);
+
     void setLoading(QString const & title);
 
     void setLoaded(QString const & icon);
@@ -41,8 +44,6 @@ private:
 
 public:
     virtual QRectF boundingRect() const override;
-
-    virtual QPainterPath shape() const override;
 
     virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
 
@@ -68,6 +69,7 @@ private:
 
 private:
     State state_;
+    bool showBackground_;
     int timerId_;
     qreal rotate_;
     int touchId_;

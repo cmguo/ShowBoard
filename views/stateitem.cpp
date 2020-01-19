@@ -20,6 +20,8 @@ StateItem::StateItem(QGraphicsItem * parent)
     , normal_(nullptr)
     , hover_(nullptr)
     , pressed_(nullptr)
+    , state_(None)
+    , showBackground_(true)
     , timerId_(0)
     , touchId_(0)
 {
@@ -37,10 +39,19 @@ StateItem::StateItem(QGraphicsItem * parent)
     updateTransform();
 }
 
+void StateItem::showBackground(bool show)
+{
+    if (showBackground_ == show)
+        return;
+    showBackground_ = show;
+    update();
+}
+
 void StateItem::setLoading(QString const & title)
 {
     setSharedRenderer(loading_);
     setText(title);
+    state_ = Loading;
     rotate_ = 45.0;
     timerId_ = startTimer(100);
 }
@@ -56,6 +67,7 @@ void StateItem::setLoaded(const QString &icon)
     normal_ = cache_->get(fileNormal);
     hover_ = cache_->get(fileHover);
     pressed_ = cache_->get(filePressed);
+    state_ = Loaded;
     if (normal_)
         setSharedRenderer(normal_);
     setText(nullptr);
@@ -63,12 +75,14 @@ void StateItem::setLoaded(const QString &icon)
 
 void StateItem::setFailed(QString const & msg)
 {
+    state_ = Failed;
     setSharedRenderer(failed_);
     setText(msg);
 }
 
 void StateItem::setSharedRenderer(QSvgRenderer * renderer)
 {
+    prepareGeometryChange();
     killTimer(timerId_);
     timerId_ = 0;
     static_cast<QGraphicsSvgItem*>(iconItem_)->setSharedRenderer(renderer);
@@ -80,6 +94,7 @@ void StateItem::setSharedRenderer(QSvgRenderer * renderer)
 
 void StateItem::setText(const QString &text)
 {
+    prepareGeometryChange();
     QGraphicsTextItem* textItem = static_cast<QGraphicsTextItem*>(textItem_);
     if (text.startsWith("<") && text.endsWith(">"))
         textItem->setHtml(text);
@@ -89,6 +104,7 @@ void StateItem::setText(const QString &text)
     QPointF center(textItem->boundingRect().center());
     center.setY(-iconItem_->boundingRect().height() / 2 - 10);
     textItem->setPos(-center);
+    textItem->setVisible(!text.isEmpty());
 }
 
 void StateItem::updateTransform()
@@ -99,20 +115,28 @@ void StateItem::updateTransform()
 
 QRectF StateItem::boundingRect() const
 {
-    return iconItem_->mapToParent(iconItem_->boundingRect()).boundingRect()
-            | textItem_->mapToParent(textItem_->boundingRect()).boundingRect();
-}
-
-QPainterPath StateItem::shape() const
-{
-    return iconItem_->mapToParent(iconItem_->shape()) | textItem_->mapToParent(textItem_->shape());
+    QRectF rect = iconItem_->boundingRect();
+    rect.moveCenter(QPointF(0, 0)); // not map to this, ignore rotate
+    if (textItem_->isVisible()) {
+        rect |= textItem_->mapToParent(textItem_->boundingRect()).boundingRect();
+        rect.adjust(-32, -16, 32, 32);
+    }
+    return rect;
 }
 
 void StateItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    (void) painter;
     (void) option;
     (void) widget;
+    if (!showBackground_)
+        return;
+    if (state_ == Loaded)
+        return;
+    painter->save();
+    painter->setPen(QColor("#FF434D59"));
+    painter->setBrush(QColor("#F22B3034"));
+    painter->drawRoundRect(boundingRect(), 8, 8);
+    painter->restore();
 }
 
 void StateItem::timerEvent(QTimerEvent * event)
