@@ -52,6 +52,8 @@ public:
 
     virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent * event) override;
 
+    virtual bool sceneEvent(QEvent *event) override;
+
 private:
     static SvgCache * cache_;
     static QSvgRenderer * loading_;
@@ -68,6 +70,7 @@ private:
     State state_;
     int timerId_;
     qreal rotate_;
+    int touchId_;
 };
 
 #endif // STATEITEM_H

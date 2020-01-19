@@ -7,6 +7,7 @@
 #include <QGraphicsTextItem>
 #include <QPainter>
 #include <QDebug>
+#include <QCloseEvent>
 
 SvgCache * StateItem::cache_ = nullptr;
 QSvgRenderer * StateItem::loading_ = nullptr;
@@ -20,8 +21,10 @@ StateItem::StateItem(QGraphicsItem * parent)
     , hover_(nullptr)
     , pressed_(nullptr)
     , timerId_(0)
+    , touchId_(0)
 {
     setAcceptedMouseButtons(Qt::LeftButton);
+    setAcceptTouchEvents(true);
     iconItem_ = new QGraphicsSvgItem(this);
     QGraphicsTextItem* textItem = new QGraphicsTextItem(this);
     textItem->setFont(QFont("Microsoft YaHei", 18));
@@ -126,6 +129,8 @@ void StateItem::mousePressEvent(QGraphicsSceneMouseEvent * event)
         event->ignore();
         return;
     }
+    if (touchId_)
+        return;
     if (pressed_)
         static_cast<QGraphicsSvgItem*>(iconItem_)->setSharedRenderer(pressed_);
 }
@@ -133,8 +138,34 @@ void StateItem::mousePressEvent(QGraphicsSceneMouseEvent * event)
 void StateItem::mouseReleaseEvent(QGraphicsSceneMouseEvent * event)
 {
     (void) event;
+    if (touchId_)
+        return;
     if (normal_)
         static_cast<QGraphicsSvgItem*>(iconItem_)->setSharedRenderer(normal_);
     emit clicked();
+}
+
+bool StateItem::sceneEvent(QEvent *event)
+{
+    switch (event->type()) {
+    case QEvent::TouchBegin:
+        if (receivers(SIGNAL(clicked())) == 0) {
+            event->ignore();
+            return false;
+        }
+        touchId_ = static_cast<QTouchEvent*>(event)->touchPoints().first().id();
+        if (pressed_)
+            static_cast<QGraphicsSvgItem*>(iconItem_)->setSharedRenderer(pressed_);
+        return true;
+    case QEvent::TouchEnd:
+        if (normal_)
+            static_cast<QGraphicsSvgItem*>(iconItem_)->setSharedRenderer(normal_);
+        touchId_ = 0;
+        emit clicked();
+        return true;
+    default:
+        break;
+    }
+    return QGraphicsObject::sceneEvent(event);
 }
 
