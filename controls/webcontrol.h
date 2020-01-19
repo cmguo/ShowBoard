@@ -8,6 +8,7 @@ class WebControl : public WidgetControl
     Q_OBJECT
 
     Q_PROPERTY(bool layoutScale READ layoutScale WRITE setLayoutScale)
+    Q_PROPERTY(bool keepAspectRatio READ keepAspectRatio WRITE setKeepAspectRatio)
 
 public:
     Q_INVOKABLE WebControl(ResourceView *res);
@@ -16,6 +17,10 @@ public:
     bool layoutScale() const;
 
     void setLayoutScale(bool b);
+
+    bool keepAspectRatio() const;
+
+    void setKeepAspectRatio(bool b);
 
 protected:
     virtual QWidget * createWidget(ResourceView * res) override;

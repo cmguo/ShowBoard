@@ -99,6 +99,16 @@ void WebControl::setLayoutScale(bool b)
     flags_.setFlag(LayoutScale, b);
 }
 
+bool WebControl::keepAspectRatio() const
+{
+    return flags_.testFlag(KeepAspectRatio);
+}
+
+void WebControl::setKeepAspectRatio(bool b)
+{
+    flags_.setFlag(KeepAspectRatio, b);
+}
+
 QWidget * WebControl::createWidget(ResourceView * res)
 {
     (void)res;
