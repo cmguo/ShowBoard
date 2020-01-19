@@ -1,6 +1,6 @@
 #include <Windows.h>
-#include <gdiplus.h>
-#include <gdiplusheaders.h>
+//#include <gdiplus.h>
+//#include <gdiplusheaders.h>
 
 BOOL CALLBACK EnumWindowsProc(_In_ HWND hwnd, _In_ LPARAM lParam)
 {
