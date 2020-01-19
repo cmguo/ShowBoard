@@ -15,10 +15,10 @@
 #include <QApplication>
 
 static char const * toolstr =
-        "show()|开始演示|:/showboard/icons/icon_delete.png;"
-        "next()|下一页|:/showboard/icons/icon_delete.png;"
-        "prev()|上一页|:/showboard/icons/icon_delete.png;"
-        "hide()|结束演示|:/showboard/icons/icon_delete.png";
+        "-show()|开始演示;"
+        "-next()|下一页;"
+        "-prev()|上一页;"
+        "-hide()|结束演示";
 
 PptxControl::PptxControl(ResourceView * res)
     : Control(res, {KeepAspectRatio, Touchable}, {CanRotate})
@@ -31,6 +31,8 @@ PptxControl::PptxControl(ResourceView * res)
     QObject::connect(powerpoint_, &PowerPoint::thumbed, this, &PptxControl::thumbed);
     QObject::connect(powerpoint_, &PowerPoint::showed, this, &PptxControl::showed);
     QObject::connect(powerpoint_, &PowerPoint::closed, this, &PptxControl::closed);
+    (void) toolstr;
+    setToolsString(toolstr);
 }
 
 PptxControl::~PptxControl()
@@ -246,16 +248,16 @@ bool PptxControl::eventFilter(QObject *obj, QEvent * event)
         if (!obj->property("moved").toBool())
             hide();
         break;
+    case QEvent::Destroy: {
+        PowerPoint * p = powerpoint_;
+        WorkThread::postWork(p, [p]() {
+            p->mayStopped();
+        });
+    } break;
     default:
         return false;
     }
     return true;
 }
 
-QString PptxControl::toolsString(QString const & parent) const
-{
-    (void) parent;
-    (void) toolstr;
-    return "";//toolstr;
-}
 

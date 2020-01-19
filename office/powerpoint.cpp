@@ -126,16 +126,19 @@ void PowerPoint::show(int page)
     if (view_) {
         showWindow(hwnd_);
     } else {
-        QAxObject * settings = presentation_->querySubObject("SlideShowSettings");
-        //settings->setProperty("ShowType", "ppShowTypeSpeaker");
-        settings->setProperty("ShowMediaControls", "true");
-        //if (page) // will cause View be null
-        //    settings->setProperty("StartingSlide", page);
-        QAxObject * window = settings->querySubObject("Run()");
-        view_ = window->querySubObject("View");
-        QObject::connect(view_, SIGNAL(exception(int,QString,QString,QString)),
-                         this, SLOT(onException(int,QString,QString,QString)));
-        hwnd_ = findWindow(titleParts);
+        try {
+            QAxObject * settings = presentation_->querySubObject("SlideShowSettings");
+            //settings->setProperty("ShowType", "ppShowTypeSpeaker");
+            settings->setProperty("ShowMediaControls", "true");
+            //if (page) // will cause View be null
+            //    settings->setProperty("StartingSlide", page);
+            QAxObject * window = settings->querySubObject("Run()");
+            view_ = window->querySubObject("View");
+            QObject::connect(view_, SIGNAL(exception(int,QString,QString,QString)),
+                             this, SLOT(onException(int,QString,QString,QString)));
+            hwnd_ = findWindow(titleParts);
+        } catch (...) {
+        }
     }
     if (page)
         jump(page);
@@ -144,7 +147,8 @@ void PowerPoint::show(int page)
         setWindowAtTop(hwnd);
     });
     emit showed();
-    timerId_ = startTimer(500);
+    if (view_)
+        timerId_ = startTimer(500);
 }
 
 void PowerPoint::attachButton(intptr_t hwnd)
@@ -205,7 +209,7 @@ void PowerPoint::close()
         return;
     killTimer(timerId_);
     timerId_ = 0;
-    qDebug() << "PowerPoint::close()";
+    qDebug() << "PowerPoint close";
     view_ = nullptr;
     hwnd_ = 0;
     presentation_->dynamicCall("Close()");
@@ -213,6 +217,14 @@ void PowerPoint::close()
     presentation_ = nullptr;
     total_ = 0;
     emit closed();
+}
+
+void PowerPoint::mayStopped()
+{
+    if (view_) {
+        qDebug() << "PowerPoint mayStopped";
+        reopen();
+    }
 }
 
 void PowerPoint::timerEvent(QTimerEvent * event)
@@ -223,14 +235,13 @@ void PowerPoint::timerEvent(QTimerEvent * event)
                 QAxObject * slide = view_->querySubObject("Slide");
                 if (slide) {
                     QVariant slideNumber = slide->property("SlideNumber");
-                    if (slideNumber.isValid()) {
+                    if (!slideNumber.isNull()) {
                         slideNumber_ = slideNumber.toInt();
                     }
                 }
             } catch(...) {
             }
         } else {
-            killTimer(event->timerId());
             reopen();
         }
     }
@@ -245,7 +256,7 @@ void PowerPoint::onSignal(const QString &name, int argc, void *argv)
 {
     (void) argc;
     (void) argv;
-    qDebug() << "onSignal" << name;
+    qDebug() << "PowerPoint onSignal" << name;
 }
 
 void PowerPoint::onException(int code, const QString &source, const QString &desc, const QString &help)
@@ -253,5 +264,5 @@ void PowerPoint::onException(int code, const QString &source, const QString &des
     (void) code;
     (void) source;
     (void) help;
-    qDebug() << "onException" << desc;
+    qDebug() << "PowerPoint onException" << desc;
 }

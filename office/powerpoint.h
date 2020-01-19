@@ -31,6 +31,8 @@ public:
 
     void close();
 
+    void mayStopped();
+
 public:
     int slideNumber()
     {
