@@ -37,10 +37,13 @@ public:
         setAcceptHoverEvents(true);
         setFlag(ItemIsFocusable);
         QPushButton * button = new QPushButton("完成");
-        QObject::connect(button, &QPushButton::clicked, [this](){finish();});
+        QObject::connect(button, &QPushButton::clicked, [this]() {
+            finish();
+        });
         QGraphicsProxyWidget * item = new QGraphicsProxyWidget(this);
         item->setWidget(button);
         item->hide();
+        item->setFlag(ItemIsFocusable, false);
         finishItem_ = item;
     }
 
