@@ -1,6 +1,7 @@
 #include "drawingtool.h"
 #include "views/whitecanvas.h"
 #include "core/resourceview.h"
+#include "core/resourcetransform.h"
 
 #include <QPen>
 #include <QGraphicsRectItem>
@@ -67,6 +68,9 @@ private:
         if (!control_) {
             DrawingTool * tool = static_cast<DrawingTool *>(Control::fromItem(this));
             control_ = tool->newControl();
+            // large canvas may change scale and offset, reset it
+            control_->resource()->transform().translateTo({0, 0});
+            control_->resource()->transform().scaleTo(1.0);
         }
         control_->event(event);
     }
