@@ -90,6 +90,29 @@ static QPixmap itemToPixmap(QGraphicsItem * item, bool destroy)
     return pm;
 }
 
+static QPixmap getPixmap(QVariant value, bool destroy)
+{
+    if (value.type() == QVariant::Pixmap)
+        return value.value<QPixmap>();
+    else if (value.type() == QVariant::Image)
+        return QPixmap::fromImage(value.value<QImage>());
+    else if (value.type() == QVariant::UserType) {
+        if (value.userType() == QMetaType::QObjectStar) {
+            return widgetToPixmap(value.value<QWidget *>(), destroy);
+        } else if (value.userType() == qMetaTypeId<QGraphicsItem *>()) {
+            return itemToPixmap(value.value<QGraphicsItem *>(), destroy);
+        }
+    }
+    return QPixmap();
+}
+
+static QMap<QString, QIcon::Mode> IconModes = {
+    {"normal", QIcon::Normal},
+    {"disabled", QIcon::Disabled},
+    {"active", QIcon::Active},
+    {"selected", QIcon::Selected},
+};
+
 static QIcon getIcon(QVariant& icon, bool replace)
 {
     QIcon result;
@@ -97,16 +120,21 @@ static QIcon getIcon(QVariant& icon, bool replace)
         return icon.value<QIcon>();
     else if (icon.type() == QVariant::String)
         result = QIcon(icon.toString());
-    else if (icon.type() == QVariant::Pixmap)
-        result = QIcon(icon.value<QPixmap>());
-    else if (icon.type() == QVariant::Image)
-        result = QIcon(QPixmap::fromImage(icon.value<QImage>()));
-    else if (icon.type() == QVariant::UserType) {
-        if (icon.userType() == QMetaType::QObjectStar) {
-            result = QIcon(widgetToPixmap(icon.value<QWidget *>(), replace));
-        } else if (icon.userType() == qMetaTypeId<QGraphicsItem *>()) {
-            result = QIcon(itemToPixmap(icon.value<QGraphicsItem *>(), replace));
+    else if (icon.type() == QVariant::Map) {
+        QVariantMap icons = icon.toMap();
+        for (QString k : icons.keys()) {
+            QVariant& icon2 = icons[k];
+            QIcon::State s = QIcon::Off;
+            if (k.startsWith("+")) {
+                s = QIcon::On;
+                k = k.mid(1);
+            }
+            if (IconModes.contains(k)) {
+                result.addPixmap(getPixmap(icon2, replace), IconModes[k], s);
+            }
         }
+    } else {
+        result = QIcon(getPixmap(icon, replace));
     }
     if (replace)
         icon = result;
@@ -215,6 +243,8 @@ void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWi
     } else if (button == &ToolButton::LINE_BREAK) {
         ++row; col = 0;
         return;
+    } else if (button == &ToolButton::PLACE_HOOLDER) {
+        return;
     } else if (button->flags & ToolButton::CustomWidget) {
         widget = button->icon.value<QWidget*>();
         ToolButton::action_t action([this, widget]() {
@@ -235,10 +265,10 @@ void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWi
         QGridLayout *gridLayout = static_cast<QGridLayout*>(layout);
         gridLayout->addWidget(widget, row, col);
         ++col;
-        if(button->flags & ToolButton::CustomWidget){
-            gridLayout->setContentsMargins(0,0,0,0);
-        }else{
-           gridLayout->setContentsMargins(10,10,10,10);
+        if (button->flags & ToolButton::CustomWidget){
+            gridLayout->setContentsMargins(0, 0, 0, 0);
+        } else {
+            gridLayout->setContentsMargins(10, 10, 10, 10);
         }
     } else {
         layout->addWidget(widget);
@@ -261,6 +291,7 @@ void ToolbarWidget::applyButton(QPushButton * btn, ToolButton * parent, ToolButt
         btn->setCheckable(true);
         btn->setChecked(button->flags & ToolButton::Checked);
     }
+    btn->setEnabled(!button->flags.testFlag(ToolButton::Disabled));
     btn->setObjectName(button->name);
 }
 

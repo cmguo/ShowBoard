@@ -21,6 +21,7 @@ public:
         CustomWidget = 64,
         Selected = 1 << 8,
         Checked = 1 << 9,
+        Disabled = 1 << 10,
         HideSelector = 1 << 16,
     };
 
@@ -30,6 +31,7 @@ public:
 
     static ToolButton SPLITER;
     static ToolButton LINE_BREAK;
+    static ToolButton PLACE_HOOLDER;
 
     static constexpr char const * ACTION_PROPERTY = "toolaction";
 
