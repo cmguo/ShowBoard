@@ -13,7 +13,7 @@
 #include <QPushButton>
 #include <QLabel>
 
-static const QString STYLE = "QPushButton,.QLabel{color:#80ffffff;background-color:#00000000;border:none;font-size:16pt;spacing: 30px;border:none;} "
+static const QString STYLE = "QPushButton,.QLabel{color:#80ffffff;background-color:#00000000;border:none;font-size:16pt;spacing: 30px;} "
                 "QPushButton{qproperty-iconSize: 30px 30px; font-family: '微软雅黑';background-color:#00000000} "
                 "QPushButton:checked{color:#1AA9EF;}"
                 "#toolbarwidget{background-color:#C8000000;border-radius:3px;}"

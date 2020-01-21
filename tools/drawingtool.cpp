@@ -11,6 +11,8 @@
 #include <QGraphicsProxyWidget>
 #include <QGraphicsScene>
 #include <QGraphicsView>
+#include <QHBoxLayout>
+#include <QLabel>
 
 DrawingTool::DrawingTool(ResourceView *res)
     : Control(res, FullLayout, {DefaultFlags})
@@ -37,12 +39,24 @@ public:
         setCursor(Qt::CrossCursor);
         setAcceptHoverEvents(true);
         setFlag(ItemIsFocusable);
-        QPushButton * button = new QPushButton("完成");
+        QWidget* widget = new QWidget;
+        widget->setObjectName("finishwidget");
+        widget->setWindowFlag(Qt::FramelessWindowHint);
+        widget->setAttribute(Qt::WA_StyledBackground, true);
+        widget->setStyleSheet("finishwidget{background-color:#FF000000;border-radius:3px;}"
+                              "QLabel{background-color:#00000000;}"
+                              "QPushButton{color:#5D6C85;border:none;");
+        QLayout* layout = new QHBoxLayout(widget);
+        widget->setLayout(layout);
+        layout->addWidget(new QLabel("闭合顶点或点击完成"));
+        QPushButton * button = new QPushButton;
+        button->setText("完成");
         QObject::connect(button, &QPushButton::clicked, [this]() {
             finish();
         });
+        layout->addWidget(button);
         QGraphicsProxyWidget * item = new QGraphicsProxyWidget(this);
-        item->setWidget(button);
+        item->setWidget(widget);
         item->hide();
         item->setFlag(ItemIsFocusable, false);
         finishItem_ = item;
