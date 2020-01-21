@@ -72,6 +72,8 @@ protected:
 
     virtual void onButtonClicked(ToolButton * button);
 
+    virtual QWidget* createPopupWidget();
+
 private:
     virtual void resizeEvent(QResizeEvent *event) override;
 

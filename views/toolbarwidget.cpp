@@ -280,7 +280,7 @@ void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWi
 
 void ToolbarWidget::applyButton(QPushButton * btn, ToolButton * parent, ToolButton *button)
 {
-    btn->setIconSize(QSize(40,40));
+    //btn->setIconSize(QSize(40,40));
     btn->setIcon(getIcon(button->icon, !(button->flags & ToolButton::Dynamic)));
     btn->setText(button->title);
     if (parent && (parent->flags & ToolButton::OptionsGroup)) {
@@ -358,11 +358,7 @@ void ToolbarWidget::clearButtons(QLayout *layout, QMap<QWidget *, ToolButton *> 
 
 void ToolbarWidget::createPopup()
 {
-    popUp_ = new QWidget();
-    popUp_->setWindowFlags(Qt::FramelessWindowHint);
-    //popUp_->setAttribute(Qt::WA_TranslucentBackground);
-    popUp_->setStyleSheet(STYLE);
-    popUp_->setObjectName(QString::fromUtf8("popupwidget"));
+    popUp_ = createPopupWidget();
     QGraphicsProxyWidget * proxy = graphicsProxyWidget();
     if (proxy) {
         proxy = new QGraphicsProxyWidget(proxy);
@@ -372,7 +368,6 @@ void ToolbarWidget::createPopup()
         popUp_->setParent(parentWidget());
         popUp_->hide();
     }
-    popUp_->setLayout(new QGridLayout());
 }
 
 void ToolbarWidget::updateProvider()
@@ -508,6 +503,17 @@ void ToolbarWidget::onButtonClicked(ToolButton *)
         provider_->handleToolButton(popupParents_);
     else
         emit buttonClicked(popupParents_);
+}
+
+QWidget *ToolbarWidget::createPopupWidget()
+{
+    QWidget * widget = new QWidget();
+    widget->setWindowFlags(Qt::FramelessWindowHint);
+    //widget->setAttribute(Qt::WA_TranslucentBackground);
+    widget->setStyleSheet(STYLE);
+    widget->setObjectName(QString::fromUtf8("popupwidget"));
+    widget->setLayout(new QGridLayout());
+    return widget;
 }
 
 void ToolbarWidget::resizeEvent(QResizeEvent *event)
