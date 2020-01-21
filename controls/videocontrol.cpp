@@ -14,6 +14,7 @@ QGraphicsItem * VideoControl::create(ResourceView * res)
 {
     QGraphicsVideoItem * item = new QGraphicsVideoItem();
     item->setAspectRatioMode(Qt::KeepAspectRatio);
+    item->setCursor(Qt::SizeAllCursor);
     QObject::connect(item, &QGraphicsVideoItem::nativeSizeChanged,
                      this, [this](QSizeF const & size) {
         QGraphicsVideoItem * item = static_cast<QGraphicsVideoItem *>(item_);

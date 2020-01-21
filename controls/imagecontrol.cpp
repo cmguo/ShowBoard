@@ -5,6 +5,7 @@
 
 #include <QPixmap>
 #include <QGraphicsPixmapItem>
+#include <QCursor>
 
 static QMap<QUrl, QPixmap> cachedImages;
 
@@ -18,6 +19,7 @@ QGraphicsItem * ImageControl::create(ResourceView * res)
     (void)res;
     QGraphicsPixmapItem * item = new QGraphicsPixmapItem();
     item->setTransformationMode(Qt::SmoothTransformation);
+    item->setCursor(Qt::SizeAllCursor);
     return item;
 }
 

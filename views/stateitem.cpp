@@ -8,6 +8,7 @@
 #include <QPainter>
 #include <QDebug>
 #include <QCloseEvent>
+#include <QCursor>
 
 SvgCache * StateItem::cache_ = nullptr;
 QSvgRenderer * StateItem::loading_ = nullptr;
@@ -37,6 +38,7 @@ StateItem::StateItem(QGraphicsItem * parent)
     }
     loading_ = cache_->get(QString(":/showboard/icons/loading.svg"));
     failed_ = cache_->get(QString(":/showboard/icons/stop.normal.svg"));
+    setCursor(Qt::SizeAllCursor);
     updateTransform();
 }
 
@@ -45,6 +47,7 @@ void StateItem::showBackground(bool show)
     if (showBackground_ == show)
         return;
     showBackground_ = show;
+    static_cast<QGraphicsTextItem*>(textItem_)->setDefaultTextColor(showBackground_ ? Qt::white : Qt::black);
     update();
 }
 
