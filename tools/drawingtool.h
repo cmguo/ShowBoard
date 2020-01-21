@@ -4,12 +4,15 @@
 #include "core/control.h"
 
 #include <QUrl>
+#include <QVariantMap>
 
 class DrawingTool : public Control
 {
     Q_OBJECT
 
     Q_PROPERTY(QUrl newUrl MEMBER newUrl_)
+    Q_PROPERTY(QVariantMap newSettings MEMBER newSettings_)
+
 public:
     Q_INVOKABLE DrawingTool(ResourceView *res);
 
@@ -25,6 +28,7 @@ private:
 
 private:
     QUrl newUrl_;
+    QVariantMap newSettings_;
 };
 
 #endif // DRAWINGTOOL_H

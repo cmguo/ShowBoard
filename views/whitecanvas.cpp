@@ -93,9 +93,9 @@ void WhiteCanvas::switchPage(ResourcePage * page)
     canvas_->switchPage(page);
 }
 
-Control * WhiteCanvas::addResource(QUrl const & url)
+Control * WhiteCanvas::addResource(QUrl const & url, QVariantMap settings)
 {
-    ResourceView * res = canvas_->page()->addResource(url);
+    ResourceView * res = canvas_->page()->addResource(url, settings);
     return canvas_->findControl(res);
 }
 

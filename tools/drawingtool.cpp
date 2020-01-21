@@ -2,6 +2,7 @@
 #include "views/whitecanvas.h"
 #include "core/resourceview.h"
 #include "core/resourcetransform.h"
+#include "core/resourcepage.h"
 
 #include <QPen>
 #include <QGraphicsRectItem>
@@ -18,7 +19,7 @@ DrawingTool::DrawingTool(ResourceView *res)
 
 Control * DrawingTool::newControl()
 {
-    return whiteCanvas()->addResource(newUrl_);
+    return whiteCanvas()->addResource(newUrl_, newSettings_);
 }
 
 void DrawingTool::finishControl(Control * control)

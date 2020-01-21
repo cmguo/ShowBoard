@@ -51,7 +51,7 @@ public:
      * add resource to attached resource page
      * use ResourcePage instead
      */
-    Control * addResource(QUrl const & url);
+    Control * addResource(QUrl const & url, QVariantMap settings = {});
 
     /*
      * copy resource to attached resource page
