@@ -13,5 +13,8 @@
         <file>icons/erase.svg</file>
         <file>qml/WhiteCanvas.qml</file>
         <file>htmls/embed.htm</file>
+        <file>icons/close.png</file>
+        <file>icons/copy.png</file>
+        <file>icons/top.svg</file>
     </qresource>
 </RCC>

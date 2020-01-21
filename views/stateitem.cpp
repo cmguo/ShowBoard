@@ -30,6 +30,7 @@ StateItem::StateItem(QGraphicsItem * parent)
     iconItem_ = new QGraphicsSvgItem(this);
     QGraphicsTextItem* textItem = new QGraphicsTextItem(this);
     textItem->setFont(QFont("Microsoft YaHei", 18));
+    textItem->setDefaultTextColor(Qt::white);
     textItem_ = textItem;
     if (!cache_) {
         cache_ = SvgCache::instance();
@@ -100,7 +101,7 @@ void StateItem::setText(const QString &text)
         textItem->setHtml(text);
     else
         textItem->setPlainText(text);
-    textItem->adjustSize();
+    //textItem->adjustSize();
     QPointF center(textItem->boundingRect().center());
     center.setY(-iconItem_->boundingRect().height() / 2 - 10);
     textItem->setPos(-center);
@@ -119,7 +120,7 @@ QRectF StateItem::boundingRect() const
     rect.moveCenter(QPointF(0, 0)); // not map to this, ignore rotate
     if (textItem_->isVisible()) {
         rect |= textItem_->mapToParent(textItem_->boundingRect()).boundingRect();
-        rect.adjust(-32, -16, 32, 32);
+        rect.adjust(-32, -32, 32, 32);
     }
     return rect;
 }

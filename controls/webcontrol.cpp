@@ -10,11 +10,11 @@
 #include <QGraphicsItem>
 
 static char const * toolstr =
-        "reload()|刷新|:/showboard/icons/icon_refresh.png;"
-        "-full()|全屏|:/showboard/icons/icon_refresh.png;"
         #ifdef _DEBUG
+        "reload()|刷新|:/showboard/icons/icon_refresh.png;"
         "debug()|调试|"
         #endif
+        "-full()|全屏|:/showboard/icons/icon_refresh.png;"
         ;
 
 class WebView : public QWebEngineView
