@@ -165,10 +165,11 @@ void PptxControl::showStopButton()
     button->setWindowFlag(Qt::FramelessWindowHint);
     button->setWindowFlag(Qt::SubWindow);
     button->setAttribute(Qt::WA_TranslucentBackground);
-    button->setToolButtonStyle(Qt::ToolButtonIconOnly);
-    //button->setStyleSheet("background-color:#80000000;");
+    button->setToolButtonStyle(Qt::ToolButtonStyle::ToolButtonTextUnderIcon);
+    button->setStyleSheet("background-color:#F22B3034;");
     button->setIconSize({48, 48});
-    button->setIcon(QPixmap(":/showboard/icons/stop.normal.svg"));
+    button->setIcon(QPixmap(":/showboard/icons/return.png"));
+    button->setText("返回课堂");
     button->installEventFilter(this);
     button->setVisible(false);
     powerpoint_->attachButton(static_cast<intptr_t>(button->winId()));

@@ -16,5 +16,6 @@
         <file>icons/close.png</file>
         <file>icons/copy.png</file>
         <file>icons/top.svg</file>
+        <file>icons/return.png</file>
     </qresource>
 </RCC>
