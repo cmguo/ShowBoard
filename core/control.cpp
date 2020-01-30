@@ -473,13 +473,20 @@ bool Control::scale(QRectF &rect, const QRectF &direction, QPointF &delta)
 
 void Control::gesture(const QPointF &from1, const QPointF &from2, QPointF &to1, QPointF &to2)
 {
+    qreal layoutScale = 1.0;
+    qreal * pLayoutScale = (flags_ & LayoutScale) ? &layoutScale : nullptr;
     res_->transform().gesture(from1, from2, to1, to2,
-                              flags_ & CanMove, flags_ & CanScale, flags_ & CanRotate);
-    if (flags_ & LayoutScale) {
-        // TODO:
-        //sizeChanged();
-    }
-    if (item_ != realItem_) {
+                              flags_ & CanMove, flags_ & CanScale, flags_ & CanRotate, pLayoutScale);
+    if (pLayoutScale) {
+        QRectF rect = realItem_->boundingRect();
+        rect.setWidth(rect.width() * layoutScale);
+        rect.setHeight(rect.height() * layoutScale);
+        if (item_ != realItem_) {
+            static_cast<ItemFrame *>(realItem_)->updateRectToChild(rect);
+        }
+        resize(rect.size());
+        sizeChanged();
+    } else if (item_ != realItem_) {
         static_cast<ItemFrame *>(realItem_)->updateRect();
     }
 }

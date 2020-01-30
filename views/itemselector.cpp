@@ -182,7 +182,7 @@ void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos, bool f
     if (type_ == None) {
         if (select_ && !fromTouch) {
             select(nullptr);
-            qDebug() << "select null";
+            qInfo() << "select null";
         }
         //if (force_) {
         //    type_ = Canvas;
@@ -190,7 +190,7 @@ void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos, bool f
     } else {
         if (selectControl_->metaObject() == &WhiteCanvasControl::staticMetaObject)
             start_ = scenePos;
-        qDebug() << "select" << type_ << selectControl_->resource()->url();
+        qInfo() << "select" << type_ << selectControl_->resource()->url();
         selectControl_->adjusting(true);
     }
 }
@@ -275,6 +275,7 @@ void ItemSelector::selectRelease()
         }
         Q_FALLTHROUGH();
     case TempMoved:
+        qInfo() << "select cancel";
         select(nullptr);
         break;
     case FastClone:
@@ -344,6 +345,7 @@ void ItemSelector::mousePressEvent(QGraphicsSceneMouseEvent *event)
         //event->ignore();
         return;
     }
+    //qDebug() << "mousePress";
 #endif
     selectAt(event->pos(), event->scenePos(), false);
     if (type_ == None) {
@@ -363,6 +365,7 @@ void ItemSelector::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         CanvasItem::mouseMoveEvent(event);
         return;
     }
+    //qDebug() << "mouseMove";
     selectMove(event->pos(), event->scenePos());
 }
 
@@ -378,12 +381,13 @@ void ItemSelector::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
         CanvasItem::mouseReleaseEvent(event);
         return;
     }
-    qDebug() << "mouseRelease";
+    //qDebug() << "mouseRelease";
     selectRelease();
 }
 
 void ItemSelector::touchBegin(QTouchEvent *event)
 {
+    //qDebug() << "touchBegin";
     QTouchEvent::TouchPoint const & point(event->touchPoints().first());
     selectAt(point.pos(), point.scenePos(), true);
     if (type_ != None) {
@@ -401,6 +405,7 @@ void ItemSelector::touchUpdate(QTouchEvent *event)
 {
     if (selectControl_ == nullptr)
         return;
+    //qDebug() << "touchUpdate";
     QMap<int, QPointF> positions;
     bool isCanvas = selectControl_->metaObject() == &WhiteCanvasControl::staticMetaObject;
     for (QTouchEvent::TouchPoint const & point : event->touchPoints()) {
@@ -446,6 +451,7 @@ void ItemSelector::touchUpdate(QTouchEvent *event)
 
 void ItemSelector::touchEnd(QTouchEvent *event)
 {
+    //qDebug() << "touchEnd";
     (void) event;
     lastPositions_.clear();
     selectRelease();

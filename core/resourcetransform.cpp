@@ -254,7 +254,7 @@ void ResourceTransform::scaleKeepToCenter(const QRectF &border, QRectF &self, qr
 }
 
 void ResourceTransform::gesture(const QPointF &from1, const QPointF &from2, QPointF &to1, QPointF &to2,
-                                bool translate, bool scale, bool rotate)
+                                bool translate, bool scale, bool rotate, qreal * scaleOut)
 {
     // line1: from1 -- from2
     // line2: to1 -- to2
@@ -265,7 +265,10 @@ void ResourceTransform::gesture(const QPointF &from1, const QPointF &from2, QPoi
     QPointF t0 = QPointF(translate_.dx(), translate_.dy());
     QPointF t = from2 - t0;
     if (scale) {
-        scale_.scale(s, s);
+        if (scaleOut)
+            *scaleOut = s, scale = false;
+        else
+            scale_.scale(s, s);
         if (translate)
             t *= s;
     }

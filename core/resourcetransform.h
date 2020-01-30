@@ -125,7 +125,7 @@ public:
      *   scale is averaged in x/y aixs
      */
     void gesture(QPointF const & from1, QPointF const & from2, QPointF & to1, QPointF & to2,
-                 bool translate, bool scale, bool rotate);
+                 bool translate, bool scale, bool rotate, qreal * scaleOut = nullptr);
 
     /* take other tranform to modify at same time,
      *    when attached, modify to one transform will affect another one, and keep
