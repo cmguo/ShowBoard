@@ -30,6 +30,6 @@ QPromise<void> Strokes::load()
         canvasSize_ = StrokeParser::instance->load(
                     res_->property(Resource::PROP_ORIGIN_TYPE).toString(), stream.get(), points_);
         if (canvasSize_.isEmpty())
-            throw std::exception("empty canvas size");
+            throw std::invalid_argument("empty canvas size");
     });
 }

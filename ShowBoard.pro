@@ -1,9 +1,11 @@
-QT += widgets network multimediawidgets webenginewidgets axcontainer svg quick quickwidgets qml
+QT += widgets network multimediawidgets webenginewidgets svg quick quickwidgets qml
+
+win32 { QT += axcontainer }
 
 TEMPLATE = lib
 DEFINES += SHOWBOARD_LIBRARY
 
-CONFIG += c++11
+CONFIG += c++14
 
 # The following define makes your compiler emit warnings if you use
 # any Qt feature that has been marked deprecated (the exact warnings
@@ -16,7 +18,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-QMAKE_CXXFLAGS += /utf-8
+win32: QMAKE_CXXFLAGS += /utf-8
 
 SOURCES += \
 
@@ -33,7 +35,9 @@ include(controls/controls.pri)
 include(opengl/opengl.pri)
 include(tools/tools.pri)
 include(views/views.pri)
-include(office/office.pri)
+win32 {
+    include(office/office.pri)
+}
 
 CONFIG(debug, debug|release) {
     win32: TARGET = $$join(TARGET,,,d)

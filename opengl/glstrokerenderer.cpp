@@ -124,7 +124,9 @@ void GLStrokeRenderer::InitDraw()
     mBackgroundProgram.setUniformValue(UNIFORM_TEXTURE, 0);
     assertGL();
 
+#ifdef GL_PRIMITIVE_RESTART_FIXED_INDEX
     glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
+#endif
     assertGL();
     glClearColor(0, 0, 0, 0);
     assertGL();

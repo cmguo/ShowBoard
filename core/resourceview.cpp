@@ -5,6 +5,10 @@
 
 #include <QMetaMethod>
 
+char const * ResourceView::EXPORT_ATTR_TYPE = "rtype";
+char const * ResourceView::EXPORT_ATTR_FACTORY = "rfactory";
+
+
 ResourceView::ResourceView(Resource * res, Flags flags, Flags clearFlags)
     : res_(res)
     , flags_((DefaultFlags | flags) & ~clearFlags)

@@ -59,7 +59,7 @@ public:
         NotSelect
     };
 
-    static constexpr char const * EXPORT_ATTR_TYPE = "ctrl_type";
+    static char const * EXPORT_ATTR_TYPE;
 
 protected:
     static constexpr int ITEM_KEY_CONTROL = 1000;

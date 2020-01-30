@@ -8,7 +8,6 @@
 #include <QUrl>
 #include <QDir>
 #include <QMouseEvent>
-#include <QAxObject>
 #include <QGraphicsTextItem>
 #include <QToolButton>
 

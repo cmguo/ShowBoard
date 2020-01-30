@@ -20,8 +20,8 @@ class SHOWBOARD_EXPORT ResourceView : public ToolButtonProvider
     Q_PROPERTY(QString name MEMBER name_)
 
 public:
-    static constexpr char const * EXPORT_ATTR_TYPE = "rtype";
-    static constexpr char const * EXPORT_ATTR_FACTORY = "rfactory";
+    static char const * EXPORT_ATTR_TYPE;
+    static char const * EXPORT_ATTR_FACTORY;
 
 public:
     enum Flag {

@@ -10,7 +10,7 @@
 #include <QGraphicsItem>
 
 static char const * toolstr =
-        #ifdef _DEBUG
+        #ifdef QT_DEBUG
         "reload()|刷新|:/showboard/icons/icon_refresh.png;"
         "debug()|调试|"
         #endif
@@ -37,7 +37,7 @@ protected:
             if (!childWidget)
                 childWidget = findChildWidget("QtWebEngineCore::RenderWidgetHostViewQtDelegateWidget");
             Q_ASSERT(childWidget);
-            qDebug() << "eventFilter: " << event->type();
+            //qDebug() << "eventFilter: " << event->type();
             QApplication::sendEvent(childWidget, event);
             return true;
         } else if (event->type() == QEvent::Wheel) {
@@ -58,9 +58,9 @@ private:
                     " --disable-web-security"
                     " --register-pepper-plugins="
                         "./pepflashplayer64_32_0_0_270.dll;application/x-shockwave-flash";
-            ::_putenv_s("QTWEBENGINE_CHROMIUM_FLAGS", flags);
-    #ifdef _DEBUG
-            ::_putenv_s("QTWEBENGINE_REMOTE_DEBUGGING", "7777");
+            qputenv("QTWEBENGINE_CHROMIUM_FLAGS", flags);
+    #ifdef QT_DEBUG
+            qputenv("QTWEBENGINE_REMOTE_DEBUGGING", "7777");
     #endif
             QWebEngineSettings::defaultSettings()->setAttribute(
                         QWebEngineSettings::PluginsEnabled, true);

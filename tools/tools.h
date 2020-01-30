@@ -1,7 +1,7 @@
 #ifndef TOOLS_H
 #define TOOLS_H
 
-#include "control.h"
+#include "core/control.h"
 #include "drawingtool.h"
 #include <qexport.h>
 

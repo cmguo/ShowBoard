@@ -19,6 +19,8 @@
 
 #include <map>
 
+char const * Control::EXPORT_ATTR_TYPE = "ctrl_type";
+
 Control * Control::fromItem(QGraphicsItem * item)
 {
     return item->data(ITEM_KEY_CONTROL).value<Control *>();
@@ -587,19 +589,19 @@ void Control::reload()
 void Control::onStream(QIODevice *stream)
 {
     (void) stream;
-    throw std::exception("Not implemets onStream");
+    throw std::runtime_error("Not implemets onStream");
 }
 
 void Control::onData(QByteArray data)
 {
     (void) data;
-    throw std::exception("Not implemets onData");
+    throw std::runtime_error("Not implemets onData");
 }
 
 void Control::onText(QString text)
 {
     (void) text;
-    throw std::exception("Not implemets onText");
+    throw std::runtime_error("Not implemets onText");
 }
 
 void Control::getToolButtons(QList<ToolButton *> &buttons, const QList<ToolButton *> &parents)
