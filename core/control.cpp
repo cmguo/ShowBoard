@@ -551,33 +551,36 @@ ItemFrame * Control::itemFrame()
 
 void Control::loadStream()
 {
-    res_->resource()->getStream().then([this, l = life()] (QSharedPointer<QIODevice> stream) {
+    QWeakPointer<int> l = life();
+    res_->resource()->getStream().then([this, l] (QSharedPointer<QIODevice> stream) {
         if (l.isNull()) return;
         onStream(stream.get());
         loadFinished(true);
-    }).fail([this, l = life()](std::exception& e) {
+    }).fail([this, l](std::exception& e) {
         loadFinished(true, e.what());
     });
 }
 
 void Control::loadData()
 {
-    res_->resource()->getData().then([this, l = life()] (QByteArray data) {
+    QWeakPointer<int> l = life();
+    res_->resource()->getData().then([this, l] (QByteArray data) {
         if (l.isNull()) return;
         onData(data);
         loadFinished(true);
-    }).fail([this, l = life()](std::exception& e) {
+    }).fail([this, l](std::exception& e) {
         loadFinished(false, e.what());
     });
 }
 
 void Control::loadText()
 {
-    res_->resource()->getText().then([this, l = life()] (QString text) {
+    QWeakPointer<int> l = life();
+    res_->resource()->getText().then([this, l] (QString text) {
         if (l.isNull()) return;
         onText(text);
         loadFinished(true);
-    }).fail([this, l = life()](std::exception& e) {
+    }).fail([this, l](std::exception& e) {
         loadFinished(true, e.what());
     });
 }
