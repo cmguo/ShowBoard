@@ -147,7 +147,7 @@ void ResourceTransform::scale(QSizeF const & delta)
 }
 
 bool ResourceTransform::scale(QRectF & rect, QRectF const & direction, QPointF & delta,
-                              QRectF const & padding, bool KeepAspectRatio, bool layoutScale, qreal minSize)
+                              QRectF const & padding, bool KeepAspectRatio, bool layoutScale, qreal limitSize[2])
 {
     bool byWidth = qFuzzyIsNull(direction.height());
     bool byHeight = qFuzzyIsNull(direction.width());
@@ -170,24 +170,36 @@ bool ResourceTransform::scale(QRectF & rect, QRectF const & direction, QPointF &
         } else {
             result.setHeight(origin.height() * s.width());
         }
-        if (minSize > 0) {
-            if (origin.width() >= minSize && result.width() < minSize) {
-                result.setHeight(result.height() * minSize / result.width());
-                result.setWidth(minSize);
+        if (limitSize) {
+            if (origin.width() >= limitSize[0] && result.width() < limitSize[0]) {
+                result.setHeight(result.height() * limitSize[0] / result.width());
+                result.setWidth(limitSize[0]);
+            } else if (origin.width() <= limitSize[1] && result.width() > limitSize[1]) {
+                result.setHeight(result.height() * limitSize[1] / result.width());
+                result.setWidth(limitSize[1]);
             }
-            if (origin.height() >= minSize && result.height() < minSize) {
-                result.setWidth(result.width() * minSize / result.height());
-                result.setHeight(minSize);
+            if (origin.height() >= limitSize[0] && result.height() < limitSize[0]) {
+                result.setWidth(result.width() * limitSize[0] / result.height());
+                result.setHeight(limitSize[0]);
+            } else if (origin.height() <= limitSize[1] && result.height() > limitSize[1]) {
+                result.setWidth(result.width() * limitSize[1] / result.height());
+                result.setHeight(limitSize[1]);
             }
         }
     } else {
-        if (minSize > 0) {
-            if (origin.width() >= minSize && result.width() < minSize) {
-                result.setWidth(minSize);
+        if (limitSize) {
+            if (origin.width() >= limitSize[0] && result.width() < limitSize[0]) {
+                result.setWidth(limitSize[0]);
+                KeepAspectRatio = true;
+            } else if (origin.width() <= limitSize[1] && result.width() > limitSize[1]) {
+                result.setWidth(limitSize[1]);
                 KeepAspectRatio = true;
             }
-            if (origin.height() >= minSize && result.height() < minSize) {
-                result.setHeight(minSize);
+            if (origin.height() >= limitSize[0] && result.height() < limitSize[0]) {
+                result.setHeight(limitSize[0]);
+                KeepAspectRatio = true;
+            } else if (origin.height() <= limitSize[1] && result.height() > limitSize[1]) {
+                result.setHeight(limitSize[1]);
                 KeepAspectRatio = true;
             }
         }
@@ -254,7 +266,7 @@ void ResourceTransform::scaleKeepToCenter(const QRectF &border, QRectF &self, qr
 }
 
 void ResourceTransform::gesture(const QPointF &from1, const QPointF &from2, QPointF &to1, QPointF &to2,
-                                bool translate, bool scale, bool rotate, qreal * scaleOut)
+                                bool translate, bool scale, bool rotate, qreal limitScale[2], qreal * scaleOut)
 {
     // line1: from1 -- from2
     // line2: to1 -- to2
@@ -265,6 +277,16 @@ void ResourceTransform::gesture(const QPointF &from1, const QPointF &from2, QPoi
     QPointF t0 = QPointF(translate_.dx(), translate_.dy());
     QPointF t = from2 - t0;
     if (scale) {
+        qreal s0 = s;
+        if (s * scale_.m11() < limitScale[0])
+            s = limitScale[0] / scale_.m11();
+        else if (s * scale_.m11() > limitScale[1])
+            s = limitScale[1] / scale_.m11();
+        else
+            limitScale = nullptr;
+        if (limitScale) {
+            to2 = (to2 - to1) * s / s0 + to1;
+        }
         if (scaleOut)
             *scaleOut = s, scale = false;
         else

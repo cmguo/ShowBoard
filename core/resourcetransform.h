@@ -115,7 +115,7 @@ public:
      *   both origin and result are centered at [0, 0]
      */
     bool scale(QRectF & rect, QRectF const & direction, QPointF & delta,
-               QRectF const & padding, bool KeepAspectRatio, bool layoutScale, qreal minSize);
+               QRectF const & padding, bool KeepAspectRatio, bool layoutScale, qreal limitSize[2]);
 
     /* scale to <scaleTo>, and adjust translate to keep view center moves smallest
      */
@@ -125,7 +125,7 @@ public:
      *   scale is averaged in x/y aixs
      */
     void gesture(QPointF const & from1, QPointF const & from2, QPointF & to1, QPointF & to2,
-                 bool translate, bool scale, bool rotate, qreal * scaleOut = nullptr);
+                 bool translate, bool scale, bool rotate, qreal limitScale[2], qreal * scaleOut = nullptr);
 
     /* take other tranform to modify at same time,
      *    when attached, modify to one transform will affect another one, and keep

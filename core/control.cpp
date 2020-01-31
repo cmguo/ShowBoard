@@ -21,6 +21,9 @@
 
 char const * Control::EXPORT_ATTR_TYPE = "ctrl_type";
 
+static qreal MIN_SIZE = 120.0;
+static qreal MAX_SIZE = 4096.0;
+
 Control * Control::fromItem(QGraphicsItem * item)
 {
     return item->data(ITEM_KEY_CONTROL).value<Control *>();
@@ -123,7 +126,7 @@ void Control::beforeClone()
         saveSettings();
 }
 
-void Control::afterClone(ResourceView *res)
+void Control::afterClone(ResourceView *)
 {
 }
 
@@ -263,6 +266,7 @@ static constexpr qreal CROSS_LENGTH = 20;
 
 Control::SelectMode Control::selectTest(const QPointF &point)
 {
+    (void) point;
     return NotSelect;
 }
 
@@ -456,8 +460,9 @@ bool Control::scale(QRectF &rect, const QRectF &direction, QPointF &delta)
     QRectF padding;
     if (realItem_ != item_)
         padding = itemFrame()->padding();
+    qreal limitSize[] = {MIN_SIZE, MAX_SIZE};
     bool result = res_->transform().scale(rect, direction, delta, padding,
-                            flags_ & KeepAspectRatio, flags_ & LayoutScale, 120.0);
+                            flags_ & KeepAspectRatio, flags_ & LayoutScale, limitSize);
     if (!result)
         return false;
     QRectF origin = rect;
@@ -475,8 +480,14 @@ void Control::gesture(const QPointF &from1, const QPointF &from2, QPointF &to1, 
 {
     qreal layoutScale = 1.0;
     qreal * pLayoutScale = (flags_ & LayoutScale) ? &layoutScale : nullptr;
+    qreal limitScale[] = {1.0, 10.0};
+    if (flags_ & CanScale) {
+        QSizeF size = item_->boundingRect().size();
+        limitScale[0] = qMin(MIN_SIZE / size.width(), MIN_SIZE / size.height());
+        limitScale[1] = qMin(MAX_SIZE / size.width(), MAX_SIZE / size.height());
+    }
     res_->transform().gesture(from1, from2, to1, to2,
-                              flags_ & CanMove, flags_ & CanScale, flags_ & CanRotate, pLayoutScale);
+                              flags_ & CanMove, flags_ & CanScale, flags_ & CanRotate, limitScale, pLayoutScale);
     if (pLayoutScale) {
         QRectF rect = realItem_->boundingRect();
         rect.setWidth(rect.width() * layoutScale);
