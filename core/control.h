@@ -59,6 +59,8 @@ public:
         NotSelect
     };
 
+    Q_ENUM(SelectMode)
+
     static char const * EXPORT_ATTR_TYPE;
 
 protected:

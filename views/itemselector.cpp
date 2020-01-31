@@ -86,6 +86,7 @@ void ItemSelector::select(QGraphicsItem *item)
         toolBar()->clear();
         fastClone_ = false;
         cloneControl_ = nullptr;
+        type_ = None;
     }
 }
 
@@ -158,10 +159,11 @@ void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos, bool f
             if (!force) {
                 mode = ct->selectTest(children[i], item, mapToItem(ct->item(), pos));
             }
+            //qDebug() << force << ct->resource()->name() << mode;
             if (force || mode == Control::Select) {
-                type_ = TempNoMove;
                 if (ct != selectControl_) {
                     select(nullptr);
+                    type_ = TempNoMove;
                     select_ = ct->item();
                     selectControl_ = ct;
                     selectControl_->select(true);
@@ -180,7 +182,7 @@ void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos, bool f
         }
     }
     if (type_ == None) {
-        if (select_ && !fromTouch) {
+        if (select_ && !fromTouch) { // will receive mouse event later
             select(nullptr);
             qInfo() << "select null";
         }
@@ -210,7 +212,6 @@ void ItemSelector::selectMove(QPointF const & pos, QPointF const & scenePos)
         }
         break;
     case Scale: {
-        //qDebug() << rect;
         if (!selectControl_->scale(rect_, direction_, d)) {
             pt = start_;
             break;
@@ -274,6 +275,7 @@ void ItemSelector::selectRelease()
             break;
         }
         Q_FALLTHROUGH();
+    case AgainMoved:
     case TempMoved:
         qInfo() << "select cancel";
         select(nullptr);
@@ -416,8 +418,22 @@ void ItemSelector::touchUpdate(QTouchEvent *event)
         QTouchEvent::TouchPoint const & point(event->touchPoints().first());
         if (lastPositions_.contains(point.id())) {
             start_ = lastPositions_[point.id()];
-            selectMove(point.pos(), point.scenePos());
+            if (event->device()->type() == QTouchDevice::TouchPad && event->touchPoints().size() < 2) {
+                // touchpad is moving mouse position, not handlecd
+                if (type_ == TempNoMove || type_ == AgainNoMove) {
+                    QPointF d = point.pos() = start_;
+                    if (qAbs(d.x()) + qAbs(d.y()) >= 10) {
+                        type_ = static_cast<SelectType>(type_ + 1);
+                    }
+                }
+            } else {
+                selectMove(point.pos(), point.scenePos());
+            }
             positions[point.id()] = start_;
+        } else {
+            if (type_ == TempNoMove || type_ == AgainNoMove) {
+                type_ = static_cast<SelectType>(type_ + 1);
+            }
         }
     } else {
         QTouchEvent::TouchPoint const & point1(event->touchPoints().at(0));
@@ -426,12 +442,12 @@ void ItemSelector::touchUpdate(QTouchEvent *event)
                 && scene()->sceneRect().contains(point2.scenePos())) {
             if (!lastPositions_.contains(point1.id())) {
                 lastPositions_[point1.id()] = positions[point1.id()];
-                //qDebug() << lastPositions_[point1.id()] << lastPositions_[point2.id()] << "<->"
+                // qDebug() << lastPositions_[point1.id()] << lastPositions_[point2.id()] << "<->"
                 //        << positions[point1.id()] << positions[point2.id()];
             }
             if (!lastPositions_.contains(point2.id())) {
                 lastPositions_[point2.id()] = positions[point2.id()];
-                //qDebug() << lastPositions_[point1.id()] << lastPositions_[point2.id()] << "<->"
+                // qDebug() << lastPositions_[point1.id()] << lastPositions_[point2.id()] << "<->"
                 //        << positions[point1.id()] << positions[point2.id()];
             }
             selectControl_->gesture(lastPositions_[point1.id()], lastPositions_[point2.id()],
@@ -479,6 +495,7 @@ bool ItemSelector::sceneEventFilter(QGraphicsItem *watched, QEvent *event)
 {
     (void) watched;
     bool mouse = false;
+    //qDebug() << "sceneEventFilter" << event->type();
     switch (event->type()) {
     case QEvent::GraphicsSceneMousePress:
         mouse = true;
