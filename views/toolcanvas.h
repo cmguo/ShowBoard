@@ -9,9 +9,9 @@ public:
     ToolCanvas(QGraphicsItem * parent = nullptr);
 
 public:
-    void showToolControl(QString const & type);
+    void showToolControl(Control * control);
 
-    void hideToolControl(QString const & type);
+    void hideToolControl(Control * control);
 
     Control * getToolControl(QString const & type);
 

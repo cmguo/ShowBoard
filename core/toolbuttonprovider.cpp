@@ -77,7 +77,6 @@ static bool inHandle = false;
 
 void ToolButtonProvider::handleToolButton(QList<ToolButton *> const & buttons)
 {
-    inHandle = true;
     ToolButton * button = buttons.back();
     int i = 0;
     for (; i < buttons.size(); ++i) {
@@ -86,10 +85,15 @@ void ToolButtonProvider::handleToolButton(QList<ToolButton *> const & buttons)
             break;
         }
     }
+    if (button == buttons.back() && !button->flags.testFlag(ToolButton::UnionUpdate)) {
+        handleToolButton(button); // do simple handle
+        return;
+    }
     QStringList args;
     for (++i; i < buttons.size(); ++i) {
         args.append(buttons[i]->name);
     }
+    inHandle = true;
     exec(button->name, args);
     if (button->flags & ToolButton::NeedUpdate) {
         updateToolButton(button);
@@ -114,6 +118,13 @@ void ToolButtonProvider::handleToolButton(QList<ToolButton *> const & buttons)
         }
     }
     inHandle = false;
+}
+
+void ToolButtonProvider::handleToolButton(ToolButton *button)
+{
+    exec(button->name, nullptr);
+    if (button->flags & ToolButton::NeedUpdate)
+        updateToolButton(button);
 }
 
 void ToolButtonProvider::updateToolButton(ToolButton *button)

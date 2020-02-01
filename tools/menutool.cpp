@@ -1,9 +1,26 @@
 #include "menutool.h"
 #include "views/toolbarwidget.h"
+#include "views/whitecanvas.h"
+
+#include <QGraphicsItem>
+#include <QGraphicsScene>
+#include <QGraphicsView>
 
 MenuTool::MenuTool(ResourceView *res)
     : WidgetControl(res, {}, {CanSelect, CanRotate, CanScale})
 {
+}
+
+bool MenuTool::eventFilter(QObject *, QEvent *event)
+{
+    if (event->type() == QEvent::Show) {
+        widget_->setFocus();
+        whiteCanvas()->scene()->views().first()->setFocus();
+    }
+    if (event->type() == QEvent::FocusOut) {
+        whiteCanvas()->hideToolControl(this);
+    }
+    return false;
 }
 
 QWidget * MenuTool::createWidget(ResourceView *res)
@@ -15,7 +32,9 @@ QWidget * MenuTool::createWidget(ResourceView *res)
 
 void MenuTool::attached()
 {
+    item_->setFlag(QGraphicsItem::ItemIsFocusable);
     ToolbarWidget * widget = static_cast<ToolbarWidget*>(widget_);
+    widget->installEventFilter(this);
     widget->attachProvider(this);
     loadFinished(true);
 }
@@ -24,5 +43,11 @@ void MenuTool::getToolButtons(QList<ToolButton *> &buttons, const QList<ToolButt
 {
     // skip control implements
     return ToolButtonProvider::getToolButtons(buttons, parents);
+}
+
+void MenuTool::handleToolButton(const QList<ToolButton *> &buttons)
+{
+    WidgetControl::handleToolButton(buttons);
+    whiteCanvas()->hideToolControl(this);
 }
 

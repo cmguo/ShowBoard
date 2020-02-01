@@ -38,6 +38,8 @@ public:
      */
     virtual void handleToolButton(QList<ToolButton *> const & buttons);
 
+    virtual void handleToolButton(ToolButton * button);
+
     virtual void updateToolButton(ToolButton * button);
 
 public:

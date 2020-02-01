@@ -46,12 +46,22 @@ ResourcePage *WhiteCanvas::page()
 
 void WhiteCanvas::showToolControl(const QString &type)
 {
-    tools_->showToolControl(type);
+    tools_->showToolControl(getToolControl(type));
+}
+
+void WhiteCanvas::showToolControl(Control *control)
+{
+    tools_->showToolControl(control);
 }
 
 void WhiteCanvas::hideToolControl(const QString &type)
 {
-    tools_->hideToolControl(type);
+    tools_->hideToolControl(getToolControl(type));
+}
+
+void WhiteCanvas::hideToolControl(Control *control)
+{
+    tools_->hideToolControl(control);
 }
 
 Control * WhiteCanvas::getToolControl(const QString &type)

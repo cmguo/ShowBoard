@@ -27,7 +27,7 @@ Control * DrawingTool::newControl()
 void DrawingTool::finishControl(Control * control)
 {
     (void) control;
-    whiteCanvas()->hideToolControl("drawing");
+    whiteCanvas()->hideToolControl(this);
 }
 
 class DrawingItem : public CanvasItem

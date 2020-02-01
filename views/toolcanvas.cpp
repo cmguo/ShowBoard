@@ -11,17 +11,16 @@ ToolCanvas::ToolCanvas(QGraphicsItem * parent)
     switchPage(new ResourcePage);
 }
 
-void ToolCanvas::showToolControl(const QString &type)
+void ToolCanvas::showToolControl(Control * control)
 {
-    showItem(getToolControl(type)->item());
+    if (control)
+        showItem(control->item());
 }
 
-void ToolCanvas::hideToolControl(const QString &type)
+void ToolCanvas::hideToolControl(Control * control)
 {
-    QUrl url(type + ":");
-    Control * ct = findControl(url);
-    if (ct)
-        hideItem(ct->item());
+    if (control)
+        hideItem(control->item());
 }
 
 Control * ToolCanvas::getToolControl(const QString &type)
