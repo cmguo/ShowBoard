@@ -192,10 +192,14 @@ void WordControl::detached()
     close();
 }
 
-QString WordControl::toolsString(QString const & parent) const
+QString WordControl::toolsString(QByteArray const & parent) const
 {
     (void) parent;
     (void) toolstr;
+#ifdef QT_DEBUG
+    return toolstr;
+#else
     return "";//toolstr;
+#endif
 }
 

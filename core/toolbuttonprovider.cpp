@@ -1,5 +1,6 @@
 #include "toolbuttonprovider.h"
 #include "toolbutton.h"
+#include "optiontoolbuttons.h"
 
 #include <QVariant>
 #include <QMetaMethod>
@@ -16,10 +17,10 @@ ToolButtonProvider::~ToolButtonProvider()
     nonSharedButtons_.clear();
 }
 
-void ToolButtonProvider::exec(QString const & cmd, QGenericArgument arg0,
+void ToolButtonProvider::exec(QByteArray const & cmd, QGenericArgument arg0,
                    QGenericArgument arg1, QGenericArgument arg2)
 {
-    int index = metaObject()->indexOfSlot(cmd.toUtf8());
+    int index = metaObject()->indexOfSlot(cmd);
     if (index < 0)
         return;
     QMetaMethod method = metaObject()->method(index);
@@ -27,9 +28,9 @@ void ToolButtonProvider::exec(QString const & cmd, QGenericArgument arg0,
     method.invoke(this, arg0, arg1, arg2);
 }
 
-void ToolButtonProvider::exec(QString const & cmd, QStringList const & args)
+void ToolButtonProvider::exec(QByteArray const & cmd, QStringList const & args)
 {
-    int index = metaObject()->indexOfSlot(cmd.toUtf8());
+    int index = metaObject()->indexOfSlot(cmd);
     if (index < 0) {
         if (args.size() == 1) {
             setOption(cmd, args[0]);
@@ -85,13 +86,15 @@ void ToolButtonProvider::handleToolButton(QList<ToolButton *> const & buttons)
             break;
         }
     }
+    if (i == buttons.size())
+        --i;
     if (button == buttons.back() && !button->flags.testFlag(ToolButton::UnionUpdate)) {
         handleToolButton(button); // do simple handle
         return;
     }
     QStringList args;
-    for (++i; i < buttons.size(); ++i) {
-        args.append(buttons[i]->name);
+    for (int j = i + 1; j < buttons.size(); ++j) {
+        args.append(buttons[j]->name);
     }
     inHandle = true;
     exec(button->name, args);
@@ -99,7 +102,7 @@ void ToolButtonProvider::handleToolButton(QList<ToolButton *> const & buttons)
         updateToolButton(button);
         if (button->flags.testFlag(ToolButton::UnionUpdate)) {
             QList<ToolButton *> siblins;
-            getToolButtons(siblins, buttons.mid(0, buttons.size() - 1));
+            getToolButtons(siblins, buttons.mid(0, i));
             int n = siblins.indexOf(button);
             for (int i = n - 1; i >= 0; --i) {
                 if (siblins[i]->flags.testFlag(ToolButton::UnionUpdate)) {
@@ -127,30 +130,66 @@ void ToolButtonProvider::handleToolButton(ToolButton *button)
         updateToolButton(button);
 }
 
-void ToolButtonProvider::updateToolButton(ToolButton *button)
+static std::map<QMetaObject const *, std::map<QByteArray, OptionToolButtons*>> & optionButtons()
 {
-    (void) button;
+    static std::map<QMetaObject const *, std::map<QByteArray, OptionToolButtons*>> smap;
+    return smap;
 }
 
-QString ToolButtonProvider::toolsString(QString const & parent) const
+void ToolButtonProvider::updateToolButton(ToolButton *button)
 {
-    if (parent.isEmpty())
+    auto iopt = optionButtons().find(metaObject());
+    if (iopt != optionButtons().end()) {
+        auto iopt2 = iopt->second.find(button->name);
+        if (iopt2 != iopt->second.end()) {
+            QVariant value = getOption(button->name);
+            iopt2->second->update(button, value);
+        }
+    }
+}
+
+QString ToolButtonProvider::toolsString(QByteArray const & parent) const
+{
+    if (parent.isEmpty()) {
+        int i = metaObject()->indexOfClassInfo("toolsString");
+        if (i >= 0)
+            return metaObject()->classInfo(i).value();
         return property("toolsString").toString();
+    }
     return nullptr;
 }
 
-void ToolButtonProvider::setOption(QString const & key, QVariant value)
+void ToolButtonProvider::setOption(QByteArray const & key, QVariant value)
 {
-    LifeObject::setProperty(key.toUtf8(), value);
+    int i = metaObject()->indexOfProperty(key);
+    if (i < 0)
+        return;
+    QMetaProperty p = metaObject()->property(i);
+    if (!value.canConvert(p.type()))
+        value.convert(QMetaType::QString);
+    LifeObject::setProperty(key, value);
 }
 
-QList<ToolButton *> ToolButtonProvider::tools(QString const & parent)
+QVariant ToolButtonProvider::getOption(const QByteArray &key)
 {
-    static std::map<QMetaObject const *, std::map<QString, QList<ToolButton *>>> slist;
-    auto iter = slist.find(metaObject());
-    if (iter == slist.end()) {
+    return property(key);
+}
+
+QList<ToolButton *> ToolButtonProvider::tools(QByteArray const & parent)
+{
+    auto iopt = optionButtons().find(metaObject());
+    if (iopt != optionButtons().end()) {
+        auto iopt2 = iopt->second.find(parent);
+        if (iopt2 != iopt->second.end()) {
+            QVariant value = getOption(parent);
+            return iopt2->second->buttons(value);
+        }
+    }
+    static std::map<QMetaObject const *, std::map<QString, QList<ToolButton *>>> smap;
+    auto iter = smap.find(metaObject());
+    if (iter == smap.end()) {
         std::map<QString, QList<ToolButton *>> t;
-        iter = slist.insert(std::make_pair(metaObject(), std::move(t))).first;
+        iter = smap.insert(std::make_pair(metaObject(), std::move(t))).first;
     }
     auto iter2 = iter->second.find(parent);
     if (iter2 == iter->second.end()) {
@@ -172,4 +211,9 @@ QList<ToolButton *> ToolButtonProvider::tools(QString const & parent)
         }
     }
     return btns;
+}
+
+RegisterOptionsButtons::RegisterOptionsButtons(const QMetaObject &meta, const char *parent, OptionToolButtons &buttons)
+{
+    optionButtons()[&meta][parent] = &buttons;
 }

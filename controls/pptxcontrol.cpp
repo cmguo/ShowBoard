@@ -14,10 +14,10 @@
 #include <QApplication>
 
 static char const * toolstr =
-        "-show()|开始演示;"
-        "-next()|下一页;"
-        "-prev()|上一页;"
-        "-hide()|结束演示";
+        "show()|开始演示;"
+        "next()|下一页;"
+        "prev()|上一页;"
+        "hide()|结束演示";
 
 PptxControl::PptxControl(ResourceView * res)
     : Control(res, {KeepAspectRatio, Touchable}, {CanRotate})
@@ -31,7 +31,9 @@ PptxControl::PptxControl(ResourceView * res)
     QObject::connect(powerpoint_, &PowerPoint::showed, this, &PptxControl::showed);
     QObject::connect(powerpoint_, &PowerPoint::closed, this, &PptxControl::closed);
     (void) toolstr;
+#ifdef QT_DEBUG
     setToolsString(toolstr);
+#endif
 }
 
 PptxControl::~PptxControl()

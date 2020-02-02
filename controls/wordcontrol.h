@@ -44,7 +44,7 @@ private:
 protected:
     virtual QGraphicsItem * create(ResourceView * res) override;
 
-    virtual QString toolsString(QString const & parent) const override;
+    virtual QString toolsString(QByteArray const & parent) const override;
 
     virtual void attaching() override;
 

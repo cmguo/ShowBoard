@@ -645,10 +645,18 @@ void Control::getToolButtons(QList<ToolButton *> &buttons, const QList<ToolButto
     }
 }
 
-void Control::setOption(QString const & key, QVariant value)
+void Control::setOption(QByteArray const & key, QVariant value)
 {
     ToolButtonProvider::setOption(key, value);
-    res_->setProperty(key.toUtf8(), value);
+    res_->setOption(key, value);
+}
+
+QVariant Control::getOption(const QByteArray &key)
+{
+    QVariant p = property(key);
+    if (!p.isValid())
+        p = res_->property(key);
+    return p;
 }
 
 StateItem * Control::stateItem()

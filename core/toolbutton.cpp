@@ -1,8 +1,8 @@
 #include "toolbutton.h"
 
-ToolButton ToolButton::SPLITER({"spliter", nullptr, nullptr, QVariant()});
-ToolButton ToolButton::LINE_BREAK({"lineBreak", nullptr, nullptr, QVariant()});
-ToolButton ToolButton::PLACE_HOOLDER({"placeHolder", nullptr, nullptr, QVariant()});
+ToolButton ToolButton::SPLITER({"spliter", nullptr, Static, QVariant()});
+ToolButton ToolButton::LINE_BREAK({"lineBreak", nullptr, Static, QVariant()});
+ToolButton ToolButton::PLACE_HOOLDER({"placeHolder", nullptr, Static, QVariant()});
 
 ToolButton::Flags ToolButton::makeFlags(const QString &str)
 {
@@ -25,7 +25,7 @@ ToolButton * ToolButton::makeButton(const QString &desc)
     QStringList seps = desc.split("|");
     if (seps.size() >= 1) {
         return new ToolButton{
-            seps[0],
+            seps[0].toUtf8(),
             seps.size() > 1 ? seps[1] : seps[0],
             seps.size() > 3 ? ToolButton::makeFlags(seps[2]) : nullptr,
             seps.size() > 2 ? QVariant(seps.back()) : QVariant()

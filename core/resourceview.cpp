@@ -34,6 +34,7 @@ ResourceView::~ResourceView()
 ResourceView::ResourceView(ResourceView const & o)
     : res_(new Resource(*o.res_))
     , flags_(o.flags_)
+    , name_(o.name_)
     , transform_(new ResourceTransform(*o.transform_, this))
 {
     //flags_ &= ~SavedSession;

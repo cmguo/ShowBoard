@@ -12,13 +12,16 @@ class SHOWBOARD_EXPORT ToolButton
 public:
     enum Flag
     {
-        Popup = 1,
-        Dynamic = 2, // need delete
+        Dynamic = 1, // need delete
+        Static = 2,
         OptionsGroup = 4, // group of options
-        Checkable = 8,
-        NeedUpdate = 16,
-        UnionUpdate = NeedUpdate | 32,
-        CustomWidget = 64,
+        CustomWidget = 8,
+
+        Popup = 16,
+        Checkable = 32,
+        NeedUpdate = 64,
+        UnionUpdate = NeedUpdate | 128,
+        // state
         Selected = 1 << 8,
         Checked = 1 << 9,
         Disabled = 1 << 10,
@@ -38,7 +41,7 @@ public:
     typedef std::function<void()> action_t;
 
 public:
-    QString name;
+    QByteArray name;
     QString title;
     Flags flags;
     QVariant icon;

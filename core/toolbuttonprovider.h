@@ -8,6 +8,7 @@
 #include <QMap>
 
 class ToolButton;
+class OptionToolButtons;
 
 class SHOWBOARD_EXPORT ToolButtonProvider : public LifeObject
 {
@@ -46,13 +47,18 @@ public:
     /*
      * invoke slot by name, use for lose relation call
      */
-    void exec(QString const & cmd, QGenericArgument arg0 = QGenericArgument(),
+    void exec(QByteArray const & cmd, QGenericArgument arg0 = QGenericArgument(),
               QGenericArgument arg1 = QGenericArgument(), QGenericArgument arg2 = QGenericArgument());
 
     /*
      * invoke slot by name, use for lose relation call
      */
-    void exec(QString const & cmd, QStringList const & args);
+    void exec(QByteArray const & cmd, QStringList const & args);
+
+public:
+    virtual void setOption(QByteArray const & key, QVariant value);
+
+    virtual QVariant getOption(QByteArray const & key);
 
 protected:
     void setToolsString(QString const & tools);
@@ -63,14 +69,22 @@ protected:
      *   for example:
      *     "open()|打开|:/showboard/icons/icon_open.png;"
      */
-    virtual QString toolsString(QString const & parent = QString()) const;
+    virtual QString toolsString(QByteArray const & parent = nullptr) const;
 
-    virtual void setOption(QString const & key, QVariant value);
-
-    QList<ToolButton *> tools(QString const & parent = QString());
+    QList<ToolButton *> tools(QByteArray const & parent = nullptr);
 
 private:
     QMap<ToolButton*, ToolButton*> nonSharedButtons_;
+    QMap<QString, OptionToolButtons*> optionButtons_;
 };
+
+class SHOWBOARD_EXPORT RegisterOptionsButtons
+{
+public:
+    RegisterOptionsButtons(QMetaObject const & meta, char const * parent, OptionToolButtons & buttons);
+};
+
+#define REGISTER_OPTION_BUTTONS(type, parent, buttons) \
+    static RegisterOptionsButtons export_option_buttons_##parent(type::staticMetaObject, #parent, buttons);
 
 #endif // TOOLBUTTONPROVIDER_H
