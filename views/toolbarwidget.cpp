@@ -13,11 +13,12 @@
 #include <QPushButton>
 #include <QLabel>
 
-static const QString STYLE = "QPushButton,.QLabel{color:#80ffffff;background-color:#00000000;border:none;font-size:16pt;spacing: 30px;} "
-                "QPushButton{qproperty-iconSize: 30px 30px; font-family: '微软雅黑';background-color:#00000000} "
-                "QPushButton:checked{color:#1AA9EF;}"
-                "#toolbarwidget{background-color:#C8000000;border-radius:3px;}"
-                "#popupwidget{background-color:#C8000000;border-radius:3px;}";
+static const QString STYLE =
+        "QPushButton,.QLabel{color:#80ffffff;background-color:#00000000;border:none;font-size:16pt;spacing:30px;}"
+        "QPushButton{qproperty-iconSize:30px 30px;font-family:'微软雅黑';background-color:#00000000} "
+        "QPushButton:checked{color:#1AA9EF;}"
+        "#toolbarwidget{background-color:#C8000000;}"
+        "#popupwidget{background-color:#80000000;}";
 
 ToolbarWidget::ToolbarWidget(QWidget *parent)
     : ToolbarWidget(true, parent)
@@ -35,13 +36,13 @@ ToolbarWidget::ToolbarWidget(bool horizontal, QWidget *parent)
         layout_ = new QHBoxLayout(this);
     else
         layout_ = new QVBoxLayout(this);
-    this->setObjectName(QString::fromUtf8("toolbarwidget"));
-    this->setWindowFlag(Qt::FramelessWindowHint);
-    this->setAttribute(Qt::WA_StyledBackground,true);
-    this->setStyleSheet(STYLE);
+    setObjectName("toolbarwidget");
+    setWindowFlag(Qt::FramelessWindowHint);
+    //setAttribute(Qt::WA_StyledBackground,true);
+    setStyleSheet(STYLE);
     if (horizontal)
-        layout_->setContentsMargins(10,10,10,10);
-    this->setLayout(layout_);
+        layout_->setContentsMargins(10, 10, 10, 10);
+    setLayout(layout_);
     hide();
 }
 
@@ -238,13 +239,20 @@ void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWi
 {
     ToolButton * parent = popupParents_.empty() ? nullptr : popupParents_.back();
     QWidget * widget = nullptr;
-    if (button == &ToolButton::SPLITER) {
-        QLabel *splitLabel = new QLabel(this);
-        splitLabel->setText("|");
-        widget = splitLabel;
+    if (button == &ToolButton::SPLITTER) {
+        QFrame *splitter = new QFrame(this);
+        splitter->setFrameShape(QFrame::VLine);
+        splitter->setFrameShadow(QFrame::Sunken);
+        widget = splitter;
     } else if (button == &ToolButton::LINE_BREAK) {
         ++row; col = 0;
         return;
+    } else if (button == &ToolButton::LINE_SPLITTER) {
+        ++row; col = -1;
+        QFrame *splitter = new QFrame(this);
+        splitter->setFrameShape(QFrame::HLine);
+        splitter->setFrameShadow(QFrame::Sunken);
+        widget = splitter;
     } else if (button == &ToolButton::PLACE_HOOLDER) {
         return;
     } else if (button->flags & ToolButton::CustomWidget) {
@@ -265,12 +273,17 @@ void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWi
     }
     if (parent) {
         QGridLayout *gridLayout = static_cast<QGridLayout*>(layout);
-        gridLayout->addWidget(widget, row, col);
-        ++col;
-        if (button->flags & ToolButton::CustomWidget){
-            gridLayout->setContentsMargins(0, 0, 0, 0);
+        if (col == -1) {
+            gridLayout->addWidget(widget, row, 0, 1, -1);
+            ++row; col = 0;
         } else {
-            gridLayout->setContentsMargins(10, 10, 10, 10);
+            if (button->flags & ToolButton::CustomWidget) {
+                gridLayout->setContentsMargins(0, 0, 0, 0);
+            } else {
+                gridLayout->setContentsMargins(10, 10, 10, 10);
+            }
+            gridLayout->addWidget(widget, row, col);
+            ++col;
         }
     } else {
         layout->addWidget(widget);
@@ -511,9 +524,8 @@ QWidget *ToolbarWidget::createPopupWidget()
 {
     QWidget * widget = new QWidget();
     widget->setWindowFlags(Qt::FramelessWindowHint);
-    //widget->setAttribute(Qt::WA_TranslucentBackground);
     widget->setStyleSheet(STYLE);
-    widget->setObjectName(QString::fromUtf8("popupwidget"));
+    widget->setObjectName("popupwidget");
     widget->setLayout(new QGridLayout());
     return widget;
 }

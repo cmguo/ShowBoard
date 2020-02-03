@@ -68,9 +68,9 @@ void ToolButtonProvider::getToolButtons(QList<ToolButton *> & buttons, QList<Too
 void ToolButtonProvider::getToolButtons(QList<ToolButton *> &buttons, ToolButton *parent)
 {
     if (!buttons.empty())
-        buttons.append(&ToolButton::SPLITER);
+        buttons.append(&ToolButton::SPLITTER);
     buttons.append(tools(parent ? parent->name : nullptr));
-    if (buttons.endsWith(&ToolButton::SPLITER))
+    if (buttons.endsWith(&ToolButton::SPLITTER))
         buttons.pop_back();
 }
 

@@ -631,7 +631,7 @@ void Control::getToolButtons(QList<ToolButton *> &buttons, const QList<ToolButto
     if (parents.isEmpty()) {
         btnFastCopy.flags.setFlag(ToolButton::Checked, false);
         if (!buttons.empty())
-            buttons.append(&ToolButton::SPLITER);
+            buttons.append(&ToolButton::SPLITTER);
         if (res_->canMoveTop())
             buttons.append(&btnTop);
         if (res_->flags() & ResourceView::CanCopy)
@@ -640,7 +640,7 @@ void Control::getToolButtons(QList<ToolButton *> &buttons, const QList<ToolButto
             buttons.append(&btnFastCopy);
         if (res_->flags() & ResourceView::CanDelete)
             buttons.append(&btnDelete);
-        if (buttons.endsWith(&ToolButton::SPLITER))
+        if (buttons.endsWith(&ToolButton::SPLITTER))
             buttons.pop_back();
     }
 }

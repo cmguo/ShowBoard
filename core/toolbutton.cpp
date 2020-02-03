@@ -1,7 +1,8 @@
 #include "toolbutton.h"
 
-ToolButton ToolButton::SPLITER({"spliter", nullptr, Static, QVariant()});
+ToolButton ToolButton::SPLITTER({"spliter", nullptr, Static, QVariant()});
 ToolButton ToolButton::LINE_BREAK({"lineBreak", nullptr, Static, QVariant()});
+ToolButton ToolButton::LINE_SPLITTER({"lineSpliter", nullptr, Static, QVariant()});
 ToolButton ToolButton::PLACE_HOOLDER({"placeHolder", nullptr, Static, QVariant()});
 
 ToolButton::Flags ToolButton::makeFlags(const QString &str)
@@ -17,9 +18,11 @@ ToolButton::Flags ToolButton::makeFlags(const QString &str)
 ToolButton * ToolButton::makeButton(const QString &desc)
 {
     if (desc == "|")
-        return &SPLITER;
+        return &SPLITTER;
     if (desc == "")
         return &PLACE_HOOLDER;
+    if (desc == "-")
+        return &LINE_SPLITTER;
     if (desc.startsWith("-"))
         return nullptr;
     QStringList seps = desc.split("|");

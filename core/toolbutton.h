@@ -32,8 +32,9 @@ public:
 
     Q_DECLARE_FLAGS(Flags, Flag)
 
-    static ToolButton SPLITER;
+    static ToolButton SPLITTER;
     static ToolButton LINE_BREAK;
+    static ToolButton LINE_SPLITTER;
     static ToolButton PLACE_HOOLDER;
 
     static constexpr char const * ACTION_PROPERTY = "toolaction";
