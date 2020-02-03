@@ -76,7 +76,9 @@ static QPixmap widgetToPixmap(QWidget * widget, bool destroy)
 
 static QPixmap itemToPixmap(QGraphicsItem * item, bool destroy)
 {
-    QPixmap pm(item->boundingRect().size().toSize());
+    QRectF rect = item->boundingRect();
+    QPointF size = rect.center() * 2;
+    QPixmap pm(size.x(), size.y());
     pm.fill(Qt::transparent);
     QPainter pt(&pm);
     pt.setRenderHint(QPainter::HighQualityAntialiasing);
