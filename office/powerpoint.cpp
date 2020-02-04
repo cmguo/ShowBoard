@@ -151,9 +151,9 @@ void PowerPoint::show(int page)
         timerId_ = startTimer(500);
 }
 
-void PowerPoint::attachButton(intptr_t hwnd)
+void PowerPoint::attachButton(intptr_t hwnd, const QPoint & pos)
 {
-    attachWindow(hwnd, hwnd_, -72, -72);
+    attachWindow(hwnd, hwnd_, pos.x(), pos.y());
 }
 
 void PowerPoint::moveButton(intptr_t hwnd, const QPoint &diff)

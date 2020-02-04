@@ -45,7 +45,7 @@ public:
     }
 
 public:
-    void attachButton(intptr_t hwnd);
+    void attachButton(intptr_t hwnd, QPoint const & pos);
 
     void moveButton(intptr_t hwnd, QPoint const & diff);
 

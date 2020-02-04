@@ -20,7 +20,7 @@ REGISTER_CONTROL(WebControl, "htm,html,http,https")
 REGISTER_CONTROL(QmlControl, "qml")
 REGISTER_CONTROL(TextControl, "txt,js,cpp,h")
 
-#if TARGET_OS_WIN32
+#ifdef WIN32
 REGISTER_CONTROL(PptxControl, "ppt,pptx")
 REGISTER_CONTROL(WordControl, "doc,docx")
 #endif

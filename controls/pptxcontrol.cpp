@@ -167,13 +167,15 @@ void PptxControl::showStopButton()
     button->setWindowFlag(Qt::SubWindow);
     button->setAttribute(Qt::WA_TranslucentBackground);
     button->setToolButtonStyle(Qt::ToolButtonStyle::ToolButtonTextUnderIcon);
-    button->setStyleSheet("background-color:#F22B3034;");
-    button->setIconSize({48, 48});
+    button->setStyleSheet("width:72px;height:72px;"
+                          "background-color:#F22B3034;border-radius:8px;border:1px solid rgba(67,77,89,1);"
+                          "color:#909093;font-family:'Microsoft YaHei';font-size:12pt;");
+    button->setIconSize({40, 40});
     button->setIcon(QPixmap(":/showboard/icons/return.png"));
     button->setText("返回课堂");
     button->installEventFilter(this);
     button->setVisible(false);
-    powerpoint_->attachButton(static_cast<intptr_t>(button->winId()));
+    powerpoint_->attachButton(static_cast<intptr_t>(button->winId()), QPoint(-120, -120));
     button->setVisible(true);
     stopButton_ = button;
 }
@@ -235,19 +237,21 @@ bool PptxControl::eventFilter(QObject *obj, QEvent * event)
     case QEvent::MouseMove: {
         QPoint lpos = obj->property("lastPos").toPoint();
         QPoint pos = static_cast<QMouseEvent*>(event)->pos();
-        powerpoint_->moveButton(static_cast<intptr_t>(stopButton_->winId()),
-                        pos - lpos);
+        QPoint d = pos - lpos;
+        if (qAbs(d.x()) + qAbs(d.y()) < 10)
+            break;
+        powerpoint_->moveButton(static_cast<intptr_t>(stopButton_->winId()), d);
         obj->setProperty("moved", true);
     } break;
     case QEvent::MouseButtonPress:
-        static_cast<QToolButton*>(stopButton_)->setIcon(
-                    QPixmap(":/showboard/icons/stop.press.svg"));
+        //static_cast<QToolButton*>(stopButton_)->setIcon(
+        //            QPixmap(":/showboard/icons/stop.press.svg"));
         obj->setProperty("lastPos", static_cast<QMouseEvent*>(event)->pos());
         obj->setProperty("moved", false);
         break;
     case QEvent::MouseButtonRelease:
-        static_cast<QToolButton*>(stopButton_)->setIcon(
-                    QPixmap(":/showboard/icons/stop.normal.svg"));
+        //static_cast<QToolButton*>(stopButton_)->setIcon(
+        //            QPixmap(":/showboard/icons/return.svg"));
         if (!obj->property("moved").toBool())
             hide();
         break;
