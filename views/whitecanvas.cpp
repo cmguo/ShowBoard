@@ -144,10 +144,12 @@ ItemSelector * WhiteCanvas::selector()
 
 void WhiteCanvas::enableSelector(bool enable)
 {
-    if (enable)
+    if (enable) {
         selector_->setRect(rect());
-    else
+    } else {
         selector_->setRect(QRectF());
+        selector_->select(nullptr);
+    }
 }
 
 bool WhiteCanvas::loading()
