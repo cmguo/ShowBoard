@@ -24,6 +24,11 @@ public:
 
     Control * findControl(QUrl const & url);
 
+    /*
+     * get top most control
+     */
+    Control * topControl();
+
     void relayout();
 
     ResourcePage * page()
@@ -39,6 +44,8 @@ private:
     void resourceMoved(QModelIndex const &parent, int start, int end,
                        QModelIndex const &destination, int row);
 
+    void subPageChanged(ResourcePage* page);
+
 private:
     void insertResource(int layer);
 
@@ -50,6 +57,7 @@ private:
 
 protected:
     ResourcePage * page_;
+    PageCanvas* subCanvas_;
 };
 
 #endif // PAGECANVAS_H

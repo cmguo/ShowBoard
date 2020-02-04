@@ -133,8 +133,7 @@ Control * WhiteCanvas::findControl(QUrl const & url)
 
 Control * WhiteCanvas::topControl()
 {
-    QGraphicsItem * item = canvas_->childItems().back();
-    return item ? Control::fromItem(item) : nullptr;
+    return canvas_->topControl();
 }
 
 ItemSelector * WhiteCanvas::selector()

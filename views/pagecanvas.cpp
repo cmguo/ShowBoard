@@ -10,6 +10,7 @@
 PageCanvas::PageCanvas(QGraphicsItem * parent)
     : CanvasItem(parent)
     , page_(nullptr)
+    , subCanvas_(nullptr)
 {
     resource_manager_ = ResourceManager::instance();
     control_manager_ = ControlManager::instance();
@@ -41,7 +42,10 @@ void PageCanvas::switchPage(ResourcePage * page)
                          this, &PageCanvas::resourceRemoved);
         QObject::connect(page_, &ResourcePage::rowsMoved,
                          this, &PageCanvas::resourceMoved);
+        QObject::connect(page_, &ResourcePage::currentSubPageChanged,
+                         this, &PageCanvas::subPageChanged);
     }
+    subPageChanged(page_ ? page_->currentSubPage() : nullptr);
 }
 
 void PageCanvas::relayout()
@@ -55,8 +59,11 @@ void PageCanvas::relayout()
 Control * PageCanvas::findControl(ResourceView * res)
 {
     int index = page_->resources().indexOf(res);
-    if (index < 0)
+    if (index < 0) {
+        if (subCanvas_)
+            return subCanvas_->findControl(res);
         return nullptr;
+    }
     QGraphicsItem * item = childItems()[index];
     return Control::fromItem(item);
 }
@@ -64,6 +71,14 @@ Control * PageCanvas::findControl(ResourceView * res)
 Control * PageCanvas::findControl(QUrl const & url)
 {
     return findControl(page_->findResource(url));
+}
+
+Control * PageCanvas::topControl()
+{
+    if (subCanvas_)
+        return subCanvas_->topControl();
+    QGraphicsItem * item = childItems().back();
+    return item ? Control::fromItem(item) : nullptr;
 }
 
 void PageCanvas::resourceInserted(QModelIndex const &parent, int first, int last)
@@ -105,6 +120,24 @@ void PageCanvas::resourceMoved(QModelIndex const &parent, int start, int end,
             item->stackBefore(first);
         }
         first->update();
+    }
+}
+
+void PageCanvas::subPageChanged(ResourcePage *page)
+{
+    if (page) {
+        if (subCanvas_ == nullptr) {
+            subCanvas_ = new PageCanvas(parentItem());
+            QList<QGraphicsItem*> siblings = parentItem()->childItems();
+            subCanvas_->stackBefore(siblings[siblings.indexOf(this) + 1]);
+        }
+        subCanvas_->switchPage(page);
+    } else {
+        if (subCanvas_) {
+            subCanvas_->switchPage(page);
+            delete subCanvas_;
+            subCanvas_ = nullptr;
+        }
     }
 }
 
