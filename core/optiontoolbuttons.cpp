@@ -176,7 +176,7 @@ QGraphicsItem *WidthToolButtons::widthIcon(qreal width)
     border->setPen(Qt::NoPen);
     border->setBrush(QBrush());
     QPainterPath ph2;
-    QRectF rect(0, 0, width * 3, width * 3);
+    QRectF rect(0, 0, width, width);
     rect.moveCenter(QPointF(16, 16));
     ph2.addEllipse(rect);
     QGraphicsPathItem * item = new QGraphicsPathItem(ph2, border);
@@ -209,7 +209,7 @@ QGraphicsItem *StateWidthToolButtons::widthIcon(qreal width, bool selected)
         border->setPen(Qt::NoPen);
     border->setBrush(QBrush());
     QPainterPath ph2;
-    QRectF rect(0, 0, width * 3, width * 3);
+    QRectF rect(0, 0, width, width);
     rect.moveCenter(QPointF(16, 16));
     ph2.addEllipse(rect);
     QGraphicsPathItem * item = new QGraphicsPathItem(ph2, border);

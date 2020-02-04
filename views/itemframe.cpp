@@ -54,6 +54,7 @@ void ItemFrame::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
 
 void ItemFrame::drawTopBar(QPainter *painter, QRectF const & rect, ItemFrame *)
 {
+    static QPixmap icon(":/showboard/icons/drag.png");
     painter->setPen(Qt::NoPen);
     painter->setBrush(QColor("#FFF4F4F4"));
     //painter->setOpacity(frame->selected_ ? 1.0 : 0.2);
@@ -65,14 +66,9 @@ void ItemFrame::drawTopBar(QPainter *painter, QRectF const & rect, ItemFrame *)
     gradient.setColorAt(1, QColor("#FFECECEC"));
     painter->setBrush(gradient);
     painter->drawRect(rect2);
-    qreal diff = rect2.height() / 5;
-    painter->setPen(Qt::white);
-    QPointF pt(-10, rect2.center().y() - diff);
-    painter->drawLine(pt, pt + QPointF(20, 0));
-    pt.setY(pt.y() + diff);
-    painter->drawLine(pt, pt + QPointF(20, 0));
-    pt.setY(pt.y() + diff);
-    painter->drawLine(pt, pt + QPointF(20, 0));
+    QRectF iconRect(0, 0, icon.width(), icon.height());
+    iconRect.moveCenter(rect2.center());
+    painter->drawPixmap(iconRect.toRect(), icon);
 }
 
 void ItemFrame::addTopBar()

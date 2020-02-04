@@ -5,6 +5,7 @@
 
 #include <QUrl>
 #include <QGraphicsScene>
+#include <QPen>
 #include <QtMath>
 #include <QDebug>
 
@@ -78,8 +79,8 @@ void WhiteCanvasControl::updateTransform()
 PositionBar::PositionBar(QGraphicsItem * parent)
     : QGraphicsPathItem(parent)
 {
-    setPen(Qt::NoPen);
-    setBrush(Qt::blue);
+    setPen(QPen(Qt::white));
+    setBrush(QColor("#A0606060"));
 }
 
 void PositionBar::update(const QRectF &viewRect, const QRectF &canvasRect, qreal scale, QPointF offset)
