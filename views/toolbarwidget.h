@@ -5,7 +5,7 @@
 
 #include "core/toolbutton.h"
 
-#include <QWidget>
+#include <QFrame>
 #include <QMap>
 #include <QList>
 
@@ -13,7 +13,7 @@ class QLayout;
 class ToolButtonProvider;
 class QPushButton;
 
-class SHOWBOARD_EXPORT ToolbarWidget : public QWidget
+class SHOWBOARD_EXPORT ToolbarWidget : public QFrame
 {
     Q_OBJECT
 public:

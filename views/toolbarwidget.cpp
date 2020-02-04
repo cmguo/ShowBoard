@@ -15,9 +15,9 @@
 
 static const QString STYLE =
         "QPushButton,.QLabel{color:#80ffffff;background-color:#00000000;border:none;font-size:16pt;spacing:30px;}"
-        "QPushButton{qproperty-iconSize:30px 30px;font-family:'微软雅黑';background-color:#00000000} "
+        "QPushButton{qproperty-iconSize:30px 30px;font-family:'Microsoft YaHei';background-color:#00000000} "
         "QPushButton:checked{color:#1AA9EF;}"
-        "#toolbarwidget{background-color:#C8000000;}"
+        "#toolbarwidget{background-color:#80000000;}"
         "#popupwidget{background-color:#80000000;}";
 
 ToolbarWidget::ToolbarWidget(QWidget *parent)
@@ -26,7 +26,7 @@ ToolbarWidget::ToolbarWidget(QWidget *parent)
 }
 
 ToolbarWidget::ToolbarWidget(bool horizontal, QWidget *parent)
-    : QWidget(parent)
+    : QFrame(parent)
     , template_(nullptr)
     , popupPosition_(BottomRight)
     , popUp_(nullptr)
@@ -522,7 +522,7 @@ void ToolbarWidget::onButtonClicked(ToolButton *)
 
 QWidget *ToolbarWidget::createPopupWidget()
 {
-    QWidget * widget = new QWidget();
+    QWidget * widget = new QFrame();
     widget->setWindowFlags(Qt::FramelessWindowHint);
     widget->setStyleSheet(STYLE);
     widget->setObjectName("popupwidget");
