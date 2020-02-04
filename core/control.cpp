@@ -31,7 +31,7 @@ Control * Control::fromItem(QGraphicsItem * item)
 
 ToolButton Control::btnTop = { "top", "置顶", nullptr, ":/showboard/icons/top.svg" };
 ToolButton Control::btnCopy = { "copy", "复制", nullptr, ":/showboard/icons/copy.png" };
-ToolButton Control::btnFastCopy = { "copy", "快速复制", nullptr, ":/showboard/icons/copy.svg" };
+ToolButton Control::btnFastCopy = { "copy", "快速复制", ToolButton::Checkable, ":/showboard/icons/copy.svg" };
 ToolButton Control::btnDelete = { "delete", "关闭", nullptr, ":/showboard/icons/close.png" };
 
 Control::Control(ResourceView *res, Flags flags, Flags clearFlags)

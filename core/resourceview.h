@@ -34,7 +34,11 @@ public:
         CanCopy = 16,
         CanDelete = 32,
         CanFastCopy = CanCopy | 64,
+#ifdef QT_DEBUG
+        DefaultFlags = CanFastCopy | CanDelete,
+#else
         DefaultFlags = CanCopy | CanDelete,
+#endif
         // when insert new resource under this resource,
         //  this resource will be split into two and new resource is insert between
         //  special used for stroke writen
