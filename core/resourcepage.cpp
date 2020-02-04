@@ -12,6 +12,7 @@ ResourcePage::ResourcePage(QObject *parent)
 ResourcePage::ResourcePage(ResourceView* mainRes, QObject *parent)
     : QAbstractItemModel(parent)
     , canvasView_(nullptr)
+    , currentSubPage_(nullptr)
 {
     bool largeCanvas = mainRes && (mainRes->flags().testFlag(ResourceView::LargeCanvas));
     if (largeCanvas)
@@ -29,7 +30,7 @@ ResourceView * ResourcePage::addResource(QUrl const & url, QVariantMap const & s
     for (QString const & k : settings.keys()) {
         rv->setProperty(k.toUtf8(), settings.value(k));
     }
-    if (rv->flags() & ResourceView::VirtualScene) {
+    if (rv->flags().testFlag(ResourceView::VirtualScene)) {
         qobject_cast<ResourcePackage*>(parent())->newVirtualPage(rv);
     } else {
         addResource(rv);
@@ -39,15 +40,16 @@ ResourceView * ResourcePage::addResource(QUrl const & url, QVariantMap const & s
 
 ResourceView * ResourcePage::addResourceOrBringTop(QUrl const & url, QVariantMap const & settings)
 {
-    ResourceView * rv = findResource(url);
+    ResourcePage * page = currentSubPage_ ? currentSubPage_ : this;
+    ResourceView * rv = page->findResource(url);
     if (rv) {
-        moveResourceBack(rv);
+        rv->page()->moveResourceBack(rv);
         return rv;
     }
-    ResourcePage * page = qobject_cast<ResourcePackage*>(parent())->findVirtualPage(url);
-    if (page) {
-        qobject_cast<ResourcePackage*>(parent())->showVirtualPage(page, true);
-        return page->resources().first();
+    ResourcePage * vpage = qobject_cast<ResourcePackage*>(parent())->findVirtualPage(url);
+    if (vpage) {
+        qobject_cast<ResourcePackage*>(parent())->showVirtualPage(vpage, true);
+        return vpage->resources().first();
     }
     return addResource(url, settings);
 }
@@ -58,11 +60,28 @@ ResourceView * ResourcePage::findResource(QUrl const & url) const
         if (res->url() == url)
             return res;
     }
+    if (currentSubPage_)
+        return currentSubPage_->findResource(url);
     return nullptr;
 }
 
 void ResourcePage::addResource(ResourceView * res)
 {
+    if (currentSubPage_) {
+        currentSubPage_->addResource(res);
+        return;
+    }
+    if (res->flags().testFlag(ResourceView::SubPages)) {
+        currentSubPage_ = new ResourcePage(this);
+        if (!resources_.empty()) {
+            QList<ResourceView*> resources;
+            beginRemoveRows(QModelIndex(), 0, resources_.size() - 1);
+            currentSubPage_->resources_.swap(resources_);
+            endRemoveRows();
+        }
+        subPages_.append(currentSubPage_);
+        emit currentSubPageChanged(currentSubPage_);
+    }
     int index = resources_.size();
     while (index > 0 && (resources_[index - 1]->flags() & ResourceView::TopMost)) {
         --index;
@@ -97,8 +116,11 @@ void ResourcePage::removeResource(ResourceView * res)
     if ((res->flags() & ResourceView::CanDelete) == 0)
         return;
     int index = resources_.indexOf(res);
-    if (index < 0)
+    if (index < 0) {
+        if (currentSubPage_)
+            currentSubPage_->removeResource(res);
         return;
+    }
     int pos1 = index;
     int pos2 = index;
     while (pos1 > 0 && (resources_[pos1 - 1]->flags() & ResourceView::StickUnder)
@@ -170,6 +192,26 @@ ResourceView * ResourcePage::nextNormalResource(ResourceView *res) const
             return resources_[index];
     }
     return nullptr;
+}
+
+void ResourcePage::switchSubPage(int nPage)
+{
+    if (subPages_.size() <= nPage)
+        subPages_.resize(nPage + 1);
+    if (subPages_[nPage] == nullptr) {
+        subPages_[nPage] = new ResourcePage(this);
+        QObject* p = parent();
+        while (p) {
+            ResourcePackage * pkg = qobject_cast<ResourcePackage*>(p);
+            if (pkg) {
+                emit pkg->pageCreated(subPages_[nPage]);
+                break;
+            }
+            p = p->parent();
+        }
+    }
+    currentSubPage_ = subPages_[nPage];
+    emit currentSubPageChanged(currentSubPage_);
 }
 
 void ResourcePage::moveResource(int pos, int newPos)

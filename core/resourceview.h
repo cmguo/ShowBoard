@@ -10,6 +10,7 @@
 
 class Resource;
 class ResourceTransform;
+class ResourcePage;
 
 class SHOWBOARD_EXPORT ResourceView : public ToolButtonProvider
 {
@@ -40,12 +41,13 @@ public:
         DefaultFlags = CanCopy | CanDelete,
 #endif
         // when insert new resource under this resource,
-        //  this resource will be split into two and new resource is insert between
+        //  this resource will be split into two and new resourcbei'songe is insert between
         //  special used for stroke writen
         Splittable = 1 << 8,
         DrawAttach = 1 << 9, // attach to when drawing
         VirtualScene = BottomMost | (1 << 10),
         LargeCanvas = VirtualScene | (1 << 11),
+        SubPages = BottomMost | (1 << 12),
         // States
         SavedSession = 1 << 16,
         DrawFinised = 1 << 17,
@@ -105,6 +107,8 @@ public:
     void setSaved();
 
     void removeFromPage();
+
+    ResourcePage* page();
 
 protected:
     Resource * res_;

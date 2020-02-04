@@ -62,6 +62,7 @@ public:
      */
     void removeResource(ResourceView * res);
 
+public:
     /*
      * move resource to front of collection
      *   means backmost in z-order, but not cross resources with flag ButtomMost
@@ -91,6 +92,14 @@ public:
     ResourceView * nextNormalResource(ResourceView * res) const;
 
 public:
+    void switchSubPage(int nPage);
+
+    ResourcePage* currentSubPage() const
+    {
+        return currentSubPage_;
+    }
+
+public:
     ResourceView* canvasView() const
     {
         return canvasView_;
@@ -103,7 +112,8 @@ public:
 
     using QObject::parent;
 
-public slots:
+signals:
+    void currentSubPageChanged(ResourcePage* page);
 
 private:
     void moveResource(int pos, int newPos);
@@ -122,6 +132,8 @@ private:
 private:
     ResourceView* canvasView_;
     QList<ResourceView *> resources_;
+    ResourcePage* currentSubPage_;
+    QVector<ResourcePage*> subPages_;
 };
 
 #endif // WHITEPAGE_H

@@ -77,6 +77,11 @@ void ResourceView::removeFromPage()
     qobject_cast<ResourcePage*>(parent())->removeResource(this);
 }
 
+ResourcePage *ResourceView::page()
+{
+    return qobject_cast<ResourcePage*>(parent());
+}
+
 void ResourceView::setSaved()
 {
     flags_ |= SavedSession;
