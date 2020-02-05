@@ -536,7 +536,8 @@ void ToolbarWidget::resizeEvent(QResizeEvent *event)
 }
 
 void ToolbarWidget::setVisible(bool visible) {
-    QWidget::setVisible(visible);
+    visible &= !buttons_.empty();
+    QFrame::setVisible(visible);
     if (!visible && popUp_) {
         QGraphicsProxyWidget * proxy = popUp_->graphicsProxyWidget();
         if (proxy)

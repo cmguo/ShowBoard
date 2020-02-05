@@ -71,7 +71,6 @@ void ItemSelector::select(QGraphicsItem *item)
         selBox_->setVisible(true,
                             selectControl_->flags() & Control::CanScale,
                             selectControl_->flags() & Control::CanRotate);
-        toolBar_->show();
         selectControl_->select(true);
         //itemChange(ItemPositionHasChanged, pos());
     } else {
@@ -288,6 +287,7 @@ void ItemSelector::selectRelease()
     }
     type_ = None;
     if (hideMenu_) {
+        //if (toolBar()->buttons_())
         toolBar_->setVisible(selBox_->isVisible());
         layoutToolbar();
     }
