@@ -5,6 +5,8 @@
 #include <QGraphicsItem>
 #include <QGraphicsScene>
 #include <QGraphicsView>
+#include <QApplication>
+#include <QDebug>
 
 MenuTool::MenuTool(ResourceView *res)
     : WidgetControl(res, {}, {CanSelect, CanRotate, CanScale})
@@ -18,7 +20,12 @@ bool MenuTool::eventFilter(QObject *, QEvent *event)
         whiteCanvas()->scene()->views().first()->setFocus();
     }
     if (event->type() == QEvent::FocusOut) {
-        whiteCanvas()->hideToolControl(this);
+        if (QApplication::focusWidget() == whiteCanvas()->scene()->views().first()
+                && whiteCanvas()->scene()->focusItem() == item_) {
+            widget_->setFocus();
+        } else {
+            whiteCanvas()->hideToolControl(this);
+        }
     }
     return false;
 }
