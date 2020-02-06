@@ -57,7 +57,7 @@ private:
                     "--allow-running-insecure-content"
                     " --disable-web-security"
                     " --register-pepper-plugins="
-                        "./pepflashplayer64_32_0_0_270.dll;application/x-shockwave-flash";
+                        "./pepflashplayer64.dll;application/x-shockwave-flash";
             qputenv("QTWEBENGINE_CHROMIUM_FLAGS", flags);
     #ifdef QT_DEBUG
             qputenv("QTWEBENGINE_REMOTE_DEBUGGING", "7777");
