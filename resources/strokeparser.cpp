@@ -22,8 +22,8 @@ StrokeParser::StrokeParser(QObject *parent)
 void StrokeParser::onComposition()
 {
     for (auto & r : parser_types_) {
-        QString types = r.part()->attr(IStrokeParser::EXPORT_ATTR_TYPE);
-        for (auto t : types.split(",", QString::SkipEmptyParts)) {
+        QByteArray types = r.part()->attr(IStrokeParser::EXPORT_ATTR_TYPE);
+        for (auto t : types.split(',')) {
             manager_->mapResourceType(t, strokeType_);
             parsers_[t] = &r;
         }

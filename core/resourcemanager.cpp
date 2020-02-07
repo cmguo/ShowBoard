@@ -39,7 +39,7 @@ ResourceManager::ResourceManager(QObject *parent)
     auto iter = commonResourceTypes().keyValueBegin();
     auto end = commonResourceTypes().keyValueEnd();
     for (; iter != end; ++iter) {
-        for (auto t : QString((*iter).first).split(",", QString::SkipEmptyParts)) {
+        for (auto t : QByteArray((*iter).first).split(',')) {
             commonResources_[t] = qMakePair(static_cast<int>((*iter).second.first),
                                       static_cast<int>((*iter).second.second));
         }
@@ -49,35 +49,35 @@ ResourceManager::ResourceManager(QObject *parent)
 void ResourceManager::onComposition()
 {
     for (auto & r : resource_types_) {
-        QString types = r.part()->attr(ResourceView::EXPORT_ATTR_TYPE);
-        for (auto t : types.split(",", QString::SkipEmptyParts)) {
-            resources_[t] = &r;
+        QByteArray types = r.part()->attr(ResourceView::EXPORT_ATTR_TYPE);
+        for (auto t : types.split(',')) {
+            resources_[t.trimmed()] = &r;
         }
     }
 }
 
 static constexpr char DATA_SCHEME_SEP[] = { ';', ',' };
 
-QString ResourceManager::findType(QUrl const & uri, QString& originType, QLazy *&lazy, QPair<int, int> const *&flags) const
+QByteArray ResourceManager::findType(QUrl const & uri, QByteArray& originType, QLazy *&lazy, QPair<int, int> const *&flags) const
 {
-    std::map<QString, QLazy*>::const_iterator iter = resources_.end();
-    std::map<QString, QPair<int, int>>::const_iterator iter2 = commonResources_.end();
-    QString type;
+    std::map<QByteArray, QLazy*>::const_iterator iter = resources_.end();
+    std::map<QByteArray, QPair<int, int>>::const_iterator iter2 = commonResources_.end();
+    QByteArray type;
     if (uri.scheme() == "data") {
         int n = uri.path().indexOf(DATA_SCHEME_SEP);
-        originType = uri.path().left(n);
+        originType = uri.path().left(n).toUtf8().toLower();
         type = mapTypes_.value(originType, originType);
         iter = resources_.find(type);
         iter2 = commonResources_.find(type);
     } else {
-        originType = uri.scheme();
+        originType = uri.scheme().toUtf8().toLower();
         type = mapTypes_.value(originType, originType);
         iter = resources_.find(type);
         iter2 = commonResources_.find(type);
         if (iter == resources_.end() && iter2 == commonResources_.end()) {
             int n = uri.path().lastIndexOf('.');
             if (n > 0) {
-                originType = uri.path().mid(n + 1);
+                originType = uri.path().mid(n + 1).toUtf8().toLower();
                 type = mapTypes_.value(originType, originType);
                 iter = resources_.find(type);
                 iter2 = commonResources_.find(type);
@@ -90,27 +90,27 @@ QString ResourceManager::findType(QUrl const & uri, QString& originType, QLazy *
     if (iter2 != commonResources_.end()) {
         flags = &iter2->second;
     }
-    return type;
+    return type.toLower();
 }
 
-void ResourceManager::mapResourceType(QString const & from, QString const & to)
+void ResourceManager::mapResourceType(QByteArray const & from, QByteArray const & to)
 {
     mapTypes_[from] = to;
 }
 
 bool ResourceManager::isExplitSupported(const QUrl &uri) const
 {
-    QString originType;
+    QByteArray originType;
     QLazy * lazy = nullptr;
     QPair<int, int> const* flags = nullptr;
-    QString type = findType(uri, originType, lazy, flags);
+    findType(uri, originType, lazy, flags);
     return lazy || flags;
 }
 
-ResourceView * ResourceManager::createResource(QUrl const & uri, QString const & typeHint) const
+ResourceView * ResourceManager::createResource(QUrl const & uri, QByteArray const & typeHint) const
 {
-    QString type;
-    QString originType;
+    QByteArray type;
+    QByteArray originType;
     QLazy * lazy = nullptr;
     QPair<int, int> const* flags = nullptr;
     if (typeHint.isEmpty()) {
@@ -150,9 +150,9 @@ ResourceView * ResourceManager::createResource(QUrl const & uri, QString const &
     return rv;
 }
 
-ResourceFactory * ResourceManager::getFactory(QString const & type) const
+ResourceFactory * ResourceManager::getFactory(QByteArray const & type) const
 {
-    std::map<QString, QLazy*>::const_iterator iter = resources_.find(type);
+    std::map<QByteArray, QLazy*>::const_iterator iter = resources_.find(type);
     if (iter == resources_.end())
         return nullptr;
     char const * rfactory = iter->second->part()->attr(ResourceView::EXPORT_ATTR_FACTORY);

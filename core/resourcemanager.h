@@ -20,7 +20,7 @@ class SHOWBOARD_EXPORT ResourceManager : public QObject
 public:
     Q_INVOKABLE explicit ResourceManager(QObject *parent = nullptr);
 
-    void mapResourceType(QString const & from, QString const & to);
+    void mapResourceType(QByteArray const & from, QByteArray const & to);
 
 signals:
 
@@ -29,23 +29,23 @@ public:
 
     bool isExplitSupported(QUrl const & uri) const;
 
-    ResourceView * createResource(QUrl const & uri, QString const & typeHint = nullptr) const;
+    ResourceView * createResource(QUrl const & uri, QByteArray const & typeHint = nullptr) const;
 
-    ResourceView * createResource(QString const & mine, QByteArray const & data) const;
+    ResourceView * createResource(QByteArray const & mine, QByteArray const & data) const;
 
-    ResourceFactory * getFactory(QString const & type) const;
+    ResourceFactory * getFactory(QByteArray const & type) const;
 
 public slots:
     void onComposition();
 
 private:
-    QString findType(QUrl const & uri, QString& originType, QLazy*& lazy, QPair<int, int> const*& flags) const;
+    QByteArray findType(QUrl const & uri, QByteArray& originType, QLazy*& lazy, QPair<int, int> const*& flags) const;
 
 private:
     std::vector<QLazy> resource_types_;
-    std::map<QString, QLazy *> resources_;
-    std::map<QString, QPair<int, int>> commonResources_;
-    QMap<QString, QString> mapTypes_;
+    std::map<QByteArray, QLazy *> resources_;
+    std::map<QByteArray, QPair<int, int>> commonResources_;
+    QMap<QByteArray, QByteArray> mapTypes_;
 };
 
 #endif // RESOURCEMANAGER_H

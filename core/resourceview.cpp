@@ -22,7 +22,7 @@ ResourceView::ResourceView(Resource * res, Flags flags, Flags clearFlags)
     res_->setParent(this);
 }
 
-ResourceView::ResourceView(QString const & type, QUrl const & url)
+ResourceView::ResourceView(QByteArray const & type, QUrl const & url)
     : ResourceView(new Resource(type, url), {}, CanCopy) // not copyable
 {
 }

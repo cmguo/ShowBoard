@@ -59,7 +59,7 @@ public:
     Q_INVOKABLE explicit ResourceView(Resource * res,
                                       Flags flags = None, Flags clearFlags = None);
 
-    ResourceView(QString const & type, QUrl const & url);
+    ResourceView(QByteArray const & type, QUrl const & url);
 
     virtual ~ResourceView() override;
 

@@ -26,7 +26,7 @@ public:
 class SHOWBOARD_EXPORT StrokeParser : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QString strokeType MEMBER strokeType_)
+    Q_PROPERTY(QByteArray strokeType MEMBER strokeType_)
     Q_PROPERTY(QObject* manager WRITE setManager)
     Q_PROPERTY(std::vector<QLazy> parser_types MEMBER parser_types_)
 
@@ -45,7 +45,7 @@ public slots:
     void onComposition();
 
 private:
-    QString strokeType_;
+    QByteArray strokeType_;
     ResourceManager * manager_;
     std::vector<QLazy> parser_types_;
     std::map<QString, QLazy *> parsers_;

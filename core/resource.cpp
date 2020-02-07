@@ -13,7 +13,7 @@ FileLRUCache Resource::cache_(QDir::current().filePath("rescache"), 1000 * 1024 
 
 using namespace QtPromise;
 
-Resource::Resource(QString const & type, QUrl const & url)
+Resource::Resource(QByteArray const & type, QUrl const & url)
     : url_(url)
     , type_(type)
 {

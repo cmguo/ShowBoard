@@ -21,7 +21,7 @@ class SHOWBOARD_EXPORT Resource : public LifeObject
     Q_OBJECT
 
     Q_PROPERTY(QUrl const url READ url)
-    Q_PROPERTY(QString const type READ type)
+    Q_PROPERTY(QByteArray const type READ type)
 
 public:
     static constexpr char const * PROP_ORIGIN_TYPE = "RES_ORIGIN_TYPE";
@@ -36,7 +36,7 @@ public:
      *  you should not direct new resource,
      *  always create resource by ResourceManager or by add url to ResourcePage
      */
-    Resource(QString const & type, QUrl const & url = QUrl("data:"));
+    Resource(QByteArray const & type, QUrl const & url = QUrl("data:"));
 
     // copy constructor
     Resource(Resource const & o);
@@ -47,7 +47,7 @@ public:
         return url_;
     }
 
-    QString const & type() const
+    QByteArray const & type() const
     {
         return type_;
     }
@@ -82,7 +82,7 @@ private:
 
 private:
     QUrl const url_;
-    QString const type_;
+    QByteArray const type_;
 };
 
 #endif // RESOURCE_H
