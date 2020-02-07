@@ -13,7 +13,7 @@ class ImageControl : public Control
     Q_PROPERTY(qreal mipmap MEMBER mipmap_)
 
 public:
-    Q_INVOKABLE ImageControl(ResourceView *res);
+    Q_INVOKABLE ImageControl(ResourceView *res, Flags flags = None, Flags clearFlags = None);
 
 protected:
     virtual QGraphicsItem * create(ResourceView * res) override;

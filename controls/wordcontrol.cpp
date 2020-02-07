@@ -16,8 +16,9 @@ static char const * toolstr =
         "prev()|上一页|:/showboard/icons/icon_delete.png;";
 
 WordControl::WordControl(ResourceView * res)
-    : Control(res, {KeepAspectRatio, FullSelect})
+    : ImageControl(res)
 {
+    setProperty("mipmap", 1.5);
     word_ = new Word;
     QObject::connect(word_, &Word::opened, this, &WordControl::opened);
     QObject::connect(word_, &Word::failed, this, &WordControl::failed);
@@ -30,20 +31,6 @@ WordControl::~WordControl()
     close();
     word_->deleteLater();
     word_ = nullptr;
-}
-
-QGraphicsItem * WordControl::create(ResourceView * res)
-{
-    (void) res;
-    QGraphicsPixmapItem * item = new QGraphicsPixmapItem;
-    item->setTransformationMode(Qt::SmoothTransformation);
-    item->setShapeMode(QGraphicsPixmapItem::BoundingRectShape);
-    return item;
-}
-
-void WordControl::attaching()
-{
-    //itemFrame()->addDockItem(ItemFrame::Right, 100, Qt::red);
 }
 
 void WordControl::attached()
@@ -92,13 +79,7 @@ void WordControl::failed(QString const & msg)
 void WordControl::thumbed(QPixmap pixmap)
 {
     if (!pixmap.isNull()) {
-        QGraphicsPixmapItem * item = static_cast<QGraphicsPixmapItem *>(item_);
-        item->setPixmap(pixmap);
-        item->setOffset(pixmap.width() / -2, pixmap.height() / -2);
-        bool first = (flags_ & LoadFinished) == 0;
-        if (first) {
-            loadFinished(true);
-        }
+        setPixmap(pixmap);
     }
     item_->setCursor(Qt::ArrowCursor);
 }

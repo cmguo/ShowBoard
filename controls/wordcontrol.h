@@ -1,14 +1,14 @@
 #ifndef WORDCONTROL_H
 #define WORDCONTROL_H
 
-#include "core/control.h"
+#include "imagecontrol.h"
 
 #include <QUrl>
 
 class ResourceView;
 class Word;
 
-class WordControl : public Control
+class WordControl : public ImageControl
 {
     Q_OBJECT
 
@@ -38,11 +38,7 @@ private:
     void failed(QString const & msg);
 
 protected:
-    virtual QGraphicsItem * create(ResourceView * res) override;
-
     virtual QString toolsString(QByteArray const & parent) const override;
-
-    virtual void attaching() override;
 
     virtual void attached() override;
 

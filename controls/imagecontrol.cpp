@@ -32,8 +32,8 @@ private:
     QList<QPixmap> mipmaps_;
 };
 
-ImageControl::ImageControl(ResourceView * res)
-    : Control(res, {KeepAspectRatio, FullSelect, AutoPosition})
+ImageControl::ImageControl(ResourceView * res, Flags flags, Flags clearFlags)
+    : Control(res, flags | Flags{KeepAspectRatio, FullSelect}, clearFlags)
     , mipmap_(0)
 {
 }
@@ -41,6 +41,9 @@ ImageControl::ImageControl(ResourceView * res)
 QGraphicsItem * ImageControl::create(ResourceView * res)
 {
     (void)res;
+    if (metaObject() == &staticMetaObject) {
+        flags_ |= AutoPosition;
+    }
     QGraphicsPixmapItem * item = new QGraphicsPixmapItem();
     item->setShapeMode(QGraphicsPixmapItem::BoundingRectShape);
     item->setTransformationMode(Qt::SmoothTransformation);

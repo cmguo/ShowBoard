@@ -20,7 +20,7 @@ static char const * toolstr =
         "hide()|结束演示";
 
 PptxControl::PptxControl(ResourceView * res)
-    : Control(res, {KeepAspectRatio, Touchable}, {CanRotate})
+    : ImageControl(res, {Touchable}, {FullSelect})
     , stopButton_(nullptr)
 {
     powerpoint_ = new PowerPoint;
@@ -34,6 +34,7 @@ PptxControl::PptxControl(ResourceView * res)
 #ifdef QT_DEBUG
     setToolsString(toolstr);
 #endif
+    setProperty("finishIcon", QString(":/showboard/icons/play.svg"));
 }
 
 PptxControl::~PptxControl()
@@ -41,20 +42,6 @@ PptxControl::~PptxControl()
     close();
     powerpoint_->deleteLater();
     powerpoint_ = nullptr;
-}
-
-QGraphicsItem * PptxControl::create(ResourceView * res)
-{
-    (void) res;
-    QGraphicsPixmapItem * item = new QGraphicsPixmapItem;
-    item->setTransformationMode(Qt::SmoothTransformation);
-    item->setCursor(Qt::SizeAllCursor);
-    return item;
-}
-
-void PptxControl::attaching()
-{
-    //itemFrame()->addDockItem(ItemFrame::Right, 100, Qt::red);
 }
 
 void PptxControl::attached()
@@ -127,14 +114,13 @@ void PptxControl::showed()
 void PptxControl::thumbed(QPixmap pixmap)
 {
     if (!pixmap.isNull()) {
-        QGraphicsPixmapItem * item = static_cast<QGraphicsPixmapItem *>(item_);
-        item->setPixmap(pixmap);
-        item->setOffset(pixmap.width() / -2, pixmap.height() / -2);
-        bool first = (flags_ & LoadFinished) == 0;
-        if (first) {
-            loadFinished(true, QString(":/showboard/icons/play.svg"));
-            stateItem()->setPos(item_->boundingRect().bottomRight() - QPointF(100, 100));
+        if ((flags_ & LoadFinished) == 0) {
+            QGraphicsPixmapItem * item = static_cast<QGraphicsPixmapItem *>(item_);
+            QPointF off(pixmap.width() / 2, pixmap.height() / 2);
+            item->setOffset(-off);
+            stateItem()->setPos(off - QPointF(100, 100));
         }
+        setPixmap(pixmap);
     }
 }
 

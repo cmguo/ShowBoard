@@ -309,7 +309,7 @@ void Control::initPosition()
     if (flags_ & (FullLayout | RestoreSession))
         return;
     QGraphicsItem *parent = realItem_->parentItem();
-    QRectF rect = parent->boundingRect();
+    QRectF rect = whiteCanvas()->rect();
     Control * canvasControl = fromItem(whiteCanvas());
     if (canvasControl) {
         rect = parent->mapFromScene(parent->scene()->sceneRect()).boundingRect();

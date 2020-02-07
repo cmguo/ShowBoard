@@ -1,14 +1,14 @@
 #ifndef PPTXCONTROL_H
 #define PPTXCONTROL_H
 
-#include "core/control.h"
+#include "imagecontrol.h"
 
 #include <QUrl>
 
 class ResourceView;
 class PowerPoint;
 
-class PptxControl : public Control
+class PptxControl : public ImageControl
 {
     Q_OBJECT
 
@@ -42,10 +42,6 @@ private:
     void failed(QString const & msg);
 
 protected:
-    virtual QGraphicsItem * create(ResourceView * res) override;
-
-    virtual void attaching() override;
-
     virtual void attached() override;
 
     virtual void detached() override;
