@@ -26,18 +26,14 @@ public:
 
 public slots:
     void open();
-    void show(int page = 0); // 0 for current page, 1 for first page
     void next();
     void prev();
     void jump(int page);
-    void hide();
     void close();
 
 private:
     void opened(int total);
-    void reopened();
     void thumbed(QPixmap pixmap);
-    void showed();
     void closed();
     void failed(QString const & msg);
 

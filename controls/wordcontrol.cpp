@@ -12,20 +12,16 @@
 #include <QToolButton>
 
 static char const * toolstr =
-        "show()|开始演示|:/showboard/icons/icon_delete.png;"
         "next()|下一页|:/showboard/icons/icon_delete.png;"
-        "prev()|上一页|:/showboard/icons/icon_delete.png;"
-        "hide()|结束演示|:/showboard/icons/icon_delete.png";
+        "prev()|上一页|:/showboard/icons/icon_delete.png;";
 
 WordControl::WordControl(ResourceView * res)
-    : Control(res, {KeepAspectRatio})
+    : Control(res, {KeepAspectRatio, FullSelect})
 {
     word_ = new Word;
     QObject::connect(word_, &Word::opened, this, &WordControl::opened);
     QObject::connect(word_, &Word::failed, this, &WordControl::failed);
-    QObject::connect(word_, &Word::reopened, this, &WordControl::reopened);
     QObject::connect(word_, &Word::thumbed, this, &WordControl::thumbed);
-    QObject::connect(word_, &Word::showed, this, &WordControl::showed);
     QObject::connect(word_, &Word::closed, this, &WordControl::closed);
 }
 
@@ -41,6 +37,7 @@ QGraphicsItem * WordControl::create(ResourceView * res)
     (void) res;
     QGraphicsPixmapItem * item = new QGraphicsPixmapItem;
     item->setTransformationMode(Qt::SmoothTransformation);
+    item->setShapeMode(QGraphicsPixmapItem::BoundingRectShape);
     return item;
 }
 
@@ -85,29 +82,11 @@ void WordControl::open(QUrl const & url)
 void WordControl::opened(int total)
 {
     (void) total;
-    bool first = (flags_ & LoadFinished) == 0;
-    bool autoShow = !(flags_ & RestoreSession)
-            && property("autoShow").toBool();
-    if (first) {
-        QObject::connect(stateItem(), &StateItem::clicked, this, [this]() {
-            show();
-        });
-        if (autoShow)
-            show();
-    }
 }
 
 void WordControl::failed(QString const & msg)
 {
     loadFinished(false, msg);
-}
-
-void WordControl::reopened()
-{
-}
-
-void WordControl::showed()
-{
 }
 
 void WordControl::thumbed(QPixmap pixmap)
@@ -118,7 +97,7 @@ void WordControl::thumbed(QPixmap pixmap)
         item->setOffset(pixmap.width() / -2, pixmap.height() / -2);
         bool first = (flags_ & LoadFinished) == 0;
         if (first) {
-            loadFinished(true, QString(":/showboard/icons/play.svg"));
+            loadFinished(true);
         }
     }
     item_->setCursor(Qt::ArrowCursor);
@@ -136,14 +115,6 @@ int WordControl::page()
 void WordControl::setPage(int n)
 {
     word_->setPage(n);
-}
-
-void WordControl::show(int page)
-{
-    Word * p = word_;
-    WorkThread::postWork(p, [p, page]() {
-        p->show(page);
-    });
 }
 
 void WordControl::next()
@@ -168,15 +139,6 @@ void WordControl::prev()
     WorkThread::postWork(p, [p]() {
         p->prev();
     });
-}
-
-void WordControl::hide()
-{
-    Word * p = word_;
-    WorkThread::postWork(p, [p]() {
-        p->hide();
-    });
-    item_->setCursor(Qt::ArrowCursor);
 }
 
 void WordControl::close()

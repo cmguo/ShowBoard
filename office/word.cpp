@@ -10,7 +10,7 @@
 
 #include <Windows.h>
 
-extern bool saveGdiImage(char* data, int size, wchar_t * file);
+extern bool saveGdiImage(char* data, int size, char** out, int * nout);
 
 QAxObject * Word::application_ = nullptr;
 
@@ -25,9 +25,9 @@ Word::Word(QObject * parent)
     : QObject(parent)
     , documents_(nullptr)
     , document_(nullptr)
+    , panes_(nullptr)
     , total_(0)
     , page_(1)
-    , view_(nullptr)
 {
     moveToThread(&workThread());
 }
@@ -40,8 +40,6 @@ Word::~Word()
 }
 
 static constexpr int wdNumberOfPagesInDocument = 4;
-static constexpr int wdGoToPage = 1;
-static constexpr int wdGoToFirst = 1;
 
 void Word::open(QString const & file)
 {
@@ -79,6 +77,8 @@ void Word::open(QString const & file)
         document_ = document;
         total_ = document_->querySubObject("Range()")->dynamicCall("Information(int)", wdNumberOfPagesInDocument).toInt();
         qDebug() << "total_" << total_;
+        QAxObject* xWindow = document_->querySubObject("ActiveWindow");
+        panes_ = xWindow->querySubObject("Panes(int)", 1);
         emit opened(total_);
         thumb(page_);
     } else {
@@ -86,103 +86,45 @@ void Word::open(QString const & file)
     }
 }
 
-void Word::reopen()
-{
-    view_ = nullptr;
-    document_ = nullptr;
-    open(file_); // reopen
-    emit reopened();
-}
-
 void Word::thumb(int page)
 {
     QAxObject * xPage = nullptr;
-    if (page == 0) {
-        //range = view_->querySubObject("Slide");
-    } else {
-        //QAxObject* selection = application_->querySubObject("Selection");
-        QAxObject* xWindow = document_->querySubObject("ActiveWindow");
-        qDebug() << "xWindow" << xWindow;
-        QAxObject* xPane = xWindow->querySubObject("Panes(int)", 1);
-        qDebug() << "xPane" << xPane;
-        xPage = xPane->querySubObject("Pages(int)", page);
-        qDebug() << "xPage" << xPage;
-        //QAxObject* xRectangle = xPage->querySubObject("Rectangles(int)", 1);
-        //qDebug() << "xRectangle" << xRectangle;
-        //QAxObject* range1 = document_->querySubObject("GoTo(int, int, int)", wdGoToPage, wdGoToFirst, page);
-        //QAxObject* range2 = document_->querySubObject("GoTo(int, int, int)", wdGoToPage, wdGoToFirst, page + 1);
-        //range = xRectangle->querySubObject("Range");
-        //qDebug() << "range" << range;
+    if (panes_) {
+        xPage = panes_->querySubObject("Pages(int)", page);
     }
     if (!xPage)
         return;
     QByteArray bits = xPage->dynamicCall("EnhMetaFileBits()").toByteArray();
-    QString file = QDir::tempPath().replace('/', '\\') + "\\showboard.thumb.word.png";
-    saveGdiImage(bits.data(), bits.size(), reinterpret_cast<wchar_t*>(file.data()));
-    QPixmap pixmap(file);
+    char * data = nullptr; int ndata = 0;
+    saveGdiImage(bits.data(), bits.size(), &data, &ndata);
+    QByteArray bytes(data, ndata);
+    delete [] data;
+    QPixmap pixmap;
+    pixmap.loadFromData(bytes);
     qDebug() << "pixmap" << pixmap;
+    pixmap = pixmap.scaledToHeight(pixmap.height() / 2, Qt::SmoothTransformation);
     emit thumbed(pixmap);
-}
-
-void Word::show(int page)
-{
-    if (!document_)
-        return;
-    if (page == 0) {
-        page = page_;
-    } else {
-        page_ = page;
-    }
-    if (view_) {
-    } else {
-        QAxObject * settings = document_->querySubObject("SlideShowSettings");
-        //settings->setProperty("ShowType", "ppShowTypeSpeaker");
-        settings->setProperty("ShowMediaControls", "true");
-        //if (page) // will cause View be null
-        //    settings->setProperty("StartingSlide", page);
-        QAxObject * window = settings->querySubObject("Run()");
-        view_ = window->querySubObject("View");
-        QObject::connect(view_, SIGNAL(exception(int,QString,QString,QString)),
-                         this, SLOT(onException(int,QString,QString,QString)));
-    }
-    if (page)
-        jump(page);
-    emit showed();
 }
 
 void Word::jump(int page)
 {
-    if (view_) {
-        view_->dynamicCall("GotoSlide(int)", page);
-        thumb(0);
-    } else if (document_ && page > 0 && page <= total_) {
+    if (document_ && page > 0 && page <= total_) {
         thumb(page_ = page);
     }
 }
 
 void Word::next()
 {
-    if (view_) {
-        view_->dynamicCall("Next()");
-        thumb(0);
-    } else if (document_ && page_ < total_) {
+    if (document_ && page_ < total_) {
         thumb(++page_);
     }
 }
 
 void Word::prev()
 {
-    if (view_) {
-        view_->dynamicCall("Previous()");
-        thumb(0);
-    } else if (document_ && page_ > 1) {
+    if (document_ && page_ > 1) {
         thumb(--page_);
     }
-}
-
-void Word::hide()
-{
-    thumb(page_);
 }
 
 void Word::close()
@@ -190,7 +132,6 @@ void Word::close()
     if (!document_)
         return;
     qDebug() << "Word::close()";
-    view_ = nullptr;
     document_->dynamicCall("Close()");
     delete document_;
     document_ = nullptr;

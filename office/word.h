@@ -19,10 +19,6 @@ public:
 
     void thumb(int page);
 
-    void show(int page);
-
-    void hide();
-
     void jump(int page);
 
     void prev();
@@ -45,11 +41,7 @@ public:
 signals:
     void opened(int total);
 
-    void reopened();
-
     void failed(QString const & msg);
-
-    void showed();
 
     void thumbed(QPixmap pixmap);
 
@@ -72,9 +64,9 @@ private:
     QAxObject * documents_;
     QString file_;
     QAxObject * document_;
+    QAxObject * panes_;
     int total_;
     int page_;
-    QAxObject * view_;
 };
 
 #endif // WORD_H

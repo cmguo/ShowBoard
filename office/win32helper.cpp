@@ -1,6 +1,8 @@
 #include <Windows.h>
-//#include <gdiplus.h>
-//#include <gdiplusheaders.h>
+#ifdef _DEBUG
+#include <gdiplus.h>
+#include <gdiplusheaders.h>
+#endif
 
 BOOL CALLBACK EnumWindowsProc(_In_ HWND hwnd, _In_ LPARAM lParam)
 {
@@ -107,25 +109,41 @@ void showCursor()
     ::ShowCursor(true);
 }
 
-bool saveGdiImage(char* data, int size, wchar_t * file)
+bool saveGdiImage(char* data, int size, char** out, int * nout)
 {
-    /*
-    WCHAR gdiPath[1024];
-    WCHAR * l = wcsstr(file, L".png");
-    size_t n = static_cast<size_t>(l - file);
-    wcsncpy_s(gdiPath, file, n);
-    wcscpy_s(gdiPath + n, 1024 - n, L".gdip");
-    HANDLE f = ::CreateFileW(gdiPath, GENERIC_WRITE, FILE_SHARE_WRITE, nullptr, CREATE_ALWAYS, 0, nullptr);
-    DWORD bytesWriten = static_cast<DWORD>(size);
-    ::WriteFile(f, data, bytesWriten, &bytesWriten, nullptr);
-    ::CloseHandle(f);
-    Gdiplus::Image * image = Gdiplus::Image::FromFile(gdiPath);
+#ifdef _DEBUG
+    static ULONG_PTR token = 0;
+    if (token == 0) {
+        Gdiplus::GdiplusStartupInput input;
+        Gdiplus::GdiplusStartupOutput output;
+        Gdiplus::GdiplusStartup(&token, &input, &output);
+    }
+    IStream *from = nullptr;
+    ::CreateStreamOnHGlobal(nullptr, true, &from);
+    from->Write(data, static_cast<ULONG>(size), nullptr);
+    from->Seek({{0, 0}}, STREAM_SEEK_SET, nullptr);
+    Gdiplus::Image *image = Gdiplus::Image::FromStream(from);
     if (!image)
         return false;
+    from->Release();
+    IStream *to = nullptr;
+    ::CreateStreamOnHGlobal(nullptr, true, &to);
+//    image/bmp  : {557cf400-1a04-11d3-9a73-0000f81ef32e}
+//    image/jpeg : {557cf401-1a04-11d3-9a73-0000f81ef32e}
+//    image/gif  : {557cf402-1a04-11d3-9a73-0000f81ef32e}
+//    image/tiff : {557cf405-1a04-11d3-9a73-0000f81ef32e}
+//    image/png  : {557cf406-1a04-11d3-9a73-0000f81ef32e}
     CLSID pngClsid = {0x557cf406, 0x1a04, 0x11d3, {0x9a, 0x73, 0x00, 0x00, 0xf8, 0x1e, 0xf3, 0x2e}};
     //Gdiplus::GetEncoderClsid(L"image/png", &pngClsid);
-    image->Save(file, &pngClsid, nullptr);
+    image->Save(to, &pngClsid, nullptr);
     delete image;
-    */
+    ULARGE_INTEGER end;
+    to->Seek({{0, 0}}, STREAM_SEEK_END, &end);
+    to->Seek({{0, 0}}, STREAM_SEEK_SET, nullptr);
+    *nout = static_cast<int>(end.LowPart);
+    *out = new char[static_cast<unsigned int>(*nout)];
+    to->Read(*out, static_cast<ULONG>(*nout), nullptr);
+    to->Release();
+#endif
     return true;
 }
