@@ -4,7 +4,7 @@
 #include "views/stateitem.h"
 //#include "views/itemframe.h"
 #include "office/powerpoint.h"
-#include "office/workthread.h"
+#include "core/workthread.h"
 
 #include <QUrl>
 #include <QDir>

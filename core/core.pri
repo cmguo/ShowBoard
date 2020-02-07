@@ -17,7 +17,8 @@ HEADERS += \
     $$PWD/toolbutton.h \
     $$PWD/toolbuttonprovider.h \
     $$PWD/unknowncontrol.h \
-    $$PWD/widgetcontrol.h
+    $$PWD/widgetcontrol.h \
+    $$PWD/workthread.h
 
 SOURCES += \
     $$PWD/control.cpp \
@@ -38,4 +39,5 @@ SOURCES += \
     $$PWD/toolbutton.cpp \
     $$PWD/toolbuttonprovider.cpp \
     $$PWD/unknowncontrol.cpp \
-    $$PWD/widgetcontrol.cpp
+    $$PWD/widgetcontrol.cpp \
+    $$PWD/workthread.cpp

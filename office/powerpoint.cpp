@@ -1,5 +1,5 @@
 #include "powerpoint.h"
-#include "workthread.h"
+#include "core/workthread.h"
 
 #include <QAxObject>
 #include <QThread>

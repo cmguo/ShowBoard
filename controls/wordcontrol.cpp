@@ -3,7 +3,7 @@
 #include "core/resource.h"
 #include "views/stateitem.h"
 #include "office/word.h"
-#include "office/workthread.h"
+#include "core/workthread.h"
 
 #include <QUrl>
 #include <QDir>
