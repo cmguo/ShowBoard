@@ -77,11 +77,9 @@ void ImageControl::attached()
 void ImageControl::setPixmap(const QPixmap &pixmap)
 {
     if (qIsNull(mipmap_)) {
-        QGraphicsPixmapItem * item = static_cast<QGraphicsPixmapItem*>(item_);
-        item->setPixmap(pixmap);
-        if (!flags_.testFlag(LoadFinished)) {
-            loadFinished(true, property("finishIcon").toString());
-        }
+        qreal scale = res_->transform().scale().m11();
+        QSizeF size = item_->boundingRect().size() * scale;
+        setMipMapPixmap(pixmap, size);
     } else {
         data_.reset(new ImageData(pixmap, mipmap_));
         if (!flags_.testFlag(LoadFinished)) {

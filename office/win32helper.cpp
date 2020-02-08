@@ -31,10 +31,16 @@ intptr_t findWindow(char const * titleParts[])
     return reinterpret_cast<intptr_t>(hWnd);
 }
 
+bool isWindowValid(intptr_t hwnd)
+{
+    HWND hWnd = reinterpret_cast<HWND>(hwnd);
+    return ::IsWindow(hWnd);
+}
+
 bool isWindowShown(intptr_t hwnd)
 {
     HWND hWnd = reinterpret_cast<HWND>(hwnd);
-    return ::IsWindow(hWnd);// && (::GetWindowLongA(hWnd, GWL_STYLE) & WS_VISIBLE);
+    return ::IsWindow(hWnd) && (::GetWindowLongA(hWnd, GWL_STYLE) & WS_VISIBLE);
 }
 
 void showWindow(intptr_t hwnd)
@@ -107,6 +113,112 @@ void setArrowCursor()
 void showCursor()
 {
     ::ShowCursor(true);
+}
+
+int captureImage(intptr_t hwnd, char ** out, int * nout)
+{
+    HWND hWnd = reinterpret_cast<HWND>(hwnd);
+    HDC hdcWindow;
+    HDC hdcMemDC = NULL;
+    HBITMAP hbMem = NULL;
+    BITMAP bmpMem;
+
+    // Retrieve the handle to a display device context for the client
+    // area of the window.
+    hdcWindow = GetDC(hWnd);
+
+    // Create a compatible DC which is used in a BitBlt from the window DC
+    hdcMemDC = CreateCompatibleDC(hdcWindow);
+
+    if(!hdcMemDC)
+    {
+        MessageBox(hWnd, L"CreateCompatibleDC has failed",L"Failed", MB_OK);
+        goto done;
+    }
+
+    // Get the client area for size calculation
+    RECT rcClient;
+    GetClientRect(hWnd, &rcClient);
+
+    // Create a compatible bitmap from the Window DC
+    hbMem = CreateCompatibleBitmap(hdcWindow, rcClient.right-rcClient.left, rcClient.bottom-rcClient.top);
+
+    if(!hbMem)
+    {
+        MessageBox(hWnd, L"CreateCompatibleBitmap Failed",L"Failed", MB_OK);
+        goto done;
+    }
+
+    // Select the compatible bitmap into the compatible memory DC.
+    SelectObject(hdcMemDC,hbMem);
+
+    // Bit block transfer into our compatible memory DC.
+    if(!BitBlt(hdcMemDC,
+               0,0,
+               rcClient.right-rcClient.left, rcClient.bottom-rcClient.top,
+               hdcWindow,
+               0,0,
+               SRCCOPY))
+    {
+        MessageBox(hWnd, L"BitBlt has failed", L"Failed", MB_OK);
+        goto done;
+    }
+
+    // Get the BITMAP from the HBITMAP
+    GetObject(hbMem,sizeof(BITMAP),&bmpMem);
+
+    BITMAPFILEHEADER   bmfHeader;
+    BITMAPINFOHEADER   bi;
+
+    bi.biSize = sizeof(BITMAPINFOHEADER);
+    bi.biWidth = bmpMem.bmWidth;
+    bi.biHeight = bmpMem.bmHeight;
+    bi.biPlanes = 1;
+    bi.biBitCount = 32;
+    bi.biCompression = BI_RGB;
+    bi.biSizeImage = 0;
+    bi.biXPelsPerMeter = 0;
+    bi.biYPelsPerMeter = 0;
+    bi.biClrUsed = 0;
+    bi.biClrImportant = 0;
+
+    DWORD dwBmpSize = ((bmpMem.bmWidth * bi.biBitCount + 31) / 32) * 4 * bmpMem.bmHeight;
+
+    // Add the size of the headers to the size of the bitmap to get the total file size
+    DWORD dwSizeofDIB = dwBmpSize + sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
+
+    //Offset to where the actual bitmap bits start.
+    bmfHeader.bfOffBits = (DWORD)sizeof(BITMAPFILEHEADER) + (DWORD)sizeof(BITMAPINFOHEADER);
+
+    //Size of the file
+    bmfHeader.bfSize = dwSizeofDIB;
+
+    //bfType must always be BM for Bitmaps
+    bmfHeader.bfType = 0x4D42; //BM
+
+    char *lpbitmap = new char[dwSizeofDIB];
+
+    memcpy(lpbitmap, &bmfHeader, sizeof(BITMAPFILEHEADER));
+
+    memcpy(lpbitmap + sizeof(BITMAPFILEHEADER), &bi, sizeof(BITMAPINFOHEADER));
+
+    // Gets the "bits" from the bitmap and copies them into a buffer
+    // which is pointed to by lpbitmap.
+    GetDIBits(hdcWindow, hbMem, 0,
+        (UINT)bmpMem.bmHeight,
+        lpbitmap + bmfHeader.bfOffBits,
+        (BITMAPINFO *)&bi, DIB_RGB_COLORS);
+
+    *out = lpbitmap;
+    *nout = dwSizeofDIB;
+
+    //Clean up
+done:
+    DeleteObject(hbMem);
+    DeleteObject(hdcMemDC);
+    ReleaseDC(hWnd,hdcWindow);
+
+    return 0;
 }
 
 bool saveGdiImage(char* data, int size, char** out, int * nout)

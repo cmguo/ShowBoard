@@ -2,7 +2,6 @@
 #include "core/workthread.h"
 
 #include <QAxObject>
-#include <QThread>
 #include <QDir>
 #include <QPixmap>
 #include <QDebug>
@@ -11,6 +10,7 @@
 #include <objbase.h>
 
 extern intptr_t findWindow(char const * titleParts[]);
+extern bool isWindowValid(intptr_t hwnd);
 extern bool isWindowShown(intptr_t hwnd);
 extern void showWindow(intptr_t hwnd);
 extern void hideWindow(intptr_t hwnd);
@@ -19,6 +19,7 @@ extern void attachWindow(intptr_t hwndParent, intptr_t hwnd, int left, int top);
 extern void moveChildWindow(intptr_t hwnd, int dx, int dy);
 extern void setArrowCursor();
 extern void showCursor();
+int captureImage(intptr_t hwnd, char ** out, int * nout);
 
 QAxObject * PowerPoint::application_ = nullptr;
 
@@ -89,9 +90,7 @@ void PowerPoint::open(QString const & file)
 
 void PowerPoint::reopen()
 {
-    view_ = nullptr;
-    hwnd_ = 0;
-    presentation_ = nullptr;
+    close();
     open(file_); // reopen
     showCursor();
     emit reopened();
@@ -101,7 +100,17 @@ void PowerPoint::thumb(int page)
 {
     QAxObject * slide = nullptr;
     if (page == 0) {
-        slide = view_->querySubObject("Slide");
+        if (isWindowShown(hwnd_)) {
+            char * data = nullptr;
+            int size = 0;
+            captureImage(hwnd_, &data, & size);
+            QPixmap pixmap;
+            pixmap.loadFromData(reinterpret_cast<uchar*>(data), static_cast<uint>(size));
+            emit thumbed(pixmap);
+            setArrowCursor();
+        } else {
+            slide = view_->querySubObject("Slide");
+        }
     } else {
         slide = presentation_->querySubObject("Slides(int)", page);
     }
@@ -119,7 +128,7 @@ void PowerPoint::show(int page)
     if (!presentation_)
         return;
     if (page == 0) {
-        page = slideNumber_;
+        //page = slideNumber_;
     } else {
         slideNumber_ = page;
     }
@@ -137,7 +146,11 @@ void PowerPoint::show(int page)
             QObject::connect(view_, SIGNAL(exception(int,QString,QString,QString)),
                              this, SLOT(onException(int,QString,QString,QString)));
             hwnd_ = findWindow(titleParts);
+            settings->setProperty("ShowPresenterView", "false");
         } catch (...) {
+        }
+        if (page == 0) {
+            page = slideNumber_;
         }
     }
     if (page)
@@ -198,8 +211,8 @@ void PowerPoint::hide()
 {
     killTimer(timerId_);
     timerId_ = 0;
-    hideWindow(hwnd_);
     thumb(0);
+    hideWindow(hwnd_);
     showCursor();
 }
 
@@ -230,7 +243,7 @@ void PowerPoint::mayStopped()
 void PowerPoint::timerEvent(QTimerEvent * event)
 {
     if (event->timerId() == timerId_) {
-        if (isWindowShown(hwnd_)) {
+        if (isWindowValid(hwnd_)) {
             try {
                 QAxObject * slide = view_->querySubObject("Slide");
                 if (slide) {

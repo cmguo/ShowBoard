@@ -109,16 +109,22 @@ void PptxControl::showed()
 {
     if (!stopButton_)
         showStopButton();
+    else
+        stopButton_->show();
 }
 
 void PptxControl::thumbed(QPixmap pixmap)
 {
     if (!pixmap.isNull()) {
+        QGraphicsPixmapItem * item = static_cast<QGraphicsPixmapItem *>(item_);
         if ((flags_ & LoadFinished) == 0) {
-            QGraphicsPixmapItem * item = static_cast<QGraphicsPixmapItem *>(item_);
             QPointF off(pixmap.width() / 2, pixmap.height() / 2);
             item->setOffset(-off);
             stateItem()->setPos(off - QPointF(100, 100));
+        } else {
+            if (pixmap.size() != item->pixmap().size()) {
+                pixmap = pixmap.scaled(item->pixmap().size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+            }
         }
         setPixmap(pixmap);
     }
@@ -193,6 +199,7 @@ void PptxControl::prev()
 void PptxControl::hide()
 {
     PowerPoint * p = powerpoint_;
+    stopButton_->hide();
     WorkThread::postWork(p, [p]() {
         p->hide();
     });
