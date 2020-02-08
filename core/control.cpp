@@ -241,7 +241,8 @@ void Control::setSizeHint(QSizeF const & size)
 {
     if (size.width() < 10.0 || size.height() < 10.0) {
         QSizeF size2 = size;
-        QRectF rect = whiteCanvas()->rect();
+        Control * canvasControl = fromItem(whiteCanvas());
+        QRectF rect = canvasControl ? item_->scene()->sceneRect() : whiteCanvas()->rect();
         adjustSizeHint(size2, rect.size());
         resize(size2);
     } else {
@@ -256,7 +257,7 @@ WhiteCanvas *Control::whiteCanvas()
 
 void Control::resize(QSizeF const & size)
 {
-    if (flags_ & (LoadFinished | RestoreSession)) {
+    if (flags_ & (LoadFinished)) {
         return;
     }
     setProperty("delaySizeHint", size);
@@ -394,43 +395,50 @@ void Control::initScale()
             return;
         }
     }
-    if (flags_ & (FullLayout | LoadFinished | RestoreSession)) {
+    if (flags_ & (FullLayout | LoadFinished)) {
         return;
     }
-    Control * canvasControl = fromItem(whiteCanvas());
-    if (canvasControl) {
-        ps = item_->scene()->sceneRect().size();
-    }
+    qreal scale = 1.0;
     QVariant delaySizeHint = property("delaySizeHint");
     if (delaySizeHint.isValid()) {
-        ps = delaySizeHint.toSizeF();
+        QSizeF sh = delaySizeHint.toSizeF();
+        scale = qMin(sh.width() / size.width(), sh.height() / size.height());
+        size = size * scale;
         delaySizeHint.clear();
         setProperty("delaySizeHint", delaySizeHint);
     }
-    if (item_ != realItem_) {
-        QRectF padding(static_cast<ItemFrame *>(realItem_)->padding());
-        ps.setWidth(ps.width() - padding.width());
-        ps.setHeight(ps.height() - padding.height());
-    }
-    qreal scale = 1.0;
-    while (size.width() > ps.width() || size.height() > ps.height()) {
-        size /= 2.0;
-        scale /= 2.0;
-    }
-    if (flags_ & ExpandScale) {
-        while (size.width() * 2.0 < ps.width() && size.height() * 2.0 < ps.height()) {
-            size *= 2.0;
-            scale *= 2.0;
+    if (!(flags_ & RestoreSession)) {
+        Control * canvasControl = fromItem(whiteCanvas());
+        if (canvasControl) {
+            ps = item_->scene()->sceneRect().size();
+        }
+        if (item_ != realItem_) {
+            QRectF padding(static_cast<ItemFrame *>(realItem_)->padding());
+            ps.setWidth(ps.width() - padding.width());
+            ps.setHeight(ps.height() - padding.height());
+        }
+        while (size.width() > ps.width() || size.height() > ps.height()) {
+            size /= 2.0;
+            scale /= 2.0;
+        }
+        if (flags_ & ExpandScale) {
+            while (size.width() * 2.0 < ps.width() && size.height() * 2.0 < ps.height()) {
+                size *= 2.0;
+                scale *= 2.0;
+            }
+        }
+        if (canvasControl) {
+            qreal s = 1 / canvasControl->resource()->transform().scale().m11();
+            size *= s;
+            scale *= s;
         }
     }
+    if (qFuzzyCompare(scale, 1.0))
+        return;
     if (flags_ & LayoutScale) {
         resize(size);
     } else {
-        res_->transform().scaleTo(scale);
-    }
-    if (canvasControl) {
-        qreal s = 1 / canvasControl->resource()->transform().scale().m11();
-        res_->transform().scale(QSizeF(s, s));
+        res_->transform().scale({scale, scale});
     }
     if (item_ != realItem_) {
         res_->transform().translate(
