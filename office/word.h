@@ -1,12 +1,14 @@
 #ifndef WORD_H
 #define WORD_H
 
+#include "ShowBoard_global.h"
+
 #include <QObject>
 #include <QPixmap>
 
 class QAxObject;
 
-class Word : public QObject
+class SHOWBOARD_EXPORT Word : public QObject
 {
     Q_OBJECT
 public:
@@ -43,7 +45,7 @@ signals:
 
     void failed(QString const & msg);
 
-    void thumbed(QPixmap pixmap);
+    void thumbed(QPixmap const & pixmap);
 
     void closed();
 

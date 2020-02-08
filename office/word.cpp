@@ -2,13 +2,8 @@
 #include "core/workthread.h"
 
 #include <QAxObject>
-#include <QDir>
+#include <QPainter>
 #include <QDebug>
-#include <QApplication>
-#include <QClipboard>
-#include <QMimeData>
-
-#include <Windows.h>
 
 extern bool saveGdiImage(char* data, int size, char** out, int * nout);
 
@@ -97,13 +92,16 @@ void Word::thumb(int page)
     QByteArray bits = xPage->dynamicCall("EnhMetaFileBits()").toByteArray();
     char * data = nullptr; int ndata = 0;
     saveGdiImage(bits.data(), bits.size(), &data, &ndata);
-    QByteArray bytes(data, ndata);
-    delete [] data;
+    qDebug() << "saveGdiImage" << bits.size() << ndata;
     QPixmap pixmap;
-    pixmap.loadFromData(bytes);
+    pixmap.loadFromData(reinterpret_cast<uchar*>(data), static_cast<uint>(ndata));
+    delete [] data;
     qDebug() << "pixmap" << pixmap;
-    pixmap = pixmap.scaledToHeight(pixmap.height() / 2, Qt::SmoothTransformation);
-    emit thumbed(pixmap);
+    QPixmap pixmap2(pixmap.size());
+    pixmap2.fill();
+    QPainter painter(&pixmap2);
+    painter.drawPixmap(QRect(QPoint(), pixmap2.size()), pixmap);
+    emit thumbed(pixmap2);
 }
 
 void Word::jump(int page)
