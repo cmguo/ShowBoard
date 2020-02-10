@@ -16,8 +16,8 @@ MenuTool::MenuTool(ResourceView *res)
 bool MenuTool::eventFilter(QObject *, QEvent *event)
 {
     if (event->type() == QEvent::Show) {
-        widget_->setFocus();
         whiteCanvas()->scene()->views().first()->setFocus();
+        widget_->setFocus();
     }
     if (event->type() == QEvent::FocusOut) {
         if (QApplication::focusWidget() == whiteCanvas()->scene()->views().first()
