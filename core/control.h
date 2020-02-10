@@ -70,7 +70,7 @@ public:
     /*
      * Get control from item
      */
-    static Control * fromItem(QGraphicsItem * item);
+    static Control * fromItem(QGraphicsItem const * item);
 
     static ToolButton btnTop;
     static ToolButton btnCopy;

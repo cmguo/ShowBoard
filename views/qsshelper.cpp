@@ -110,7 +110,6 @@ QssHelper::operator QString () const
     if (!file_.isEmpty() && cache_.isEmpty()) {
         cache_ = loadText(file_);
     }
-    qDebug() << cache_;
     return cache_;
 }
 
@@ -153,7 +152,6 @@ void QssHelper::parse(const QString &style)
                 kvs[k] = l.mid(n + 1, n1 - n - 1).trimmed();
                 if (comment.startsWith('[') && comment.endsWith(']')) {
                     QByteArray v = comment.mid(1, comment.size() - 2).toUtf8();
-                    qDebug() << k << v << kvs[k];
                     vstyles_[k][v].append(&kvs[k]);
                 }
             }
