@@ -3,6 +3,7 @@ HEADERS += \
     $$PWD/itemframe.h \
     $$PWD/itemselector.h \
     $$PWD/pagecanvas.h \
+    $$PWD/qsshelper.h \
     $$PWD/quickwidgetitem.h \
     $$PWD/selectbox.h \
     $$PWD/stateitem.h \
@@ -17,6 +18,7 @@ SOURCES += \
     $$PWD/itemframe.cpp \
     $$PWD/itemselector.cpp \
     $$PWD/pagecanvas.cpp \
+    $$PWD/qsshelper.cpp \
     $$PWD/quickwidgetitem.cpp \
     $$PWD/selectbox.cpp \
     $$PWD/stateitem.cpp \

@@ -79,6 +79,8 @@ private:
 
     virtual void setVisible(bool visible) override;
 
+    virtual void paintEvent(QPaintEvent * event) override;
+
 private:
     void addToolButton(QLayout * layout, ToolButton * button, QMap<QWidget *, ToolButton *>& buttons);
 

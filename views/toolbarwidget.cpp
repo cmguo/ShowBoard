@@ -1,3 +1,4 @@
+#include "qsshelper.h"
 #include "toolbarwidget.h"
 #include "core/toolbutton.h"
 #include "core/toolbuttonprovider.h"
@@ -13,12 +14,7 @@
 #include <QPushButton>
 #include <QLabel>
 
-static const QString STYLE =
-        "QPushButton,.QLabel{color:#80ffffff;background-color:#00000000;border:none;font-size:16pt;spacing:30px;}"
-        "QPushButton{qproperty-iconSize:30px 30px;font-family:'Microsoft YaHei';background-color:#00000000} "
-        "QPushButton:checked{color:#1AA9EF;}"
-        "#toolbarwidget{background-color:#80000000;}"
-        "#popupwidget{background-color:#80000000;}";
+static QssHelper QSS(":/showboard/qss/toolbar.qss");
 
 ToolbarWidget::ToolbarWidget(QWidget *parent)
     : ToolbarWidget(true, parent)
@@ -39,7 +35,7 @@ ToolbarWidget::ToolbarWidget(bool horizontal, QWidget *parent)
     setObjectName("toolbarwidget");
     setWindowFlag(Qt::FramelessWindowHint);
     //setAttribute(Qt::WA_StyledBackground,true);
-    setStyleSheet(STYLE);
+    setStyleSheet(QSS);
     if (horizontal)
         layout_->setContentsMargins(10, 10, 10, 10);
     setLayout(layout_);
@@ -524,7 +520,7 @@ QWidget *ToolbarWidget::createPopupWidget()
 {
     QWidget * widget = new QFrame();
     widget->setWindowFlags(Qt::FramelessWindowHint);
-    widget->setStyleSheet(STYLE);
+    widget->setStyleSheet(QSS);
     widget->setObjectName("popupwidget");
     widget->setLayout(new QGridLayout());
     return widget;
@@ -545,5 +541,10 @@ void ToolbarWidget::setVisible(bool visible) {
         else
             popUp_->hide();
     }
+}
+
+void ToolbarWidget::paintEvent(QPaintEvent *event)
+{
+    //QFrame::paintEvent(event);
 }
 

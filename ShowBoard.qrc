@@ -18,5 +18,6 @@
         <file>icons/top.svg</file>
         <file>icons/return.png</file>
         <file>icons/drag.png</file>
+        <file>qss/toolbar.qss</file>
     </qresource>
 </RCC>

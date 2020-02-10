@@ -1,0 +1,26 @@
+QPushButton,.QLabel {
+    color:#80ffffff;
+    background-color:#00000000;
+    border:none;
+    font-size:16pt;
+    spacing:30px; /* [large] */
+}
+
+QPushButton {
+    qproperty-iconSize:30px 30px;
+    font-family:'Microsoft YaHei';
+    background-color:#00000000
+}
+
+QPushButton:checked {
+    color:#1AA9EF;
+}
+
+#toolbarwidget {
+    background-color:#80000000;
+    border-radius:16px;
+}
+
+#popupwidget {
+    background-color:#80000000;
+}
