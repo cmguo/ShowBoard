@@ -109,6 +109,8 @@ void WhiteCanvasWidget::setSceneSize(QSizeF size)
 {
     sceneSize_ = size;
     onPageChanged(CurrentPage);
+    if (canvas_->page() && !canvas_->page()->canvasView())
+        canvas_->setGeometry(scene()->sceneRect());
 }
 
 void WhiteCanvasWidget::setResourcePackage(ResourcePackage * pack)

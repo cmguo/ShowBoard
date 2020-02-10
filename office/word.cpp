@@ -9,8 +9,6 @@ extern bool saveGdiImage(char* data, int size, char** out, int * nout);
 
 QAxObject * Word::application_ = nullptr;
 
-static char const * titleParts[] = {"Word", "ppt", nullptr};
-
 static QThread & workThread() {
     static WorkThread thread("Word");
     return thread;
@@ -42,8 +40,6 @@ void Word::open(QString const & file)
         application_ = new QAxObject("Word.Application");
         if (application_ == nullptr) {
             application_ = new QAxObject("Kwps.Application");
-            if (application_)
-                titleParts[0] = "WPS";
         }
         if (application_) {
             application_->moveToThread(&workThread());
@@ -92,7 +88,7 @@ void Word::thumb(int page)
     QByteArray bits = xPage->dynamicCall("EnhMetaFileBits()").toByteArray();
     char * data = nullptr; int ndata = 0;
     saveGdiImage(bits.data(), bits.size(), &data, &ndata);
-    qDebug() << "saveGdiImage" << bits.size() << ndata;
+    //qDebug() << "saveGdiImage" << bits.size() << ndata;
     QPixmap pixmap;
     pixmap.loadFromData(reinterpret_cast<uchar*>(data), static_cast<uint>(ndata));
     delete [] data;
