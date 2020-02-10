@@ -127,7 +127,7 @@ int SelectBox::hitTest(const QPointF &pos, QRectF &direction)
         return 3;
     }
     if (!leftTop_->isVisible())
-        return 0;
+        return contains(pos) ? 1 : 0;
     if (leftTop_->contains(leftTop_->mapFromParent(pos))) {
         direction = QRectF(1, 1, -1, -1);
         return 2;
