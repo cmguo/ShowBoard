@@ -13,8 +13,9 @@ static char const * toolstr =
         #ifdef QT_DEBUG
         "reload()|刷新|:/showboard/icons/icon_refresh.png;"
         "debug()|调试|"
+        "fitContent()|全屏|:/showboard/icons/icon_refresh.png;"
+        "full()|全屏|:/showboard/icons/icon_refresh.png;"
         #endif
-        "-full()|全屏|:/showboard/icons/icon_refresh.png;"
         ;
 
 class WebView : public QWebEngineView
@@ -85,6 +86,7 @@ private:
 
 WebControl::WebControl(ResourceView * res)
     : WidgetControl(res, {WithSelectBar, ExpandScale, LayoutScale, Touchable}, {CanRotate})
+    , fitToContent_(false)
 {
     setToolsString(toolstr);
 }
@@ -107,6 +109,16 @@ bool WebControl::keepAspectRatio() const
 void WebControl::setKeepAspectRatio(bool b)
 {
     flags_.setFlag(KeepAspectRatio, b);
+}
+
+bool WebControl::fitToContent() const
+{
+    return fitToContent_;
+}
+
+void WebControl::setFitToContent(bool b)
+{
+    fitToContent_ = b;
 }
 
 QWidget * WebControl::createWidget(ResourceView * res)
@@ -140,7 +152,7 @@ void WebControl::loadFinished(bool ok)
 void WebControl::contentsSizeChanged(const QSizeF &size)
 {
     QSizeF d = size - QSizeF(widget_->size());
-    if ((d.width() + d.height()) < 10
+    if (!fitToContent_ || (d.width() + d.height()) < 10
             || size.height() > whiteCanvas()->rect().height())
         return;
     qDebug() << "contentsSizeChanged: " << size;
@@ -159,6 +171,11 @@ void WebControl::full()
     resize(whiteCanvas()->rect().size());
     sizeChanged();
     adjusting(false);
+}
+
+void WebControl::fitContent()
+{
+    fitToContent_ = !fitToContent_;
 }
 
 void WebControl::debug()
