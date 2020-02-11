@@ -9,7 +9,7 @@
 #include <QApplication>
 #include <QGraphicsItem>
 
-static char const * toolstr =
+static char const * toolstr = ""
         #ifdef QT_DEBUG
         "reload()|刷新|:/showboard/icons/icon_refresh.png;"
         "debug()|调试|"
