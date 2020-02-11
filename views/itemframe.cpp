@@ -60,7 +60,7 @@ void ItemFrame::drawTopBar(QPainter *painter, QRectF const & rect, ItemFrame *)
     //painter->setOpacity(frame->selected_ ? 1.0 : 0.2);
     painter->drawRect(rect);
     QRectF rect2 = rect;
-    rect2.setHeight(TOP_BAR_WIDTH + TOP_BAR_HEIGHT);
+    rect2.setHeight(TOP_BAR_HEIGHT);
     QLinearGradient gradient(rect2.left(), rect2.top(), rect2.left(), rect2.bottom());
     gradient.setColorAt(0, QColor("#FFF9F9F9"));
     gradient.setColorAt(1, QColor("#FFECECEC"));

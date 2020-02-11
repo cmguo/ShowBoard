@@ -267,6 +267,7 @@ void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWi
         QObject::connect(btn, &QPushButton::clicked, this, slot);
         widget = btn;
     }
+    widget->setObjectName(button->name);
     if (parent) {
         QGridLayout *gridLayout = static_cast<QGridLayout*>(layout);
         if (col == -1) {
@@ -293,7 +294,7 @@ void ToolbarWidget::applyButton(QPushButton * btn, ToolButton * parent, ToolButt
 {
     //btn->setIconSize(QSize(40,40));
     btn->setIcon(getIcon(button->icon, !(button->flags & ToolButton::Dynamic)));
-    btn->setText(button->title);
+    btn->setText((button->flags & ToolButton::Popup) ? button->title + " v" : button->title);
     if (parent && (parent->flags & ToolButton::OptionsGroup)) {
         btn->setCheckable(true);
         btn->setChecked(button->flags & ToolButton::Selected);
@@ -303,7 +304,6 @@ void ToolbarWidget::applyButton(QPushButton * btn, ToolButton * parent, ToolButt
         btn->setChecked(button->flags & ToolButton::Checked);
     }
     btn->setEnabled(!button->flags.testFlag(ToolButton::Disabled));
-    btn->setObjectName(button->name);
 }
 
 void ToolbarWidget::updateButton(QPushButton * btn, ToolButton * parent, ToolButton *button)

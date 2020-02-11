@@ -48,11 +48,17 @@ void OptionToolButtons::update(ToolButton *button, const QVariant &value)
     int index = values_.indexOf(value);
     if (index >= 0 && index < buttons_.size()) {
         index += index / column_;
-        button->title = buttons_[index]->title;
-        button->icon = buttons_[index]->icon;
+        if (!buttons_[index]->title.isEmpty())
+            button->title = buttons_[index]->title;
+        if (!buttons_[index]->icon.isNull())
+            button->icon = buttons_[index]->icon;
     } else {
-        button->title = buttonTitle(value);
-        button->icon = buttonIcon(value);
+        QString title = buttonTitle(value);
+        if (!title.isEmpty())
+            button->title = title;
+        QVariant icon = buttonIcon(value);
+        if (!icon.isNull())
+            button->icon = icon;
     }
 }
 
