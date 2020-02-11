@@ -134,6 +134,7 @@ void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos, bool f
     if (type_ == None) {
         QList<QGraphicsItem*> items = scene()->items(scenePos);
         QVector<QGraphicsItem*> children(items.size(), nullptr); // first child
+        Control::SelectMode mode = Control::PassSelect;
         for (int i = 0; i < items.size(); ++i) {
             QGraphicsItem * item = items[i];
             if (children[i] == nullptr)
@@ -148,7 +149,6 @@ void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos, bool f
             Control * ct = Control::fromItem(item);
             if (!ct)
                 continue;
-            Control::SelectMode mode = Control::NotSelect;
             bool force = force_ && (ct->flags() & Control::DefaultFlags);
             // if item can not handle touch events, we also pass through all touch events here
             // but let selectTest take effect
@@ -156,7 +156,7 @@ void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos, bool f
                     && !(ct->flags() & (Control::Touchable | Control::FullSelect)))
                 force = false;
             if (!force) {
-                mode = ct->selectTest(children[i], item, mapToItem(ct->item(), pos));
+                mode = ct->selectTest(children[i], item, mapToItem(ct->item(), pos), mode == Control::PassSelect2);
             }
             //qDebug() << force << ct->resource()->name() << mode;
             if (force || mode == Control::Select) {
@@ -176,7 +176,7 @@ void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos, bool f
                 // selectImplied, not handle
                 return;
             }
-            if (mode != Control::PassSelect)
+            if (mode != Control::PassSelect && mode != Control::PassSelect2)
                 break;
         }
     }

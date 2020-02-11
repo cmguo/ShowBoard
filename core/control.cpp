@@ -271,7 +271,7 @@ Control::SelectMode Control::selectTest(const QPointF &point)
     return NotSelect;
 }
 
-Control::SelectMode Control::selectTest(QGraphicsItem * child, QGraphicsItem * item, QPointF const & point)
+Control::SelectMode Control::selectTest(QGraphicsItem * child, QGraphicsItem * item, QPointF const & point, bool onlyAssist)
 {
     if (item_ != realItem_ && item == realItem_) { // hit frame
         return static_cast<ItemFrame*>(realItem_)->hitTest(child, point) ? Select : NotSelect;
@@ -279,10 +279,20 @@ Control::SelectMode Control::selectTest(QGraphicsItem * child, QGraphicsItem * i
     if (stateItem_ == item) { // hit state
         return stateItem()->hitTest(child, point) ? Select : NotSelect;
     }
-    if (flags_ & FullSelect)
-        return Select;
     if (res_->flags().testFlag(ResourceView::LargeCanvas))
         return PassSelect;
+    if (onlyAssist) {
+        SelectMode mode = item_ == realItem_ ? selectTest(point)
+                                             : selectTest(realItem_->mapToItem(item_, point));
+        if (mode == PassSelect) {
+            mode = PassSelect2;
+        } else if (mode != PassSelect2) {
+            mode = NotSelect;
+        }
+        return mode;
+    }
+    if (flags_ & FullSelect)
+        return Select;
     if ((flags_ & HalfSelect)) {
         return item_ == child ? Select : NotSelect;
     }
