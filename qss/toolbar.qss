@@ -8,11 +8,15 @@ QPushButton,.QLabel {
 }
 
 QPushButton {
-    qproperty-iconSize:30px 30px;
+    qproperty-iconSize:32px 32px;
 }
 
 QPushButton:checked {
     color:#1AA9EF;
+}
+
+#splitter {
+    background-color:#333B3B
 }
 
 #toolbarwidget {

@@ -12,7 +12,7 @@ QPushButton,.QLabel {
 QPushButton {
     border-radius:6px;
     padding: 6px;
-    background-color: #1AA9EF;
+    background-color: #5D6C85;
 }
 
 #finishwidget {

@@ -177,10 +177,10 @@ QVariant WidthToolButtons::buttonIcon(const QVariant &value)
 QGraphicsItem *WidthToolButtons::widthIcon(qreal width)
 {
     QPainterPath ph;
-    ph.addEllipse(QRectF(1, 1, 30, 30));
+    ph.addEllipse(QRectF(0, 0, 32, 32));
     QGraphicsPathItem * border = new QGraphicsPathItem(ph);
     border->setPen(Qt::NoPen);
-    border->setBrush(QBrush());
+    border->setBrush(QColor("#343434"));
     QPainterPath ph2;
     QRectF rect(0, 0, width, width);
     rect.moveCenter(QPointF(16, 16));
