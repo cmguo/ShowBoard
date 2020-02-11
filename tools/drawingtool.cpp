@@ -1,5 +1,6 @@
 #include "drawingtool.h"
 #include "views/whitecanvas.h"
+#include "views/qsshelper.h"
 #include "core/resourceview.h"
 #include "core/resourcetransform.h"
 #include "core/resourcepage.h"
@@ -13,6 +14,8 @@
 #include <QGraphicsView>
 #include <QHBoxLayout>
 #include <QLabel>
+
+static QssHelper QSS(":/showboard/qss/draw_finish.qss");
 
 DrawingTool::DrawingTool(ResourceView *res)
     : Control(res, FullLayout, {DefaultFlags})
@@ -39,13 +42,10 @@ public:
         setCursor(Qt::CrossCursor);
         setAcceptHoverEvents(true);
         setFlag(ItemIsFocusable);
-        QWidget* widget = new QWidget;
+        QWidget* widget = new QFrame;
         widget->setObjectName("finishwidget");
         widget->setWindowFlag(Qt::FramelessWindowHint);
-        widget->setAttribute(Qt::WA_StyledBackground, true);
-        widget->setStyleSheet("finishwidget{background-color:#FF000000;border-radius:3px;}"
-                              "QLabel{background-color:#00000000;}"
-                              "QPushButton{color:#5D6C85;border:none;");
+        widget->setStyleSheet(QSS);
         QLayout* layout = new QHBoxLayout(widget);
         widget->setLayout(layout);
         layout->addWidget(new QLabel("闭合顶点或点击完成"));

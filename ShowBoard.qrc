@@ -19,5 +19,6 @@
         <file>icons/return.png</file>
         <file>icons/drag.png</file>
         <file>qss/toolbar.qss</file>
+        <file>qss/draw_finish.qss</file>
     </qresource>
 </RCC>

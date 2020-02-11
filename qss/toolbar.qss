@@ -3,13 +3,12 @@ QPushButton,.QLabel {
     background-color:#00000000;
     border:none;
     font-size:16pt;
+    font-family:'Microsoft YaHei';
     spacing:30px; /* [large] */
 }
 
 QPushButton {
     qproperty-iconSize:30px 30px;
-    font-family:'Microsoft YaHei';
-    background-color:#00000000
 }
 
 QPushButton:checked {
@@ -18,7 +17,6 @@ QPushButton:checked {
 
 #toolbarwidget {
     background-color:#80000000;
-    border-radius:16px;
 }
 
 #popupwidget {

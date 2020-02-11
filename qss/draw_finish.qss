@@ -1,0 +1,21 @@
+QPushButton,.QLabel {
+    color:white;
+    font-size:16pt;
+    font-family:'Microsoft YaHei';
+}
+
+.QLabel {
+    border:none;
+    background-color:#00000000;
+}
+
+QPushButton {
+    border-radius:6px;
+    padding: 6px;
+    background-color: #1AA9EF;
+}
+
+#finishwidget {
+    background-color:#80000000;
+}
+
