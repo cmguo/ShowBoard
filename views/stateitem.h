@@ -34,6 +34,8 @@ public:
 
     void updateTransform();
 
+    bool hitTest(QGraphicsItem * child, const QPointF &pt);
+
 signals:
     void clicked();
 

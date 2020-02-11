@@ -128,6 +128,11 @@ QRectF StateItem::boundingRect() const
     return rect;
 }
 
+bool StateItem::hitTest(QGraphicsItem * child, const QPointF &)
+{
+    return child == this || receivers(SIGNAL(clicked())) == 0;
+}
+
 void StateItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     (void) option;

@@ -34,7 +34,7 @@ public:
         DefaultFlags = 15, // all can
         KeepAspectRatio = 1 << 4,
         FullLayout = 1 << 5,
-        HelpSelect = 1 << 6,
+        HalfSelect = 1 << 6,
         FullSelect = 1 << 7,
         WithSelectBar = 1 << 8,
         AutoPosition = 1 << 9,

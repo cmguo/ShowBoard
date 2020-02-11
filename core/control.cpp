@@ -273,19 +273,20 @@ Control::SelectMode Control::selectTest(const QPointF &point)
 
 Control::SelectMode Control::selectTest(QGraphicsItem * child, QGraphicsItem * item, QPointF const & point)
 {
+    if (item_ != realItem_ && item == realItem_) { // hit frame
+        return static_cast<ItemFrame*>(realItem_)->hitTest(child, point) ? Select : NotSelect;
+    }
+    if (stateItem_ == item) { // hit state
+        return stateItem()->hitTest(child, point) ? Select : NotSelect;
+    }
     if (flags_ & FullSelect)
         return Select;
     if (res_->flags().testFlag(ResourceView::LargeCanvas))
         return PassSelect;
-    if (item_ != realItem_ && item == realItem_) {
-        return static_cast<ItemFrame*>(realItem_)->hitTest(child, point) ? Select : NotSelect;
-    } else if (stateItem_ == item && (flags_ & LoadFinished) == 0) {
-        return Select;
-    } else if (item_ == item && (flags_ & HelpSelect)) {
-        QRectF rect = item_->boundingRect();
-        rect.adjust(CROSS_LENGTH, CROSS_LENGTH, -CROSS_LENGTH, -CROSS_LENGTH);
-        return rect.contains(point) ? NotSelect : Select;
-    } else if (item_ == realItem_) {
+    if ((flags_ & HalfSelect)) {
+        return item_ == child ? Select : NotSelect;
+    }
+    if (item_ == realItem_) {
         return selectTest(point);
     } else {
         return selectTest(realItem_->mapToItem(item_, point));
@@ -576,7 +577,7 @@ void Control::loadStream()
         onStream(stream.get());
         loadFinished(true);
     }).fail([this, l](std::exception& e) {
-        loadFinished(true, e.what());
+        loadFinished(false, e.what());
     });
 }
 
@@ -600,7 +601,7 @@ void Control::loadText()
         onText(text);
         loadFinished(true);
     }).fail([this, l](std::exception& e) {
-        loadFinished(true, e.what());
+        loadFinished(false, e.what());
     });
 }
 

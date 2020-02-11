@@ -20,7 +20,7 @@ static char const * toolstr =
         "hide()|结束演示";
 
 PptxControl::PptxControl(ResourceView * res)
-    : ImageControl(res, {Touchable}, {FullSelect})
+    : ImageControl(res)
     , stopButton_(nullptr)
 {
     powerpoint_ = new PowerPoint;
