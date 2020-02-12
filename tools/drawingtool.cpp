@@ -48,9 +48,10 @@ public:
         widget->setStyleSheet(QSS);
         QLayout* layout = new QHBoxLayout(widget);
         widget->setLayout(layout);
+        layout->setSpacing(20);
         layout->addWidget(new QLabel("闭合顶点或点击完成"));
         QPushButton * button = new QPushButton;
-        button->setText("完成");
+        button->setText(" 完成 ");
         QObject::connect(button, &QPushButton::clicked, [this]() {
             finish();
         });
