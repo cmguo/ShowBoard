@@ -460,6 +460,8 @@ void Control::initScale()
     if (delaySizeHint.isValid()) {
         QSizeF sh = delaySizeHint.toSizeF();
         scale = qMin(sh.width() / size.width(), sh.height() / size.height());
+        if ((flags_ & ExpandScale) == 0 && scale > 1.0)
+            scale = 1.0;
         size = size * scale;
         delaySizeHint.clear();
         setProperty("delaySizeHint", delaySizeHint);
