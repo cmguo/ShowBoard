@@ -1,5 +1,5 @@
 #include "powerpoint.h"
-#include "core/workthread.h"
+#include "axthread.h"
 
 #include <QAxObject>
 #include <QDir>
@@ -26,7 +26,7 @@ QAxObject * PowerPoint::application_ = nullptr;
 static char const * titleParts[] = {"PowerPoint", "ppt", nullptr};
 
 static QThread & workThread() {
-    static WorkThread thread("PowerPoint");
+    static AxThread thread("PowerPoint");
     return thread;
 }
 
@@ -138,15 +138,26 @@ void PowerPoint::show(int page)
         try {
             QAxObject * settings = presentation_->querySubObject("SlideShowSettings");
             //settings->setProperty("ShowType", "ppShowTypeSpeaker");
-            settings->setProperty("ShowMediaControls", "true");
+            if (settings) {
+                settings->setProperty("ShowMediaControls", "true");
+                settings->setProperty("ShowPresenterView", "false");
+            } else {
+                qWarning() << "Can't get SlideShowSettings!";
+            }
             //if (page) // will cause View be null
             //    settings->setProperty("StartingSlide", page);
             QAxObject * window = settings->querySubObject("Run()");
-            view_ = window->querySubObject("View");
-            QObject::connect(view_, SIGNAL(exception(int,QString,QString,QString)),
-                             this, SLOT(onException(int,QString,QString,QString)));
-            hwnd_ = findWindow(titleParts);
-            settings->setProperty("ShowPresenterView", "false");
+            if (window)
+                view_ = window->querySubObject("View");
+            if (view_) {
+                QObject::connect(view_, SIGNAL(exception(int,QString,QString,QString)),
+                                 this, SLOT(onException(int,QString,QString,QString)));
+                hwnd_ = findWindow(titleParts);
+            }
+            if (hwnd_ == 0) {
+                emit failed(view_ ? "Can't find play window!" : "Can't start play view!");
+                return;
+            }
         } catch (...) {
         }
         if (page == 0) {

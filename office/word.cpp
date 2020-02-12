@@ -1,5 +1,5 @@
 #include "word.h"
-#include "core/workthread.h"
+#include "axthread.h"
 
 #include <QAxObject>
 #include <QPainter>
@@ -10,7 +10,7 @@ extern bool saveGdiImage(char* data, int size, char** out, int * nout);
 QAxObject * Word::application_ = nullptr;
 
 static QThread & workThread() {
-    static WorkThread thread("Word");
+    static AxThread thread("Word");
     return thread;
 }
 

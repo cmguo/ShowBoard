@@ -377,6 +377,10 @@ void Control::loadFinished(bool ok, QString const & iconOrMsg)
         sizeChanged();
         flags_ |= LoadFinished;
     } else {
+        if (flags_ & LoadFinished) {
+            qWarning() << metaObject()->className() << iconOrMsg;
+            return;
+        }
         QString msg = res_->name() + "\n"
                 + (iconOrMsg.isEmpty() ? "加载失败，点击即可重试" : iconOrMsg);
         stateItem()->setFailed(msg);

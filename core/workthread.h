@@ -24,9 +24,6 @@ public:
     }
 
 private:
-    virtual void run() override;
-
-private:
     QObject* context_;
 };
 
