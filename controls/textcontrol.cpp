@@ -9,6 +9,7 @@
 TextControl::TextControl(ResourceView * res)
     : WidgetControl(res, {WithSelectBar, ExpandScale, LayoutScale})
 {
+    setMinSize({0.1, 0.1});
 }
 
 QWidget *TextControl::createWidget(ResourceView *res)

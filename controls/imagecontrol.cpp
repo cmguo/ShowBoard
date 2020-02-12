@@ -42,9 +42,11 @@ ImageControl::ImageControl(ResourceView * res, Flags flags, Flags clearFlags)
 QGraphicsItem * ImageControl::create(ResourceView * res)
 {
     (void)res;
+#ifdef QT_DEBUG
     if (metaObject() == &staticMetaObject) {
         flags_ |= AutoPosition;
     }
+#endif
     QGraphicsPixmapItem * item = new QGraphicsPixmapItem();
     item->setShapeMode(QGraphicsPixmapItem::BoundingRectShape);
     item->setTransformationMode(Qt::SmoothTransformation);

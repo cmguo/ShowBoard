@@ -146,8 +146,8 @@ void ResourceTransform::scale(QSizeF const & delta)
     emit changed(4);
 }
 
-static constexpr qreal SCALE_MIN_ADJUST = 1.0001;
-static constexpr qreal SCALE_MAX_ADJUST = 0.9999;
+static constexpr qreal SCALE_MIN_ADJUST = 1.000001;
+static constexpr qreal SCALE_MAX_ADJUST = 0.999999;
 
 bool ResourceTransform::scale(QRectF & rect, QRectF const & direction, QPointF & delta,
                               QRectF const & padding, bool KeepAspectRatio, bool layoutScale, QSizeF limitSize[2])

@@ -122,7 +122,7 @@ void QssHelper::parse(const QString &style)
     QMap<QByteArray, QString> kvs;
     for (QString l : lines) {
         if (l.isEmpty())
-            return;
+            continue;
         comment.clear();
         int n = l.indexOf("/*");
         if (n >= 0) {

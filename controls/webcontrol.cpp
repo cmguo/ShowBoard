@@ -89,6 +89,7 @@ WebControl::WebControl(ResourceView * res)
     , fitToContent_(false)
 {
     setToolsString(toolstr);
+    setMinSize({0.1, 0.1});
 }
 
 bool WebControl::layoutScale() const
