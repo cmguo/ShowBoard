@@ -36,6 +36,7 @@ ImageControl::ImageControl(ResourceView * res, Flags flags, Flags clearFlags)
     : Control(res, flags | Flags{KeepAspectRatio, FullSelect}, clearFlags)
     , mipmap_(0)
 {
+    setMinSize({0.1, 0});
 }
 
 QGraphicsItem * ImageControl::create(ResourceView * res)

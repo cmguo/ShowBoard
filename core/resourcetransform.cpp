@@ -146,8 +146,11 @@ void ResourceTransform::scale(QSizeF const & delta)
     emit changed(4);
 }
 
+static constexpr qreal SCALE_MIN_ADJUST = 1.0001;
+static constexpr qreal SCALE_MAX_ADJUST = 0.9999;
+
 bool ResourceTransform::scale(QRectF & rect, QRectF const & direction, QPointF & delta,
-                              QRectF const & padding, bool KeepAspectRatio, bool layoutScale, qreal limitSize[2])
+                              QRectF const & padding, bool KeepAspectRatio, bool layoutScale, QSizeF limitSize[2])
 {
     bool byWidth = qFuzzyIsNull(direction.height());
     bool byHeight = qFuzzyIsNull(direction.width());
@@ -171,35 +174,39 @@ bool ResourceTransform::scale(QRectF & rect, QRectF const & direction, QPointF &
             result.setHeight(origin.height() * s.width());
         }
         if (limitSize) {
-            if (origin.width() >= limitSize[0] && result.width() < limitSize[0]) {
-                result.setHeight(result.height() * limitSize[0] / result.width());
-                result.setWidth(limitSize[0]);
-            } else if (origin.width() <= limitSize[1] && result.width() > limitSize[1]) {
-                result.setHeight(result.height() * limitSize[1] / result.width());
-                result.setWidth(limitSize[1]);
+            if (limitSize[0].width() > 0 && origin.width() >= limitSize[0].width() && result.width() < limitSize[0].width()) {
+                qreal w = limitSize[0].width() * SCALE_MIN_ADJUST;
+                result.setHeight(result.height() * w / result.width());
+                result.setWidth(w);
+            } else if (limitSize[1].width() > 0 && origin.width() <= limitSize[1].width() && result.width() > limitSize[1].width()) {
+                qreal w = limitSize[1].width() * SCALE_MAX_ADJUST;
+                result.setHeight(result.height() * w / result.width());
+                result.setWidth(w);
             }
-            if (origin.height() >= limitSize[0] && result.height() < limitSize[0]) {
-                result.setWidth(result.width() * limitSize[0] / result.height());
-                result.setHeight(limitSize[0]);
-            } else if (origin.height() <= limitSize[1] && result.height() > limitSize[1]) {
-                result.setWidth(result.width() * limitSize[1] / result.height());
-                result.setHeight(limitSize[1]);
+            if (limitSize[0].height() > 0 && origin.height() >= limitSize[0].height() && result.height() < limitSize[0].height()) {
+                qreal h = limitSize[0].height() * SCALE_MIN_ADJUST;
+                result.setWidth(result.width() * h / result.height());
+                result.setHeight(h);
+            } else if (limitSize[1].height() > 0 && origin.height() <= limitSize[1].height() && result.height() > limitSize[1].height()) {
+                qreal h = limitSize[1].height() * SCALE_MAX_ADJUST;
+                result.setWidth(result.width() * h / result.height());
+                result.setHeight(h);
             }
         }
     } else {
         if (limitSize) {
-            if (origin.width() >= limitSize[0] && result.width() < limitSize[0]) {
-                result.setWidth(limitSize[0]);
+            if (limitSize[0].width() > 0 && origin.width() >= limitSize[0].width() && result.width() < limitSize[0].width()) {
+                result.setWidth(limitSize[0].width() * SCALE_MIN_ADJUST);
                 KeepAspectRatio = true;
-            } else if (origin.width() <= limitSize[1] && result.width() > limitSize[1]) {
-                result.setWidth(limitSize[1]);
+            } else if (limitSize[1].width() > 0 && origin.width() <= limitSize[1].width() && result.width() > limitSize[1].width()) {
+                result.setWidth(limitSize[1].width() * SCALE_MAX_ADJUST);
                 KeepAspectRatio = true;
             }
-            if (origin.height() >= limitSize[0] && result.height() < limitSize[0]) {
-                result.setHeight(limitSize[0]);
+            if (limitSize[0].height() > 0 && origin.height() >= limitSize[0].height() && result.height() < limitSize[0].height()) {
+                result.setHeight(limitSize[0].height() * SCALE_MIN_ADJUST);
                 KeepAspectRatio = true;
-            } else if (origin.height() <= limitSize[1] && result.height() > limitSize[1]) {
-                result.setHeight(limitSize[1]);
+            } else if (limitSize[1].height() > 0 && origin.height() <= limitSize[1].height() && result.height() > limitSize[1].height()) {
+                result.setHeight(limitSize[1].height() * SCALE_MAX_ADJUST);
                 KeepAspectRatio = true;
             }
         }
@@ -278,19 +285,21 @@ void ResourceTransform::gesture(const QPointF &from1, const QPointF &from2, QPoi
     QPointF t = from2 - t0;
     if (scale) {
         qreal s0 = s;
-        if (s * scale_.m11() < limitScale[0])
+        if (limitScale[0] > 0 && s * scale_.m11() < limitScale[0])
             s = limitScale[0] / scale_.m11();
-        else if (s * scale_.m11() > limitScale[1])
+        else if (limitScale[1] > 0 && s * scale_.m11() > limitScale[1])
             s = limitScale[1] / scale_.m11();
         else
             limitScale = nullptr;
         if (limitScale) {
             to2 = (to2 - to1) * s / s0 + to1;
         }
-        if (scaleOut)
-            *scaleOut = s, scale = false;
-        else
+        if (scaleOut) {
+            *scaleOut = s;
+            scale = false;
+        } else {
             scale_.scale(s, s);
+        }
         if (translate)
             t *= s;
     }

@@ -16,6 +16,8 @@
 #include <QTransform>
 #include <QGraphicsTransform>
 #include <QMetaMethod>
+#include <QApplication>
+#include <QScreen>
 
 #include <map>
 
@@ -55,6 +57,8 @@ Control::Control(ResourceView *res, Flags flags, Flags clearFlags)
             flags_.setFlag(DefaultFlags, false);
         }
     }
+    minMaxSize_[0] = {MIN_SIZE, MIN_SIZE};
+    minMaxSize_[1] = {MAX_SIZE, MAX_SIZE};
 }
 
 Control::~Control()
@@ -250,6 +254,46 @@ void Control::setSizeHint(QSizeF const & size)
     }
 }
 
+static void setMinMaxSize(QSizeF & ms, const QSizeF &size, bool min)
+{
+    static QSizeF screenSize = QApplication::primaryScreen()->size();
+    qreal sw = size.width() - floor(size.width());
+    qreal const & (*cmp) (qreal const& a, qreal const & b) = min ? &qMax<qreal> : &qMin<qreal>;
+    if (!qFuzzyIsNull(sw)) {
+        qreal w = screenSize.width() * sw;
+        ms.setWidth(cmp(w, floor(size.width())));
+    } else {
+        ms.setWidth(size.width());
+    }
+    qreal sh = size.height() - floor(size.height());
+    if (!qFuzzyIsNull(sh)) {
+        qreal h = screenSize.height() * sh;
+        ms.setHeight(cmp(h, floor(size.height())));
+    } else {
+        ms.setHeight(size.height());
+    }
+}
+
+QSizeF Control::minSize()
+{
+    return minMaxSize_[0];
+}
+
+void Control::setMinSize(const QSizeF &size)
+{
+    setMinMaxSize(minMaxSize_[0], size, true);
+}
+
+QSizeF Control::maxSize()
+{
+    return minMaxSize_[1];
+}
+
+void Control::setMaxSize(const QSizeF &size)
+{
+    setMinMaxSize(minMaxSize_[1], size, false);
+}
+
 WhiteCanvas *Control::whiteCanvas()
 {
     return static_cast<WhiteCanvas*>(realItem_->parentItem()->parentItem());
@@ -262,8 +306,6 @@ void Control::resize(QSizeF const & size)
     }
     setProperty("delaySizeHint", size);
 }
-
-static constexpr qreal CROSS_LENGTH = 20;
 
 Control::SelectMode Control::selectTest(const QPointF &point)
 {
@@ -483,9 +525,8 @@ bool Control::scale(QRectF &rect, const QRectF &direction, QPointF &delta)
     QRectF padding;
     if (realItem_ != item_)
         padding = itemFrame()->padding();
-    qreal limitSize[] = {MIN_SIZE, MAX_SIZE};
     bool result = res_->transform().scale(rect, direction, delta, padding,
-                            flags_ & KeepAspectRatio, flags_ & LayoutScale, limitSize);
+                            flags_ & KeepAspectRatio, flags_ & LayoutScale, minMaxSize_);
     if (!result)
         return false;
     QRectF origin = rect;
@@ -506,8 +547,8 @@ void Control::gesture(const QPointF &from1, const QPointF &from2, QPointF &to1, 
     qreal limitScale[] = {1.0, 10.0};
     if (flags_ & CanScale) {
         QSizeF size = item_->boundingRect().size();
-        limitScale[0] = qMin(MIN_SIZE / size.width(), MIN_SIZE / size.height());
-        limitScale[1] = qMin(MAX_SIZE / size.width(), MAX_SIZE / size.height());
+        limitScale[0] = qMax(minMaxSize_[0].width() / size.width(), minMaxSize_[0].height() / size.height());
+        limitScale[1] = qMin(minMaxSize_[1].width() / size.width(), minMaxSize_[1].height() / size.height());
     }
     res_->transform().gesture(from1, from2, to1, to2,
                               flags_ & CanMove, flags_ & CanScale, flags_ & CanRotate, limitScale, pLayoutScale);

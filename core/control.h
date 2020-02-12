@@ -22,7 +22,9 @@ class SHOWBOARD_EXPORT Control : public ToolButtonProvider
     Q_PROPERTY(Flags flags READ flags())
     Q_PROPERTY(ResourceView * resource READ resource())
 
-    Q_PROPERTY(QSizeF sizeHint READ sizeHint  WRITE setSizeHint)
+    Q_PROPERTY(QSizeF sizeHint READ sizeHint WRITE setSizeHint)
+    Q_PROPERTY(QSizeF minSize READ minSize WRITE setMinSize)
+    Q_PROPERTY(QSizeF maxSize READ maxSize WRITE setMaxSize)
 
 public:
     enum Flag {
@@ -243,6 +245,14 @@ protected:
 
     void setSizeHint(QSizeF const & size);
 
+    QSizeF minSize();
+
+    void setMinSize(QSizeF const & size);
+
+    QSizeF maxSize();
+
+    void setMaxSize(QSizeF const & size);
+
     WhiteCanvas * whiteCanvas();
 
     StateItem * stateItem();
@@ -279,6 +289,7 @@ protected:
     QObject* itemObj_;
     QGraphicsItem * realItem_;
     StateItem * stateItem_;
+    QSizeF minMaxSize_[2];
 };
 
 /*

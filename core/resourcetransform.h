@@ -115,7 +115,7 @@ public:
      *   both origin and result are centered at [0, 0]
      */
     bool scale(QRectF & rect, QRectF const & direction, QPointF & delta,
-               QRectF const & padding, bool KeepAspectRatio, bool layoutScale, qreal limitSize[2]);
+               QRectF const & padding, bool KeepAspectRatio, bool layoutScale, QSizeF limitSize[2]);
 
     /* scale to <scaleTo>, and adjust translate to keep view center moves smallest
      */
