@@ -3,7 +3,7 @@
         <file>icons/loading.svg</file>
         <file>icons/play.normal.svg</file>
         <file>icons/play.press.svg</file>
-        <file>icons/stop.normal.svg</file>
+        <file>icons/error.unknown.svg</file>
         <file>icons/stop.press.svg</file>
         <file>htmls/video.htm</file>
         <file>icons/close.svg</file>
@@ -20,5 +20,7 @@
         <file>icons/drag.png</file>
         <file>qss/toolbar.qss</file>
         <file>qss/draw_finish.qss</file>
+        <file>icons/error.network.svg</file>
+        <file>icons/error.software.svg</file>
     </qresource>
 </RCC>

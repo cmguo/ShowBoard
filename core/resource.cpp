@@ -72,7 +72,7 @@ QPromise<QSharedPointer<QIODevice>> Resource::getStream(bool all)
             };
             auto error = [reply, reject](QNetworkReply::NetworkError e) {
                 qDebug() << "Resource NetworkError " << e << reply->errorString();
-                reject(std::invalid_argument("文件打开失败，请检查网络再试"));
+                reject(std::invalid_argument("network|文件打开失败，请检查网络再试"));
             };
             auto finished = [reply, resolve, error]() {
                 if (reply->error()) {

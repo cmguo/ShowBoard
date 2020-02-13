@@ -30,7 +30,7 @@ public:
 
     void setLoaded(QString const & icon);
 
-    void setFailed(QString const & msg);
+    void setFailed(QByteArray const & type, QString const & msg);
 
     void updateTransform();
 

@@ -16,7 +16,7 @@ QPushButton:checked {
 }
 
 #splitter {
-    background-color:#333B3B
+    border-color:#333B3B
 }
 
 #toolbarwidget {

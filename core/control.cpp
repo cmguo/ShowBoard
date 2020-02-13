@@ -94,7 +94,7 @@ void Control::attachTo(QGraphicsItem * parent)
     whiteCanvas()->onControlLoad(true);
     attached();
     if (flags_ & Loading) {
-        stateItem()->setLoading("正在打开：“" + res_->name() + "”");
+        stateItem()->setLoading("<center>正在打开：“" + res_->name() + "”</center>");
     }
 }
 
@@ -423,9 +423,17 @@ void Control::loadFinished(bool ok, QString const & iconOrMsg)
             qWarning() << metaObject()->className() << iconOrMsg;
             return;
         }
-        QString msg = res_->name() + "\n"
-                + (iconOrMsg.isEmpty() ? "加载失败，点击即可重试" : iconOrMsg);
-        stateItem()->setFailed(msg);
+        QByteArray type = "unknown";
+        QString errmsg = iconOrMsg;
+        int n = iconOrMsg.indexOf("|");
+        if (n > 0) {
+            type = iconOrMsg.left(n).toUtf8();
+            errmsg = iconOrMsg.mid(n + 1);
+        }
+        QString msg = "<center>" + res_->name() + "</center>"
+                "<p/><center>"
+                + errmsg + "</center>";
+        stateItem()->setFailed(type, msg);
         QObject::connect(stateItem(), &StateItem::clicked, this, &Control::reload);
         sizeChanged();
     }

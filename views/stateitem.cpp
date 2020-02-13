@@ -30,14 +30,14 @@ StateItem::StateItem(QGraphicsItem * parent)
     setAcceptTouchEvents(true);
     iconItem_ = new QGraphicsSvgItem(this);
     QGraphicsTextItem* textItem = new QGraphicsTextItem(this);
-    textItem->setFont(QFont("Microsoft YaHei", 18));
+    textItem->setFont(QFont("Microsoft YaHei", 16));
     textItem->setDefaultTextColor(Qt::white);
     textItem_ = textItem;
     if (!cache_) {
         cache_ = SvgCache::instance();
     }
     loading_ = cache_->get(QString(":/showboard/icons/loading.svg"));
-    failed_ = cache_->get(QString(":/showboard/icons/stop.normal.svg"));
+    failed_ = cache_->get(QString(":/showboard/icons/error.unknown.svg"));
     setCursor(Qt::SizeAllCursor);
     updateTransform();
 }
@@ -77,10 +77,13 @@ void StateItem::setLoaded(const QString &icon)
     setText(nullptr);
 }
 
-void StateItem::setFailed(QString const & msg)
+void StateItem::setFailed(QByteArray const & type, QString const & msg)
 {
     state_ = Failed;
-    setSharedRenderer(failed_);
+    QSvgRenderer * svg = cache_->get(QString(":/showboard/icons/error." + type + ".svg"));
+    if (svg == nullptr)
+        svg = failed_;
+    setSharedRenderer(svg);
     setText(msg);
 }
 
@@ -105,6 +108,8 @@ void StateItem::setText(const QString &text)
     else
         textItem->setPlainText(text);
     //textItem->adjustSize();
+    qreal w = textItem->boundingRect().width();
+    textItem->setTextWidth(qMin(w, 438.0));
     QPointF center(textItem->boundingRect().center());
     center.setY(-iconItem_->boundingRect().height() / 2 - 10);
     textItem->setPos(-center);
