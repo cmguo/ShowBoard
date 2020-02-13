@@ -5,14 +5,9 @@
 
 #include <QHBoxLayout>
 #include <QVBoxLayout>
-#include <QPainter>
-#include <QWidget>
-#include <QStyleOptionButton>
-#include <QGraphicsItem>
 #include <QGraphicsProxyWidget>
 #include <QGraphicsScene>
 #include <QPushButton>
-#include <QLabel>
 
 static QssHelper QSS(":/showboard/qss/toolbar.qss");
 
@@ -34,7 +29,6 @@ ToolbarWidget::ToolbarWidget(bool horizontal, QWidget *parent)
         layout_ = new QVBoxLayout(this);
     setObjectName("toolbarwidget");
     setWindowFlag(Qt::FramelessWindowHint);
-    //setAttribute(Qt::WA_StyledBackground,true);
     setStyleSheet(QSS);
     if (horizontal)
         layout_->setContentsMargins(10, 10, 10, 10);
@@ -57,87 +51,6 @@ void ToolbarWidget::setButtonTemplate(int typeId)
 void ToolbarWidget::setPopupPosition(PopupPosition pos)
 {
     popupPosition_ = pos;
-}
-
-static QPixmap widgetToPixmap(QWidget * widget, bool destroy)
-{
-    QPixmap pm(widget->size());
-    pm.fill(Qt::transparent);
-    QPainter pt(&pm);
-    pt.setRenderHint(QPainter::HighQualityAntialiasing);
-    widget->render(&pt);
-    if (destroy)
-        widget->deleteLater();
-    return pm;
-}
-
-static QPixmap itemToPixmap(QGraphicsItem * item, bool destroy)
-{
-    QRectF rect = item->boundingRect();
-    QPointF size = rect.center() * 2;
-    QPixmap pm(size.x(), size.y());
-    pm.fill(Qt::transparent);
-    QPainter pt(&pm);
-    pt.setRenderHint(QPainter::HighQualityAntialiasing);
-    QStyleOptionGraphicsItem style;
-    item->paint(&pt, &style);
-    for (QGraphicsItem * c : item->childItems()) {
-        c->paint(&pt, &style);
-    }
-    if (destroy)
-        delete item;
-    return pm;
-}
-
-static QPixmap getPixmap(QVariant value, bool destroy)
-{
-    if (value.type() == QVariant::Pixmap)
-        return value.value<QPixmap>();
-    else if (value.type() == QVariant::Image)
-        return QPixmap::fromImage(value.value<QImage>());
-    else if (value.type() == QVariant::UserType) {
-        if (value.userType() == QMetaType::QObjectStar) {
-            return widgetToPixmap(value.value<QWidget *>(), destroy);
-        } else if (value.userType() == qMetaTypeId<QGraphicsItem *>()) {
-            return itemToPixmap(value.value<QGraphicsItem *>(), destroy);
-        }
-    }
-    return QPixmap();
-}
-
-static QMap<QString, QIcon::Mode> IconModes = {
-    {"normal", QIcon::Normal},
-    {"disabled", QIcon::Disabled},
-    {"active", QIcon::Active},
-    {"selected", QIcon::Selected},
-};
-
-static QIcon getIcon(QVariant& icon, bool replace)
-{
-    QIcon result;
-    if (icon.type() == QVariant::Icon)
-        return icon.value<QIcon>();
-    else if (icon.type() == QVariant::String)
-        result = QIcon(icon.toString());
-    else if (icon.type() == QVariant::Map) {
-        QVariantMap icons = icon.toMap();
-        for (QString k : icons.keys()) {
-            QVariant& icon2 = icons[k];
-            QIcon::State s = QIcon::Off;
-            if (k.startsWith("+")) {
-                s = QIcon::On;
-                k = k.mid(1);
-            }
-            if (IconModes.contains(k)) {
-                result.addPixmap(getPixmap(icon2, replace), IconModes[k], s);
-            }
-        }
-    } else {
-        result = QIcon(getPixmap(icon, replace));
-    }
-    if (replace)
-        icon = result;
-    return result;
 }
 
 void ToolbarWidget::setToolButtons(QList<ToolButton *> const & buttons)
@@ -238,7 +151,8 @@ void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWi
     if (button == &ToolButton::SPLITTER) {
         QFrame *splitter = new QFrame(this);
         splitter->setFrameShape(QFrame::VLine);
-        splitter->setFrameShadow(QFrame::Sunken);
+        splitter->setFrameShadow(QFrame::Raised);
+        //splitter->setLineWidth(1);
         widget = splitter;
     } else if (button == &ToolButton::LINE_BREAK) {
         ++row; col = 0;
@@ -248,6 +162,7 @@ void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWi
         QFrame *splitter = new QFrame(this);
         splitter->setFrameShape(QFrame::HLine);
         splitter->setFrameShadow(QFrame::Sunken);
+        //splitter->setLineWidth(0);
         widget = splitter;
     } else if (button == &ToolButton::PLACE_HOOLDER) {
         return;
@@ -262,6 +177,7 @@ void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWi
         QPushButton * btn = template_
                 ? qobject_cast<QPushButton *>(template_->newInstance())
                 : new QPushButton;
+        btn->setFocusPolicy(Qt::NoFocus);
         applyButton(btn, parent, button);
         void (ToolbarWidget::*slot)() = &ToolbarWidget::buttonClicked;
         QObject::connect(btn, &QPushButton::clicked, this, slot);
@@ -293,8 +209,9 @@ void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWi
 void ToolbarWidget::applyButton(QPushButton * btn, ToolButton * parent, ToolButton *button)
 {
     //btn->setIconSize(QSize(40,40));
-    btn->setIcon(getIcon(button->icon, !(button->flags & ToolButton::Dynamic)));
-    btn->setText((button->flags & ToolButton::Popup) ? button->title + " v" : button->title);
+    btn->setIcon(button->getIcon());
+    btn->setText(((button->flags & ToolButton::Popup) && !button->title.isEmpty())
+                 ? button->title + " v" : button->title);
     if (parent && (parent->flags & ToolButton::OptionsGroup)) {
         btn->setCheckable(true);
         btn->setChecked(button->flags & ToolButton::Selected);

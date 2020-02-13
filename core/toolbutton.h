@@ -47,7 +47,15 @@ public:
     Flags flags;
     QVariant icon;
 
+public:
+    QIcon getIcon();
+
+public:
     static Flags makeFlags(const QString &str);
+
+    static QIcon makeIcon(QString const & iconString);
+
+    static QIcon getIcon(QVariant& icon, bool replace);
 
     static ToolButton * makeButton(QString const & desc);
 
