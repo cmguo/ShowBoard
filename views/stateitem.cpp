@@ -96,6 +96,7 @@ void StateItem::setSharedRenderer(QSvgRenderer * renderer)
     QPointF center(iconItem_->boundingRect().center());
     iconItem_->setRotation(0);
     iconItem_->setTransformOriginPoint(center);
+    center.setY(center.y() + 20);
     iconItem_->setPos(-center);
 }
 
@@ -111,7 +112,7 @@ void StateItem::setText(const QString &text)
     qreal w = textItem->boundingRect().width();
     textItem->setTextWidth(qMin(w, 438.0));
     QPointF center(textItem->boundingRect().center());
-    center.setY(-iconItem_->boundingRect().height() / 2 - 10);
+    center.setY(-iconItem_->boundingRect().height() / 2 + 10);
     textItem->setPos(-center);
     textItem->setVisible(!text.isEmpty());
 }
