@@ -89,7 +89,6 @@ void StateItem::setFailed(QByteArray const & type, QString const & msg)
 
 void StateItem::setSharedRenderer(QSvgRenderer * renderer)
 {
-    prepareGeometryChange();
     killTimer(timerId_);
     timerId_ = 0;
     static_cast<QGraphicsSvgItem*>(iconItem_)->setSharedRenderer(renderer);
@@ -97,11 +96,11 @@ void StateItem::setSharedRenderer(QSvgRenderer * renderer)
     iconItem_->setRotation(0);
     iconItem_->setTransformOriginPoint(center);
     iconItem_->setPos(-center);
+    prepareGeometryChange();
 }
 
 void StateItem::setText(const QString &text)
 {
-    prepareGeometryChange();
     QGraphicsTextItem* textItem = static_cast<QGraphicsTextItem*>(textItem_);
     if (text.startsWith("<") && text.endsWith(">"))
         textItem->setHtml(text);
@@ -114,6 +113,7 @@ void StateItem::setText(const QString &text)
     center.setY(-iconItem_->boundingRect().height() / 2 - 10);
     textItem->setPos(-center);
     textItem->setVisible(!text.isEmpty());
+    prepareGeometryChange();
 }
 
 void StateItem::updateTransform()

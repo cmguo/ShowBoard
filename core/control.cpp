@@ -73,6 +73,36 @@ Control::~Control()
     res_ = nullptr;
 }
 
+bool Control::keepAspectRatio() const
+{
+    return flags_.testFlag(KeepAspectRatio);
+}
+
+void Control::setKeepAspectRatio(bool b)
+{
+    flags_.setFlag(KeepAspectRatio, b);
+}
+
+bool Control::layoutScale() const
+{
+    return flags_.testFlag(LayoutScale);
+}
+
+void Control::setLayoutScale(bool b)
+{
+    flags_.setFlag(LayoutScale, b);
+}
+
+bool Control::expandScale() const
+{
+    return flags_.testFlag(ExpandScale);
+}
+
+void Control::setExpandScale(bool b)
+{
+    flags_.setFlag(ExpandScale, b);
+}
+
 void Control::attachTo(QGraphicsItem * parent)
 {
     item_ = create(res_);

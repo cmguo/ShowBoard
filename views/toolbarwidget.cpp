@@ -211,7 +211,7 @@ void ToolbarWidget::applyButton(QPushButton * btn, ToolButton * parent, ToolButt
     //btn->setIconSize(QSize(40,40));
     btn->setIcon(button->getIcon());
     btn->setText(((button->flags & ToolButton::Popup) && !button->title.isEmpty())
-                 ? button->title + " v" : button->title);
+                 ? button->title + " ▼" : button->title);
     if (parent && (parent->flags & ToolButton::OptionsGroup)) {
         btn->setCheckable(true);
         btn->setChecked(button->flags & ToolButton::Selected);

@@ -22,6 +22,10 @@ class SHOWBOARD_EXPORT Control : public ToolButtonProvider
     Q_PROPERTY(Flags flags READ flags())
     Q_PROPERTY(ResourceView * resource READ resource())
 
+    Q_PROPERTY(bool keepAspectRatio READ keepAspectRatio WRITE setKeepAspectRatio)
+    Q_PROPERTY(bool layoutScale READ layoutScale WRITE setLayoutScale)
+    Q_PROPERTY(bool expandScale READ expandScale WRITE setExpandScale)
+
     Q_PROPERTY(QSizeF sizeHint READ sizeHint WRITE setSizeHint)
     Q_PROPERTY(QSizeF minSize READ minSize WRITE setMinSize)
     Q_PROPERTY(QSizeF maxSize READ maxSize WRITE setMaxSize)
@@ -103,6 +107,19 @@ public:
     {
         return realItem_;
     }
+
+public:
+    bool keepAspectRatio() const;
+
+    void setKeepAspectRatio(bool b);
+
+    bool layoutScale() const;
+
+    void setLayoutScale(bool b);
+
+    bool expandScale() const;
+
+    void setExpandScale(bool b);
 
 public:
     /*

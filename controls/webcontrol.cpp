@@ -92,26 +92,6 @@ WebControl::WebControl(ResourceView * res)
     setMinSize({0.1, 0.1});
 }
 
-bool WebControl::layoutScale() const
-{
-    return flags_.testFlag(LayoutScale);
-}
-
-void WebControl::setLayoutScale(bool b)
-{
-    flags_.setFlag(LayoutScale, b);
-}
-
-bool WebControl::keepAspectRatio() const
-{
-    return flags_.testFlag(KeepAspectRatio);
-}
-
-void WebControl::setKeepAspectRatio(bool b)
-{
-    flags_.setFlag(KeepAspectRatio, b);
-}
-
 bool WebControl::fitToContent() const
 {
     return fitToContent_;
