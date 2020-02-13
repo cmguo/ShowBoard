@@ -96,7 +96,6 @@ void StateItem::setSharedRenderer(QSvgRenderer * renderer)
     QPointF center(iconItem_->boundingRect().center());
     iconItem_->setRotation(0);
     iconItem_->setTransformOriginPoint(center);
-    center.setY(center.y() + 20);
     iconItem_->setPos(-center);
 }
 
@@ -112,7 +111,7 @@ void StateItem::setText(const QString &text)
     qreal w = textItem->boundingRect().width();
     textItem->setTextWidth(qMin(w, 438.0));
     QPointF center(textItem->boundingRect().center());
-    center.setY(-iconItem_->boundingRect().height() / 2 + 10);
+    center.setY(-iconItem_->boundingRect().height() / 2 - 10);
     textItem->setPos(-center);
     textItem->setVisible(!text.isEmpty());
 }
@@ -129,8 +128,8 @@ QRectF StateItem::boundingRect() const
     rect.moveCenter(QPointF(0, 0)); // not map to this, ignore rotate
     if (textItem_->isVisible()) {
         rect |= textItem_->mapToParent(textItem_->boundingRect()).boundingRect();
-        rect.adjust(-32, -32, 32, 32);
     }
+    rect.adjust(-32, -12, 32, 12);
     return rect;
 }
 
@@ -150,7 +149,7 @@ void StateItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     painter->save();
     painter->setPen(QColor("#FF434D59"));
     painter->setBrush(QColor("#F22B3034"));
-    painter->drawRoundRect(boundingRect(), 8, 8);
+    painter->drawRoundedRect(boundingRect(), 8, 8);
     painter->restore();
 }
 
