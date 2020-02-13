@@ -53,11 +53,14 @@ PowerPoint::~PowerPoint()
 void PowerPoint::open(QString const & file)
 {
     if (application_ == nullptr) {
-        application_ = new QAxObject("PowerPoint.Application");
-        if (application_ == nullptr) {
-            application_ = new QAxObject("Kwpp.Application");
-            if (application_)
+        application_ = new QAxObject;
+        if (!application_->setControl("PowerPoint.Application")) {
+            if (application_->setControl("Kwpp.Application")) {
                 titleParts[0] = "WPS";
+            } else {
+                delete application_;
+                application_ = nullptr;
+            }
         }
         if (application_) {
             application_->moveToThread(&workThread());

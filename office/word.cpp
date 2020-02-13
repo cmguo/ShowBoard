@@ -37,9 +37,12 @@ static constexpr int wdNumberOfPagesInDocument = 4;
 void Word::open(QString const & file)
 {
     if (application_ == nullptr) {
-        application_ = new QAxObject("Word.Application");
-        if (application_ == nullptr) {
-            application_ = new QAxObject("Kwps.Application");
+        application_ = new QAxObject;
+        if (!application_->setControl("Word.Application")) {
+            if (!application_->setControl("Kwps.Application")) {
+                delete application_;
+                application_ = nullptr;
+            }
         }
         if (application_) {
             application_->moveToThread(&workThread());
