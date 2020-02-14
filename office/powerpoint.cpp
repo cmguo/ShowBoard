@@ -24,6 +24,7 @@ int captureImage(intptr_t hwnd, char ** out, int * nout);
 QAxObject * PowerPoint::application_ = nullptr;
 
 static char const * titleParts[] = {"PowerPoint", "ppt", nullptr};
+static char const * titleParts2[] = {"WPS", "ppt", nullptr};
 
 static QThread & workThread() {
     static AxThread thread("PowerPoint");
@@ -56,7 +57,7 @@ void PowerPoint::open(QString const & file)
         application_ = new QAxObject;
         if (!application_->setControl("PowerPoint.Application")) {
             if (application_->setControl("Kwpp.Application")) {
-                titleParts[0] = "WPS";
+                titleParts[0] = nullptr; // not check PowerPoint
             } else {
                 delete application_;
                 application_ = nullptr;
@@ -155,7 +156,11 @@ void PowerPoint::show(int page)
             if (view_) {
                 QObject::connect(view_, SIGNAL(exception(int,QString,QString,QString)),
                                  this, SLOT(onException(int,QString,QString,QString)));
-                hwnd_ = findWindow(titleParts);
+                if (titleParts[0])
+                    hwnd_ = findWindow(titleParts);
+                // WPS will imitate Microsoft office sometime, so we find WPS window also
+                if (hwnd_ == 0)
+                    hwnd_ = findWindow(titleParts2);
             }
             if (hwnd_ == 0) {
                 emit failed(view_ ? "Can't find play window!" : "Can't start play view!");

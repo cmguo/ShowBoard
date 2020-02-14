@@ -26,8 +26,10 @@ BOOL CALLBACK EnumWindowsProc(_In_ HWND hwnd, _In_ LPARAM lParam)
 intptr_t findWindow(char const * titleParts[])
 {
     HWND hWnd = nullptr;
-    ::EnumWindows(EnumWindowsProc, reinterpret_cast<LPARAM>(&titleParts));
-    hWnd = reinterpret_cast<HWND>(titleParts);
+    char const ** temp = titleParts;
+    ::EnumWindows(EnumWindowsProc, reinterpret_cast<LPARAM>(&temp));
+    if (temp != titleParts)
+        hWnd = reinterpret_cast<HWND>(temp);
     return reinterpret_cast<intptr_t>(hWnd);
 }
 
