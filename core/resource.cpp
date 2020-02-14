@@ -51,7 +51,7 @@ QPromise<QSharedPointer<QIODevice>> Resource::getStream(bool all)
             return QPromise<QSharedPointer<QIODevice>>::resolve(file);
         } else {
             qDebug() << "Resource file error" << file->errorString();
-            return QPromise<QSharedPointer<QIODevice>>::reject(std::invalid_argument("文件打开失败，请确认文件是否存在"));
+            return QPromise<QSharedPointer<QIODevice>>::reject(std::invalid_argument("打开失败，请确认文件是否存在"));
         }
     } else {
         QString path = cache_.getFile(url_);
@@ -74,7 +74,7 @@ QPromise<QSharedPointer<QIODevice>> Resource::getStream(bool all)
             };
             auto error = [reply, reject](QNetworkReply::NetworkError e) {
                 qDebug() << "Resource NetworkError " << e << reply->errorString();
-                reject(std::invalid_argument("network|文件打开失败，请检查网络再试"));
+                reject(std::invalid_argument("network|打开失败，请检查网络再试"));
             };
             auto finished = [reply, resolve, error]() {
                 if (reply->error()) {

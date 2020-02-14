@@ -124,7 +124,7 @@ void Control::attachTo(QGraphicsItem * parent)
     whiteCanvas()->onControlLoad(true);
     attached();
     if (flags_ & Loading) {
-        stateItem()->setLoading("<center>正在打开...</center><p/><center>" + res_->name() + "</center>");
+        stateItem()->setLoading();
     }
 }
 
@@ -455,17 +455,7 @@ void Control::loadFinished(bool ok, QString const & iconOrMsg)
             qWarning() << metaObject()->className() << iconOrMsg;
             return;
         }
-        QByteArray type = "unknown";
-        QString errmsg = iconOrMsg;
-        int n = iconOrMsg.indexOf("|");
-        if (n > 0) {
-            type = iconOrMsg.left(n).toUtf8();
-            errmsg = iconOrMsg.mid(n + 1);
-        }
-        QString msg = "<center>" + res_->name() + "</center>"
-                "<p/><center>"
-                + errmsg + "</center>";
-        stateItem()->setFailed(type, msg);
+        stateItem()->setFailed(iconOrMsg);
         QObject::connect(stateItem(), &StateItem::clicked, this, &Control::reload);
         sizeChanged();
     }
@@ -707,7 +697,7 @@ void Control::reload()
     QObject::disconnect(stateItem(), &StateItem::clicked, this, &Control::reload);
     if (!(flags_ & LoadFinished)) {
         flags_ |= Loading;
-        stateItem()->setLoading("正在打开：“" + res_->name() + "”");
+        stateItem()->setLoading();
         whiteCanvas()->onControlLoad(true);
         attached(); // reload
     }
@@ -769,7 +759,7 @@ StateItem * Control::stateItem()
 {
     if (stateItem_)
         return stateItem_;
-    stateItem_ = new StateItem(item_);
+    stateItem_ = new StateItem(res_->name(), item_);
     stateItem_->showBackground(item_ == realItem_);
     stateItem_->setData(ITEM_KEY_CONTROL, QVariant::fromValue(this));
     ControlTransform * ct = new ControlTransform(static_cast<ControlTransform*>(transform_), true, false, false);

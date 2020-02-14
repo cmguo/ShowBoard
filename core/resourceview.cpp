@@ -18,7 +18,7 @@ ResourceView::ResourceView(Resource * res, Flags flags, Flags clearFlags)
     if (path.size() > 1)
         name_ = path.mid(path.lastIndexOf('/') + 1);
     else
-        name_ = res->url().toString();
+        name_ = res->url().scheme();
     res_->setParent(this);
 }
 

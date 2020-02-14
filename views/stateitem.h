@@ -21,16 +21,16 @@ public:
     Q_ENUM(State)
 
 public:
-    StateItem(QGraphicsItem * parent = nullptr);
+    StateItem(QString const & title, QGraphicsItem * parent = nullptr);
 
 public:
     void showBackground(bool show);
 
-    void setLoading(QString const & title);
+    void setLoading();
 
     void setLoaded(QString const & icon);
 
-    void setFailed(QByteArray const & type, QString const & msg);
+    void setFailed(QString const & error);
 
     void updateTransform();
 
@@ -71,6 +71,7 @@ private:
 
 private:
     State state_;
+    QString title_;
     bool showBackground_;
     int timerId_;
     qreal rotate_;

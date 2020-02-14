@@ -14,7 +14,11 @@ SvgCache * StateItem::cache_ = nullptr;
 QSvgRenderer * StateItem::loading_ = nullptr;
 QSvgRenderer * StateItem::failed_ = nullptr;
 
-StateItem::StateItem(QGraphicsItem * parent)
+static void truncateText(QString & text, QFont font, int maxWidth);
+
+static constexpr int MAX_TEXT_WIDTH = 300;
+
+StateItem::StateItem(QString const & title, QGraphicsItem * parent)
     : QGraphicsObject(parent)
     , iconItem_(nullptr)
     , textItem_(nullptr)
@@ -22,6 +26,7 @@ StateItem::StateItem(QGraphicsItem * parent)
     , hover_(nullptr)
     , pressed_(nullptr)
     , state_(None)
+    , title_(title)
     , showBackground_(true)
     , timerId_(0)
     , touchId_(0)
@@ -33,6 +38,7 @@ StateItem::StateItem(QGraphicsItem * parent)
     textItem->setFont(QFont("Microsoft YaHei", 16));
     textItem->setDefaultTextColor(Qt::white);
     textItem_ = textItem;
+    truncateText(title_, textItem->font(), MAX_TEXT_WIDTH);
     if (!cache_) {
         cache_ = SvgCache::instance();
     }
@@ -51,10 +57,12 @@ void StateItem::showBackground(bool show)
     update();
 }
 
-void StateItem::setLoading(QString const & title)
+void StateItem::setLoading()
 {
     setSharedRenderer(loading_);
-    setText(title);
+    QString text =  "<center><nobr>正在打开...</nobr><br/>"
+                    "<font style='color:#98FFFFFF;font-size:14pt;'>" + title_ + "</font></center>";
+    setText(text);
     state_ = Loading;
     rotate_ = 45.0;
     timerId_ = startTimer(100);
@@ -77,14 +85,23 @@ void StateItem::setLoaded(const QString &icon)
     setText(nullptr);
 }
 
-void StateItem::setFailed(QByteArray const & type, QString const & msg)
+void StateItem::setFailed(QString const & error)
 {
+    QByteArray type = "unknown";
+    QString errmsg = error;
+    int n = error.indexOf("|");
+    if (n > 0) {
+        type = error.left(n).toUtf8();
+        errmsg = error.mid(n + 1);
+    }
+    QString text = "<center><font style='color:#98FFFFFF;font-size:14pt;'>" + title_ + "</font>"
+            "<br/><nobr>" + errmsg + "</nobr></center>";
     state_ = Failed;
     QSvgRenderer * svg = cache_->get(QString(":/showboard/icons/error." + type + ".svg"));
     if (svg == nullptr)
         svg = failed_;
     setSharedRenderer(svg);
-    setText(msg);
+    setText(text);
 }
 
 void StateItem::setSharedRenderer(QSvgRenderer * renderer)
@@ -102,13 +119,12 @@ void StateItem::setSharedRenderer(QSvgRenderer * renderer)
 void StateItem::setText(const QString &text)
 {
     QGraphicsTextItem* textItem = static_cast<QGraphicsTextItem*>(textItem_);
+    textItem->setTextWidth(MAX_TEXT_WIDTH);
     if (text.startsWith("<") && text.endsWith(">"))
         textItem->setHtml(text);
     else
         textItem->setPlainText(text);
-    //textItem->adjustSize();
-    qreal w = textItem->boundingRect().width();
-    textItem->setTextWidth(qMin(w, 438.0));
+    textItem->adjustSize();
     QPointF center(textItem->boundingRect().center());
     center.setY(-iconItem_->boundingRect().height() / 2 - 10);
     textItem->setPos(-center);
@@ -207,3 +223,8 @@ bool StateItem::sceneEvent(QEvent *event)
     return QGraphicsObject::sceneEvent(event);
 }
 
+static void truncateText(QString & text, QFont font, int maxWidth)
+{
+    QFontMetrics fm(font);
+    text = fm.elidedText(text, Qt::TextElideMode::ElideMiddle, maxWidth);
+}
