@@ -14,7 +14,7 @@
 #include <qexport.h>
 
 REGISTER_CONTROL(ImageControl, "bmp,gif,jpg,jpeg,png")
-REGISTER_CONTROL(VideoControl, "mp4,flv,ts,m3u8,rtsp")
+REGISTER_CONTROL(VideoControl, "mp4,flv,ts,m3u8,rtsp,mp3,wav,wma")
 REGISTER_CONTROL(StrokeControl, "glstroke")
 REGISTER_CONTROL(WebControl, "htm,html,http,https")
 REGISTER_CONTROL(QmlControl, "qml")

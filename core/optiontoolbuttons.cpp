@@ -6,7 +6,7 @@
 
 OptionToolButtons::OptionToolButtons(const QVariantList &values, int column)
     : values_(values)
-    , column_(column)
+    , column_(column == 0 ? values.size() : column)
     , lastCheck_(-1)
 {
 }

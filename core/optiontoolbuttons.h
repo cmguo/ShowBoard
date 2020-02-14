@@ -11,10 +11,10 @@ class ToolButton;
 class SHOWBOARD_EXPORT OptionToolButtons
 {
 public:
-    OptionToolButtons(QVariantList const & values, int column);
+    OptionToolButtons(QVariantList const & values, int column = 0);
 
     template<typename T>
-    OptionToolButtons(QList<T> const & values, int column)
+    OptionToolButtons(QList<T> const & values, int column = 0)
         : OptionToolButtons(toVarList(values), column)
     {
     }
@@ -45,6 +45,9 @@ protected:
     virtual QString buttonTitle(QVariant const & value);
 
     virtual QVariant buttonIcon(QVariant const & value);
+
+private:
+    OptionToolButtons(OptionToolButtons const &);
 
 private:
     QVariantList const values_;

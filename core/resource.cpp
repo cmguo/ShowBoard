@@ -47,10 +47,12 @@ QPromise<QSharedPointer<QIODevice>> Resource::getStream(bool all)
         return QPromise<QSharedPointer<QIODevice>>::resolve(nullptr);
     } else if (url_.scheme() == "" || url_.scheme() == "file") {
         QSharedPointer<QIODevice> file(new QFile(url_.toLocalFile()));
-        if (file->open(QFile::ReadOnly | QFile::ExistingOnly))
+        if (file->open(QFile::ReadOnly | QFile::ExistingOnly)) {
             return QPromise<QSharedPointer<QIODevice>>::resolve(file);
-        else
+        } else {
+            qDebug() << "Resource file error" << file->errorString();
             return QPromise<QSharedPointer<QIODevice>>::reject(std::invalid_argument("文件打开失败，请确认文件是否存在"));
+        }
     } else {
         QString path = cache_.getFile(url_);
         if (!path.isEmpty()) {

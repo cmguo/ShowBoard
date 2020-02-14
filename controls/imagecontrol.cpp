@@ -87,7 +87,10 @@ void ImageControl::setPixmap(const QPixmap &pixmap)
         data_.reset(new ImageData(pixmap, mipmap_));
         if (!flags_.testFlag(LoadFinished)) {
             QObject::connect(&res_->transform(), &ResourceTransform::changed,
-                             this, &ImageControl::adjustMipmap);
+                             this, [this](int c) {
+                if (c & 4) // scale
+                    adjustMipmap();
+            });
             data_->load(this, whiteCanvas()->rect().size());
         } else {
             qreal scale = res_->transform().scale().m11();
@@ -116,6 +119,8 @@ void ImageControl::setMipMapPixmap(const QPixmap &pixmap, QSizeF const & sizeHin
 
 void ImageControl::adjustMipmap()
 {
+    if (!data_)
+        return;
     qreal scale = res_->transform().scale().m11();
     if (scale >= 1 || scale <= 1 / mipmap_) {
         QSizeF size = item_->boundingRect().size() * scale;

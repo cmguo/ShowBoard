@@ -124,7 +124,7 @@ void Control::attachTo(QGraphicsItem * parent)
     whiteCanvas()->onControlLoad(true);
     attached();
     if (flags_ & Loading) {
-        stateItem()->setLoading("<center>正在打开：“" + res_->name() + "”</center>");
+        stateItem()->setLoading("<center>正在打开...</center><p/><center>" + res_->name() + "</center>");
     }
 }
 
@@ -445,6 +445,8 @@ void Control::loadFinished(bool ok, QString const & iconOrMsg)
         } else {
             stateItem()->setLoaded(iconOrMsg);
         }
+        if (flags_ & LoadFinished)
+            return;
         initScale();
         sizeChanged();
         flags_ |= LoadFinished;
