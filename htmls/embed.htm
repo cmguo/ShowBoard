@@ -1,34 +1,62 @@
-<doctype html>
-<html>
-    <head>
-        <meta charset="UTF-8"/>
-        <title>Embed Sample Page</title>
-        <script src="https://code.jquery.com/jquery-1.7.2.min.js" type="text/javascript" charset="utf-8" async defer></script>
-        <script type="text/javascript">
-            function findGetParameter(parameterName) {
-                var result = null, tmp = [];
-                location.search
-                    .substr(1)
-                    .split("&")
-                    .forEach(function (item) {
-                        tmp = item.split("=");
-                        if (tmp[0] === parameterName)
-                            result = decodeURIComponent(tmp[1]);
-                    });
-                return result;
-            }
-            function onLoad() {
-                var type = findGetParameter("type");
-                var url = findGetParameter("url");
-                var embed = $("#embed")[0];
-                embed.type = type;
-                embed.src = url;
-            }
-        </script>
-    </head>
-    <body onload="onLoad()">
-        <embed id="embed" width="100%" height="100%" >
-            <param name="quality" value="high" />
-        </embed>
-    </body>
-</html>
+<!DOCTYPE html><html lang=en><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=0"><title>iclass</title><style type=text/css>body {
+      user-select: none;
+    }
+    .title {
+      box-sizing: border-box;
+      text-align: center;
+      padding-top: 0.2rem;
+      font-size: 0.23rem;
+      color: #2E4A66;
+      height: 1rem;
+      font-weight: 600;
+    }
+
+    .btn_close {
+      width: 0.18rem;
+      height: 0.18rem;
+      position: absolute;
+      right: 0;
+      top: 0;
+      cursor: pointer;
+      padding: 0.1rem;
+      z-index: 999;
+    }
+
+    .btn_close img {
+      width: 100%;
+    }</style><link href=assets/css/chunk-common.css rel=preload as=style><link href=assets/css/chunk-vendors.css rel=preload as=style><link href=assets/css/embed.css rel=preload as=style><link href=assets/js/chunk-common.js rel=preload as=script><link href=assets/js/chunk-vendors.js rel=preload as=script><link href=assets/js/embed.js rel=preload as=script><link href=assets/css/chunk-vendors.css rel=stylesheet><link href=assets/css/chunk-common.css rel=stylesheet><link href=assets/css/embed.css rel=stylesheet></head><body><noscript><strong>We're sorry but iclass doesn't work properly without JavaScript enabled. Please enable it to continue.</strong></noscript><div id=app></div><script src=assets/js/chunk-vendors.js></script><script src=assets/js/chunk-common.js></script><script src=assets/js/embed.js></script></body><script>//支持Object.entries
+    Object.entries = function (obj) {
+      var ownProps = Object.keys(obj),
+        i = ownProps.length,
+        resArray = new Array(i); // preallocate the Array
+      while (i--)
+        resArray[i] = [ownProps[i], obj[ownProps[i]]];
+
+      return resArray;
+    };
+    Object.values = function (obj) {
+        let vals = [];
+        for (const prop in obj) {
+            vals.push(obj[prop]);
+        }
+        return vals;
+    };</script><script src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><script type=text/x-mathjax-config>if(MathJax){
+          MathJax.Hub.Config({
+            showProcessingMessages: false,
+            messageStyle: "none",
+            jax: ["input/TeX","output/HTML-CSS", "output/PreviewHTML"],  //输出格式配置：latex 解析为 DOM结构
+            tex2jax: {
+              inlineMath: [['$','$']],
+              displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+              skipTags: ['script', 'noscript', 'style', 'textarea', 'pre','code','a'],
+              ignoreClass:"class1"
+            },
+            "HTML-CSS": {
+              showMathMenu: false,            // 隐藏右键菜单展示
+              linebreaks: { 
+                automatic: true,  //超长公式换行处理（默认是false不换行）
+                width: "80%"      //设置换行的点，默认是遇到等号=换行
+              } 
+            },
+          });
+        }</script></html>

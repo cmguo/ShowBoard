@@ -22,5 +22,11 @@
         <file>qss/draw_finish.qss</file>
         <file>icons/error.network.svg</file>
         <file>icons/error.software.svg</file>
+        <file>htmls/assets/css/chunk-common.css</file>
+        <file>htmls/assets/css/chunk-vendors.css</file>
+        <file>htmls/assets/css/embed.css</file>
+        <file>htmls/assets/js/chunk-common.js</file>
+        <file>htmls/assets/js/chunk-vendors.js</file>
+        <file>htmls/assets/js/embed.js</file>
     </qresource>
 </RCC>

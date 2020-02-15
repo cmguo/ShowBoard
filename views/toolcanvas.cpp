@@ -25,7 +25,7 @@ void ToolCanvas::hideToolControl(Control * control)
 
 Control * ToolCanvas::getToolControl(const QString &type)
 {
-    QUrl url(type + ":");
+    QUrl url(type.contains(':') ? type : type + ":");
     ResourceView * res = page_->findResource(url);
     if (!res) {
         res = page_->addResource(url);
