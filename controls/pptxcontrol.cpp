@@ -152,16 +152,19 @@ void PptxControl::show(int page)
     });
 }
 
+extern bool supportTranslucentBackground();
+
 void PptxControl::showStopButton()
 {
     QToolButton * button = new QToolButton;
     button->setWindowFlag(Qt::FramelessWindowHint);
     button->setWindowFlag(Qt::SubWindow);
-    button->setAttribute(Qt::WA_TranslucentBackground);
+    if (supportTranslucentBackground())
+        button->setAttribute(Qt::WA_TranslucentBackground);
     button->setToolButtonStyle(Qt::ToolButtonStyle::ToolButtonTextUnderIcon);
     button->setStyleSheet("width:72px;height:72px;"
                           "background-color:#F22B3034;border-radius:8px;border:1px solid rgba(67,77,89,1);"
-                          "color:#909093;font-family:'Microsoft YaHei';font-size:12pt;");
+                          "color:#909093;font-family:'Microsoft YaHei';font-size:12px;");
     button->setIconSize({40, 40});
     button->setIcon(QPixmap(":/showboard/icons/return.png"));
     button->setText("返回课堂");

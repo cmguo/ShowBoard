@@ -1,8 +1,14 @@
 #include <Windows.h>
+#include <VersionHelpers.h>
 #ifdef _DEBUG
 #include <gdiplus.h>
 #include <gdiplusheaders.h>
 #endif
+
+bool supportTranslucentBackground()
+{
+    return IsWindows8OrGreater();
+}
 
 BOOL CALLBACK EnumWindowsProc(_In_ HWND hwnd, _In_ LPARAM lParam)
 {
