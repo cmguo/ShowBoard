@@ -88,7 +88,7 @@ void PowerPoint::open(QString const & file)
         emit opened(total_);
         thumb(slideNumber_);
     } else {
-        emit failed("Open Failed");
+        emit failed("打开失败，请联系技术支持");
     }
 }
 
@@ -131,6 +131,7 @@ void PowerPoint::show(int page)
 {
     if (!presentation_)
         return;
+    qDebug() << "show" << page;
     if (page == 0) {
         //page = slideNumber_;
     } else {
@@ -156,16 +157,23 @@ void PowerPoint::show(int page)
             if (view_) {
                 QObject::connect(view_, SIGNAL(exception(int,QString,QString,QString)),
                                  this, SLOT(onException(int,QString,QString,QString)));
-                if (titleParts[0])
+                QFileInfo fi(file_);
+                QByteArray name = fi.baseName().left(8).toLocal8Bit();
+                if (titleParts[0]) {
+                    titleParts[1] = name;
                     hwnd_ = findWindow(titleParts);
+                }
                 // WPS will imitate Microsoft office sometime, so we find WPS window also
-                if (hwnd_ == 0)
+                if (hwnd_ == 0) {
+                    titleParts2[1] = name;
                     hwnd_ = findWindow(titleParts2);
+                }
             }
             if (hwnd_ == 0) {
                 emit failed(view_ ? "Can't find play window!" : "Can't start play view!");
                 return;
             }
+            qDebug() << "Found play window" << reinterpret_cast<void *>(hwnd_);
         } catch (...) {
         }
         if (page == 0) {
