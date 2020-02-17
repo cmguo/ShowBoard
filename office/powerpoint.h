@@ -84,6 +84,7 @@ private:
     QAxObject * presentation_;
     int total_;
     int slideNumber_;
+    int thumbNumber_;
     QAxObject * view_;
     intptr_t hwnd_;
     int timerId_;

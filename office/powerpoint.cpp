@@ -37,6 +37,7 @@ PowerPoint::PowerPoint(QObject * parent)
     , presentation_(nullptr)
     , total_(0)
     , slideNumber_(1)
+    , thumbNumber_(0)
     , view_(nullptr)
     , hwnd_(0)
     , timerId_(0)
@@ -86,7 +87,8 @@ void PowerPoint::open(QString const & file)
         presentation_ = presentation;
         total_ = presentation_->querySubObject("Slides")->property("Count").toInt();
         emit opened(total_);
-        thumb(slideNumber_);
+        if (thumbNumber_ != slideNumber_)
+            thumb(slideNumber_);
     } else {
         emit failed("打开失败，请联系技术支持");
     }
@@ -111,6 +113,7 @@ void PowerPoint::thumb(int page)
             QPixmap pixmap;
             pixmap.loadFromData(reinterpret_cast<uchar*>(data), static_cast<uint>(size));
             emit thumbed(pixmap);
+            thumbNumber_ = slideNumber_;
             setArrowCursor();
         } else {
             slide = view_->querySubObject("Slide");
@@ -124,6 +127,7 @@ void PowerPoint::thumb(int page)
     slide->dynamicCall("Export(QString, QString, long, long)", file, "JPG", 320, 180);
     QPixmap pixmap(file);
     emit thumbed(pixmap);
+    thumbNumber_ = slideNumber_;
     setArrowCursor();
 }
 
@@ -142,12 +146,13 @@ void PowerPoint::show(int page)
     } else {
         try {
             QAxObject * settings = presentation_->querySubObject("SlideShowSettings");
-            //settings->setProperty("ShowType", "ppShowTypeSpeaker");
             if (settings) {
+                //settings->setProperty("ShowType", "ppShowTypeSpeaker");
                 settings->setProperty("ShowMediaControls", "true");
                 settings->setProperty("ShowPresenterView", "false");
             } else {
-                qWarning() << "Can't get SlideShowSettings!";
+                emit failed("Can't get SlideShowSettings!");
+                return;
             }
             //if (page) // will cause View be null
             //    settings->setProperty("StartingSlide", page);
@@ -239,8 +244,9 @@ void PowerPoint::hide()
     killTimer(timerId_);
     timerId_ = 0;
     thumb(0);
-    hideWindow(hwnd_);
-    showCursor();
+    //hideWindow(hwnd_);
+    //showCursor();
+    reopen();
 }
 
 void PowerPoint::close()
