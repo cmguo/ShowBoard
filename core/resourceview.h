@@ -45,8 +45,8 @@ public:
         //  special used for stroke writen
         Splittable = 1 << 8,
         DrawAttach = 1 << 9, // attach to when drawing
-        VirtualScene = BottomMost | (1 << 10),
-        LargeCanvas = VirtualScene | (1 << 11),
+        VirtualPage = BottomMost | (1 << 10),
+        LargeCanvas = VirtualPage | (1 << 11),
         SubPages = BottomMost | (1 << 12),
         // States
         SavedSession = 1 << 16,

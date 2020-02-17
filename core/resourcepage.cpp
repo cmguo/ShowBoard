@@ -30,7 +30,7 @@ ResourceView * ResourcePage::addResource(QUrl const & url, QVariantMap const & s
     for (QString const & k : settings.keys()) {
         rv->setProperty(k.toUtf8(), settings.value(k));
     }
-    if (rv->flags().testFlag(ResourceView::VirtualScene)) {
+    if (rv->flags().testFlag(ResourceView::VirtualPage)) {
         qobject_cast<ResourcePackage*>(parent())->newVirtualPage(rv);
     } else {
         addResource(rv);
