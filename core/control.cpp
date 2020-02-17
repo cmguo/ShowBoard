@@ -224,7 +224,8 @@ void Control::saveSettings()
             res_->setProperty(p.name(), p.read(itemObj_));
         }
     }
-    res_->setSaved();
+    if (flags_ & LoadFinished)
+        res_->setSaved();
 }
 
 void Control::sizeChanged()
@@ -492,7 +493,8 @@ void Control::initScale()
         scale = qMin(sh.width() / size.width(), sh.height() / size.height());
         if ((flags_ & ExpandScale) == 0 && scale > 1.0)
             scale = 1.0;
-        size = size * scale;
+        else
+            size = size * scale * 0.999999;
         delaySizeHint.clear();
         setProperty("delaySizeHint", delaySizeHint);
     }

@@ -145,7 +145,7 @@ QRectF StateItem::boundingRect() const
     if (textItem_->isVisible()) {
         rect |= textItem_->mapToParent(textItem_->boundingRect()).boundingRect();
     }
-    rect.adjust(-32, -12, 32, 12);
+    rect.adjust(-32, -12, 32, 32);
     return rect;
 }
 
