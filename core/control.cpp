@@ -21,6 +21,8 @@
 
 #include <map>
 
+#include <math.h>
+
 char const * Control::EXPORT_ATTR_TYPE = "ctrl_type";
 
 static qreal MIN_SIZE = 120.0;

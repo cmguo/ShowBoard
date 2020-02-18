@@ -6,10 +6,16 @@
 #include <QNetworkReply>
 #include <QMetaEnum>
 #include <QDir>
+#include <QStandardPaths>
 #include <QTextCodec>
 
 QNetworkAccessManager * Resource::network_ = nullptr;
-FileLRUCache Resource::cache_(QDir::current().filePath("rescache"), 1000 * 1024 * 1024); // 1G
+FileLRUCache Resource::cache_(
+#ifdef QT_DEBUG
+        QDir::current().filePath("rescache"), 100 * 1024 * 1024); // 100M
+#else
+        QDir(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)).filePath("rescache"), 1000 * 1024 * 1024); // 1G
+#endif
 
 using namespace QtPromise;
 
