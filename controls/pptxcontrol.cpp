@@ -161,6 +161,8 @@ void PptxControl::showStopButton()
     button->setWindowFlag(Qt::SubWindow);
     if (supportTranslucentBackground())
         button->setAttribute(Qt::WA_TranslucentBackground);
+    else
+        button->setAttribute(Qt::WA_PaintOnScreen);
     button->setToolButtonStyle(Qt::ToolButtonStyle::ToolButtonTextUnderIcon);
     button->setStyleSheet("width:72px;height:72px;"
                           "background-color:#F22B3034;border-radius:8px;border:1px solid rgba(67,77,89,1);"
