@@ -10,12 +10,7 @@
 #include <QTextCodec>
 
 QNetworkAccessManager * Resource::network_ = nullptr;
-FileLRUCache Resource::cache_(
-#ifdef QT_DEBUG
-        QDir::current().filePath("rescache"), 100 * 1024 * 1024); // 100M
-#else
-        QDir(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)).filePath("rescache"), 1000 * 1024 * 1024); // 1G
-#endif
+FileLRUCache * Resource::cache_ = nullptr;
 
 using namespace QtPromise;
 
@@ -23,6 +18,14 @@ Resource::Resource(QByteArray const & type, QUrl const & url)
     : url_(url)
     , type_(type)
 {
+    if (cache_ == nullptr) {
+        cache_ = new FileLRUCache(
+                #ifndef QT_DEBUG
+                        QDir::current().filePath("rescache"), 100 * 1024 * 1024); // 100M
+                #else
+                        QDir(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)).filePath("rescache"), 1000 * 1024 * 1024); // 1G
+                #endif
+    }
 }
 
 Resource::Resource(Resource const & o)
@@ -36,14 +39,14 @@ QPromise<QUrl> Resource::getLocalUrl()
     if (url_.scheme() == "file") {
         return QPromise<QUrl>::resolve(url());
     }
-    QString file = cache_.getFile(url_);
+    QString file = cache_->getFile(url_);
     if (!file.isEmpty()) {
         return QPromise<QUrl>::resolve(QUrl::fromLocalFile(file));
     }
     return getData().then([this, l = life()] (QByteArray data) {
         if (l.isNull())
             return QUrl();
-        return QUrl::fromLocalFile(cache_.put(url_, data));
+        return QUrl::fromLocalFile(cache_->put(url_, data));
     });
 }
 
@@ -60,7 +63,7 @@ QPromise<QSharedPointer<QIODevice>> Resource::getStream(bool all)
             return QPromise<QSharedPointer<QIODevice>>::reject(std::invalid_argument("打开失败，请确认文件是否存在"));
         }
     } else {
-        QString path = cache_.getFile(url_);
+        QString path = cache_->getFile(url_);
         if (!path.isEmpty()) {
             QSharedPointer<QIODevice> file(new QFile(path));
             file->open(QFile::ReadOnly | QFile::ExistingOnly);
@@ -108,7 +111,7 @@ QPromise<QByteArray> Resource::getData()
             QByteArray data = io->readAll();
             io->close();
             if (io->metaObject() != &QFile::staticMetaObject)
-                cache_.put(url, data);
+                cache_->put(url, data);
             return data;
         });
     }

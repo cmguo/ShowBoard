@@ -78,7 +78,7 @@ public:
 
 private:
     static QNetworkAccessManager * network_;
-    static FileLRUCache cache_;
+    static FileLRUCache * cache_;
 
 private:
     QUrl const url_;
