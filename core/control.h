@@ -189,7 +189,7 @@ public:
 
     virtual void beforeClone();
 
-    virtual void afterClone(ResourceView * res);
+    virtual void afterClone(Control * control);
 
 protected:
     /*

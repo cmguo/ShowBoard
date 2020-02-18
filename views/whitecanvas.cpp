@@ -113,7 +113,9 @@ Control *WhiteCanvas::copyResource(Control *control)
 {
     control->beforeClone();
     ResourceView * res = canvas_->page()->copyResource(control->resource());
-    return canvas_->findControl(res);
+    Control* copy = canvas_->findControl(res);
+    control->afterClone(copy);
+    return copy;
 }
 
 void WhiteCanvas::removeResource(Control *control)
@@ -205,10 +207,7 @@ void WhiteCanvas::toolButtonClicked(QList<ToolButton *> const & buttons)
         ct->resource()->moveTop();
     } else if (btn == &Control::btnCopy) {
         selector_->select(nullptr);
-        ct->beforeClone();
-        ResourceView* res = canvas_->page()->copyResource(ct->resource());
-        res->transform().translate({60, 60});
-        ct->afterClone(res);
+        copyResource(ct)->resource()->transform().translate({60, 60});
     } else if (btn == &Control::btnFastCopy) {
         bool checked = !btn->flags.testFlag(ToolButton::Checked);
         selector_->enableFastClone(checked);

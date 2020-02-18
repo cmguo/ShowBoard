@@ -160,7 +160,7 @@ void Control::beforeClone()
         saveSettings();
 }
 
-void Control::afterClone(ResourceView *)
+void Control::afterClone(Control *)
 {
 }
 
