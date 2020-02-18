@@ -37,7 +37,13 @@ public:
         if (!lruMap_.contains(k)) {
             return V();
         }
-        return lruMap_[k]->second;
+        typename QLinkedList<QPair<K, V>>::iterator & i = lruMap_[k];
+        if (i != lruList_.begin()) {
+            lruList_.prepend(*i);
+            lruList_.erase(i);
+            i = lruList_.begin();
+        }
+        return i->second;
     }
 
     void remove(K const & k) {

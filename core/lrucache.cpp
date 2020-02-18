@@ -3,13 +3,14 @@
 #include <QDir>
 #include <QUrl>
 #include <QCryptographicHash>
+#include <QDateTime>
 
 FileLRUCache::FileLRUCache(const QDir &dir, quint64 capacity)
     : base(capacity)
     , dir_(dir)
 {
     dir.mkpath(dir.path());
-    for (QString const & f : dir.entryList()) {
+    for (QString const & f : dir.entryList(QDir::NoFilter, QDir::Time)) {
         if (f.length() == 32 || f.indexOf('.') == 32) {
             base::put(f.left(32), dir.filePath(f));
         } else {
@@ -49,7 +50,7 @@ QByteArray FileLRUCache::get(const QUrl &url)
     if (path.isEmpty())
         return QByteArray();
     QFile file(path);
-    if (!file.open(QFile::WriteOnly)) {
+    if (!file.open(QFile::ReadOnly)) {
         remove(urlMd5(url)); // rarely happen
         return QByteArray();
     }
@@ -76,6 +77,7 @@ QString FileLRUCache::getFile(const QUrl &url)
         remove(md5);
         return nullptr;
     }
+    QFile(path).setFileTime(QDateTime::currentDateTime(), QFile::FileModificationTime);
     return path;
 }
 
