@@ -14,6 +14,11 @@ FileLRUCache * Resource::cache_ = nullptr;
 
 using namespace QtPromise;
 
+void Resource::initCache(const QString &path, quint64 capacity)
+{
+    cache_ = new FileLRUCache(QDir(path), capacity);
+}
+
 Resource::Resource(QByteArray const & type, QUrl const & url)
     : url_(url)
     , type_(type)

@@ -30,6 +30,8 @@ public:
 
     static constexpr char const * PROP_SUB_TYPE2 = "RES_SUB_TYPE2";
 
+    static void initCache(QString const & path, quint64 capacity);
+
 public:
     /*
      * new resource with type @type and url @url
