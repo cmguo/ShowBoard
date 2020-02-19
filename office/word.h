@@ -62,6 +62,8 @@ private:
 private:
     static QAxObject * application_;
 
+    static void quit();
+
 private:
     QAxObject * documents_;
     QString file_;

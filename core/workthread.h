@@ -23,6 +23,8 @@ public:
         postWork(context_, func);
     }
 
+    static void quitAll();
+
 private:
     QObject* context_;
 };

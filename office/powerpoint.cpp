@@ -70,14 +70,14 @@ void PowerPoint::open(QString const & file)
     }
     if (application_ && !presentations_) {
         presentations_ = application_->querySubObject("Presentations");
-        QObject::connect(presentations_, SIGNAL(exception(int,QString,QString,QString)),
-                         this, SLOT(onException(int,QString,QString,QString)));
     }
     if (!presentations_) {
         emit failed("software|未检测到PPT放映软件，请安装Office软件");
         return;
     }
     file_ = file;
+    QObject::connect(presentations_, SIGNAL(exception(int,QString,QString,QString)),
+                     this, SLOT(onException(int,QString,QString,QString)));
     QAxObject * presentation = presentations_->querySubObject(
                 "Open(const QString&, bool, bool, bool)",
                 file, true, false, false);
@@ -114,7 +114,6 @@ void PowerPoint::thumb(int page)
             pixmap.loadFromData(reinterpret_cast<uchar*>(data), static_cast<uint>(size));
             emit thumbed(pixmap);
             thumbNumber_ = slideNumber_;
-            setArrowCursor();
         } else {
             slide = view_->querySubObject("Slide");
         }

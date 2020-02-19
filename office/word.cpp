@@ -7,15 +7,14 @@
 
 extern bool saveGdiImage(char* data, int size, char** out, int * nout);
 
-QAxObject * Word::application_ = nullptr;
-
-static QThread & workThread() {
+static AxThread & workThread() {
     static AxThread thread("Word");
     return thread;
 }
 
 Word::Word(QObject * parent)
     : QObject(parent)
+    //, application_(nullptr)
     , documents_(nullptr)
     , document_(nullptr)
     , panes_(nullptr)
@@ -27,12 +26,15 @@ Word::Word(QObject * parent)
 
 Word::~Word()
 {
-    if (documents_)
-        delete documents_;
-    documents_ = nullptr;
+//    if (application_)
+//        delete application_;
+//    application_ = nullptr;
 }
 
-static constexpr int wdNumberOfPagesInDocument = 4;
+QAxObject * Word::application_ = nullptr;
+
+static constexpr int wdStatisticPages = 2;
+static constexpr int wdDoNotSaveChanges = 0;
 
 void Word::open(QString const & file)
 {
@@ -46,18 +48,19 @@ void Word::open(QString const & file)
         }
         if (application_) {
             application_->moveToThread(&workThread());
+            workThread().atexit(quit);
         }
     }
     if (application_ && !documents_) {
         documents_ = application_->querySubObject("Documents");
-        QObject::connect(documents_, SIGNAL(exception(int,QString,QString,QString)),
-                         this, SLOT(onException(int,QString,QString,QString)));
     }
     if (!documents_) {
         emit failed("No Word Application");
         return;
     }
     file_ = file;
+    QObject::connect(documents_, SIGNAL(exception(int,QString,QString,QString)),
+                     this, SLOT(onException(int,QString,QString,QString)));
     QAxObject * document = documents_->querySubObject(
                 "Open(const QString&, bool, bool, bool)",
                 file,
@@ -69,7 +72,7 @@ void Word::open(QString const & file)
         QObject::connect(document, SIGNAL(exception(int,QString,QString,QString)),
                          this, SLOT(onException(int,QString,QString,QString)));
         document_ = document;
-        total_ = document_->querySubObject("Range()")->dynamicCall("Information(int)", wdNumberOfPagesInDocument).toInt();
+        total_ = document_->dynamicCall("ComputeStatistics(int)", wdStatisticPages).toInt();
         qDebug() << "total_" << total_;
         QAxObject* xWindow = document_->querySubObject("ActiveWindow");
         panes_ = xWindow->querySubObject("Panes(int)", 1);
@@ -126,13 +129,18 @@ void Word::prev()
 
 void Word::close()
 {
-    if (!document_)
-        return;
     qDebug() << "Word::close()";
-    document_->dynamicCall("Close()");
-    delete document_;
-    document_ = nullptr;
-    total_ = 0;
+    if (document_) {
+        document_->dynamicCall("Close(int)", wdDoNotSaveChanges);
+        delete document_;
+        document_ = nullptr;
+        total_ = 0;
+    }
+//    if (application_) {
+//        application_->dynamicCall("Quit()");
+//        delete application_;
+//        application_ = nullptr;
+//    }
     emit closed();
 }
 
@@ -154,4 +162,14 @@ void Word::onException(int code, const QString &source, const QString &desc, con
     (void) source;
     (void) help;
     qDebug() << "onException" << code << source << desc << help;
+}
+
+void Word::quit()
+{
+    qDebug() << "Word::quit()";
+    if (application_) {
+        application_->dynamicCall("Quit()");
+        delete application_;
+        application_ = nullptr;
+    }
 }

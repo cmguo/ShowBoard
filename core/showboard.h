@@ -9,6 +9,8 @@ class SHOWBOARD_EXPORT ShowBoard
 {
 public:
     static QComponentContainer & containter();
+
+    static void exit();
 };
 
 #endif // SHOWBOARD_H
