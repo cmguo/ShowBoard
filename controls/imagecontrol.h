@@ -29,6 +29,8 @@ protected:
 private:
     void adjustMipmap();
 
+    void adjustMipmap2(QSizeF const & sizeHint);
+
 private:
     qreal mipmap_;
     QSharedPointer<ImageData> data_;

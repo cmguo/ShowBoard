@@ -9,7 +9,9 @@
 #include <QGraphicsPixmapItem>
 #include <QCursor>
 
-class ImageData
+using namespace QtPromise;
+
+class ImageData : public QEnableSharedFromThis<ImageData>
 {
 public:
     static QSharedPointer<ImageData> get(QUrl const & url);
@@ -19,7 +21,9 @@ public:
 public:
     ImageData(QPixmap const pixmap, qreal mipmap);
 
-    void load(ImageControl * context, QSizeF const & sizeHint);
+    virtual ~ImageData();
+
+    QPromise<QPixmap> load(QSizeF const & sizeHint);
 
 private:
     static QMutex mutex_;
@@ -30,6 +34,7 @@ private:
     QPixmap pixmap_;
     qreal mipmap_;
     QList<QPixmap> mipmaps_;
+    QSharedPointer<int> life_;
 };
 
 ImageControl::ImageControl(ResourceView * res, Flags flags, Flags clearFlags)
@@ -62,7 +67,7 @@ void ImageControl::attached()
     }
     data_ = ImageData::get(res_->url());
     if (data_) {
-        data_->load(this, whiteCanvas()->rect().size());
+        adjustMipmap2(whiteCanvas()->rect().size());
         return;
     }
     QWeakPointer<int> l = life();
@@ -71,7 +76,7 @@ void ImageControl::attached()
         QPixmap pixmap;
         pixmap.loadFromData(data);
         data_ = ImageData::put(res_->url(), pixmap, mipmap_);
-        data_->load(this, whiteCanvas()->rect().size());
+        adjustMipmap2(whiteCanvas()->rect().size());
     }).fail([this, l](std::exception& e) {
         loadFinished(false, e.what());
     });
@@ -91,11 +96,10 @@ void ImageControl::setPixmap(const QPixmap &pixmap)
                 if (c & 4) // scale
                     adjustMipmap();
             });
-            data_->load(this, whiteCanvas()->rect().size());
+            adjustMipmap2(whiteCanvas()->rect().size());
         } else {
             qreal scale = res_->transform().scale().m11();
-            QSizeF size = item_->boundingRect().size() * scale;
-            data_->load(this, size);
+            adjustMipmap2(item_->boundingRect().size() * scale);
         }
     }
 }
@@ -123,9 +127,16 @@ void ImageControl::adjustMipmap()
         return;
     qreal scale = res_->transform().scale().m11();
     if (scale >= 1 || scale <= 1 / mipmap_) {
-        QSizeF size = item_->boundingRect().size() * scale;
-        data_->load(this, size);
+        adjustMipmap2(item_->boundingRect().size() * scale);
     }
+}
+
+void ImageControl::adjustMipmap2(const QSizeF &sizeHint)
+{
+    data_->load(sizeHint).then([this, sizeHint, l = life()] (QPixmap const &pixmap) {
+        if (!l.isNull())
+            setMipMapPixmap(pixmap, sizeHint);
+    });
 }
 
 QMutex ImageData::mutex_;
@@ -145,17 +156,25 @@ QSharedPointer<ImageData> ImageData::put(const QUrl &url, const QPixmap &pixmap,
     return data;
 }
 
+static void nopdel(int *) {}
+
 ImageData::ImageData(const QPixmap pixmap, qreal mipmap)
     : pixmap_(pixmap)
     , mipmap_(mipmap)
+    , life_(reinterpret_cast<int*>(1), nopdel)
 {
 }
 
-void ImageData::load(ImageControl *context, const QSizeF &sizeHint)
+ImageData::~ImageData()
+{
+    life_.reset();
+    QMutexLocker l(&mutex_);
+}
+
+QPromise<QPixmap> ImageData::load(const QSizeF &sizeHint)
 {
     if (qIsNull(mipmap_)) {
-        context->setMipMapPixmap(pixmap_, sizeHint);
-        return;
+        return QPromise<QPixmap>::resolve(pixmap_);
     }
     QMutexLocker l(&mutex_);
     QPixmap pixmap(mipmaps_.isEmpty() ? pixmap_ : mipmaps_.back());
@@ -171,14 +190,16 @@ void ImageData::load(ImageControl *context, const QSizeF &sizeHint)
             }
         }
         l.unlock();
-        context->setMipMapPixmap(pixmap, sizeHint);
-        return;
+        return QPromise<QPixmap>::resolve(pixmap);
     }
     if (QThread::currentThread() != &thread_) {
-        thread_.postWork([this, context, sizeHint]() {
-            load(context, sizeHint);
+        return QPromise<QPixmap>([thiz = sharedFromThis(), sizeHint](
+                                 const QPromiseResolve<QPixmap>& resolve,
+                                 const QPromiseReject<QPixmap>& reject) {
+            thread_.postWork([=] {
+                thiz->load(sizeHint).then([resolve](QPixmap const &p){resolve(p);}, reject);
+            });
         });
-        return;
     }
     size /= mipmap_;
     while (size.width() >= sizeHint.width() && size.height() >= sizeHint.height()) {
@@ -187,7 +208,5 @@ void ImageData::load(ImageControl *context, const QSizeF &sizeHint)
         size /= mipmap_;
         mipmaps_.append(pixmap);
     }
-    WorkThread::postWork(context, [context, pixmap, sizeHint]() {
-        context->setMipMapPixmap(pixmap, sizeHint);
-    });
+    return QPromise<QPixmap>::resolve(pixmap);
 }
