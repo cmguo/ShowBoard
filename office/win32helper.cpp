@@ -1,3 +1,4 @@
+#undef NOMINMAX
 #include <Windows.h>
 #include <VersionHelpers.h>
 #ifdef _DEBUG
