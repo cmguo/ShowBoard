@@ -31,6 +31,26 @@ static QThread & workThread() {
     return thread;
 }
 
+class PptObject : public QAxObject
+{
+public:
+    PptObject() {}
+
+    QString foundControl() {
+        return control_;
+    }
+
+protected:
+    virtual bool initialize(IUnknown** ptr)
+    {
+        control_ = control();
+        return QAxObject::initialize(ptr);
+    }
+
+private:
+    QString control_;
+};
+
 PowerPoint::PowerPoint(QObject * parent)
     : QObject(parent)
     , presentations_(nullptr)
@@ -55,8 +75,13 @@ PowerPoint::~PowerPoint()
 void PowerPoint::open(QString const & file)
 {
     if (application_ == nullptr) {
-        application_ = new QAxObject;
+        application_ = new PptObject;
         if (!application_->setControl("PowerPoint.Application")) {
+            if (static_cast<PptObject*>(application_)->foundControl().startsWith("{")) {
+                application_ = nullptr;
+                emit failed("software|打开失败，请关闭其他演讲文稿后重试");
+                return;
+            }
             if (application_->setControl("Kwpp.Application")) {
                 titleParts[0] = nullptr; // not check PowerPoint
             } else {
