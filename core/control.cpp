@@ -391,8 +391,11 @@ static qreal polygonArea(QPolygonF const & p)
 
 void Control::initPosition()
 {
-    if (realItem_ != item_)
-        static_cast<ItemFrame *>(realItem_)->updateRect();
+    ItemFrame * frame = nullptr;
+    if (realItem_ != item_) {
+        frame = static_cast<ItemFrame *>(realItem_);
+        frame->updateRect();
+    }
     if (flags_ & (FullLayout | RestoreSession))
         return;
     QGraphicsItem *parent = realItem_->parentItem();
@@ -403,8 +406,12 @@ void Control::initPosition()
         if (!(flags_ & AutoPosition))
             res_->transform().translate(rect.center());
     }
-    if (!(flags_ & AutoPosition))
+    if (!(flags_ & AutoPosition)) {
+        if (frame) {
+            res_->transform().translate(-frame->padding().center());
+        }
         return;
+    }
     QPolygonF polygon;
     for (QGraphicsItem * c : parent->childItems()) {
         if (c == realItem_ || Control::fromItem(c)->flags() & FullLayout)
