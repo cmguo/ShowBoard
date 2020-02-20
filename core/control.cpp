@@ -235,19 +235,13 @@ void Control::sizeChanged()
     QRectF rect = item_->boundingRect();
     QPointF center(rect.center());
     if (flags_ & LoadFinished) {
-        if (flags_ & (Adjusting | FullLayout)) {
-            item_->setTransform(QTransform::fromTranslate(-center.x(), -center.y()));
-        } else {
+        if (!(flags_ & (Adjusting | FullLayout))) {
             // keep top left
-            QTransform t = item_->transform();
-            center = t.map(center);
-            move(center);
-            t.translate(-center.x(), -center.y());
-            item_->setTransform(t);
+            QPointF offset = item_->mapToParent(center);
+            move(offset);
         }
-    } else {
-        item_->setTransform(QTransform::fromTranslate(-center.x(), -center.y()));
     }
+    item_->setTransform(QTransform::fromTranslate(-center.x(), -center.y()));
     if (realItem_ != item_)
         static_cast<ItemFrame *>(realItem_)->updateRect();
     if (stateItem_) {
