@@ -5,6 +5,7 @@
 //#include "views/itemframe.h"
 #include "office/powerpoint.h"
 #include "core/workthread.h"
+#include "core/lrucache.h"
 
 #include <QUrl>
 #include <QDir>
@@ -12,6 +13,7 @@
 #include <QGraphicsTextItem>
 #include <QToolButton>
 #include <QApplication>
+#include <QBuffer>
 
 static char const * toolstr =
         "show()|开始演示;"
@@ -39,7 +41,6 @@ PptxControl::PptxControl(ResourceView * res)
 
 PptxControl::~PptxControl()
 {
-    close();
     powerpoint_->deleteLater();
     powerpoint_ = nullptr;
 }
@@ -69,8 +70,26 @@ void PptxControl::open()
     });
 }
 
+static QUrl getThumbUrl(QUrl url, int slide)
+{
+    int i = url.path().lastIndexOf('.');
+    url.setPath(url.path().replace(i, url.path().length() - i,
+                                   QString("_%1.jpg").arg(slide)));
+    return url;
+}
+
 void PptxControl::open(QUrl const & url)
 {
+    QUrl thumbUrl = getThumbUrl(url, powerpoint_->slideNumber());
+    QByteArray data = Resource::getCache().get(thumbUrl);
+    if (!data.isEmpty()) {
+        QPixmap pixmap;
+        pixmap.loadFromData(data);
+        if (!pixmap.isNull()) {
+            powerpoint_->setThumbNumber(powerpoint_->slideNumber());
+            setProperty("thumb", pixmap);
+        }
+    }
     PowerPoint * p = powerpoint_;
     WorkThread::postWork(p, [p, url]() {
        p->open(url.toLocalFile());
@@ -89,6 +108,10 @@ void PptxControl::opened(int total)
         });
         if (autoShow)
             show();
+        QVariant thumb = property("thumb");
+        if (!thumb.isNull()) {
+            thumbed(thumb.value<QPixmap>());
+        }
     }
 }
 
@@ -212,6 +235,19 @@ void PptxControl::hide()
 
 void PptxControl::close()
 {
+    if (flags_ & LoadFinished) {
+        QGraphicsPixmapItem * item = static_cast<QGraphicsPixmapItem *>(item_);
+        if (!item->pixmap().isNull()) {
+            QBuffer buf;
+            buf.open(QIODevice::WriteOnly);
+            item->pixmap().save(&buf, "jpg");
+            QUrl thumbUrl = getThumbUrl(res_->property("localUrl").toUrl(), powerpoint_->thumbNumber());
+            buf.seek(0);
+            Resource::getCache().remove(thumbUrl);
+            Resource::getCache().put(thumbUrl, buf.data());
+            buf.close();
+        }
+    }
     if (stopButton_) {
         delete stopButton_;
         stopButton_ = nullptr;

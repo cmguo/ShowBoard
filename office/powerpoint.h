@@ -34,7 +34,12 @@ public:
     void mayStopped();
 
 public:
-    int slideNumber()
+    QString const & file() const
+    {
+        return file_;
+    }
+
+    int slideNumber() const
     {
         return slideNumber_;
     }
@@ -42,6 +47,16 @@ public:
     void setSlideNumber(int n)
     {
         slideNumber_ = n;
+    }
+
+    int thumbNumber() const
+    {
+        return thumbNumber_;
+    }
+
+    void setThumbNumber(int n)
+    {
+        thumbNumber_ = n;
     }
 
 public:

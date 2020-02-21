@@ -148,7 +148,7 @@ void PowerPoint::thumb(int page)
     if (!slide)
         return;
     QString file = QDir::tempPath().replace('/', '\\') + "\\showboard.thumb.ppt.jpg";
-    slide->dynamicCall("Export(QString, QString, long, long)", file, "JPG", 320, 180);
+    slide->dynamicCall("Export(QString, QString, long, long)", file, "JPG");
     QPixmap pixmap(file);
     emit thumbed(pixmap);
     thumbNumber_ = slideNumber_;

@@ -32,6 +32,8 @@ public:
 
     static void initCache(QString const & path, quint64 capacity);
 
+    static FileLRUCache & getCache();
+
 public:
     /*
      * new resource with type @type and url @url

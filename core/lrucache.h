@@ -94,6 +94,8 @@ public:
 
     bool contains(QUrl const & url);
 
+    bool remove(QUrl const & url);
+
     QString getFile(QUrl const & url);
 
 protected:

@@ -64,6 +64,19 @@ bool FileLRUCache::contains(const QUrl &url)
     return !getFile(url).isEmpty();
 }
 
+bool FileLRUCache::remove(const QUrl &url)
+{
+    QString md5 = urlMd5(url);
+    QString path = base::get(md5);
+    if (path.isEmpty())
+        return false;
+    int n = path.lastIndexOf('.');
+    if (n > 0 && !url.path().endsWith(path.mid(n)))
+        return false; // can't restore order
+    LRUCache::remove(md5);
+    return true;
+}
+
 QString FileLRUCache::getFile(const QUrl &url)
 {
     QString md5 = urlMd5(url);
@@ -74,7 +87,7 @@ QString FileLRUCache::getFile(const QUrl &url)
     if (n > 0 && !url.path().endsWith(path.mid(n)))
         return nullptr;
     if (!QFile::exists(path)) {
-        remove(md5);
+        LRUCache::remove(md5);
         return nullptr;
     }
     QFile(path).setFileTime(QDateTime::currentDateTime(), QFile::FileModificationTime);

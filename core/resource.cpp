@@ -19,18 +19,24 @@ void Resource::initCache(const QString &path, quint64 capacity)
     cache_ = new FileLRUCache(QDir(path), capacity);
 }
 
-Resource::Resource(QByteArray const & type, QUrl const & url)
-    : url_(url)
-    , type_(type)
+FileLRUCache &Resource::getCache()
 {
     if (cache_ == nullptr) {
         cache_ = new FileLRUCache(
-                #ifndef QT_DEBUG
+                #ifdef QT_DEBUG
                         QDir::current().filePath("rescache"), 100 * 1024 * 1024); // 100M
                 #else
                         QDir(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)).filePath("rescache"), 1000 * 1024 * 1024); // 1G
                 #endif
     }
+    return *cache_;
+}
+
+Resource::Resource(QByteArray const & type, QUrl const & url)
+    : url_(url)
+    , type_(type)
+{
+    getCache();
 }
 
 Resource::Resource(Resource const & o)
