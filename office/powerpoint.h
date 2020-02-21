@@ -59,6 +59,16 @@ public:
         thumbNumber_ = n;
     }
 
+    QSize size() const
+    {
+        return size_;
+    }
+
+    void setSize(QSize v)
+    {
+        size_ = v;
+    }
+
 public:
     void attachButton(intptr_t hwnd, QPoint const & pos);
 
@@ -101,6 +111,7 @@ private:
     int slideNumber_;
     int thumbNumber_;
     QAxObject * view_;
+    QSize size_;
     intptr_t hwnd_;
     int timerId_;
 };

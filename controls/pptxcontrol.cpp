@@ -87,6 +87,7 @@ void PptxControl::open(QUrl const & url)
         pixmap.loadFromData(data);
         if (!pixmap.isNull()) {
             powerpoint_->setThumbNumber(powerpoint_->slideNumber());
+            powerpoint_->setSize(pixmap.size());
             setProperty("thumb", pixmap);
         }
     }

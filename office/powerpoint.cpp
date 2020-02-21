@@ -6,6 +6,7 @@
 #include <QPixmap>
 #include <QDebug>
 #include <QTimerEvent>
+#include <QPainter>
 
 #include <objbase.h>
 
@@ -137,6 +138,22 @@ void PowerPoint::thumb(int page)
             captureImage(hwnd_, &data, & size);
             QPixmap pixmap;
             pixmap.loadFromData(reinterpret_cast<uchar*>(data), static_cast<uint>(size));
+            if (size_ != pixmap.size()) {
+                QSize size2 = pixmap.size();
+                if (size_.width() * size2.height() > size_.height() * size2.width()) {
+                    size2.setHeight(size_.height() * size2.width() / size_.width());
+                } else {
+                    size2.setWidth(size_.width() * size2.height() / size_.height());
+                }
+                QPixmap pixmap2(size_);
+                QSize offset = (pixmap.size() - size2) / 2;
+                QPainter pt(&pixmap2);
+                pt.setRenderHint(QPainter::HighQualityAntialiasing);
+                pt.drawPixmap(QRectF(0, 0, size_.width(), size_.height()), pixmap,
+                              QRectF(QPoint(offset.width(), offset.height()), size2));
+                pt.end();
+                pixmap = pixmap2;
+            }
             emit thumbed(pixmap);
             thumbNumber_ = slideNumber_;
         } else {
@@ -150,6 +167,7 @@ void PowerPoint::thumb(int page)
     QString file = QDir::tempPath().replace('/', '\\') + "\\showboard.thumb.ppt.jpg";
     slide->dynamicCall("Export(QString, QString, long, long)", file, "JPG");
     QPixmap pixmap(file);
+    size_ = pixmap.size();
     emit thumbed(pixmap);
     thumbNumber_ = slideNumber_;
     setArrowCursor();
@@ -181,8 +199,9 @@ void PowerPoint::show(int page)
             //if (page) // will cause View be null
             //    settings->setProperty("StartingSlide", page);
             QAxObject * window = settings->querySubObject("Run()");
-            if (window)
+            if (window) {
                 view_ = window->querySubObject("View");
+            }
             if (view_) {
                 QObject::connect(view_, SIGNAL(exception(int,QString,QString,QString)),
                                  this, SLOT(onException(int,QString,QString,QString)));
