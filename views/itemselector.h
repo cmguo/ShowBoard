@@ -26,11 +26,13 @@ public:
 
     bool adjusting(QGraphicsItem * item);
 
-    void enableFastClone(bool enable);
+    void enableFastClone(bool enable = true);
 
-    void autoMoveSelectionTop(bool enable);
+    void autoMoveSelectionTop(bool enable = true);
 
-    void hideMenuWhenEditing(bool hide);
+    void hideMenuWhenEditing(bool hide = true);
+
+    void unselectOnDeactive(bool enable = true);
 
     ToolbarWidget * toolBar();
 
@@ -90,6 +92,7 @@ private:
     bool autoTop_;
     bool hideMenu_; // WhenEditing
     bool fastClone_;
+    bool autoUnselect_;
 
 private:
     QGraphicsItem * select_;

@@ -21,6 +21,7 @@ ItemSelector::ItemSelector(QGraphicsItem * parent)
     , autoTop_(false)
     , hideMenu_(false)
     , fastClone_(false)
+    , autoUnselect_(false)
     , select_(nullptr)
     , selectControl_(nullptr)
     , selBoxTransform_(new ControlTransform(ControlTransform::SelectBox))
@@ -328,6 +329,11 @@ void ItemSelector::hideMenuWhenEditing(bool hide)
     hideMenu_ = hide;
 }
 
+void ItemSelector::unselectOnDeactive(bool enable)
+{
+    autoUnselect_ = enable;
+}
+
 QVariant ItemSelector::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value)
 {
     if (change == ItemSceneHasChanged) {
@@ -484,6 +490,10 @@ bool ItemSelector::sceneEvent(QEvent *event)
         break;
     case QEvent::TouchEnd:
         touchEnd(static_cast<QTouchEvent*>(event));
+        break;
+    case QEvent::WindowDeactivate:
+        if (autoUnselect_)
+            select(nullptr);
         break;
     default:
         return CanvasItem::sceneEvent(event);

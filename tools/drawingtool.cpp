@@ -33,6 +33,11 @@ void DrawingTool::finishControl(Control * control)
     whiteCanvas()->hideToolControl(this);
 }
 
+void DrawingTool::setTranslucent(bool on)
+{
+    item_->setFlag(CanvasItem::ItemHasNoContents, !on);
+}
+
 class DrawingItem : public CanvasItem
 {
 public:
@@ -42,6 +47,7 @@ public:
         setCursor(Qt::CrossCursor);
         setAcceptHoverEvents(true);
         setFlag(ItemIsFocusable);
+
         QWidget* widget = new QFrame;
         widget->setObjectName("finishwidget");
         widget->setWindowFlag(Qt::FramelessWindowHint);
@@ -76,6 +82,15 @@ private:
         }
         DrawingTool * tool = static_cast<DrawingTool *>(Control::fromItem(this));
         tool->finishControl(control_);
+    }
+
+protected:
+    virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) override
+    {
+        QBrush old = painter->brush();
+        painter->setBrush(QColor("#01000000"));
+        painter->drawRect(rect());
+        painter->setBrush(old);
     }
 
     virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override

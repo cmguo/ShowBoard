@@ -12,6 +12,7 @@ class DrawingTool : public Control
 
     Q_PROPERTY(QUrl newUrl MEMBER newUrl_)
     Q_PROPERTY(QVariantMap newSettings MEMBER newSettings_)
+    Q_PROPERTY(bool translucent WRITE setTranslucent)
 
 public:
     Q_INVOKABLE DrawingTool(ResourceView *res);
@@ -20,6 +21,8 @@ public:
     Control * newControl();
 
     void finishControl(Control * control);
+
+    void setTranslucent(bool on);
 
 private:
     virtual QGraphicsItem * create(ResourceView *res) override;
