@@ -11,10 +11,11 @@
 
 static char const * toolstr = ""
         #ifdef QT_DEBUG
-        "reload()|刷新|:/showboard/icons/icon_refresh.png;"
-        "debug()|调试|"
-        "fitContent()|全屏|:/showboard/icons/icon_refresh.png;"
-        "full()|全屏|:/showboard/icons/icon_refresh.png;"
+        "reload()|刷新|;"
+        "debug()|调试|;"
+        "hide()|隐藏|Checkable|;"
+        "fitContent()|适合内容|;"
+        "full()|全屏|Checkable|;"
         #endif
         ;
 
@@ -144,6 +145,11 @@ void WebControl::reload()
 {
     QWebEngineView * view = qobject_cast<QWebEngineView *>(widget_);
     view->reload();
+}
+
+void WebControl::hide()
+{
+    item_->setVisible(!item_->isVisible());
 }
 
 void WebControl::full()

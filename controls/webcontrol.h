@@ -29,6 +29,8 @@ private slots:
 
     void reload();
 
+    void hide();
+
     void full();
 
     void fitContent();
