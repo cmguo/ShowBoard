@@ -12,6 +12,10 @@ public:
 protected:
     virtual QWidget * createWidget(ResourceView * res) override;
 
+private slots:
+    void hide();
+
+    void update();
 };
 
 #endif // QMLCONTROL_H
