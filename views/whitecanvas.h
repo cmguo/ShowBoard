@@ -65,6 +65,7 @@ public:
      */
     void removeResource(Control * control);
 
+public:
     /*
      * show tool control of type @type
      *  these controls are not backed by resource and is single instance
@@ -80,6 +81,7 @@ public:
 
     Control * getToolControl(QString const & type);
 
+public:
     /*
      * find control assosiate with resource @res
      */
@@ -95,6 +97,14 @@ public:
      * get top most control
      */
     Control * topControl();
+
+    Control * selectFirst();
+
+    Control * selectNext();
+
+    Control * selectPrev();
+
+    Control * selectLast();
 
 public:
     ItemSelector * selector();

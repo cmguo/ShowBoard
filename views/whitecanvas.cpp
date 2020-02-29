@@ -138,6 +138,60 @@ Control * WhiteCanvas::topControl()
     return canvas_->topControl();
 }
 
+Control * WhiteCanvas::selectFirst()
+{
+    QGraphicsItem * t = canvas_->childItems().empty() ? nullptr : canvas_->childItems().first();
+    if (!t) t = globalCanvas_->childItems().empty() ? nullptr : globalCanvas_->childItems().first();
+    selector_->select(t);
+    return t ? Control::fromItem(t) : nullptr;
+}
+
+Control * WhiteCanvas::selectNext()
+{
+    QGraphicsItem * t = selector_->selected();
+    if (!t)
+        return selectFirst();
+    PageCanvas * pc = static_cast<PageCanvas*>(t->parentItem());
+    int i = pc->childItems().indexOf(t);
+    if (i + 1 < pc->childItems().size())
+        t = pc->childItems().at(i + 1);
+    else if (pc == canvas_)
+        t = globalCanvas_->childItems().empty() ? nullptr : globalCanvas_->childItems().first();
+    else
+        t = canvas_->childItems().empty() ? nullptr : canvas_->childItems().first();
+    if (!t)
+        t = pc->childItems().first();
+    selector_->select(t);
+    return t ? Control::fromItem(t) : nullptr;
+}
+
+Control * WhiteCanvas::selectPrev()
+{
+    QGraphicsItem * t = selector_->selected();
+    if (!t)
+        return selectFirst();
+    PageCanvas * pc = static_cast<PageCanvas*>(t->parentItem());
+    int i = pc->childItems().indexOf(t);
+    if (i > 1)
+        t = pc->childItems().at(i - 1);
+    else if (pc == canvas_)
+        t = globalCanvas_->childItems().empty() ? nullptr : globalCanvas_->childItems().last();
+    else
+        t = canvas_->childItems().empty() ? nullptr : canvas_->childItems().last();
+    if (!t)
+        t = pc->childItems().last();
+    selector_->select(t);
+    return t ? Control::fromItem(t) : nullptr;
+}
+
+Control * WhiteCanvas::selectLast()
+{
+    QGraphicsItem * t = globalCanvas_->childItems().empty() ? nullptr : globalCanvas_->childItems().first();
+    if (!t) t = canvas_->childItems().empty() ? nullptr : canvas_->childItems().first();
+    selector_->select(t);
+    return t ? Control::fromItem(t) : nullptr;
+}
+
 ItemSelector * WhiteCanvas::selector()
 {
     return selector_;
