@@ -63,7 +63,10 @@ void ImageControl::attached()
 {
     if (!qIsNull(mipmap_)) {
         QObject::connect(&res_->transform(), &ResourceTransform::changed,
-                         this, &ImageControl::adjustMipmap);
+                         this, [this] (int c) {
+            if ((c & 4) && (flags_ & LoadFinished))
+                adjustMipmap();
+        });
     }
     data_ = ImageData::get(res_->url());
     if (data_) {

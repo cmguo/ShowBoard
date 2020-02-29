@@ -236,8 +236,9 @@ void Control::sizeChanged()
     QPointF center(rect.center());
     if (flags_ & LoadFinished) {
         if (!(flags_ & (Adjusting | FullLayout))) {
-            // keep top left
-            QPointF offset = item_->mapToParent(center);
+            // keep top left, assume top left not change
+            QPointF offset = res_->transform().scaleRotate().map(
+                        item_->transform().map(center));
             move(offset);
         }
     }
