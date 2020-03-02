@@ -115,11 +115,17 @@ Control *WhiteCanvas::copyResource(Control *control)
     ResourceView * res = canvas_->page()->copyResource(control->resource());
     Control* copy = canvas_->findControl(res);
     control->afterClone(copy);
+    if (control->item() == selector_->selected() && !(control->flags() & Control::Adjusting)) {
+        selector_->select(nullptr);
+        copy->resource()->transform().translate({60, 60});
+    }
     return copy;
 }
 
 void WhiteCanvas::removeResource(Control *control)
 {
+    if (control->item() == selector_->selected())
+        selector_->select(nullptr);
     canvas_->page()->removeResource(control->resource());
 }
 
@@ -138,58 +144,121 @@ Control * WhiteCanvas::topControl()
     return canvas_->topControl();
 }
 
+void WhiteCanvas::select(Control *control)
+{
+    selector()->select(control ? control->item() : nullptr);
+}
+
+Control *WhiteCanvas::selected()
+{
+    QGraphicsItem * t = selector_->selected();
+    return t ? Control::fromItem(t) : nullptr;
+}
+
 Control * WhiteCanvas::selectFirst()
 {
-    QGraphicsItem * t = canvas_->childItems().empty() ? nullptr : canvas_->childItems().first();
-    if (!t) t = globalCanvas_->childItems().empty() ? nullptr : globalCanvas_->childItems().first();
-    selector_->select(t);
-    return t ? Control::fromItem(t) : nullptr;
+    QGraphicsItem * t = selectableNext(nullptr);
+    if (t) {
+        selector_->select(t);
+        return Control::fromItem(t);
+    }
+    return nullptr;
 }
 
 Control * WhiteCanvas::selectNext()
 {
     QGraphicsItem * t = selector_->selected();
-    if (!t)
-        return selectFirst();
-    PageCanvas * pc = static_cast<PageCanvas*>(t->parentItem());
-    int i = pc->childItems().indexOf(t);
-    if (i + 1 < pc->childItems().size())
-        t = pc->childItems().at(i + 1);
-    else if (pc == canvas_)
-        t = globalCanvas_->childItems().empty() ? nullptr : globalCanvas_->childItems().first();
-    else
-        t = canvas_->childItems().empty() ? nullptr : canvas_->childItems().first();
-    if (!t)
-        t = pc->childItems().first();
-    selector_->select(t);
-    return t ? Control::fromItem(t) : nullptr;
+    t = selectableNext(t);
+    if (t) {
+        selector_->select(t);
+        return Control::fromItem(t);
+    }
+    return nullptr;
 }
 
 Control * WhiteCanvas::selectPrev()
 {
     QGraphicsItem * t = selector_->selected();
-    if (!t)
-        return selectFirst();
-    PageCanvas * pc = static_cast<PageCanvas*>(t->parentItem());
-    int i = pc->childItems().indexOf(t);
-    if (i > 1)
-        t = pc->childItems().at(i - 1);
-    else if (pc == canvas_)
-        t = globalCanvas_->childItems().empty() ? nullptr : globalCanvas_->childItems().last();
-    else
-        t = canvas_->childItems().empty() ? nullptr : canvas_->childItems().last();
-    if (!t)
-        t = pc->childItems().last();
-    selector_->select(t);
-    return t ? Control::fromItem(t) : nullptr;
+    t = selectablePrev(t);
+    if (t) {
+        selector_->select(t);
+        return Control::fromItem(t);
+    }
+    return nullptr;
 }
 
 Control * WhiteCanvas::selectLast()
 {
-    QGraphicsItem * t = globalCanvas_->childItems().empty() ? nullptr : globalCanvas_->childItems().first();
-    if (!t) t = canvas_->childItems().empty() ? nullptr : canvas_->childItems().first();
-    selector_->select(t);
-    return t ? Control::fromItem(t) : nullptr;
+    QGraphicsItem * t = selectablePrev(nullptr);
+    if (t) {
+        selector_->select(t);
+        return Control::fromItem(t);
+    }
+    return nullptr;
+}
+
+QGraphicsItem *WhiteCanvas::selectableNext(QGraphicsItem *item)
+{
+    PageCanvas * pc = canvas_;
+    int i = -1;
+    if (item) {
+         pc = static_cast<PageCanvas*>(item->parentItem());
+         i = pc->childItems().indexOf(item);
+    }
+    while (++i < pc->childItems().size()) {
+        QGraphicsItem * t = pc->childItems().at(i);
+        if (Control::fromItem(t)->flags() & Control::CanSelect)
+            return t;
+    }
+    pc = pc == canvas_ ? globalCanvas_ : canvas_;
+    i = -1;
+    while (++i < pc->childItems().size()) {
+        QGraphicsItem * t = pc->childItems().at(i);
+        if (Control::fromItem(t)->flags() & Control::CanSelect)
+            return t;
+    }
+    if (item) {
+        pc = static_cast<PageCanvas*>(item->parentItem());
+        i = -1;
+        while (++i < pc->childItems().size()) {
+            QGraphicsItem * t = pc->childItems().at(i);
+            if (Control::fromItem(t)->flags() & Control::CanSelect)
+                return t;
+        }
+    }
+    return nullptr;
+}
+
+QGraphicsItem *WhiteCanvas::selectablePrev(QGraphicsItem *item)
+{
+    PageCanvas * pc = globalCanvas_;
+    int i = pc->childItems().size();
+    if (item) {
+         pc = static_cast<PageCanvas*>(item->parentItem());
+         i = pc->childItems().indexOf(item);
+    }
+    while (i > 0) {
+        QGraphicsItem * t = pc->childItems().at(--i);
+        if (Control::fromItem(t)->flags() & Control::CanSelect)
+            return t;
+    }
+    pc = pc == canvas_ ? globalCanvas_ : canvas_;
+    i = pc->childItems().size();
+    while (i > 0) {
+        QGraphicsItem * t = pc->childItems().at(--i);
+        if (Control::fromItem(t)->flags() & Control::CanSelect)
+            return t;
+    }
+    if (item) {
+        pc = static_cast<PageCanvas*>(item->parentItem());
+        i = pc->childItems().size();
+        while (i > 0) {
+            QGraphicsItem * t = pc->childItems().at(--i);
+            if (Control::fromItem(t)->flags() & Control::CanSelect)
+                return t;
+        }
+    }
+    return nullptr;
 }
 
 ItemSelector * WhiteCanvas::selector()
@@ -260,8 +329,7 @@ void WhiteCanvas::toolButtonClicked(QList<ToolButton *> const & buttons)
     if (btn == &Control::btnTop) {
         ct->resource()->moveTop();
     } else if (btn == &Control::btnCopy) {
-        selector_->select(nullptr);
-        copyResource(ct)->resource()->transform().translate({60, 60});
+        copyResource(ct);
     } else if (btn == &Control::btnFastCopy) {
         bool checked = !btn->flags.testFlag(ToolButton::Checked);
         selector_->enableFastClone(checked);

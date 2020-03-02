@@ -34,6 +34,15 @@ public:
 
     void setResourcePackage(ResourcePackage * pack);
 
+private slots:
+    void deleteSelection();
+
+    void cancelSelection();
+
+    void moveSelection();
+
+    void scaleSelection();
+
 private:
     virtual void resizeEvent(QResizeEvent *event) override;
 

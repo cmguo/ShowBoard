@@ -578,6 +578,16 @@ bool Control::scale(QRectF &rect, const QRectF &direction, QPointF &delta)
     return true;
 }
 
+bool Control::scale(const QRectF &direction, QPointF &delta)
+{
+    QRectF rect = boundRect();
+    adjusting(true);
+    scale(rect, direction, delta);
+    adjusting(false);
+    whiteCanvas()->selector()->updateSelect(realItem_);
+    return true;
+}
+
 void Control::gesture(const QPointF &from1, const QPointF &from2, QPointF &to1, QPointF &to2)
 {
     qreal layoutScale = 1.0;

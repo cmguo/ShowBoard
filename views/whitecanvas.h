@@ -98,6 +98,10 @@ public:
      */
     Control * topControl();
 
+    void select(Control * control);
+
+    Control * selected();
+
     Control * selectFirst();
 
     Control * selectNext();
@@ -138,6 +142,11 @@ private:
 
     virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
 */
+private:
+    QGraphicsItem * selectableNext(QGraphicsItem * item);
+
+    QGraphicsItem * selectablePrev(QGraphicsItem * item);
+
 private:
     ResourcePackage * package_;
     PageCanvas * globalCanvas_;

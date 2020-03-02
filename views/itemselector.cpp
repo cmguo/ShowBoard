@@ -72,6 +72,9 @@ void ItemSelector::select(QGraphicsItem *item)
         selBox_->setVisible(true,
                             selectControl_->flags() & Control::CanScale,
                             selectControl_->flags() & Control::CanRotate);
+        if (autoTop_) {
+            selectControl_->resource()->moveTop();
+        }
         selectControl_->select(true);
         //itemChange(ItemPositionHasChanged, pos());
     } else {

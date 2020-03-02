@@ -2,6 +2,7 @@
 #include "whitecanvas.h"
 #include "core/resourcepackage.h"
 #include "core/resourcepage.h"
+#include "core/control.h"
 
 #include <QGraphicsScene>
 #include <QSizePolicy>
@@ -9,6 +10,7 @@
 #include <QApplication>
 #include <QScreen>
 #include <QDebug>
+#include <QShortcut>
 
 static WhiteCanvasWidget * mainInstance_;
 
@@ -39,6 +41,28 @@ WhiteCanvasWidget::WhiteCanvasWidget(QWidget *parent)
     //setTransformationAnchor(AnchorUnderMouse);
     //setDragMode(QGraphicsView::ScrollHandDrag);
 
+    QObject::connect(new QShortcut(QKeySequence::Delete, this), &QShortcut::activated,
+                     this, &WhiteCanvasWidget::deleteSelection);
+    QObject::connect(new QShortcut(QKeySequence::Cancel, this), &QShortcut::activated,
+                     this, &WhiteCanvasWidget::cancelSelection);
+    QObject::connect(new QShortcut(QKeySequence::MoveToNextPage, this), &QShortcut::activated,
+                     this, [this]() { package()->gotoNext(); });
+    QObject::connect(new QShortcut(QKeySequence::MoveToPreviousPage, this), &QShortcut::activated,
+                     this, [this]() { package()->gotoPrevious(); });
+    QObject::connect(new QShortcut(QKeySequence::Copy, this), &QShortcut::activated,
+                     this, [this]() { if (canvas_->selected()) canvas_->copyResource(canvas_->selected()); });
+    QObject::connect(new QShortcut(QKeySequence(Qt::Key_Tab), this), &QShortcut::activated,
+                     this, [this]() { canvas_->selectNext(); });
+    QObject::connect(new QShortcut(QKeySequence(Qt::Key_Tab | Qt::ShiftModifier), this), &QShortcut::activated,
+                     this, [this]() { canvas_->selectPrev(); });
+    for (int k : {Qt::Key_Left, Qt::Key_Up, Qt::Key_Right, Qt::Key_Down}) {
+        QObject::connect(new QShortcut(QKeySequence(k), this), &QShortcut::activated,
+                         this, &WhiteCanvasWidget::moveSelection);
+        QObject::connect(new QShortcut(QKeySequence(k | Qt::ShiftModifier), this), &QShortcut::activated,
+                         this, &WhiteCanvasWidget::scaleSelection);
+    }
+    QObject::connect(new QShortcut(QKeySequence(Qt::Key_Tab | Qt::ShiftModifier), this), &QShortcut::activated,
+                     this, [this]() { canvas_->selectPrev(); });
     mainInstance_ = this;
 }
 
@@ -127,4 +151,57 @@ void WhiteCanvasWidget::setResourcePackage(ResourcePackage * pack)
         onPageChanged(pack->currentPage());
     }
     canvas_->setResourcePackage(pack);
+}
+
+void WhiteCanvasWidget::deleteSelection()
+{
+    if (canvas_->selected())
+        canvas_->removeResource(canvas_->selected());
+}
+
+void WhiteCanvasWidget::cancelSelection()
+{
+    canvas_->select(nullptr);
+}
+
+void WhiteCanvasWidget::moveSelection()
+{
+    Control * c = canvas_->selected();
+    if (!c) return;
+    QPointF d;
+    QShortcut* s = qobject_cast<QShortcut*>(sender());
+    if (s->key() == QKeySequence(Qt::Key_Left)) {
+        d.setX(-10);
+    } else if (s->key() == QKeySequence(Qt::Key_Right)) {
+        d.setX(10);
+    } else if (s->key() == QKeySequence(Qt::Key_Up)) {
+        d.setY(-10);
+    } else if (s->key() == QKeySequence(Qt::Key_Down)) {
+        d.setY(10);
+    }
+    c->move(d);
+}
+
+void WhiteCanvasWidget::scaleSelection()
+{
+    Control * c = canvas_->selected();
+    if (!c) return;
+    QPointF d;
+    QShortcut* s = qobject_cast<QShortcut*>(sender());
+    if (s->key().matches(QKeySequence(Qt::Key_Left | Qt::ShiftModifier))) {
+        d.setX(-10);
+    } else if (s->key().matches(QKeySequence(Qt::Key_Right | Qt::ShiftModifier))) {
+        d.setX(10);
+    } else if (s->key().matches(QKeySequence(Qt::Key_Up | Qt::ShiftModifier))) {
+        d.setY(-10);
+    } else if (s->key().matches(QKeySequence(Qt::Key_Down | Qt::ShiftModifier))) {
+        d.setY(10);
+    }
+    QRectF t;
+    if (qFuzzyIsNull(d.x())) {
+        t.setHeight(1);
+    } else {
+        t.setWidth(1);
+    }
+    c->scale(t, d);
 }
