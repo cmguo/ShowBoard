@@ -14,6 +14,7 @@
 #include <QPen>
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
+#include <QGuiApplication>
 
 WhiteCanvas::WhiteCanvas(QObject * parent)
     : QObject(parent)
@@ -87,6 +88,16 @@ bool WhiteCanvas::sceneEvent(QEvent *event)
     case QEvent::TouchBegin:
     case QEvent::TouchUpdate:
     case QEvent::TouchEnd:
+        break;
+    case QEvent::GraphicsSceneWheel:
+        if (Control * c = Control::fromItem(this)) {
+            QPointF d;
+            if (QGuiApplication::queryKeyboardModifiers().testFlag(Qt::ShiftModifier))
+                d.setX(static_cast<QGraphicsSceneWheelEvent*>(event)->delta());
+            else
+                d.setY(static_cast<QGraphicsSceneWheelEvent*>(event)->delta());
+            c->resource()->transform().translate(d);
+        }
         break;
     default:
         return CanvasItem::sceneEvent(event);

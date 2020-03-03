@@ -167,17 +167,19 @@ void WhiteCanvasWidget::cancelSelection()
 void WhiteCanvasWidget::moveSelection()
 {
     Control * c = canvas_->selected();
+    qreal delta = 10;
+    if (!c) { c = Control::fromItem(canvas_); delta = -20; }
     if (!c) return;
     QPointF d;
     QShortcut* s = qobject_cast<QShortcut*>(sender());
     if (s->key() == QKeySequence(Qt::Key_Left)) {
-        d.setX(-10);
+        d.setX(-delta);
     } else if (s->key() == QKeySequence(Qt::Key_Right)) {
-        d.setX(10);
+        d.setX(delta);
     } else if (s->key() == QKeySequence(Qt::Key_Up)) {
-        d.setY(-10);
+        d.setY(-delta);
     } else if (s->key() == QKeySequence(Qt::Key_Down)) {
-        d.setY(10);
+        d.setY(delta);
     }
     c->move(d);
 }
@@ -185,17 +187,18 @@ void WhiteCanvasWidget::moveSelection()
 void WhiteCanvasWidget::scaleSelection()
 {
     Control * c = canvas_->selected();
+    qreal delta = 10;
     if (!c) return;
     QPointF d;
     QShortcut* s = qobject_cast<QShortcut*>(sender());
     if (s->key().matches(QKeySequence(Qt::Key_Left | Qt::ShiftModifier))) {
-        d.setX(-10);
+        d.setX(-delta);
     } else if (s->key().matches(QKeySequence(Qt::Key_Right | Qt::ShiftModifier))) {
-        d.setX(10);
+        d.setX(delta);
     } else if (s->key().matches(QKeySequence(Qt::Key_Up | Qt::ShiftModifier))) {
-        d.setY(-10);
+        d.setY(-delta);
     } else if (s->key().matches(QKeySequence(Qt::Key_Down | Qt::ShiftModifier))) {
-        d.setY(10);
+        d.setY(delta);
     }
     QRectF t;
     if (qFuzzyIsNull(d.x())) {
