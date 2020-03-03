@@ -36,6 +36,30 @@ public:
         return page_;
     }
 
+public:
+    QPixmap thumbnail(bool snapshot);
+
+    enum AnimateDirection
+    {
+        LeftToRight = 1,
+        RightToLeft = 2,
+        TopToBottom = 4,
+        BottomToTop = 8,
+        LeftTopToRight = 5,
+        RightBottomToLeftTop = 10,
+        LeftBottomToRightTop = 9,
+        RightTopToLeftBottomTop = 6,
+    };
+
+    void startAnimate(int dir);
+
+    void stopAnimate();
+
+private:
+    virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
+
+    virtual void timerEvent(QTimerEvent *event) override;
+
 private:
     void resourceInserted(QModelIndex const &parent, int first, int last);
 
@@ -58,6 +82,8 @@ private:
 protected:
     ResourcePage * page_;
     PageCanvas* subCanvas_;
+    QPixmap snapshot_;
+    int animTimer_;
 };
 
 #endif // PAGECANVAS_H

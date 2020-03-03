@@ -154,6 +154,7 @@ private:
     ToolCanvas * tools_;
     ItemSelector * selector_;
     int loadingCount_;
+    int lastPage_;
 };
 
 #endif // WHITECANVAS_H

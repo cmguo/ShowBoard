@@ -4,6 +4,7 @@
 #include "ShowBoard_global.h"
 
 #include <QAbstractItemModel>
+#include <QPixmap>
 #include <QSizeF>
 
 class ResourceView;
@@ -18,7 +19,9 @@ class SHOWBOARD_EXPORT ResourcePage : public QAbstractItemModel
 {
     Q_OBJECT
 
-    Q_PROPERTY(QList<ResourceView *> const & resources READ resources())
+    Q_PROPERTY(QList<ResourceView *> const & resources READ resources)
+    Q_PROPERTY(QPixmap thumbnail READ thumbnail WRITE setThumbnail)
+
 public:
     explicit ResourcePage(QObject *parent = nullptr);
 
@@ -99,6 +102,8 @@ public:
         return currentSubPage_;
     }
 
+    bool isSubPage() const;
+
 public:
     ResourceView* canvasView() const
     {
@@ -111,6 +116,13 @@ public:
     }
 
     using QObject::parent;
+
+    QPixmap thumbnail() const
+    {
+        return thumbnail_;
+    }
+
+    void setThumbnail(QPixmap thumb);
 
 signals:
     void currentSubPageChanged(ResourcePage* page);
@@ -134,6 +146,7 @@ private:
     QList<ResourceView *> resources_;
     ResourcePage* currentSubPage_;
     QVector<ResourcePage*> subPages_;
+    QPixmap thumbnail_;
 };
 
 #endif // WHITEPAGE_H

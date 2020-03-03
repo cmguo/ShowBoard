@@ -214,6 +214,16 @@ void ResourcePage::switchSubPage(int nPage)
     emit currentSubPageChanged(currentSubPage_);
 }
 
+bool ResourcePage::isSubPage() const
+{
+    return parent()->metaObject()->inherits(&staticMetaObject);
+}
+
+void ResourcePage::setThumbnail(QPixmap thumb)
+{
+    thumbnail_ = thumb;
+}
+
 void ResourcePage::moveResource(int pos, int newPos)
 {
     int pos1 = pos;

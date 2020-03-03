@@ -6,6 +6,8 @@
 #include "controls/whitecanvascontrol.h"
 
 #include <QGraphicsScene>
+#include <QPainter>
+#include <QDebug>
 
 PageCanvas::PageCanvas(QGraphicsItem * parent)
     : CanvasItem(parent)
@@ -54,6 +56,76 @@ void PageCanvas::relayout()
         Control * ct = Control::fromItem(item);
         ct->relayout();
     }
+}
+
+void PageCanvas::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
+{
+    qDebug() << "PageCanvas" << rect();
+    painter->drawPixmap(rect(), snapshot_, QRectF());
+}
+
+void PageCanvas::timerEvent(QTimerEvent *event)
+{
+    (void) event;
+    QPointF p = pos();
+    if (qFuzzyIsNull(p.x()) && qFuzzyIsNull(p.y())) {
+        stopAnimate();
+        return;
+    }
+    if (!qFuzzyIsNull(p.x())) {
+        QPointF d{rect().width() / 20, 0};
+        p = p.x() < 0 ? p + d : p - d;
+    }
+    if (!qFuzzyIsNull(p.y())) {
+        QPointF d{0, rect().height() / 20};
+        p = p.y() < 0 ? p + d : p - d;
+    }
+    qDebug() << "PageCanvas" << p;
+    setPos(p);
+}
+
+QPixmap PageCanvas::thumbnail(bool snapshot)
+{
+    QSizeF size = scene()->sceneRect().size();
+    QSizeF size2 = snapshot ? size : size / size.height() * 150;
+    QPixmap pixmap(size2.toSize());
+    pixmap.fill(Qt::red);
+    QPainter painter;
+    painter.begin(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing);
+    scene()->render(&painter, QRectF(QPointF(0, 0), size2), scene()->sceneRect());
+    painter.end();
+    if (snapshot) {
+        snapshot_ = pixmap;
+        return pixmap.scaled(pixmap.width(), 150, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    } else {
+        return pixmap;
+    }
+}
+
+void PageCanvas::startAnimate(int dir)
+{
+    QRectF r = scene()->sceneRect();
+    if (dir & 1)
+        r.adjust(r.width(), 0, r.width(), 0);
+    if (dir & 2)
+        r.adjust(-r.width(), 0, -r.width(), 0);
+    if (dir & 4)
+        r.adjust(0, r.height(), 0, r.height());
+    if (dir & 8)
+        r.adjust(0, -r.height(), 0, -r.height());
+    setRect(r);
+    setFlag(QGraphicsItem::ItemHasNoContents, false);
+    setPos(-r.center());
+    animTimer_ = startTimer(20);
+}
+
+void PageCanvas::stopAnimate()
+{
+    setFlag(QGraphicsItem::ItemHasNoContents, true);
+    setRect(QRectF());
+    snapshot_ = QPixmap();
+    killTimer(animTimer_);
 }
 
 Control * PageCanvas::findControl(ResourceView * res)

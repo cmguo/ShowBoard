@@ -109,9 +109,18 @@ void WhiteCanvas::switchPage(ResourcePage * page)
 {
     loadingCount_ = 0;
     selector_->select(nullptr);
+    bool snapshot = false;
+    if (this->page()) {
+        snapshot = page && !this->page()->canvasView() && !page->canvasView();
+        this->page()->setThumbnail(canvas_->thumbnail(snapshot));
+    }
     canvas_->switchPage(nullptr);
     setGeometry(scene()->sceneRect());
     canvas_->switchPage(page);
+    int index = package_ ? package_->currentIndex() : -1;
+    if (snapshot)
+        canvas_->startAnimate(index > lastPage_ ? PageCanvas::RightToLeft : PageCanvas::LeftToRight);
+    lastPage_ = index;
 }
 
 Control * WhiteCanvas::addResource(QUrl const & url, QVariantMap settings)
