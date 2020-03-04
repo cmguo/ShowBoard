@@ -11,6 +11,7 @@ HEADERS += \
     $$PWD/toolcanvas.h \
     $$PWD/whitecanvas.h \
     $$PWD/whitecanvasquick.h \
+    $$PWD/whitecanvastools.h \
     $$PWD/whitecanvaswidget.h
 
 SOURCES += \
@@ -26,4 +27,5 @@ SOURCES += \
     $$PWD/toolcanvas.cpp \
     $$PWD/whitecanvas.cpp \
     $$PWD/whitecanvasquick.cpp \
+    $$PWD/whitecanvastools.cpp \
     $$PWD/whitecanvaswidget.cpp

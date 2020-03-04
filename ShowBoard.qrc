@@ -28,5 +28,12 @@
         <file>htmls/assets/js/chunk-common.js</file>
         <file>htmls/assets/js/chunk-vendors.js</file>
         <file>htmls/assets/js/embed.js</file>
+        <file>icons/page.new.disabled.png</file>
+        <file>icons/page.new.png</file>
+        <file>icons/page.next.disabled.png</file>
+        <file>icons/page.next.png</file>
+        <file>icons/page.prev.disabled.png</file>
+        <file>icons/page.prev.png</file>
+        <file>icons/stop.hover.svg</file>
     </qresource>
 </RCC>
