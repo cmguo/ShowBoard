@@ -14,7 +14,7 @@ OptionToolButtons::OptionToolButtons(const QVariantList &values, int column)
 OptionToolButtons::~OptionToolButtons()
 {
     for (ToolButton* b : buttons_) {
-        if (b->flags & ToolButton::Static)
+        if (b->isStatic())
             continue;
         delete b;
     }
@@ -35,10 +35,10 @@ QList<ToolButton *> OptionToolButtons::buttons(const QVariant &value)
     }
     if (index != lastCheck_) {
         if (lastCheck_ >= 0)
-            buttons_[lastCheck_]->flags.setFlag(ToolButton::Selected, false);
+            buttons_[lastCheck_]->setChecked(false);
         lastCheck_ = index;
         if (lastCheck_ >= 0)
-            buttons_[lastCheck_]->flags.setFlag(ToolButton::Selected, true);
+            buttons_[lastCheck_]->setChecked(true);
     }
     return buttons_;
 }
@@ -48,17 +48,17 @@ void OptionToolButtons::update(ToolButton *button, const QVariant &value)
     int index = values_.indexOf(value);
     if (index >= 0 && index < buttons_.size()) {
         index += index / column_;
-        if (!buttons_[index]->title.isEmpty())
-            button->title = buttons_[index]->title;
-        if (!buttons_[index]->icon.isNull())
-            button->icon = buttons_[index]->icon;
+        if (!buttons_[index]->text().isEmpty())
+            button->setText(buttons_[index]->text());
+        if (!buttons_[index]->getIcon().isNull())
+            button->setIcon(buttons_[index]->getIcon());
     } else {
         QString title = buttonTitle(value);
         if (!title.isEmpty())
-            button->title = title;
+            button->setText(title);
         QVariant icon = buttonIcon(value);
         if (!icon.isNull())
-            button->icon = icon;
+            button->setIcon(ToolButton::makeIcon(icon, true));
     }
 }
 
@@ -67,7 +67,7 @@ void OptionToolButtons::makeButtons()
     ToolButton::Flags flags = nullptr;
     int c = column_;
     for (QVariant v : values_) {
-        ToolButton * btn = new ToolButton({buttonName(v), buttonTitle(v), flags, buttonIcon(v)});
+        ToolButton * btn = new ToolButton(buttonName(v), buttonTitle(v), flags, buttonIcon(v));
         if (c == 0) {
             buttons_.append(&ToolButton::LINE_BREAK);
             c = column_;

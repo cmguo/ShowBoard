@@ -6,24 +6,78 @@
 #include <QPainter>
 #include <QStyleOptionGraphicsItem>
 
-ToolButton ToolButton::SPLITTER({"splitter", nullptr, Static, QVariant()});
-ToolButton ToolButton::LINE_BREAK({"lineBreak", nullptr, Static, QVariant()});
-ToolButton ToolButton::LINE_SPLITTER({"lineSplitter", nullptr, Static, QVariant()});
-ToolButton ToolButton::PLACE_HOOLDER({"placeHolder", nullptr, Static, QVariant()});
+ToolButton ToolButton::SPLITTER("splitter", Static);
+ToolButton ToolButton::LINE_BREAK("lineBreak", Static);
+ToolButton ToolButton::LINE_SPLITTER("lineSplitter", Static);
+ToolButton ToolButton::PLACE_HOOLDER("placeHolder", Static);
+
+ToolButton::ToolButton()
+{
+}
+
+ToolButton::ToolButton(const ToolButton &o)
+    : name_(o.name_)
+    , flags_(o.flags_)
+    , icon_(o.icon_)
+{
+    setText(o.text());
+    setCheckable(o.isCheckable());
+    setIcon(o.icon());
+}
+
+ToolButton::ToolButton(const QByteArray &name, const QString &title,
+                       Flags flags, const QVariant &icon)
+    : name_(name)
+    , flags_(flags)
+    , icon_(icon)
+{
+    setText(title);
+    setCheckable(flags & Checkable);
+}
+
+ToolButton::ToolButton(const QByteArray &name, const QString &title,
+                       const QByteArray &flags, const QVariant &icon)
+    : name_(name)
+    , icon_(icon)
+{
+    setName(name);
+    setText(title);
+    parseFlags(flags);
+    if (!isCustomWidget())
+        setIcon(getIcon());
+}
 
 QIcon ToolButton::getIcon()
 {
-    return getIcon(icon, !(flags & ToolButton::Dynamic));
+    return makeIcon(icon_, !isDynamic());
 }
 
-ToolButton::Flags ToolButton::makeFlags(const QString &str)
+void ToolButton::setIcon(const QVariant &icon)
 {
-   QStringList tokens = str.split(",", QString::SkipEmptyParts);
-   Flags flags;
-   for (QString const & t : tokens) {
-       flags |= QVariant(t).value<Flag>();
-   }
-   return flags;
+    icon_ = icon;
+    QAction::setIcon(getIcon());
+}
+
+QWidget *ToolButton::getCustomWidget()
+{
+    return icon_.value<QWidget*>();
+}
+
+ToolButton::ToolButton(const QByteArray &name, Flags flags)
+    : name_(name)
+    , flags_(flags)
+{
+}
+
+void ToolButton::parseFlags(const QByteArray &flags)
+{
+    QList<QByteArray> tokens = flags.split(',');
+    for (QByteArray & t : tokens) {
+        if (t.isEmpty()) continue;
+        if (QChar(t[0]).isUpper())
+            t[0] = QChar(t[0]).toLower().toLatin1();
+        setProperty(t, true);
+    }
 }
 
 ToolButton * ToolButton::makeButton(const QString &desc)
@@ -38,12 +92,12 @@ ToolButton * ToolButton::makeButton(const QString &desc)
         return nullptr;
     QStringList seps = desc.split("|");
     if (seps.size() >= 1) {
-        return new ToolButton{
+        return new ToolButton(
             seps[0].toUtf8(),
             seps.size() > 1 ? seps[1] : seps[0],
-            seps.size() > 3 ? ToolButton::makeFlags(seps[2]) : nullptr,
+            seps.size() > 3 ? seps[2].toUtf8() : nullptr,
             seps.size() > 2 ? QVariant(seps.back()) : QVariant()
-        };
+        );
     }
     return nullptr;
 }
@@ -177,7 +231,7 @@ QIcon ToolButton::makeIcon(QString const & iconString)
     return icon;
 }
 
-QIcon ToolButton::getIcon(QVariant& icon, bool replace)
+QIcon ToolButton::makeIcon(QVariant& icon, bool replace)
 {
     QIcon result;
     if (icon.type() == QVariant::Icon)

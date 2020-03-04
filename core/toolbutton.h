@@ -3,11 +3,32 @@
 
 #include "ShowBoard_global.h"
 
+#include <QAction>
 #include <QVariant>
 
-class SHOWBOARD_EXPORT ToolButton
+class SHOWBOARD_EXPORT ToolButton : public QAction
 {
-    Q_GADGET
+    Q_OBJECT
+
+    Q_PROPERTY(QByteArray name READ name WRITE setName)
+    Q_PROPERTY(bool dynamic READ isDynamic WRITE setDynamic) // need delete
+    Q_PROPERTY(bool static READ isStatic WRITE setStatic)
+    Q_PROPERTY(bool optionsGroup READ isOptionsGroup WRITE setOptionsGroup) // group of options
+    Q_PROPERTY(bool customWidget READ isCustomWidget WRITE setCustomWidget)
+    Q_PROPERTY(bool popup READ isPopup WRITE setPopup)
+    Q_PROPERTY(bool hideSelector READ isHideSelector WRITE setHideSelector)
+    Q_PROPERTY(bool needUpdate READ needUpdate WRITE setNeedUpdate)
+    Q_PROPERTY(bool unionUpdate READ unionUpdate WRITE setUnionUpdate)
+
+public:
+    static ToolButton SPLITTER;
+    static ToolButton LINE_BREAK;
+    static ToolButton LINE_SPLITTER;
+    static ToolButton PLACE_HOOLDER;
+
+    static constexpr char const * ACTION_PROPERTY = "toolaction";
+
+    typedef std::function<void()> action_t;
 
 public:
     enum Flag
@@ -21,48 +42,85 @@ public:
         Checkable = 32,
         NeedUpdate = 64,
         UnionUpdate = NeedUpdate | 128,
-        // state
-        Selected = 1 << 8,
-        Checked = 1 << 9,
-        Disabled = 1 << 10,
-        HideSelector = 1 << 16,
+        HideSelector = 1 << 8,
     };
-
-    Q_ENUM(Flag)
 
     Q_DECLARE_FLAGS(Flags, Flag)
 
-    static ToolButton SPLITTER;
-    static ToolButton LINE_BREAK;
-    static ToolButton LINE_SPLITTER;
-    static ToolButton PLACE_HOOLDER;
-
-    static constexpr char const * ACTION_PROPERTY = "toolaction";
-
-    typedef std::function<void()> action_t;
-
 public:
-    QByteArray name;
-    QString title;
-    Flags flags;
-    QVariant icon;
-
-public:
-    QIcon getIcon();
-
-public:
-    static Flags makeFlags(const QString &str);
-
     static QIcon makeIcon(QString const & iconString);
 
-    static QIcon getIcon(QVariant& icon, bool replace);
+    static QIcon makeIcon(QVariant& icon, bool replace);
 
     static ToolButton * makeButton(QString const & desc);
 
     static QList<ToolButton *> makeButtons(QString const & tools);
+
+public:
+    ToolButton();
+
+    ToolButton(ToolButton const & o);
+
+    ToolButton(QByteArray const & name, QString const & title,
+               Flags flags, QVariant const & icon = QVariant());
+
+    ToolButton(QByteArray const & name, QString const & title,
+               QByteArray const & flags, QVariant const & icon = QVariant());
+
+public:
+    QByteArray name() { return name_; }
+
+    void setName(QByteArray const & name) { name_ = name; }
+
+    bool isDynamic() const { return flags_.testFlag(Dynamic); }
+
+    bool isStatic() const { return flags_.testFlag(Static); }
+
+    bool isOptionsGroup() { return flags_.testFlag(OptionsGroup); }
+
+    bool isCustomWidget() { return flags_.testFlag(CustomWidget); }
+
+    bool isPopup() { return flags_.testFlag(Popup); }
+
+    bool isHideSelector() { return flags_.testFlag(HideSelector); }
+
+    bool needUpdate() { return flags_.testFlag(NeedUpdate); }
+
+    bool unionUpdate() { return flags_.testFlag(UnionUpdate); }
+
+    void setDynamic(bool v) { flags_.setFlag(Dynamic, v); }
+
+    void setStatic(bool v) { flags_.setFlag(Static, v); }
+
+    void setOptionsGroup(bool v) { flags_.setFlag(OptionsGroup, v); }
+
+    void setCustomWidget(bool v) { flags_.setFlag(CustomWidget, v); }
+
+    void setPopup(bool v) { flags_.setFlag(Popup, v); }
+
+    void setHideSelector(bool v) { flags_.setFlag(HideSelector, v); }
+
+    void setNeedUpdate(bool v) { flags_.setFlag(NeedUpdate, v); }
+
+    void setUnionUpdate(bool v) { flags_.setFlag(UnionUpdate, v); }
+
+public:
+    ToolButton(QByteArray const & name, Flags flags);
+
+    void parseFlags(QByteArray const & flags);
+
+    QIcon getIcon();
+
+    void setIcon(QVariant const & icon);
+
+    QWidget* getCustomWidget();
+
+private:
+    QByteArray name_;
+    Flags flags_;
+    QVariant icon_;
 };
 
-Q_DECLARE_METATYPE(ToolButton)
 Q_DECLARE_METATYPE(ToolButton::action_t)
 
 #endif // TOOLBUTTON_H

@@ -166,8 +166,8 @@ void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWi
         widget = splitter;
     } else if (button == &ToolButton::PLACE_HOOLDER) {
         return;
-    } else if (button->flags & ToolButton::CustomWidget) {
-        widget = button->icon.value<QWidget*>();
+    } else if (button->isCustomWidget()) {
+        widget = button->getCustomWidget();
         ToolButton::action_t action([this, widget]() {
             buttonClicked(widget);
         });
@@ -183,14 +183,14 @@ void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWi
         QObject::connect(btn, &QPushButton::clicked, this, slot);
         widget = btn;
     }
-    widget->setObjectName(button->name);
+    widget->setObjectName(button->name());
     if (parent) {
         QGridLayout *gridLayout = static_cast<QGridLayout*>(layout);
         if (col == -1) {
             gridLayout->addWidget(widget, row, 0, 1, -1);
             ++row; col = 0;
         } else {
-            if (button->flags & ToolButton::CustomWidget) {
+            if (button->isCustomWidget()) {
                 gridLayout->setContentsMargins(0, 0, 0, 0);
             } else {
                 gridLayout->setContentsMargins(10, 10, 10, 10);
@@ -210,30 +210,30 @@ void ToolbarWidget::applyButton(QPushButton * btn, ToolButton * parent, ToolButt
 {
     //btn->setIconSize(QSize(40,40));
     btn->setIcon(button->getIcon());
-    btn->setText(((button->flags & ToolButton::Popup) && !button->title.isEmpty())
-                 ? button->title + " ▼" : button->title);
-    if (parent && (parent->flags & ToolButton::OptionsGroup)) {
+    btn->setText(((button->isPopup()) && !button->text().isEmpty())
+                 ? button->text() + " ▼" : button->text());
+    if (parent && (parent->isOptionsGroup())) {
         btn->setCheckable(true);
-        btn->setChecked(button->flags & ToolButton::Selected);
+        btn->setChecked(button->isChecked());
     }
-    if (button->flags & ToolButton::Checkable) {
+    if (button->isCheckable()) {
         btn->setCheckable(true);
-        btn->setChecked(button->flags & ToolButton::Checked);
+        btn->setChecked(button->isChecked());
     }
-    btn->setEnabled(!button->flags.testFlag(ToolButton::Disabled));
+    btn->setEnabled(button->isEnabled());
 }
 
 void ToolbarWidget::updateButton(QPushButton * btn, ToolButton * parent, ToolButton *button)
 {
     applyButton(btn, parent, button);
-    if (button->flags.testFlag(ToolButton::UnionUpdate)) {
+    if (button->unionUpdate()) {
         QList<QObject*> list = children();
         int n = list.indexOf(btn);
         for (int i = n - 1; i >= 0; --i) {
             QWidget * widget2 = qobject_cast<QWidget *>(list[i]);
             if (widget2 == nullptr || (button = buttons_.value(widget2)) == nullptr)
                 continue;
-            if (button->flags.testFlag(ToolButton::UnionUpdate)) {
+            if (button->unionUpdate()) {
                 QPushButton * btn2 = qobject_cast<QPushButton *>(widget2);
                 applyButton(btn2, parent, button);
             } else {
@@ -244,7 +244,7 @@ void ToolbarWidget::updateButton(QPushButton * btn, ToolButton * parent, ToolBut
             QWidget * widget2 = qobject_cast<QWidget *>(list[i]);
             if (widget2 == nullptr || (button = buttons_.value(widget2)) == nullptr)
                 continue;
-            if (button->flags.testFlag(ToolButton::UnionUpdate)) {
+            if (button->unionUpdate()) {
                 QPushButton * btn2 = qobject_cast<QPushButton *>(widget2);
                 applyButton(btn2, parent, button);
             } else {
@@ -270,9 +270,9 @@ void ToolbarWidget::clearButtons(QLayout *layout, QMap<QWidget *, ToolButton *> 
     for (QWidget * widget : buttons.keys()) {
         layout->removeWidget(widget);
         ToolButton * btn = buttons.value(widget);
-        if (btn && btn->flags & ToolButton::Dynamic)
+        if (btn && btn->isDynamic())
             delete btn;
-        if (btn && btn->flags & ToolButton::CustomWidget) {
+        if (btn && btn->isCustomWidget()) {
             widget->hide();
             widget->setParent(nullptr);
             widget->setProperty(ToolButton::ACTION_PROPERTY, QVariant());
@@ -316,17 +316,17 @@ void ToolbarWidget::buttonClicked(QWidget * widget)
         clearPopup();
         if (isPopup && popupParents_.endsWith(button)) {
             popupParents_.pop_back();
-            if (btn && button->flags & ToolButton::Checkable) {
-                btn->setChecked(button->flags.testFlag(ToolButton::Checked));
+            if (btn && button->isCheckable()) {
+                btn->setChecked(button->isChecked());
             }
             return;
         }
         popupParents_.clear();
     }
     popupParents_.append(button);
-    if (btn && button->flags & ToolButton::Popup) {
-        if (button->flags & ToolButton::Checkable) {
-            btn->setChecked(button->flags.testFlag(ToolButton::Checked));
+    if (btn && button->isPopup()) {
+        if (button->isCheckable()) {
+            btn->setChecked(button->isChecked());
         }
         QList<ToolButton *> buttons;
         getPopupButtons(buttons, popupParents_);
@@ -351,14 +351,14 @@ void ToolbarWidget::buttonClicked(QWidget * widget)
         int i = 0;
         ToolButton * parent = popupParents_.empty() ? nullptr : popupParents_.back();
         for (; i < popupParents_.size(); ++i) {
-            if (popupParents_[i]->flags & ToolButton::OptionsGroup) {
+            if (popupParents_[i]->isOptionsGroup()) {
                 button = popupParents_[i];
                 if (i > 0)
                     parent = popupParents_[i - 1];
                 break;
             }
         }
-        if (button->flags & ToolButton::NeedUpdate) {
+        if (button->needUpdate()) {
             ToolButton * parent = i == 0 ? nullptr : popupParents_[i - 1];
             for (QWidget * w : buttons_.keys()) {
                 if (buttons_.value(w) == button) {

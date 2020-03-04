@@ -33,10 +33,12 @@ Control * Control::fromItem(QGraphicsItem const * item)
     return item->data(ITEM_KEY_CONTROL).value<Control *>();
 }
 
-ToolButton Control::btnTop = { "top", "置顶", nullptr, ":/showboard/icons/top.svg" };
-ToolButton Control::btnCopy = { "copy", "复制", nullptr, ":/showboard/icons/copy.png" };
-ToolButton Control::btnFastCopy = { "copy", "快速复制", ToolButton::Checkable, ":/showboard/icons/copy.svg" };
-ToolButton Control::btnDelete = { "delete", "关闭", nullptr, ":/showboard/icons/close.png" };
+ToolButton Control::btnTop = { "top", "置顶", ToolButton::Static, ":/showboard/icons/top.svg" };
+ToolButton Control::btnCopy = { "copy", "复制", ToolButton::Static, ":/showboard/icons/copy.png" };
+ToolButton Control::btnFastCopy = { "copy", "快速复制",
+                                    ToolButton::Flags{ToolButton::Static, ToolButton::Checkable},
+                                    ":/showboard/icons/copy.svg" };
+ToolButton Control::btnDelete = { "delete", "关闭", ToolButton::Static, ":/showboard/icons/close.png" };
 
 Control::Control(ResourceView *res, Flags flags, Flags clearFlags)
     : flags_((DefaultFlags | flags) & ~clearFlags)
@@ -741,7 +743,7 @@ void Control::getToolButtons(QList<ToolButton *> &buttons, const QList<ToolButto
 {
     ToolButtonProvider::getToolButtons(buttons, parents);
     if (parents.isEmpty()) {
-        btnFastCopy.flags.setFlag(ToolButton::Checked, false);
+        btnFastCopy.setChecked(false);
         if (!buttons.empty())
             buttons.append(&ToolButton::SPLITTER);
         if (res_->canMoveTop())

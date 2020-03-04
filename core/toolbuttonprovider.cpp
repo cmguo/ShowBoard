@@ -69,7 +69,7 @@ void ToolButtonProvider::getToolButtons(QList<ToolButton *> &buttons, ToolButton
 {
     if (!buttons.empty())
         buttons.append(&ToolButton::SPLITTER);
-    buttons.append(tools(parent ? parent->name : nullptr));
+    buttons.append(tools(parent ? parent->name() : nullptr));
     if (buttons.endsWith(&ToolButton::SPLITTER))
         buttons.pop_back();
 }
@@ -81,38 +81,34 @@ void ToolButtonProvider::handleToolButton(QList<ToolButton *> const & buttons)
     ToolButton * button = buttons.back();
     int i = 0;
     for (; i < buttons.size(); ++i) {
-        if (buttons[i]->flags & ToolButton::OptionsGroup) {
+        if (buttons[i]->isOptionsGroup()) {
             button = buttons[i];
             break;
         }
     }
     if (i == buttons.size())
         --i;
-    if (button == buttons.back() && !button->flags.testFlag(ToolButton::UnionUpdate)) {
-        handleToolButton(button); // do simple handle
-        return;
-    }
     QStringList args;
     for (int j = i + 1; j < buttons.size(); ++j) {
-        args.append(buttons[j]->name);
+        args.append(buttons[j]->name());
     }
     inHandle = true;
-    exec(button->name, args);
-    if (button->flags & ToolButton::NeedUpdate) {
+    handleToolButton(button, args);
+    if (button->needUpdate()) {
         updateToolButton(button);
-        if (button->flags.testFlag(ToolButton::UnionUpdate)) {
+        if (button->unionUpdate()) {
             QList<ToolButton *> siblins;
             getToolButtons(siblins, buttons.mid(0, i));
             int n = siblins.indexOf(button);
             for (int i = n - 1; i >= 0; --i) {
-                if (siblins[i]->flags.testFlag(ToolButton::UnionUpdate)) {
+                if (siblins[i]->unionUpdate()) {
                     updateToolButton(siblins[i]);
                 } else {
                     break;
                 }
             }
             for (int i = n + 1; i < siblins.size(); ++i) {
-                if (siblins[i]->flags.testFlag(ToolButton::UnionUpdate)) {
+                if (siblins[i]->unionUpdate()) {
                     updateToolButton(siblins[i]);
                 } else {
                     break;
@@ -123,11 +119,9 @@ void ToolButtonProvider::handleToolButton(QList<ToolButton *> const & buttons)
     inHandle = false;
 }
 
-void ToolButtonProvider::handleToolButton(ToolButton *button)
+void ToolButtonProvider::handleToolButton(ToolButton *button, QStringList const & args)
 {
-    exec(button->name, nullptr);
-    if (button->flags & ToolButton::NeedUpdate)
-        updateToolButton(button);
+    exec(button->name(), args);
 }
 
 static std::map<QMetaObject const *, std::map<QByteArray, OptionToolButtons*>> & optionButtons()
@@ -140,9 +134,9 @@ void ToolButtonProvider::updateToolButton(ToolButton *button)
 {
     auto iopt = optionButtons().find(metaObject());
     if (iopt != optionButtons().end()) {
-        auto iopt2 = iopt->second.find(button->name);
+        auto iopt2 = iopt->second.find(button->name());
         if (iopt2 != iopt->second.end()) {
-            QVariant value = getOption(button->name);
+            QVariant value = getOption(button->name());
             iopt2->second->update(button, value);
         }
     }
@@ -199,7 +193,7 @@ QList<ToolButton *> ToolButtonProvider::tools(QByteArray const & parent)
     }
     QList<ToolButton*> btns(iter2->second);
     for (ToolButton *& button : btns) {
-        if (button->flags & ToolButton::NeedUpdate) {
+        if (button->needUpdate()) {
             ToolButton* button2 = nonSharedButtons_.value(button);
             if (button2 == nullptr) {
                 button2 = new ToolButton(*button);

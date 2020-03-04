@@ -343,7 +343,7 @@ void WhiteCanvas::toolButtonClicked(QList<ToolButton *> const & buttons)
 {
     Control * ct = Control::fromItem(selector_->selected());
     ToolButton * btn = buttons.back();
-    if (btn->flags & ToolButton::HideSelector) {
+    if (btn->isHideSelector()) {
         selector()->selectImplied(ct->item());
     }
     if (btn == &Control::btnTop) {
@@ -351,9 +351,9 @@ void WhiteCanvas::toolButtonClicked(QList<ToolButton *> const & buttons)
     } else if (btn == &Control::btnCopy) {
         copyResource(ct);
     } else if (btn == &Control::btnFastCopy) {
-        bool checked = !btn->flags.testFlag(ToolButton::Checked);
+        bool checked = !btn->isChecked();
         selector_->enableFastClone(checked);
-        btn->flags.setFlag(ToolButton::Checked, checked);
+        btn->setChecked(checked);
     } else if (btn == &Control::btnDelete) {
         selector_->select(nullptr);
         canvas_->page()->removeResource(ct->resource());
