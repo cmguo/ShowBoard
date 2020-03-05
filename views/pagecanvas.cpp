@@ -59,7 +59,6 @@ void PageCanvas::relayout()
 
 void PageCanvas::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
 {
-    qDebug() << "PageCanvas" << rect();
     painter->drawPixmap(rect(), snapshot_, QRectF());
 }
 
@@ -79,7 +78,6 @@ void PageCanvas::timerEvent(QTimerEvent *event)
         QPointF d{0, rect().height() / 20};
         p = p.y() < 0 ? p + d : p - d;
     }
-    qDebug() << "PageCanvas" << p;
     setPos(p);
 }
 
@@ -88,7 +86,7 @@ QPixmap PageCanvas::thumbnail(bool snapshot)
     QSizeF size = scene()->sceneRect().size();
     QSizeF size2 = snapshot ? size : size / size.height() * 100;
     QPixmap pixmap(size2.toSize());
-    pixmap.fill(Qt::red);
+    pixmap.fill(Qt::transparent);
     QPainter painter;
     painter.begin(&pixmap);
     painter.setRenderHint(QPainter::Antialiasing);
@@ -96,7 +94,10 @@ QPixmap PageCanvas::thumbnail(bool snapshot)
         if (sibling != this && !hasSubCanvas(sibling))
             sibling->hide();
     }
+    QBrush br = scene()->backgroundBrush();
+    scene()->setBackgroundBrush(Qt::transparent);
     scene()->render(&painter, QRectF(QPointF(0, 0), size2), scene()->sceneRect());
+    scene()->setBackgroundBrush(br);
     for (QGraphicsItem * sibling : parentItem()->childItems()) {
         if (sibling != this && !hasSubCanvas(sibling))
             sibling->show();
