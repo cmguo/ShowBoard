@@ -30,6 +30,10 @@ ResourceView * ResourcePage::addResource(QUrl const & url, QVariantMap const & s
     for (QString const & k : settings.keys()) {
         rv->setProperty(k.toUtf8(), settings.value(k));
     }
+    if (rv->resource()->type().endsWith("tool")) {
+        ResourcePackage::toolPage()->addResource(rv);
+        return rv;
+    }
     if (rv->flags().testFlag(ResourceView::VirtualPage)) {
         qobject_cast<ResourcePackage*>(parent())->newVirtualPage(rv);
     } else {
@@ -222,6 +226,9 @@ bool ResourcePage::isSubPage() const
 void ResourcePage::setThumbnail(QPixmap thumb)
 {
     thumbnail_ = thumb;
+    ResourcePackage * pkg = qobject_cast<ResourcePackage*>(parent());
+    if (pkg)
+        pkg->pageChanged(this);
 }
 
 void ResourcePage::moveResource(int pos, int newPos)

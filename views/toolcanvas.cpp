@@ -1,5 +1,6 @@
 #include "toolcanvas.h"
 #include "core/resourcepage.h"
+#include "core/resourcepackage.h"
 #include "core/control.h"
 
 #include <QUrl>
@@ -8,7 +9,7 @@ ToolCanvas::ToolCanvas(QGraphicsItem * parent)
     : PageCanvas(parent)
     , shown_(nullptr)
 {
-    switchPage(new ResourcePage);
+    switchPage(ResourcePackage::toolPage());
 }
 
 void ToolCanvas::showToolControl(Control * control)

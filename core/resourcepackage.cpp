@@ -4,14 +4,22 @@
 #include "resourcemanager.h"
 #include "resourceview.h"
 
+#include <QBrush>
+
 extern QComponentContainer & ShowBoard_containter();
 
 
 ResourcePackage::ResourcePackage(QObject *parent)
-    : QObject(parent)
+    : QAbstractItemModel(parent)
     , current_(-1)
 {
     globalPage_ = new ResourcePage(this);
+}
+
+ResourcePage *ResourcePackage::toolPage()
+{
+    static ResourcePage p;
+    return &p;
 }
 
 ResourcePage *ResourcePackage::globalPage() const
@@ -44,6 +52,11 @@ ResourcePage * ResourcePackage::currentPage() const
 int ResourcePackage::currentNumber() const
 {
     return current_ + 1;
+}
+
+QModelIndex ResourcePackage::currentModelIndex() const
+{
+    return index(current_, 0);
 }
 
 ResourcePage * ResourcePackage::newVirtualPage(ResourceView *mainRes)
@@ -167,6 +180,8 @@ void ResourcePackage::gotoBack()
 
 void ResourcePackage::switchPage(int page)
 {
+    if (page == current_)
+        return;
     current_ = page;
     if (visiblePages_.empty())
         emit currentPageChanged(pages_[current_]);
@@ -182,6 +197,46 @@ void ResourcePackage::switchPage(ResourcePage * page)
 
 void ResourcePackage::addPage(int index, ResourcePage * page)
 {
+    beginInsertRows(QModelIndex(), index, index);
     pages_.insert(index, page);
+    endInsertRows();
     emit pageCountChanged(pages_.size());
+}
+
+void ResourcePackage::pageChanged(ResourcePage *page)
+{
+    int i = pages_.indexOf(page);
+    if (i >= 0)
+    dataChanged(index(i, 0), index(i, 0));
+}
+
+QVariant ResourcePackage::data(const QModelIndex &index, int role) const
+{
+    if (role == Qt::BackgroundRole)
+        return index.row() == current_ ? QBrush(Qt::blue) : QBrush();
+    return QVariant::fromValue(pages_[index.row()]);
+}
+
+int ResourcePackage::rowCount(const QModelIndex &parent) const
+{
+    (void) parent;
+    return pages_.size();
+}
+
+int ResourcePackage::columnCount(const QModelIndex &parent) const
+{
+    (void) parent;
+    return 1;
+}
+
+QModelIndex ResourcePackage::parent(const QModelIndex &child) const
+{
+    (void) child;
+    return QModelIndex();
+}
+
+QModelIndex ResourcePackage::index(int row, int column, const QModelIndex &parent) const
+{
+    (void) parent;
+    return createIndex(row, column, pages_[row]);
 }

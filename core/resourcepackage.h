@@ -3,7 +3,7 @@
 
 #include "ShowBoard_global.h"
 
-#include <QObject>
+#include <QAbstractItemModel>
 
 class ResourcePage;
 class ResourceView;
@@ -12,7 +12,7 @@ class ResourceView;
  * ResourcePackage manages a collection of resource pages
  */
 
-class SHOWBOARD_EXPORT ResourcePackage : public QObject
+class SHOWBOARD_EXPORT ResourcePackage : public QAbstractItemModel
 {
     Q_OBJECT
 
@@ -21,6 +21,8 @@ public:
     explicit ResourcePackage(QObject *parent = nullptr);
 
 public:
+    static ResourcePage* toolPage();
+
     QList<ResourcePage *> const & pages() const
     {
         return pages_;
@@ -62,6 +64,8 @@ public:
      *  current page number, start from 1
      */
     int currentNumber() const;
+
+    QModelIndex currentModelIndex() const;
 
 signals:
     void pageCreated(ResourcePage* page);
@@ -124,6 +128,20 @@ public slots:
 
 protected:
     void addPage(int index, ResourcePage * page);
+
+    friend class ResourcePage;
+    void pageChanged(ResourcePage* page);
+
+private:
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+
+    int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+
+    QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const override;
+
+    QModelIndex parent(const QModelIndex &child) const override;
 
 private:
     ResourcePage * globalPage_;

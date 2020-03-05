@@ -29,8 +29,6 @@ void PageCanvas::switchPage(ResourcePage * page)
         if (page_->canvasView()) {
             delete Control::fromItem(parentItem());
         }
-        if (!page_->parent())
-            page_->deleteLater();
     }
     page_ = page;
     if (page_ != nullptr) {
