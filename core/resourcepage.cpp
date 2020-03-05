@@ -14,6 +14,8 @@ ResourcePage::ResourcePage(ResourceView* mainRes, QObject *parent)
     , canvasView_(nullptr)
     , currentSubPage_(nullptr)
 {
+    if (parent)
+        thumbnail_ = ResourcePackage::toolPage()->thumbnail();
     bool largeCanvas = mainRes && (mainRes->flags().testFlag(ResourceView::LargeCanvas));
     if (largeCanvas)
         canvasView_ = new ResourceView(new Resource("whitecanvas", QUrl("whitecanvas:///")),

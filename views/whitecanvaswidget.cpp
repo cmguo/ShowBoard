@@ -21,7 +21,6 @@ WhiteCanvasWidget * WhiteCanvasWidget::mainInstance()
 
 WhiteCanvasWidget::WhiteCanvasWidget(QWidget *parent)
     : QGraphicsView(parent)
-    , sceneSize_(QApplication::primaryScreen()->geometry().size())
 {
     QRectF rect(QPointF(0, 0), sceneSize_);
     rect.moveCenter({0, 0});
@@ -30,6 +29,7 @@ WhiteCanvasWidget::WhiteCanvasWidget(QWidget *parent)
     canvas_ = new WhiteCanvas;
     scene_->addItem(canvas_);
     setScene(scene_);
+    setSceneSize(QApplication::primaryScreen()->geometry().size());
 
     setStyleSheet("border: 0px;");
     setRenderHint(QPainter::Antialiasing);
@@ -132,6 +132,8 @@ ResourcePackage * WhiteCanvasWidget::package()
 void WhiteCanvasWidget::setSceneSize(QSizeF size)
 {
     sceneSize_ = size;
+    static QPixmap thumb(":/showboard/icons/drag.png");
+    ResourcePackage::toolPage()->setThumbnail(thumb.scaled((size * 100 / size.height()).toSize()));
     onPageChanged(CurrentPage);
     if (canvas_->page() && !canvas_->page()->canvasView())
         canvas_->setGeometry(scene()->sceneRect());
