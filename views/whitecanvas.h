@@ -46,6 +46,8 @@ public:
 
     void switchPage(ResourcePage * page);
 
+    void updateThunmbnail();
+
 public:
     /*
      * add resource to attached resource page

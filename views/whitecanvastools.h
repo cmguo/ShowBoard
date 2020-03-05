@@ -1,11 +1,14 @@
 #ifndef WHITECANVASTOOLS_H
 #define WHITECANVASTOOLS_H
 
+#include "ShowBoard_global.h"
+
 #include <core/toolbuttonprovider.h>
 
 class WhiteCanvas;
+class ResourcePackage;
 
-class WhiteCanvasTools : public ToolButtonProvider
+class SHOWBOARD_EXPORT WhiteCanvasTools : public ToolButtonProvider
 {
 public:
     WhiteCanvasTools();
@@ -25,8 +28,12 @@ protected slots:
 private:
     void update();
 
+public:
+    static QWidget * createPageList(ResourcePackage * package);
+
 private:
     WhiteCanvas * canvas_;
+    QWidget* pageList_;
 };
 
 #endif // WHITECANVASTOOLS_H

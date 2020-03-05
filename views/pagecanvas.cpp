@@ -13,6 +13,7 @@ PageCanvas::PageCanvas(QGraphicsItem * parent)
     : CanvasItem(parent)
     , page_(nullptr)
     , subCanvas_(nullptr)
+    , animTimer_(0)
 {
     resource_manager_ = ResourceManager::instance();
     control_manager_ = ControlManager::instance();
@@ -87,7 +88,7 @@ void PageCanvas::timerEvent(QTimerEvent *event)
 QPixmap PageCanvas::thumbnail(bool snapshot)
 {
     QSizeF size = scene()->sceneRect().size();
-    QSizeF size2 = snapshot ? size : size / size.height() * 150;
+    QSizeF size2 = snapshot ? size : size / size.height() * 100;
     QPixmap pixmap(size2.toSize());
     pixmap.fill(Qt::red);
     QPainter painter;
@@ -97,7 +98,7 @@ QPixmap PageCanvas::thumbnail(bool snapshot)
     painter.end();
     if (snapshot) {
         snapshot_ = pixmap;
-        return pixmap.scaled(pixmap.width(), 150, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        return pixmap.scaled(pixmap.width(), 100, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     } else {
         return pixmap;
     }
@@ -105,6 +106,8 @@ QPixmap PageCanvas::thumbnail(bool snapshot)
 
 void PageCanvas::startAnimate(int dir)
 {
+    if (animTimer_)
+        return;
     QRectF r = scene()->sceneRect();
     if (dir & 1)
         r.adjust(r.width(), 0, r.width(), 0);
@@ -120,12 +123,18 @@ void PageCanvas::startAnimate(int dir)
     animTimer_ = startTimer(20);
 }
 
+bool PageCanvas::inAnimate()
+{
+    return animTimer_ != 0;
+}
+
 void PageCanvas::stopAnimate()
 {
     setFlag(QGraphicsItem::ItemHasNoContents, true);
     setRect(QRectF());
     snapshot_ = QPixmap();
     killTimer(animTimer_);
+    animTimer_ = 0;
 }
 
 Control * PageCanvas::findControl(ResourceView * res)

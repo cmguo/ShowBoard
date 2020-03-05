@@ -53,6 +53,8 @@ public:
 
     void startAnimate(int dir);
 
+    bool inAnimate();
+
     void stopAnimate();
 
 private:
