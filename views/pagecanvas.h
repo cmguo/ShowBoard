@@ -70,7 +70,10 @@ private:
     void resourceMoved(QModelIndex const &parent, int start, int end,
                        QModelIndex const &destination, int row);
 
+private:
     void subPageChanged(ResourcePage* page);
+
+    bool hasSubCanvas(QGraphicsItem * canvas);
 
 private:
     void insertResource(int layer);

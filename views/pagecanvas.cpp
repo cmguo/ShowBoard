@@ -92,7 +92,15 @@ QPixmap PageCanvas::thumbnail(bool snapshot)
     QPainter painter;
     painter.begin(&pixmap);
     painter.setRenderHint(QPainter::Antialiasing);
+    for (QGraphicsItem * sibling : parentItem()->childItems()) {
+        if (sibling != this && !hasSubCanvas(sibling))
+            sibling->hide();
+    }
     scene()->render(&painter, QRectF(QPointF(0, 0), size2), scene()->sceneRect());
+    for (QGraphicsItem * sibling : parentItem()->childItems()) {
+        if (sibling != this && !hasSubCanvas(sibling))
+            sibling->show();
+    }
     painter.end();
     if (snapshot) {
         snapshot_ = pixmap;
@@ -218,6 +226,12 @@ void PageCanvas::subPageChanged(ResourcePage *page)
             subCanvas_ = nullptr;
         }
     }
+}
+
+bool PageCanvas::hasSubCanvas(QGraphicsItem *canvas)
+{
+    return subCanvas_ == canvas
+            || (subCanvas_ && subCanvas_->hasSubCanvas(canvas));
 }
 
 void PageCanvas::insertResource(int layer)
