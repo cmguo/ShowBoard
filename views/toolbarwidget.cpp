@@ -53,6 +53,17 @@ void ToolbarWidget::setPopupPosition(PopupPosition pos)
     popupPosition_ = pos;
 }
 
+QWidget *ToolbarWidget::createPopup(const QList<ToolButton *> &buttons)
+{
+    clearPopup();
+    QWidget * popup = createPopupWidget();
+    QMap<QWidget *, ToolButton *> map;
+    for (ToolButton * b : buttons) {
+        addToolButton(popup->layout(), b, map);
+    }
+    return popup;
+}
+
 void ToolbarWidget::setToolButtons(QList<ToolButton *> const & buttons)
 {
     clear();
@@ -146,7 +157,6 @@ void ToolbarWidget::buttonClicked()
 
 void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWidget *, ToolButton *>& buttons)
 {
-    ToolButton * parent = popupParents_.empty() ? nullptr : popupParents_.back();
     QWidget * widget = nullptr;
     if (button == &ToolButton::SPLITTER) {
         QFrame *splitter = new QFrame(this);
@@ -158,7 +168,7 @@ void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWi
         ++row; col = 0;
         return;
     } else if (button == &ToolButton::LINE_SPLITTER) {
-        ++row; col = -1;
+        if (col > 0) ++row; col = -1;
         QFrame *splitter = new QFrame(this);
         splitter->setFrameShape(QFrame::HLine);
         splitter->setFrameShadow(QFrame::Sunken);
@@ -178,14 +188,15 @@ void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWi
                 ? qobject_cast<QPushButton *>(template_->newInstance())
                 : new QPushButton;
         btn->setFocusPolicy(Qt::NoFocus);
-        applyButton(btn, parent, button);
+        btn->addAction(button);
+        applyButton(btn, button);
         void (ToolbarWidget::*slot)() = &ToolbarWidget::buttonClicked;
         QObject::connect(btn, &QPushButton::clicked, this, slot);
         widget = btn;
     }
     widget->setObjectName(button->name());
-    if (parent) {
-        QGridLayout *gridLayout = static_cast<QGridLayout*>(layout);
+    QGridLayout *gridLayout = qobject_cast<QGridLayout*>(layout);
+    if (gridLayout) {
         if (col == -1) {
             gridLayout->addWidget(widget, row, 0, 1, -1);
             ++row; col = 0;
@@ -206,16 +217,12 @@ void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWi
     }
 }
 
-void ToolbarWidget::applyButton(QPushButton * btn, ToolButton * parent, ToolButton *button)
+void ToolbarWidget::applyButton(QPushButton * btn, ToolButton *button)
 {
     //btn->setIconSize(QSize(40,40));
     btn->setIcon(button->getIcon());
     btn->setText(((button->isPopup()) && !button->text().isEmpty())
                  ? button->text() + " ▼" : button->text());
-    if (parent && (parent->isOptionsGroup())) {
-        btn->setCheckable(true);
-        btn->setChecked(button->isChecked());
-    }
     if (button->isCheckable()) {
         btn->setCheckable(true);
         btn->setChecked(button->isChecked());
@@ -225,7 +232,7 @@ void ToolbarWidget::applyButton(QPushButton * btn, ToolButton * parent, ToolButt
 
 void ToolbarWidget::updateButton(QPushButton * btn, ToolButton * parent, ToolButton *button)
 {
-    applyButton(btn, parent, button);
+    applyButton(btn, button);
     if (button->unionUpdate()) {
         QList<QObject*> list = children();
         int n = list.indexOf(btn);
@@ -235,7 +242,7 @@ void ToolbarWidget::updateButton(QPushButton * btn, ToolButton * parent, ToolBut
                 continue;
             if (button->unionUpdate()) {
                 QPushButton * btn2 = qobject_cast<QPushButton *>(widget2);
-                applyButton(btn2, parent, button);
+                applyButton(btn2, button);
             } else {
                 break;
             }
@@ -246,7 +253,7 @@ void ToolbarWidget::updateButton(QPushButton * btn, ToolButton * parent, ToolBut
                 continue;
             if (button->unionUpdate()) {
                 QPushButton * btn2 = qobject_cast<QPushButton *>(widget2);
-                applyButton(btn2, parent, button);
+                applyButton(btn2, button);
             } else {
                 break;
             }

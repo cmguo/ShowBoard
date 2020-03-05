@@ -38,6 +38,8 @@ public:
 
     void setPopupPosition(PopupPosition pos);
 
+    QWidget * createPopup(QList<ToolButton *> const & buttons);
+
 public:
     void setToolButtons(QList<ToolButton *> const & buttons);
 
@@ -84,7 +86,7 @@ private:
 private:
     void addToolButton(QLayout * layout, ToolButton * button, QMap<QWidget *, ToolButton *>& buttons);
 
-    void applyButton(QPushButton * btn, ToolButton * parent, ToolButton * button);
+    void applyButton(QPushButton * btn, ToolButton * button);
 
     void updateButton(QPushButton * btn, ToolButton * parent, ToolButton * button);
 

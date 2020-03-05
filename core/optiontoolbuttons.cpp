@@ -68,6 +68,7 @@ void OptionToolButtons::makeButtons()
     int c = column_;
     for (QVariant v : values_) {
         ToolButton * btn = new ToolButton(buttonName(v), buttonTitle(v), flags, buttonIcon(v));
+        btn->setCheckable(true);
         if (c == 0) {
             buttons_.append(&ToolButton::LINE_BREAK);
             c = column_;
