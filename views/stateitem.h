@@ -28,6 +28,8 @@ public:
 
     void setLoading();
 
+    void setLoading(QString const & msg);
+
     void setLoaded(QString const & icon);
 
     void setFailed(QString const & error);

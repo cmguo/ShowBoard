@@ -59,13 +59,22 @@ void StateItem::showBackground(bool show)
 
 void StateItem::setLoading()
 {
-    setSharedRenderer(loading_);
-    QString text =  "<center><nobr>正在打开...</nobr><br/>"
+    if (state_ != Loading)
+        setLoading("正在打开");
+}
+
+void StateItem::setLoading(const QString &msg)
+{
+    if (state_ != Loading)
+        setSharedRenderer(loading_);
+    QString text =  "<center><nobr>" + msg + "...</nobr><br/>"
                     "<font style='color:#98FFFFFF;font-size:14pt;'>" + title_ + "</font></center>";
     setText(text);
-    state_ = Loading;
-    rotate_ = 45.0;
-    timerId_ = startTimer(100);
+    if (state_ != Loading) {
+        state_ = Loading;
+        rotate_ = 45.0;
+        timerId_ = startTimer(100);
+    }
 }
 
 void StateItem::setLoaded(const QString &icon)
