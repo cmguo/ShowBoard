@@ -1,5 +1,6 @@
 HEADERS += \
     $$PWD/canvasitem.h \
+    $$PWD/floatwidgetmanager.h \
     $$PWD/itemframe.h \
     $$PWD/itemselector.h \
     $$PWD/pagecanvas.h \
@@ -16,6 +17,7 @@ HEADERS += \
 
 SOURCES += \
     $$PWD/canvasitem.cpp \
+    $$PWD/floatwidgetmanager.cpp \
     $$PWD/itemframe.cpp \
     $$PWD/itemselector.cpp \
     $$PWD/pagecanvas.cpp \
