@@ -19,6 +19,7 @@ static constexpr char const * toolstr =
 WhiteCanvasTools::WhiteCanvasTools()
 {
     setToolsString(toolstr);
+    followTrigger();
 }
 
 void WhiteCanvasTools::attachToWhiteCanvas(WhiteCanvas *whiteCanvas)

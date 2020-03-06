@@ -5,8 +5,10 @@
 
 #include <QVariant>
 #include <QList>
+#include <QColor>
 
 class ToolButton;
+class ToolButtonProvider;
 
 class SHOWBOARD_EXPORT OptionToolButtons
 {
@@ -22,11 +24,13 @@ public:
     virtual ~OptionToolButtons();
 
 public:
-    virtual void fill(QList<ToolButton *> & buttons, QVariant const & value);
+    void getButtons(QList<ToolButton *> & getButtons, QVariant const & value);
 
-    QList<ToolButton*> buttons(QVariant const & value);
+    QList<ToolButton*> getButtons(QVariant const & value);
 
-    virtual void update(ToolButton * button, QVariant const & value);
+    void updateValue(QVariant const & value);
+
+    void updateParent(ToolButton * button, QVariant const & value);
 
 protected:
     template<typename T>
@@ -101,13 +105,16 @@ private:
 class SHOWBOARD_EXPORT StateWidthToolButtons : public OptionToolButtons
 {
 public:
-    StateWidthToolButtons(QList<qreal> const & widths);
+    StateWidthToolButtons(QList<qreal> const & widths, QColor color = Qt::white);
 
 protected:
     virtual QVariant buttonIcon(const QVariant &value) override;
 
 private:
-    static QGraphicsItem* widthIcon(qreal width, bool selected);
+    static QGraphicsItem* widthIcon(qreal width, bool selected, QColor color);
+
+private:
+    QColor color_;
 };
 
 #endif // OPTIONTOOLBUTTONS_H

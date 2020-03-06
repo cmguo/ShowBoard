@@ -7,14 +7,15 @@
 
 ToolButtonProvider::ToolButtonProvider(QObject * parent)
     : LifeObject(parent)
+    , followTrigger_(false)
 {
 }
 
 ToolButtonProvider::~ToolButtonProvider()
 {
-    for (ToolButton * btn : nonSharedButtons_)
+    for (ToolButton * btn : privateButtons_)
         delete btn;
-    nonSharedButtons_.clear();
+    privateButtons_.clear();
 }
 
 void ToolButtonProvider::exec(QByteArray const & cmd, QGenericArgument arg0,
@@ -32,8 +33,15 @@ void ToolButtonProvider::exec(QByteArray const & cmd, QStringList const & args)
 {
     int index = metaObject()->indexOfSlot(cmd);
     if (index < 0) {
-        if (args.size() == 1) {
+        if (args.size() == 0) {
+            setOption(cmd, QVariant());
+        } else if (args.size() == 1) {
             setOption(cmd, args[0]);
+        } else {
+            QVariantList list;
+            for (QString const & arg : args)
+                list.append(arg);
+            setOption(cmd, list);
         }
         return;
     }
@@ -60,21 +68,82 @@ void ToolButtonProvider::setToolsString(const QString &tools)
     setProperty("toolsString", tools);
 }
 
+void ToolButtonProvider::followTrigger(bool v)
+{
+    followTrigger_ = v;
+}
+
+void ToolButtonProvider::followTrigger(QList<ToolButton *> &buttons, ToolButton *parent)
+{
+    for (ToolButton * button : buttons) {
+        if (parent && parent->isOptionsGroup())
+            connect(button, &ToolButton::triggered, this, [this, button, parent]() {
+                handleToolButton({parent, button});
+            });
+        else
+            connect(button, &ToolButton::triggered, this, [this, button](bool checked) {
+                handleToolButton({button});
+            });
+    }
+}
+
+static bool inHandle = false;
+
+static std::map<QMetaObject const *, std::map<QByteArray, OptionToolButtons*>> & optionButtons()
+{
+    static std::map<QMetaObject const *, std::map<QByteArray, OptionToolButtons*>> smap;
+    return smap;
+}
+
+static OptionToolButtons* optionButton(QMetaObject const * meta, QByteArray const & name)
+{
+    auto iopt = optionButtons().find(meta);
+    if (iopt != optionButtons().end()) {
+        auto iopt2 = iopt->second.find(name);
+        if (iopt2 != iopt->second.end()) {
+            return iopt2->second;
+        }
+    }
+    return nullptr;
+}
+
+ToolButton* ToolButtonProvider::getStringButton(const QByteArray &name)
+{
+    bool in = inHandle;
+    inHandle = true;
+    QList<ToolButton *> btns = tools();
+    inHandle = in;
+    for (ToolButton * b : btns)
+        if (b->name() == name)
+            return b;
+    return nullptr;
+}
+
+ToolButton* ToolButtonProvider::getStringButton(int index)
+{
+    bool in = inHandle;
+    inHandle = true;
+    QList<ToolButton *> btns = tools();
+    inHandle = in;
+    if (index < btns.size())
+        return btns.at(index);
+    return nullptr;
+}
+
 void ToolButtonProvider::getToolButtons(QList<ToolButton *> & buttons, QList<ToolButton *> const & parents)
 {
-    getToolButtons(buttons, parents.empty() ? nullptr : parents.last());
+    ToolButton *parent = parents.empty() ? nullptr : parents.last();
+    getToolButtons(buttons, parent);
 }
 
 void ToolButtonProvider::getToolButtons(QList<ToolButton *> &buttons, ToolButton *parent)
 {
     if (!buttons.empty())
         buttons.append(&ToolButton::SPLITTER);
-    buttons.append(tools(parent ? parent->name() : nullptr));
+    buttons.append(tools(parent));
     if (buttons.endsWith(&ToolButton::SPLITTER))
         buttons.pop_back();
 }
-
-static bool inHandle = false;
 
 void ToolButtonProvider::handleToolButton(QList<ToolButton *> const & buttons)
 {
@@ -116,6 +185,14 @@ void ToolButtonProvider::handleToolButton(QList<ToolButton *> const & buttons)
             }
         }
     }
+    if (followTrigger_) {
+        QByteArray name = button->name();
+        OptionToolButtons* opt = optionButton(metaObject(), name);
+        if (opt) {
+            QVariant value = getOption(name);
+            opt->updateValue(value);
+        }
+    }
     inHandle = false;
 }
 
@@ -124,21 +201,14 @@ void ToolButtonProvider::handleToolButton(ToolButton *button, QStringList const 
     exec(button->name(), args);
 }
 
-static std::map<QMetaObject const *, std::map<QByteArray, OptionToolButtons*>> & optionButtons()
-{
-    static std::map<QMetaObject const *, std::map<QByteArray, OptionToolButtons*>> smap;
-    return smap;
-}
-
 void ToolButtonProvider::updateToolButton(ToolButton *button)
 {
-    auto iopt = optionButtons().find(metaObject());
-    if (iopt != optionButtons().end()) {
-        auto iopt2 = iopt->second.find(button->name());
-        if (iopt2 != iopt->second.end()) {
-            QVariant value = getOption(button->name());
-            iopt2->second->update(button, value);
-        }
+    QByteArray name = button->name();
+    OptionToolButtons* opt = optionButton(metaObject(), name);
+    if (opt) {
+        QVariant value = getOption(name);
+        opt->updateValue(value);
+        opt->updateParent(button, value);
     }
 }
 
@@ -169,14 +239,34 @@ QVariant ToolButtonProvider::getOption(const QByteArray &key)
     return property(key);
 }
 
-QList<ToolButton *> ToolButtonProvider::tools(QByteArray const & parent)
+QList<ToolButton *> ToolButtonProvider::tools(ToolButton * parent)
 {
-    auto iopt = optionButtons().find(metaObject());
-    if (iopt != optionButtons().end()) {
-        auto iopt2 = iopt->second.find(parent);
-        if (iopt2 != iopt->second.end()) {
-            QVariant value = getOption(parent);
-            return iopt2->second->buttons(value);
+    QByteArray name = parent ? parent->name() : "";
+    auto ilst = buttons_.find(name);
+    if (ilst != buttons_.end()) {
+        if (inHandle)
+            return *ilst;
+        OptionToolButtons* opt = optionButton(metaObject(), name);
+        if (opt) {
+            QVariant value = getOption(name);
+            opt->updateValue(value);
+            return *ilst;
+        }
+        for (ToolButton *& button : *ilst) {
+            if (button->needUpdate()) {
+                 updateToolButton(button);
+            }
+        }
+        return *ilst;
+    }
+    if (parent) {
+        OptionToolButtons* opt = optionButton(metaObject(), name);
+        if (opt) {
+            QVariant value = getOption(name);
+            QList<ToolButton *> btns = opt->getButtons(value);
+            if (followTrigger_)
+                followTrigger(btns, parent);
+            return btns;
         }
     }
     static std::map<QMetaObject const *, std::map<QString, QList<ToolButton *>>> smap;
@@ -185,25 +275,25 @@ QList<ToolButton *> ToolButtonProvider::tools(QByteArray const & parent)
         std::map<QString, QList<ToolButton *>> t;
         iter = smap.insert(std::make_pair(metaObject(), std::move(t))).first;
     }
-    auto iter2 = iter->second.find(parent);
+    auto iter2 = iter->second.find(name);
     if (iter2 == iter->second.end()) {
-        QString tools = this->toolsString(parent);
+        QString tools = this->toolsString(name);
         iter2 = iter->second.insert(
-                    std::make_pair(parent, ToolButton::makeButtons(tools))).first;
+                    std::make_pair(name, ToolButton::makeButtons(tools))).first;
     }
     QList<ToolButton*> btns(iter2->second);
     for (ToolButton *& button : btns) {
         if (button->needUpdate()) {
-            ToolButton* button2 = nonSharedButtons_.value(button);
-            if (button2 == nullptr) {
-                button2 = new ToolButton(*button);
-                nonSharedButtons_.insert(button, button2);
-            }
+            button = new ToolButton(*button);
+            privateButtons_.append(button);
             if (!inHandle)
-                updateToolButton(button2);
-            button = button2;
+                updateToolButton(button);
         }
     }
+    if (followTrigger_) {
+        followTrigger(btns, parent);
+    }
+    buttons_.insert(name, btns);
     return btns;
 }
 

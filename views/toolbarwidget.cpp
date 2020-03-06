@@ -61,6 +61,19 @@ QWidget *ToolbarWidget::createPopup(const QList<ToolButton *> &buttons)
     for (ToolButton * b : buttons) {
         addToolButton(popup->layout(), b, map);
     }
+    for (auto i = map.keyValueBegin(); i != map.keyValueEnd(); ++i) {
+        QPushButton* btn = qobject_cast<QPushButton*>((*i).first);
+        ToolButton* button = (*i).second;
+        if (btn) {
+            connect(btn, &QPushButton::clicked, button, [popup, button] (bool checked) {
+                popup->hide();
+                button->triggered(checked);
+            });
+            connect(button, &ToolButton::changed, btn, [btn, button]() {
+                applyButton(btn, button);
+            });
+        }
+    }
     return popup;
 }
 
@@ -86,10 +99,9 @@ void ToolbarWidget::setToolButtons(ToolButton buttons[], int count)
 
 void ToolbarWidget::updateButton(ToolButton *button)
 {
-    ToolButton * parent = popupParents_.empty() ? nullptr : popupParents_.back();
     for (QWidget * w : buttons_.keys()) {
         if (buttons_.value(w) == button) {
-            updateButton(qobject_cast<QPushButton*>(w), parent, button);
+            updateButton(qobject_cast<QPushButton*>(w), button);
             return;
         }
     }
@@ -157,9 +169,10 @@ void ToolbarWidget::buttonClicked()
 
 void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWidget *, ToolButton *>& buttons)
 {
+    QWidget * parent = layout->widget();
     QWidget * widget = nullptr;
     if (button == &ToolButton::SPLITTER) {
-        QFrame *splitter = new QFrame(this);
+        QFrame *splitter = new QFrame(parent);
         splitter->setFrameShape(QFrame::VLine);
         splitter->setFrameShadow(QFrame::Raised);
         //splitter->setLineWidth(1);
@@ -169,7 +182,7 @@ void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWi
         return;
     } else if (button == &ToolButton::LINE_SPLITTER) {
         if (col > 0) ++row; col = -1;
-        QFrame *splitter = new QFrame(this);
+        QFrame *splitter = new QFrame(parent);
         splitter->setFrameShape(QFrame::HLine);
         splitter->setFrameShadow(QFrame::Sunken);
         //splitter->setLineWidth(0);
@@ -230,7 +243,7 @@ void ToolbarWidget::applyButton(QPushButton * btn, ToolButton *button)
     btn->setEnabled(button->isEnabled());
 }
 
-void ToolbarWidget::updateButton(QPushButton * btn, ToolButton * parent, ToolButton *button)
+void ToolbarWidget::updateButton(QPushButton * btn, ToolButton *button)
 {
     applyButton(btn, button);
     if (button->unionUpdate()) {
@@ -315,6 +328,8 @@ void ToolbarWidget::updateProvider()
 void ToolbarWidget::buttonClicked(QWidget * widget)
 {
     QPushButton* btn = qobject_cast<QPushButton*>(widget);
+    for (QAction* a : btn->actions())
+        a->triggered(btn->isChecked());
     ToolButton * button = popupButtons_.value(widget);
     if (!button) {
         button = buttons_.value(widget);
@@ -355,21 +370,10 @@ void ToolbarWidget::buttonClicked(QWidget * widget)
         if (buttons_.empty()) // may delete & clear
             return;
         popupParents_.pop_back();
-        int i = 0;
-        ToolButton * parent = popupParents_.empty() ? nullptr : popupParents_.back();
-        for (; i < popupParents_.size(); ++i) {
-            if (popupParents_[i]->isOptionsGroup()) {
-                button = popupParents_[i];
-                if (i > 0)
-                    parent = popupParents_[i - 1];
-                break;
-            }
-        }
         if (button->needUpdate()) {
-            ToolButton * parent = i == 0 ? nullptr : popupParents_[i - 1];
             for (QWidget * w : buttons_.keys()) {
                 if (buttons_.value(w) == button) {
-                    updateButton(qobject_cast<QPushButton*>(w), parent, button);
+                    updateButton(qobject_cast<QPushButton*>(w), button);
                     layout_->activate();
                     if (graphicsProxyWidget()) {
                         graphicsProxyWidget()->update();

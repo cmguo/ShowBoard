@@ -139,6 +139,7 @@ static QPixmap itemToPixmap(QGraphicsItem * item, bool destroy)
     QStyleOptionGraphicsItem style;
     item->paint(&pt, &style);
     for (QGraphicsItem * c : item->childItems()) {
+        pt.setTransform(c->itemTransform(item));
         c->paint(&pt, &style);
     }
     pt.end();

@@ -20,15 +20,21 @@ OptionToolButtons::~OptionToolButtons()
     }
 }
 
-void OptionToolButtons::fill(QList<ToolButton *> &buttons, const QVariant &value)
+void OptionToolButtons::getButtons(QList<ToolButton *> &buttons, const QVariant &value)
 {
-    buttons.append(this->buttons(value));
+    buttons.append(this->getButtons(value));
 }
 
-QList<ToolButton *> OptionToolButtons::buttons(const QVariant &value)
+QList<ToolButton *> OptionToolButtons::getButtons(const QVariant &value)
 {
     if (buttons_.isEmpty())
         makeButtons();
+    updateValue(value);
+    return buttons_;
+}
+
+void OptionToolButtons::updateValue(const QVariant &value)
+{
     int index = values_.indexOf(value);
     if (index >= 0) {
         index += index / column_;
@@ -40,10 +46,9 @@ QList<ToolButton *> OptionToolButtons::buttons(const QVariant &value)
         if (lastCheck_ >= 0)
             buttons_[lastCheck_]->setChecked(true);
     }
-    return buttons_;
 }
 
-void OptionToolButtons::update(ToolButton *button, const QVariant &value)
+void OptionToolButtons::updateParent(ToolButton *button, const QVariant &value)
 {
     int index = values_.indexOf(value);
     if (index >= 0 && index < buttons_.size()) {
@@ -192,26 +197,27 @@ QGraphicsItem *WidthToolButtons::widthIcon(qreal width)
     return border;
 }
 
-StateWidthToolButtons::StateWidthToolButtons(const QList<qreal> &widths)
+StateWidthToolButtons::StateWidthToolButtons(const QList<qreal> &widths, QColor color)
     : OptionToolButtons(widths, widths.size())
+    , color_(color)
 {
 }
 
 QVariant StateWidthToolButtons::buttonIcon(const QVariant &value)
 {
     QVariantMap icons;
-    icons.insert("normal", QVariant::fromValue(widthIcon(value.toReal(), false)));
-    icons.insert("+normal", QVariant::fromValue(widthIcon(value.toReal(), true)));
+    icons.insert("normal", QVariant::fromValue(widthIcon(value.toReal(), false, color_)));
+    icons.insert("+normal", QVariant::fromValue(widthIcon(value.toReal(), true, color_)));
     return icons;
 }
 
-QGraphicsItem *StateWidthToolButtons::widthIcon(qreal width, bool selected)
+QGraphicsItem *StateWidthToolButtons::widthIcon(qreal width, bool selected, QColor color)
 {
     QPainterPath ph;
     ph.addEllipse(QRectF(1, 1, 30, 30));
     QGraphicsPathItem * border = new QGraphicsPathItem(ph);
     if (selected)
-        border->setPen(QPen(Qt::white, 2));
+        border->setPen(QPen(color, 2));
     else
         border->setPen(Qt::NoPen);
     border->setBrush(QBrush());
@@ -221,6 +227,6 @@ QGraphicsItem *StateWidthToolButtons::widthIcon(qreal width, bool selected)
     ph2.addEllipse(rect);
     QGraphicsPathItem * item = new QGraphicsPathItem(ph2, border);
     item->setPen(Qt::NoPen);
-    item->setBrush(Qt::white);
+    item->setBrush(color);
     return border;
 }

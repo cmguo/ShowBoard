@@ -63,6 +63,15 @@ public:
 protected:
     void setToolsString(QString const & tools);
 
+    void followTrigger(bool v = true);
+
+    void followTrigger(QList<ToolButton *> & buttons, ToolButton * parent = nullptr);
+
+
+    ToolButton* getStringButton(QByteArray const & name);
+
+    ToolButton* getStringButton(int index);
+
     /*
      * stringlized definition of context menus
      *   menu strings is seperated with ';' and menu define parts with '|'
@@ -71,11 +80,13 @@ protected:
      */
     virtual QString toolsString(QByteArray const & parent = nullptr) const;
 
-    QList<ToolButton *> tools(QByteArray const & parent = nullptr);
+    QList<ToolButton *> tools(ToolButton * parent = nullptr);
 
 private:
-    QMap<ToolButton*, ToolButton*> nonSharedButtons_;
-    QMap<QString, OptionToolButtons*> optionButtons_;
+    QMap<QByteArray, QList<ToolButton *>> buttons_;
+    QList<ToolButton *> privateButtons_;
+    QMap<QByteArray, OptionToolButtons*> optionButtons_;
+    bool followTrigger_;
 };
 
 class SHOWBOARD_EXPORT RegisterOptionsButtons

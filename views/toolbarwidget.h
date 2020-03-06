@@ -86,9 +86,9 @@ private:
 private:
     void addToolButton(QLayout * layout, ToolButton * button, QMap<QWidget *, ToolButton *>& buttons);
 
-    void applyButton(QPushButton * btn, ToolButton * button);
+    static void applyButton(QPushButton * btn, ToolButton * button);
 
-    void updateButton(QPushButton * btn, ToolButton * parent, ToolButton * button);
+    void updateButton(QPushButton * btn, ToolButton * button);
 
     void clearButtons(QLayout * layout, QMap<QWidget *, ToolButton *>& buttons);
 
