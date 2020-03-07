@@ -182,7 +182,10 @@ void ResourcePackage::switchPage(int page)
 {
     if (page == current_)
         return;
-    current_ = page;
+    std::swap(current_, page);
+    if (page >= 0)
+        dataChanged(index(page, 0), index(page, 0));
+    dataChanged(index(current_, 0), index(current_, 0));
     if (visiblePages_.empty())
         emit currentPageChanged(pages_[current_]);
 }
@@ -207,13 +210,13 @@ void ResourcePackage::pageChanged(ResourcePage *page)
 {
     int i = pages_.indexOf(page);
     if (i >= 0)
-    dataChanged(index(i, 0), index(i, 0));
+        dataChanged(index(i, 0), index(i, 0));
 }
 
 QVariant ResourcePackage::data(const QModelIndex &index, int role) const
 {
-    if (role == Qt::BackgroundRole)
-        return index.row() == current_ ? QBrush(Qt::blue) : QBrush();
+    if (role == Qt::CheckStateRole)
+        return index.row() == current_ ? Qt::Checked : Qt::Unchecked;
     return QVariant::fromValue(pages_[index.row()]);
 }
 

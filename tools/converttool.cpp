@@ -4,12 +4,21 @@
 #include "core/resourceview.h"
 #include "core/resourcepackage.h"
 #include "core/resourcepage.h"
+#include "core/workthread.h"
 #include "views/whitecanvas.h"
 #include "views/stateitem.h"
 
 #include <QGraphicsRectItem>
+#include <QGraphicsScene>
 #include <QMetaMethod>
+#include <QPainter>
 #include <qcomponentcontainer.h>
+
+
+static WorkThread& convThread() {
+    static WorkThread thread("ConvertTool");
+    return thread;
+}
 
 ConvertTool::ConvertTool(ResourceView *res)
     : Control(res, {}, DefaultFlags)
@@ -64,9 +73,25 @@ void ConvertTool::convert(const QUrl &url)
 void ConvertTool::onImage(const QString &path, int nPage, int total)
 {
     if (nPage == 0) return;
-    whiteCanvas()->package()->newPage(startPage_ + nPage)
-            ->addResource(QUrl::fromLocalFile(path), settings_);
+    ResourcePage * page = whiteCanvas()->package()->newPage(startPage_ + nPage);
+    page->addResource(QUrl::fromLocalFile(path), settings_);
     stateItem()->setLoading(QString("正在转换 %1/%2").arg(nPage).arg(total));
+    QRectF rect = item_->scene()->sceneRect();
+    convThread().postWork([path, page, rect]() {
+        QPixmap pixmap(path);
+        QSizeF size = (rect.size() * 100 / rect.height());
+        qreal scale = qMin(size.width() / pixmap.width(), size.height() / pixmap.height());
+        QRectF rect2(0, 0, pixmap.width() * scale, pixmap.height() * scale);
+        rect2.moveCenter(QPointF(size.width() / 2, size.height() / 2));
+        QPixmap thumb(size.toSize());
+        thumb.fill(Qt::transparent);
+        QPainter painter(&thumb);
+        painter.drawPixmap(rect2, pixmap, QRectF(0, 0, pixmap.width(), pixmap.height()));
+        painter.end();
+        WorkThread::postWork(page, [page, thumb] () {
+            page->setThumbnail(thumb);
+        });
+    });
 }
 
 void ConvertTool::onFinished()

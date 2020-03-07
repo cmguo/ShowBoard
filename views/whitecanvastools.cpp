@@ -83,11 +83,14 @@ public:
     void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
     {
         painter->save();
-        painter->setBrush(index.data(Qt::BackgroundRole).value<QBrush>());
         QRect rect = option.rect;
-        painter->drawRoundedRect(rect.adjusted(1, 1, -1, -1), 3, 3);
         painter->drawText(rect.topLeft() + QPoint(5, 20), QString("%1").arg(index.row() + 1));
         rect.adjust(24, 4, -4, -4);
+        Qt::CheckState checked = index.data(Qt::CheckStateRole).value<Qt::CheckState>();
+        if (checked != Qt::Unchecked) {
+            painter->setPen(QPen(Qt::blue, 2));
+            painter->drawRoundedRect(rect.adjusted(-3, -3, 3, 3), 3, 3);
+        }
         ResourcePage * page = index.data().value<ResourcePage*>();
         painter->drawPixmap(rect, page->thumbnail());
         painter->restore();
