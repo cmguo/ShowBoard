@@ -248,6 +248,11 @@ bool ResourcePage::isSubPage() const
     return parent() && parent()->metaObject()->inherits(&staticMetaObject);
 }
 
+ResourceView *ResourcePage::mainResource() const
+{
+    return resources_.isEmpty() ? nullptr : resources_.first();
+}
+
 void ResourcePage::setThumbnail(QPixmap thumb)
 {
     thumbnail_ = thumb;

@@ -77,6 +77,16 @@ Control::~Control()
     res_ = nullptr;
 }
 
+bool Control::withSelectBar() const
+{
+    return flags_.testFlag(WithSelectBar);
+}
+
+void Control::setWithSelectBar(bool b)
+{
+    flags_.setFlag(WithSelectBar, b);
+}
+
 bool Control::keepAspectRatio() const
 {
     return flags_.testFlag(KeepAspectRatio);
@@ -115,7 +125,8 @@ void Control::attachTo(QGraphicsItem * parent)
         item_->setTransformations({transform_});
     item_->setData(ITEM_KEY_CONTROL, QVariant::fromValue(this));
     realItem_ = item_;
-    if (flags_ & WithSelectBar) {
+    QVariant withSelectBar = res_->property("withSelectBar");
+    if (flags_ & WithSelectBar && (!withSelectBar.isValid() || withSelectBar.toBool())) {
         itemFrame()->addTopBar();
     }
     attaching();
@@ -261,13 +272,14 @@ QSizeF Control::sizeHint()
 
 static void adjustSizeHint(QSizeF & size, QSizeF const & psize)
 {
-    if (size.width() < 10.0) {
+    if (size.width() > 0 && size.width() < 10.0)
         size.setWidth(psize.width() * size.width());
-    }
     if (size.height() < 0)
         size.setHeight(size.width() * -size.height());
     else if (size.height() < 10.0)
         size.setHeight(psize.height() * size.height());
+    if (size.width() < 0)
+        size.setWidth(size.width() * -size.height());
 }
 
 // called before attached

@@ -120,6 +120,8 @@ public:
         return canvasView_;
     }
 
+    ResourceView* mainResource() const;
+
     QList<ResourceView *> const & resources() const
     {
         return resources_;

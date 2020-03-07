@@ -22,6 +22,7 @@ class SHOWBOARD_EXPORT Control : public ToolButtonProvider
     Q_PROPERTY(Flags flags READ flags())
     Q_PROPERTY(ResourceView * resource READ resource())
 
+    Q_PROPERTY(bool withSelectBar READ withSelectBar WRITE setWithSelectBar)
     Q_PROPERTY(bool keepAspectRatio READ keepAspectRatio WRITE setKeepAspectRatio)
     Q_PROPERTY(bool layoutScale READ layoutScale WRITE setLayoutScale)
     Q_PROPERTY(bool expandScale READ expandScale WRITE setExpandScale)
@@ -109,6 +110,10 @@ public:
     }
 
 public:
+    bool withSelectBar() const;
+
+    void setWithSelectBar(bool b);
+
     bool keepAspectRatio() const;
 
     void setKeepAspectRatio(bool b);
