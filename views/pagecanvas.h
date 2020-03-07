@@ -53,9 +53,14 @@ public:
 
     void startAnimate(int dir);
 
+    void updateAnimate();
+
     bool inAnimate();
 
     void stopAnimate();
+
+private:
+    QRectF animateRect(int dir, QPointF& off) const;
 
 private:
     virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;

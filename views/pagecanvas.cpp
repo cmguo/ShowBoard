@@ -3,6 +3,8 @@
 #include "core/resourcemanager.h"
 #include "core/controlmanager.h"
 #include "core/control.h"
+#include "core/resourceview.h"
+#include "core/resourcetransform.h"
 #include "controls/whitecanvascontrol.h"
 
 #include <QGraphicsScene>
@@ -59,6 +61,7 @@ void PageCanvas::relayout()
 
 void PageCanvas::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
 {
+    qDebug() << "paint" << rect();
     painter->drawPixmap(rect(), snapshot_, QRectF());
 }
 
@@ -78,6 +81,7 @@ void PageCanvas::timerEvent(QTimerEvent *event)
         QPointF d{0, rect().height() / 20};
         p = p.y() < 0 ? p + d : p - d;
     }
+    qDebug() << "timerEvent" << p;
     setPos(p);
 }
 
@@ -115,19 +119,36 @@ void PageCanvas::startAnimate(int dir)
 {
     if (animTimer_)
         return;
-    QRectF r = scene()->sceneRect();
-    if (dir & 1)
-        r.adjust(r.width(), 0, r.width(), 0);
-    if (dir & 2)
-        r.adjust(-r.width(), 0, -r.width(), 0);
-    if (dir & 4)
-        r.adjust(0, r.height(), 0, r.height());
-    if (dir & 8)
-        r.adjust(0, -r.height(), 0, -r.height());
-    setRect(r);
+    QPointF off;
+    setRect(animateRect(dir, off));
+    setPos(-off);
     setFlag(QGraphicsItem::ItemHasNoContents, false);
-    setPos(-r.center());
+    if (page_->canvasView()) {
+        QObject::connect(&Control::fromItem(parentItem())->resource()->transform(),
+                         &ResourceTransform::changed, this, [this] () {
+            updateAnimate();
+        });
+    }
     animTimer_ = startTimer(20);
+}
+
+void PageCanvas::updateAnimate()
+{
+    if (!animTimer_)
+        return;
+    int dir = 0;
+    QPointF pos = this->pos();
+    if (!qFuzzyIsNull(pos.x()))
+        dir |= pos.x() < 0 ? 1 : 2;
+    if (!qFuzzyIsNull(pos.y()))
+        dir |= pos.y() < 0 ? 4 : 8;
+    QRectF old = rect();
+    QPointF off;
+    setRect(animateRect(dir, off));
+    qDebug() << "updateAnimate" << dir << rect();
+    pos *= rect().width() / old.width();
+    setPos(pos);
+    update();
 }
 
 bool PageCanvas::inAnimate()
@@ -137,11 +158,31 @@ bool PageCanvas::inAnimate()
 
 void PageCanvas::stopAnimate()
 {
+    killTimer(animTimer_);
+    animTimer_ = 0;
     setFlag(QGraphicsItem::ItemHasNoContents, true);
     setRect(QRectF());
     snapshot_ = QPixmap();
-    killTimer(animTimer_);
-    animTimer_ = 0;
+    if (page_->canvasView()) {
+        Control::fromItem(parentItem())->resource()->transform().disconnect(this);
+    }
+}
+
+QRectF PageCanvas::animateRect(int dir, QPointF& off) const
+{
+    QRectF r = scene()->sceneRect();
+    if (page_->isLargePage()) {
+        r = parentItem()->mapFromScene(scene()->sceneRect()).boundingRect();
+    }
+    if (dir & 1)
+        off.setX(r.width());
+    if (dir & 2)
+        off.setX(-r.width());
+    if (dir & 4)
+        off.setY(r.height());
+    if (dir & 8)
+        off.setY(-r.height());
+    return r.translated(off);
 }
 
 Control * PageCanvas::findControl(ResourceView * res)
