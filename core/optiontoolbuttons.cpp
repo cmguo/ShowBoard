@@ -36,6 +36,8 @@ QList<ToolButton *> OptionToolButtons::getButtons(const QVariant &value)
 void OptionToolButtons::updateValue(const QVariant &value)
 {
     int index = values_.indexOf(value);
+    if (index >= buttons_.size())
+        return;
     if (index >= 0) {
         index += index / column_;
     }
@@ -63,7 +65,7 @@ void OptionToolButtons::updateParent(ToolButton *button, const QVariant &value)
             button->setText(title);
         QVariant icon = buttonIcon(value);
         if (!icon.isNull())
-            button->setIcon(ToolButton::makeIcon(icon, true));
+            button->setIcon(icon);
     }
 }
 

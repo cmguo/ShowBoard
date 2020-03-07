@@ -81,7 +81,7 @@ void ToolButtonProvider::followTrigger(QList<ToolButton *> &buttons, ToolButton 
                 handleToolButton({parent, button});
             });
         else
-            connect(button, &ToolButton::triggered, this, [this, button](bool checked) {
+            connect(button, &ToolButton::triggered, this, [this, button]() {
                 handleToolButton({button});
             });
     }

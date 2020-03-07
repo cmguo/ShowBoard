@@ -87,10 +87,10 @@ void QssHelper::applyValues(QMap<QByteArray, QMap<QByteArray, QString> > styleVa
                 continue;
             for (QString* v : (*iter4)) {
                 *v = (*iter3).second;
+                cache_ = nullptr;
             }
         }
     }
-    cache_ = nullptr;
 }
 
 QssHelper::operator QString () const

@@ -50,7 +50,7 @@ public:
 public:
     static QIcon makeIcon(QString const & iconString);
 
-    static QIcon makeIcon(QVariant& icon, bool replace);
+    static QIcon makeIcon(QVariant& icon, QSize const & size, bool replace);
 
     static ToolButton * makeButton(QString const & desc);
 
@@ -109,7 +109,7 @@ public:
 
     void parseFlags(QByteArray const & flags);
 
-    QIcon getIcon();
+    QIcon getIcon(QSize const & size = QSize());
 
     void setIcon(QVariant const & icon);
 
