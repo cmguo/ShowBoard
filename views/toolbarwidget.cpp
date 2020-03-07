@@ -200,7 +200,6 @@ void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWi
         QPushButton * btn = template_
                 ? qobject_cast<QPushButton *>(template_->newInstance())
                 : new QPushButton;
-        btn->setFocusPolicy(Qt::NoFocus);
         btn->addAction(button);
         applyButton(btn, button);
         void (ToolbarWidget::*slot)() = &ToolbarWidget::buttonClicked;

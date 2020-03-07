@@ -10,6 +10,7 @@ class ResourcePackage;
 
 class SHOWBOARD_EXPORT WhiteCanvasTools : public ToolButtonProvider
 {
+    Q_OBJECT
 public:
     WhiteCanvasTools();
 
@@ -25,11 +26,17 @@ protected slots:
 
     void nextPage();
 
+    void gotoPage(int n);
+
 private:
     void update();
 
-public:
-    static QWidget * createPageList(ResourcePackage * package);
+private:
+    QWidget * createPageList(ResourcePackage * package);
+
+    virtual void setOption(QByteArray const & key, QVariant value) override;
+
+    virtual bool eventFilter(QObject *, QEvent *event) override;
 
 private:
     WhiteCanvas * canvas_;

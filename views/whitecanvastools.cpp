@@ -8,15 +8,19 @@
 #include <QApplication>
 #include <QListView>
 #include <QPainter>
+#include <QGraphicsScene>
+#include <QGraphicsView>
 
 static constexpr char const * toolstr =
-        "newPage()|新建|:/showboard/icons/page.new.png,normal=,disabled=.disabled;"
-        "nextPage()||:/showboard/icons/page.next.png,normal=,disabled=.disabled;"
-        "pageList()|0/0|;"
-        "prevPage()||:/showboard/icons/page.prev.png,normal=,disabled=.disabled;"
+        "new|新建|:/showboard/icons/page.new.png,normal=,disabled=.disabled;"
+        "next||:/showboard/icons/page.next.png,normal=,disabled=.disabled;"
+        "page|0/0|;"
+        "prev||:/showboard/icons/page.prev.png,normal=,disabled=.disabled;"
         ;
 
 WhiteCanvasTools::WhiteCanvasTools()
+    : canvas_(nullptr)
+    , pageList_(nullptr)
 {
     setToolsString(toolstr);
     followTrigger();
@@ -24,6 +28,7 @@ WhiteCanvasTools::WhiteCanvasTools()
 
 void WhiteCanvasTools::attachToWhiteCanvas(WhiteCanvas *whiteCanvas)
 {
+    canvas_ = whiteCanvas;
     ResourcePackage * package = whiteCanvas->package();
     QObject::connect(package, &ResourcePackage::pageCountChanged,
                      this, &WhiteCanvasTools::update);
@@ -46,10 +51,17 @@ void WhiteCanvasTools::pageList()
 {
     if (pageList_ == nullptr) {
         pageList_ = createPageList(canvas_->package());
-        QWidget * window = nullptr;
-        pageList_->setParent(window);
-        QPoint pos;// = btn->mapTo(window, QPoint());
-        pos -= QPoint(0, pageList_->sizeHint().height());
+        QPoint pos(200, 100);
+        ToolButton* button = getStringButton(1);
+        if (button->associatedWidgets().isEmpty()) {
+            pageList_->setParent(canvas_->scene()->views().first()->parentWidget());
+        } else {
+            QWidget* btn = button->associatedWidgets().first();
+            pageList_->setParent(btn->window());
+            pos = btn->mapTo(pageList_->parentWidget(), QPoint());
+            pos += QPoint(pageList_->width() / 2 - btn->width() / 2,
+                          -pageList_->sizeHint().height());
+        }
         pageList_->move(pos);
     }
     if (!pageList_->isVisible()) {
@@ -63,6 +75,29 @@ void WhiteCanvasTools::pageList()
 void WhiteCanvasTools::nextPage()
 {
     canvas_->package()->gotoNext();
+}
+
+void WhiteCanvasTools::gotoPage(int n)
+{
+    canvas_->package()->switchPage(n);
+}
+
+void WhiteCanvasTools::setOption(const QByteArray &key, QVariant value)
+{
+    canvas_->setProperty("FromUser", true);
+    if (key == "new")
+        newPage();
+    else if (key == "prev")
+        prevPage();
+    else if (key == "list")
+        pageList();
+    else if (key == "next")
+        nextPage();
+    else if (key == "goto")
+        gotoPage(value.toInt());
+    else
+        ToolButtonProvider::setOption(key, value);
+    canvas_->setProperty("FromUser", QVariant());
 }
 
 void WhiteCanvasTools::update()
@@ -111,10 +146,27 @@ QWidget *WhiteCanvasTools::createPageList(ResourcePackage * package)
     list->setItemDelegate(new PageDelegate);
     list->setVerticalScrollMode(QListView::ScrollPerPixel);
     list->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    list->setMinimumHeight(50);
-    list->setMaximumHeight(500);
-    QObject::connect(list, &QListView::activated, [package](QModelIndex i) {
-       package->switchPage(i.row());
+    list->setFixedHeight(500);
+    QObject::connect(list, &QListView::activated, this, [this](QModelIndex i) {
+       setOption("goto", i.row());
     });
+    list->installEventFilter(this);
     return list;
+}
+
+bool WhiteCanvasTools::eventFilter(QObject * watched, QEvent *event)
+{
+    QWidget* widget = qobject_cast<QWidget*>(watched);
+    if (event->type() == QEvent::Show) {
+        widget->setFocus();
+    }
+    if (event->type() == QEvent::FocusOut) {
+        if (QApplication::focusWidget()
+                && QApplication::focusWidget()->parent() == watched) {
+            widget->setFocus();
+        } else {
+            widget->hide();
+        }
+    }
+    return false;
 }

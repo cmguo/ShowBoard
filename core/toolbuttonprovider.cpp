@@ -22,8 +22,25 @@ void ToolButtonProvider::exec(QByteArray const & cmd, QGenericArgument arg0,
                    QGenericArgument arg1, QGenericArgument arg2)
 {
     int index = metaObject()->indexOfSlot(cmd);
-    if (index < 0)
+    if (index < 0) {
+        QVariantList list;
+        if (arg0.data()) {
+            list.append(QVariant(QMetaType::type(arg0.name()), arg0.data()));
+            if (arg1.data()) {
+                list.append(QVariant(QMetaType::type(arg1.name()), arg1.data()));
+                if (arg2.data()) {
+                    list.append(QVariant(QMetaType::type(arg2.name()), arg2.data()));
+                }
+            }
+        }
+        if (list.isEmpty())
+            setOption(cmd, QVariant());
+        else if (list.size() == 1)
+            setOption(cmd, list.front());
+        else
+            setOption(cmd, list);
         return;
+    }
     QMetaMethod method = metaObject()->method(index);
     method.parameterType(index);
     method.invoke(this, arg0, arg1, arg2);
