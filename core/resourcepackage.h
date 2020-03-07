@@ -42,13 +42,13 @@ public:
      * insert a newly create page,
      *  new page is inserted after current one and became current
      */
-    ResourcePage * newPage();
+    ResourcePage * newPage(ResourceView * mainRes = nullptr);
 
     /*
      * insert a newly create page,
      *  new page is inserted at index, current page is not changed
      */
-    ResourcePage * newPage(int index);
+    ResourcePage * newPage(int index, ResourceView * mainRes = nullptr);
 
     ResourcePage * currentPage() const;
 
@@ -77,7 +77,13 @@ signals:
 public:
     ResourcePage * newVirtualPage(ResourceView* mainRes = nullptr);
 
+    ResourcePage * newVirtualPage(QUrl const & mainUrl, QVariantMap const & settings = QVariantMap());
+
+    ResourcePage * newVirtualPageOrBringTop(QUrl const & mainUrl, QVariantMap const & settings = QVariantMap());
+
     ResourcePage * topVirtualPage() const;
+
+    bool containsVisualPage(ResourcePage* page) const;
 
     ResourcePage * findVirtualPage(QUrl const & mainUrl) const;
 

@@ -25,6 +25,8 @@ class SHOWBOARD_EXPORT ResourcePage : public QAbstractItemModel
 public:
     explicit ResourcePage(QObject *parent = nullptr);
 
+    explicit ResourcePage(QUrl const & mainUrl, QVariantMap const & settings, QObject *parent = nullptr);
+
     explicit ResourcePage(ResourceView* mainRes, QObject *parent = nullptr);
 
 public:
@@ -102,6 +104,14 @@ public:
         return currentSubPage_;
     }
 
+    bool isIndependentPage() const;
+
+    bool isVirtualPage() const;
+
+    bool isLargePage() const;
+
+    bool hasSubPage() const;
+
     bool isSubPage() const;
 
 public:
@@ -140,6 +150,9 @@ private:
     QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const override;
 
     QModelIndex parent(const QModelIndex &child) const override;
+
+private:
+    static ResourceView* createResource(QUrl const & url, QVariantMap const & settings);
 
 private:
     ResourceView* canvasView_;

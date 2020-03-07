@@ -20,6 +20,8 @@ class SHOWBOARD_EXPORT ResourceView : public ToolButtonProvider
     Q_PROPERTY(Flags const flags READ flags())
     Q_PROPERTY(QString name MEMBER name_)
 
+    Q_PROPERTY(bool independent READ independent WRITE setIndependent)
+
 public:
     static char const * EXPORT_ATTR_TYPE;
     static char const * EXPORT_ATTR_FACTORY;
@@ -45,9 +47,10 @@ public:
         //  special used for stroke writen
         Splittable = 1 << 8,
         DrawAttach = 1 << 9, // attach to when drawing
-        VirtualPage = BottomMost | (1 << 10),
-        LargeCanvas = VirtualPage | (1 << 11),
-        SubPages = BottomMost | (1 << 12),
+        Independent = BottomMost | (1 << 10), // standalone page
+        VirtualPage = Independent | (1 << 11),
+        LargeCanvas = Independent | (1 << 12),
+        ListOfPages = Independent | (1 << 13),
         // States
         SavedSession = 1 << 16,
         DrawFinised = 1 << 17,
@@ -64,6 +67,11 @@ public:
     virtual ~ResourceView() override;
 
 public:
+    bool independent() const;
+
+    void setIndependent(bool v);
+
+public:
     virtual ResourceView * clone() const ;
 
 protected:
@@ -75,7 +83,7 @@ public:
         return res_;
     }
 
-    Flags flags() const
+    Flags const flags() const
     {
         return flags_;
     }

@@ -31,6 +31,16 @@ ResourceView::~ResourceView()
 {
 }
 
+bool ResourceView::independent() const
+{
+    return flags_.testFlag(Independent);
+}
+
+void ResourceView::setIndependent(bool v)
+{
+    flags_.setFlag(Independent, v);
+}
+
 ResourceView::ResourceView(ResourceView const & o)
     : res_(new Resource(*o.res_))
     , flags_(o.flags_)

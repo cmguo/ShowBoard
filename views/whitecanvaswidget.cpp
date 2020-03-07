@@ -113,8 +113,8 @@ bool WhiteCanvasWidget::eventFilter(QObject *watched, QEvent *event)
 
 void WhiteCanvasWidget::onPageChanged(ResourcePage *page)
 {
-    bool oldLarge = canvas_->page() && canvas_->page()->canvasView();
-    bool newLarge = (page == CurrentPage) ? oldLarge : page && page->canvasView();
+    bool oldLarge = canvas_->page() && canvas_->page()->isLargePage();
+    bool newLarge = (page == CurrentPage) ? oldLarge : page && page->isLargePage();
     if (oldLarge == newLarge && page != CurrentPage)
         return;
     QRectF rect(QPointF(0, 0), newLarge ? size() : sceneSize_);
@@ -135,7 +135,7 @@ void WhiteCanvasWidget::setSceneSize(QSizeF size)
     static QPixmap thumb(":/showboard/icons/drag.png");
     ResourcePackage::toolPage()->setThumbnail(thumb.scaled((size * 100 / size.height()).toSize()));
     onPageChanged(CurrentPage);
-    if (canvas_->page() && !canvas_->page()->canvasView())
+    if (canvas_->page() && !canvas_->page()->isLargePage())
         canvas_->setGeometry(scene()->sceneRect());
 }
 

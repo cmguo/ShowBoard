@@ -27,17 +27,19 @@ ResourcePage *ResourcePackage::globalPage() const
     return globalPage_;
 }
 
-ResourcePage * ResourcePackage::newPage()
+ResourcePage * ResourcePackage::newPage(ResourceView * mainRes)
 {
+    if (mainRes && mainRes->flags().testFlag(ResourceView::VirtualPage))
+        return newVirtualPage(mainRes);
     int index = current_ + 1;
-    ResourcePage * page = newPage(index);
+    ResourcePage * page = newPage(index, mainRes);
     switchPage(index);
     return page;
 }
 
-ResourcePage *ResourcePackage::newPage(int index)
+ResourcePage *ResourcePackage::newPage(int index, ResourceView * mainRes)
 {
-    ResourcePage * page = new ResourcePage(this);
+    ResourcePage * page = new ResourcePage(mainRes, this);
     emit pageCreated(page);
     addPage(index, page);
     return page;
@@ -68,9 +70,33 @@ ResourcePage * ResourcePackage::newVirtualPage(ResourceView *mainRes)
     return page;
 }
 
+ResourcePage *ResourcePackage::newVirtualPage(const QUrl &mainUrl, QVariantMap const & settings)
+{
+    ResourcePage * page = new ResourcePage(mainUrl, settings, this);
+    emit pageCreated(page);
+    visiblePages_.push_back(page);
+    emit currentPageChanged(page);
+    return page;
+}
+
+ResourcePage *ResourcePackage::newVirtualPageOrBringTop(const QUrl &mainUrl, const QVariantMap &settings)
+{
+    ResourcePage * page = findVirtualPage(mainUrl);
+    if (page)
+        showVirtualPage(page, true);
+    else
+        page = newVirtualPage(mainUrl, settings);
+    return page;
+}
+
 ResourcePage * ResourcePackage::topVirtualPage() const
 {
     return visiblePages_.empty() ? nullptr : visiblePages_.back();
+}
+
+bool ResourcePackage::containsVisualPage(ResourcePage *page) const
+{
+    return visiblePages_.contains(page) || hiddenPages_.contains(page);
 }
 
 ResourcePage * ResourcePackage::findVirtualPage(const QUrl &mainUrl) const

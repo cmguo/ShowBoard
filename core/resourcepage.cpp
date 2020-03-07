@@ -9,6 +9,11 @@ ResourcePage::ResourcePage(QObject *parent)
 {
 }
 
+ResourcePage::ResourcePage(const QUrl &mainUrl, QVariantMap const & settings, QObject *parent)
+    : ResourcePage(createResource(mainUrl, settings), parent)
+{
+}
+
 ResourcePage::ResourcePage(ResourceView* mainRes, QObject *parent)
     : QAbstractItemModel(parent)
     , canvasView_(nullptr)
@@ -26,18 +31,13 @@ ResourcePage::ResourcePage(ResourceView* mainRes, QObject *parent)
 
 ResourceView * ResourcePage::addResource(QUrl const & url, QVariantMap const & settings)
 {
-    QVariant type = settings.value("resourceType");
-    ResourceView * rv = ResourceManager::instance()
-            ->createResource(url, type.isValid() ? type.toByteArray().toLower() : nullptr);
-    for (QString const & k : settings.keys()) {
-        rv->setProperty(k.toUtf8(), settings.value(k));
-    }
+    ResourceView * rv = createResource(url, settings);
     if (rv->resource()->type().endsWith("tool")) {
         ResourcePackage::toolPage()->addResource(rv);
         return rv;
     }
-    if (rv->flags().testFlag(ResourceView::VirtualPage)) {
-        qobject_cast<ResourcePackage*>(parent())->newVirtualPage(rv);
+    if (rv->flags().testFlag(ResourceView::Independent)) {
+        qobject_cast<ResourcePackage*>(parent())->newPage(rv);
     } else {
         addResource(rv);
     }
@@ -77,7 +77,7 @@ void ResourcePage::addResource(ResourceView * res)
         currentSubPage_->addResource(res);
         return;
     }
-    if (res->flags().testFlag(ResourceView::SubPages)) {
+    if (res->flags().testFlag(ResourceView::ListOfPages)) {
         currentSubPage_ = new ResourcePage(this);
         if (!resources_.empty()) {
             QList<ResourceView*> resources;
@@ -220,9 +220,32 @@ void ResourcePage::switchSubPage(int nPage)
     emit currentSubPageChanged(currentSubPage_);
 }
 
+bool ResourcePage::isIndependentPage() const
+{
+    return !resources_.isEmpty()
+            && resources_.first()->flags().testFlag(ResourceView::Independent);
+}
+
+bool ResourcePage::isVirtualPage() const
+{
+    ResourcePackage * pkg = qobject_cast<ResourcePackage*>(parent());
+    return pkg && pkg->containsVisualPage(const_cast<ResourcePage*>(this));
+}
+
+bool ResourcePage::isLargePage() const
+{
+    return !resources_.isEmpty()
+            && resources_.first()->flags().testFlag(ResourceView::LargeCanvas);
+}
+
+bool ResourcePage::hasSubPage() const
+{
+    return currentSubPage_ != nullptr;
+}
+
 bool ResourcePage::isSubPage() const
 {
-    return parent()->metaObject()->inherits(&staticMetaObject);
+    return parent() && parent()->metaObject()->inherits(&staticMetaObject);
 }
 
 void ResourcePage::setThumbnail(QPixmap thumb)
@@ -284,6 +307,17 @@ QModelIndex ResourcePage::parent(const QModelIndex &child) const
 {
     (void) child;
     return QModelIndex();
+}
+
+ResourceView *ResourcePage::createResource(const QUrl &url, const QVariantMap &settings)
+{
+    QVariant type = settings.value("resourceType");
+    ResourceView * rv = ResourceManager::instance()
+            ->createResource(url, type.isValid() ? type.toByteArray().toLower() : nullptr);
+    for (QString const & k : settings.keys()) {
+        rv->setProperty(k.toUtf8(), settings.value(k));
+    }
+    return rv;
 }
 
 QModelIndex ResourcePage::index(int row, int column, const QModelIndex &parent) const

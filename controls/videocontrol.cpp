@@ -25,7 +25,7 @@ void VideoControl::setPlayRate(qreal v)
     player_->setPlaybackRate(v);
 }
 
-QGraphicsItem * VideoControl::create(ResourceView * res)
+QGraphicsItem * VideoControl::create(ResourceView *)
 {
     QGraphicsVideoItem * item = new QGraphicsVideoItem();
     item->setAspectRatioMode(Qt::KeepAspectRatio);

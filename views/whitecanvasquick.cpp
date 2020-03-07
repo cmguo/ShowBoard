@@ -26,7 +26,7 @@ void WhiteCanvasQuick::onActiveChanged(bool active)
     if (mainUrl_.isEmpty() || widgets().empty())
         return;
     if (active) {
-        canvas_->package()->currentPage()->addResourceOrBringTop(mainUrl_, urlSettings_);
+        canvas_->package()->newVirtualPageOrBringTop(mainUrl_, urlSettings_);
     } else {
         if (canvas_->package())
             canvas_->package()->showVirtualPage(mainUrl_, false);

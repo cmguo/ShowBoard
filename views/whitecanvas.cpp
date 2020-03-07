@@ -111,8 +111,8 @@ void WhiteCanvas::switchPage(ResourcePage * page)
     selector_->select(nullptr);
     bool snapshot = false;
     if (this->page() && !canvas_->inAnimate()) {
-        snapshot = page && !this->page()->canvasView()
-                && !page->canvasView() && !property("FromUser").toBool();
+        snapshot = page && !this->page()->isVirtualPage()
+                && !page->isVirtualPage() && !property("FromUser").toBool();
         this->page()->setThumbnail(canvas_->thumbnail(snapshot));
     }
     canvas_->switchPage(nullptr);
