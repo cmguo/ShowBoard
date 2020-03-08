@@ -9,13 +9,11 @@
 
 #include <QGraphicsScene>
 #include <QPainter>
-#include <QDebug>
 
 PageCanvas::PageCanvas(QGraphicsItem * parent)
     : CanvasItem(parent)
     , page_(nullptr)
     , subCanvas_(nullptr)
-    , animTimer_(0)
 {
     resource_manager_ = ResourceManager::instance();
     control_manager_ = ControlManager::instance();
@@ -59,33 +57,7 @@ void PageCanvas::relayout()
     }
 }
 
-void PageCanvas::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
-{
-    qDebug() << "paint" << rect();
-    painter->drawPixmap(rect(), snapshot_, QRectF());
-}
-
-void PageCanvas::timerEvent(QTimerEvent *event)
-{
-    (void) event;
-    QPointF p = pos();
-    if (qFuzzyIsNull(p.x()) && qFuzzyIsNull(p.y())) {
-        stopAnimate();
-        return;
-    }
-    if (!qFuzzyIsNull(p.x())) {
-        QPointF d{rect().width() / 20, 0};
-        p = p.x() < 0 ? p + d : p - d;
-    }
-    if (!qFuzzyIsNull(p.y())) {
-        QPointF d{0, rect().height() / 20};
-        p = p.y() < 0 ? p + d : p - d;
-    }
-    qDebug() << "timerEvent" << p;
-    setPos(p);
-}
-
-QPixmap PageCanvas::thumbnail(bool snapshot)
+QPixmap PageCanvas::thumbnail(QPixmap* snapshot)
 {
     QSizeF size = scene()->sceneRect().size();
     QSizeF size2 = snapshot ? size : size / size.height() * 100;
@@ -108,81 +80,11 @@ QPixmap PageCanvas::thumbnail(bool snapshot)
     }
     painter.end();
     if (snapshot) {
-        snapshot_ = pixmap;
+        *snapshot = pixmap;
         return pixmap.scaled(pixmap.width(), 100, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     } else {
         return pixmap;
     }
-}
-
-void PageCanvas::startAnimate(int dir)
-{
-    if (animTimer_)
-        return;
-    QPointF off;
-    setRect(animateRect(dir, off));
-    setPos(-off);
-    setFlag(QGraphicsItem::ItemHasNoContents, false);
-    if (page_->canvasView()) {
-        QObject::connect(&Control::fromItem(parentItem())->resource()->transform(),
-                         &ResourceTransform::changed, this, [this] () {
-            updateAnimate();
-        });
-    }
-    animTimer_ = startTimer(20);
-}
-
-void PageCanvas::updateAnimate()
-{
-    if (!animTimer_)
-        return;
-    int dir = 0;
-    QPointF pos = this->pos();
-    if (!qFuzzyIsNull(pos.x()))
-        dir |= pos.x() < 0 ? 1 : 2;
-    if (!qFuzzyIsNull(pos.y()))
-        dir |= pos.y() < 0 ? 4 : 8;
-    QRectF old = rect();
-    QPointF off;
-    setRect(animateRect(dir, off));
-    qDebug() << "updateAnimate" << dir << rect();
-    pos *= rect().width() / old.width();
-    setPos(pos);
-    update();
-}
-
-bool PageCanvas::inAnimate()
-{
-    return animTimer_ != 0;
-}
-
-void PageCanvas::stopAnimate()
-{
-    killTimer(animTimer_);
-    animTimer_ = 0;
-    setFlag(QGraphicsItem::ItemHasNoContents, true);
-    setRect(QRectF());
-    snapshot_ = QPixmap();
-    if (page_->canvasView()) {
-        Control::fromItem(parentItem())->resource()->transform().disconnect(this);
-    }
-}
-
-QRectF PageCanvas::animateRect(int dir, QPointF& off) const
-{
-    QRectF r = scene()->sceneRect();
-    if (page_->isLargePage()) {
-        r = parentItem()->mapFromScene(scene()->sceneRect()).boundingRect();
-    }
-    if (dir & 1)
-        off.setX(r.width());
-    if (dir & 2)
-        off.setX(-r.width());
-    if (dir & 4)
-        off.setY(r.height());
-    if (dir & 8)
-        off.setY(-r.height());
-    return r.translated(off);
 }
 
 Control * PageCanvas::findControl(ResourceView * res)

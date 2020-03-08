@@ -11,6 +11,7 @@ class ResourcePage;
 class ResourcePackage;
 class Control;
 class PageCanvas;
+class AnimCanvas;
 class ToolCanvas;
 class ItemSelector;
 
@@ -151,8 +152,9 @@ private:
 
 private:
     ResourcePackage * package_;
-    PageCanvas * globalCanvas_;
     PageCanvas * canvas_;
+    AnimCanvas * animCanvas_;
+    PageCanvas * globalCanvas_;
     ToolCanvas * tools_;
     ItemSelector * selector_;
     int loadingCount_;

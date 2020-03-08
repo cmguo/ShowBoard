@@ -1,4 +1,5 @@
 HEADERS += \
+    $$PWD/animcanvas.h \
     $$PWD/canvasitem.h \
     $$PWD/floatwidgetmanager.h \
     $$PWD/itemframe.h \
@@ -16,6 +17,7 @@ HEADERS += \
     $$PWD/whitecanvaswidget.h
 
 SOURCES += \
+    $$PWD/animcanvas.cpp \
     $$PWD/canvasitem.cpp \
     $$PWD/floatwidgetmanager.cpp \
     $$PWD/itemframe.cpp \

@@ -37,7 +37,7 @@ public:
     }
 
 public:
-    QPixmap thumbnail(bool snapshot);
+    QPixmap thumbnail(QPixmap* snapshot = nullptr);
 
     enum AnimateDirection
     {
@@ -50,22 +50,6 @@ public:
         LeftBottomToRightTop = 9,
         RightTopToLeftBottomTop = 6,
     };
-
-    void startAnimate(int dir);
-
-    void updateAnimate();
-
-    bool inAnimate();
-
-    void stopAnimate();
-
-private:
-    QRectF animateRect(int dir, QPointF& off) const;
-
-private:
-    virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
-
-    virtual void timerEvent(QTimerEvent *event) override;
 
 private:
     void resourceInserted(QModelIndex const &parent, int first, int last);
@@ -92,8 +76,6 @@ private:
 protected:
     ResourcePage * page_;
     PageCanvas* subCanvas_;
-    QPixmap snapshot_;
-    int animTimer_;
 };
 
 #endif // PAGECANVAS_H

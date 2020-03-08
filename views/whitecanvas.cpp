@@ -1,3 +1,4 @@
+#include "animcanvas.h"
 #include "whitecanvas.h"
 
 #include "pagecanvas.h"
@@ -19,6 +20,7 @@
 WhiteCanvas::WhiteCanvas(QObject * parent)
     : QObject(parent)
     , package_(nullptr)
+    , animCanvas_(nullptr)
     , loadingCount_(0)
 {
     setAcceptedMouseButtons(Qt::LeftButton);
@@ -109,25 +111,35 @@ void WhiteCanvas::switchPage(ResourcePage * page)
 {
     loadingCount_ = 0;
     selector_->select(nullptr);
-    bool snapshot = false;
-    if (this->page() && !canvas_->inAnimate()) {
-        snapshot = page && !this->page()->isVirtualPage()
-                && !page->isVirtualPage() && !property("FromUser").toBool();
-        this->page()->setThumbnail(canvas_->thumbnail(snapshot));
+    AnimCanvas* anim = nullptr;
+    if (this->page() && !animCanvas_) {
+        if (page && !this->page()->isVirtualPage()
+                && !page->isVirtualPage() && !property("FromUser").toBool())
+            anim = new AnimCanvas(this);
+        this->page()->setThumbnail(canvas_->thumbnail(anim ? &anim->snapshot() : nullptr));
     }
     canvas_->switchPage(nullptr);
     setGeometry(scene()->sceneRect());
     canvas_->switchPage(page);
     int index = package_ ? package_->currentIndex() : -1;
-    if (snapshot)
-        canvas_->startAnimate(index > lastPage_ ? PageCanvas::RightToLeft : PageCanvas::LeftToRight);
+    if (anim) {
+        anim->stackBefore(globalCanvas_);
+        anim->startAnimate(index > lastPage_ ? PageCanvas::RightToLeft : PageCanvas::LeftToRight);
+        animCanvas_ = anim;
+        connect(anim, &AnimCanvas::animateFinished, this, [this]() {
+            delete animCanvas_;
+            animCanvas_ = nullptr;
+        });
+    } else if (animCanvas_) {
+        animCanvas_->updateAnimate();
+    }
     lastPage_ = index;
 }
 
 void WhiteCanvas::updateThunmbnail()
 {
     if (page()) {
-        page()->setThumbnail(canvas_->thumbnail(false));
+        page()->setThumbnail(canvas_->thumbnail());
     }
 }
 
