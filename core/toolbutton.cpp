@@ -58,6 +58,27 @@ void ToolButton::setIcon(const QVariant &icon)
     //QAction::setIcon(getIcon());
 }
 
+QString ToolButton::iconSource()
+{
+    if (icon_.type() != QVariant::String)
+        return nullptr;
+    QStringList seps = icon_.toString().split(",", QString::SkipEmptyParts);
+    if (seps.empty())
+        return nullptr;
+    if (seps.size() == 1)
+        return seps[0];
+    QString file;
+    QString state = isEnabled() ? (isChecked() ? "+normal" : "normal") : "disabled";
+    state.append('=');
+    for (QString const & sep : seps) {
+        if (sep.startsWith(state) && !sep.endsWith("%")) {
+            int n1 = file.lastIndexOf('.');
+            file.replace(n1, 0, sep.mid(state.size()));
+        }
+    }
+    return file;
+}
+
 QWidget *ToolButton::getCustomWidget()
 {
     return icon_.value<QWidget*>();

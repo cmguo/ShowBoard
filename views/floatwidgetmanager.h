@@ -1,9 +1,11 @@
 #ifndef FLOATWIDGETMANAGER_H
 #define FLOATWIDGETMANAGER_H
 
+#include "ShowBoard_global.h"
+
 #include <QObject>
 
-class FloatWidgetManager : QObject
+class SHOWBOARD_EXPORT FloatWidgetManager : QObject
 {
     Q_OBJECT
 public:

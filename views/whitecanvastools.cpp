@@ -18,12 +18,15 @@ static constexpr char const * toolstr =
         "prev||:/showboard/icons/page.prev.png,normal=,disabled=.disabled;"
         ;
 
-WhiteCanvasTools::WhiteCanvasTools()
-    : canvas_(nullptr)
+WhiteCanvasTools::WhiteCanvasTools(QObject* parent, WhiteCanvas* whiteCanvas)
+    : ToolButtonProvider(parent)
+    , canvas_(nullptr)
     , pageList_(nullptr)
 {
     setToolsString(toolstr);
     followTrigger();
+    if (whiteCanvas)
+        attachToWhiteCanvas(whiteCanvas);
 }
 
 void WhiteCanvasTools::attachToWhiteCanvas(WhiteCanvas *whiteCanvas)

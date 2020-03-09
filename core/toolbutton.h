@@ -20,6 +20,8 @@ class SHOWBOARD_EXPORT ToolButton : public QAction
     Q_PROPERTY(bool needUpdate READ needUpdate WRITE setNeedUpdate)
     Q_PROPERTY(bool unionUpdate READ unionUpdate WRITE setUnionUpdate)
 
+    Q_PROPERTY(QString iconSource READ iconSource)
+
 public:
     static ToolButton SPLITTER;
     static ToolButton LINE_BREAK;
@@ -112,6 +114,8 @@ public:
     QIcon getIcon(QSize const & size = QSize());
 
     void setIcon(QVariant const & icon);
+
+    QString iconSource();
 
     QWidget* getCustomWidget();
 

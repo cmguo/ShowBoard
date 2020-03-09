@@ -3,8 +3,6 @@
 #include "core/resourcemanager.h"
 #include "core/controlmanager.h"
 #include "core/control.h"
-#include "core/resourceview.h"
-#include "core/resourcetransform.h"
 #include "controls/whitecanvascontrol.h"
 
 #include <QGraphicsScene>

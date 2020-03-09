@@ -12,7 +12,7 @@ class SHOWBOARD_EXPORT WhiteCanvasTools : public ToolButtonProvider
 {
     Q_OBJECT
 public:
-    WhiteCanvasTools();
+    WhiteCanvasTools(QObject* parent = nullptr, WhiteCanvas* whiteCanvas = nullptr);
 
 public:
     void attachToWhiteCanvas(WhiteCanvas* whiteCanvas);
