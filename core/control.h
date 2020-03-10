@@ -131,12 +131,12 @@ public:
      * load from resource
      * be called when create, will call create(res)
      */
-    void attachTo(QGraphicsItem * parent);
+    void attachTo(QGraphicsItem * parent, QGraphicsItem * before);
 
     /*
      * save to resource
      */
-    void detachFrom(QGraphicsItem * parent);
+    void detachFrom(QGraphicsItem * parent, QGraphicsItem * before);
 
     /*
      * called when attached to canvas or canvas is resized

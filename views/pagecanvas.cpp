@@ -106,7 +106,7 @@ Control * PageCanvas::topControl()
 {
     if (subCanvas_)
         return subCanvas_->topControl();
-    QGraphicsItem * item = childItems().back();
+    QGraphicsItem * item = childItems().isEmpty() ? nullptr : childItems().back();
     return item ? Control::fromItem(item) : nullptr;
 }
 
@@ -182,15 +182,12 @@ void PageCanvas::insertResource(int layer)
     Control * ct = control_manager_->createControl(res);
     if (ct == nullptr)
         return;
-    ct->attachTo(this);
-    if (layer < childItems().size() - 1) {
-        ct->item()->stackBefore(childItems()[layer]);
-    }
+    ct->attachTo(this, layer < childItems().size() ? childItems()[layer] : nullptr);
 }
 
 void PageCanvas::removeResource(int layer)
 {
-    QGraphicsItem * item = childItems()[layer];
+    QGraphicsItem * item = childItems()[layer++];
     Control * ct = Control::fromItem(item);
-    ct->detachFrom(this);
+    ct->detachFrom(this, layer < childItems().size() ? childItems()[layer] : nullptr);
 }

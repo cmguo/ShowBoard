@@ -117,7 +117,7 @@ void Control::setExpandScale(bool b)
     flags_.setFlag(ExpandScale, b);
 }
 
-void Control::attachTo(QGraphicsItem * parent)
+void Control::attachTo(QGraphicsItem * parent, QGraphicsItem * before)
 {
     item_ = create(res_);
     itemObj_ = item_->toGraphicsObject();
@@ -131,6 +131,8 @@ void Control::attachTo(QGraphicsItem * parent)
     }
     attaching();
     realItem_->setParentItem(parent);
+    if (before)
+        realItem_->stackBefore(before);
     loadSettings();
     sizeChanged();
     initPosition();
@@ -143,7 +145,7 @@ void Control::attachTo(QGraphicsItem * parent)
     }
 }
 
-void Control::detachFrom(QGraphicsItem *parent)
+void Control::detachFrom(QGraphicsItem *parent, QGraphicsItem *)
 {
     detaching();
     if (flags_ & Loading)
