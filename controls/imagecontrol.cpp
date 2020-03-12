@@ -18,6 +18,13 @@ public:
 
     static QSharedPointer<ImageData> put(QUrl const & url, QPixmap const & pixmap, qreal mipmap);
 
+private:
+    static WorkThread& thread()
+    {
+        static WorkThread th("Image");
+        return th;
+    }
+
 public:
     ImageData(QPixmap const pixmap, qreal mipmap);
 
@@ -27,7 +34,6 @@ public:
 
 private:
     static QMutex mutex_;
-    static WorkThread thread_;
     static QMap<QUrl, QWeakPointer<ImageData>> cachedImages_;
 
 private:
@@ -143,7 +149,6 @@ void ImageControl::adjustMipmap2(const QSizeF &sizeHint)
 }
 
 QMutex ImageData::mutex_;
-WorkThread ImageData::thread_("Image");
 QMap<QUrl, QWeakPointer<ImageData>> ImageData::cachedImages_;
 
 QSharedPointer<ImageData> ImageData::get(const QUrl &url)
@@ -195,11 +200,11 @@ QPromise<QPixmap> ImageData::load(const QSizeF &sizeHint)
         l.unlock();
         return QPromise<QPixmap>::resolve(pixmap);
     }
-    if (QThread::currentThread() != &thread_) {
+    if (QThread::currentThread() != &thread()) {
         return QPromise<QPixmap>([thiz = sharedFromThis(), sizeHint](
                                  const QPromiseResolve<QPixmap>& resolve,
                                  const QPromiseReject<QPixmap>& reject) {
-            thread_.postWork([=] {
+            thread().postWork([=] {
                 thiz->load(sizeHint).then([resolve](QPixmap const &p){resolve(p);}, reject);
             });
         });
