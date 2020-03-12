@@ -22,11 +22,14 @@ FloatWidgetManager::FloatWidgetManager(QWidget *main)
     saveStates_.append(0);
 }
 
-void FloatWidgetManager::addWidget(QWidget *widget)
+void FloatWidgetManager::addWidget(QWidget *widget, Flags flags)
 {
     QWidget * under = widgetUnder();
     widget->setParent(main_);
     widget->stackUnder(under);
+    if (flags) {
+        relayout(widget, flags);
+    }
     widget->show();
     widgets_.append(widget);
 }
@@ -114,4 +117,17 @@ QWidget *FloatWidgetManager::widgetUnder()
         }
     }
     return w;
+}
+
+void FloatWidgetManager::relayout(QWidget *widget, Flags flags)
+{
+    QRect rect = main_->geometry();
+    rect.setHeight(rect.height() - taskBar_->height());
+    if (flags & Full) {
+        widget->setGeometry(rect);
+    } else if (flags & Center) {
+        QRect r = widget->geometry();
+        r.moveCenter(rect.center());
+        widget->setGeometry(r);
+    }
 }

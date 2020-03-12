@@ -11,12 +11,19 @@ class SHOWBOARD_EXPORT FloatWidgetManager : QObject
 public:
     static FloatWidgetManager* from(QWidget * main);
 
+    enum Flag {
+        Center,
+        Full,
+    };
+
+    Q_DECLARE_FLAGS(Flags, Flag)
+
 private:
     FloatWidgetManager(QWidget * main);
 
 public:
     // add/show/raise the widget, see @raiseWidget
-    void addWidget(QWidget* widget);
+    void addWidget(QWidget* widget, Flags flags = nullptr);
 
     // remove/hide the widget
     void removeWidget(QWidget* widget);
@@ -43,8 +50,11 @@ public:
 private:
     QWidget * widgetUnder();
 
+    void relayout(QWidget * widget, Flags flags);
+
 private:
     QWidget * main_;
+    QWidget * taskBar_;
     QWidget * widgetOn_;
     QList<QWidget*> widgets_;
     QList<int> saveStates_;
