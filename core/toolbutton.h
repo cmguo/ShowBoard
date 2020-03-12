@@ -20,7 +20,7 @@ class SHOWBOARD_EXPORT ToolButton : public QAction
     Q_PROPERTY(bool needUpdate READ needUpdate WRITE setNeedUpdate)
     Q_PROPERTY(bool unionUpdate READ unionUpdate WRITE setUnionUpdate)
 
-    Q_PROPERTY(QString iconSource READ iconSource)
+    Q_PROPERTY(QString iconSource READ iconSource NOTIFY changed)
 
 public:
     static ToolButton SPLITTER;

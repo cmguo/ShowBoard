@@ -66,7 +66,7 @@ QString ToolButton::iconSource()
     if (seps.empty())
         return nullptr;
     if (seps.size() == 1)
-        return seps[0];
+        return "qrc" + seps[0];
     QString file;
     QString state = isEnabled() ? (isChecked() ? "+normal" : "normal") : "disabled";
     state.append('=');
@@ -74,9 +74,11 @@ QString ToolButton::iconSource()
         if (sep.startsWith(state) && !sep.endsWith("%")) {
             int n1 = file.lastIndexOf('.');
             file.replace(n1, 0, sep.mid(state.size()));
+        } else if (sep.indexOf('=') < 0) {
+            file = sep;
         }
     }
-    return file;
+    return "qrc" + file;
 }
 
 QWidget *ToolButton::getCustomWidget()

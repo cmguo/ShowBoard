@@ -13,9 +13,9 @@
 
 static constexpr char const * toolstr =
         "new|新建|:/showboard/icons/page.new.png,normal=,disabled=.disabled;"
-        "next||:/showboard/icons/page.next.png,normal=,disabled=.disabled;"
-        "page|0/0|;"
-        "prev||:/showboard/icons/page.prev.png,normal=,disabled=.disabled;"
+        "prev|上一页|:/showboard/icons/page.prev.png,normal=,disabled=.disabled;"
+        "page|当前页|;"
+        "next|下一页|:/showboard/icons/page.next.png,normal=,disabled=.disabled;"
         ;
 
 WhiteCanvasTools::WhiteCanvasTools(QObject* parent, WhiteCanvas* whiteCanvas)
@@ -110,7 +110,7 @@ void WhiteCanvasTools::update()
     int total = canvas_->package()->pageCount();
     int index = canvas_->package()->currentIndex();
     buttons[1]->setEnabled(index > 0);
-    buttons[2]->setText(QString("%1/%2").arg(index + 1).arg(total));
+    buttons[2]->setIconText(QString("%1/%2").arg(index + 1).arg(total));
     buttons[3]->setEnabled(index + 1 < total);
 }
 
@@ -137,7 +137,7 @@ public:
     QSize sizeHint(const QStyleOptionViewItem &, const QModelIndex &index) const
     {
         ResourcePage * page = index.data().value<ResourcePage*>();
-        return page->thumbnail().size() + QSize(28, 8);
+        return page->thumbnail().size() + QSize(28, 10);
     }
 };
 

@@ -470,8 +470,3 @@ void ToolbarWidget::setVisible(bool visible) {
     }
 }
 
-void ToolbarWidget::paintEvent(QPaintEvent *event)
-{
-    //QFrame::paintEvent(event);
-}
-
