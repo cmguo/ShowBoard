@@ -71,7 +71,7 @@ bool AnimCanvas::animate()
         QPointF d{0, rect().height() / 20};
         p = p.y() < 0 ? p + d : p - d;
     }
-    qDebug() << "timerEvent" << p;
+    //qDebug() << "timerEvent" << p;
     setPos(p);
     return false;
 }
@@ -117,7 +117,7 @@ void AnimCanvas::setPos(const QPointF &pos)
 
 void AnimCanvas::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
 {
-    qDebug() << "paint" << rect();
+    //qDebug() << "paint" << rect();
     painter->setPen(Qt::NoPen);
     painter->setBrush(scene()->backgroundBrush());
     painter->drawRect(rect());

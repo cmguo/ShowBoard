@@ -19,8 +19,8 @@ class SHOWBOARD_EXPORT ResourcePage : public QAbstractItemModel
 {
     Q_OBJECT
 
-    Q_PROPERTY(QList<ResourceView *> const & resources READ resources)
     Q_PROPERTY(QPixmap thumbnail READ thumbnail WRITE setThumbnail)
+    Q_PROPERTY(QList<ResourceView *> const & resources READ resources)
 
 public:
     explicit ResourcePage(QObject *parent = nullptr);
@@ -134,6 +134,11 @@ public:
         return thumbnail_;
     }
 
+    int thumbnailVersion() const
+    {
+        return thumbnailVersion_;
+    }
+
     void setThumbnail(QPixmap thumb);
 
 signals:
@@ -162,6 +167,7 @@ private:
     ResourcePage* currentSubPage_;
     QVector<ResourcePage*> subPages_;
     QPixmap thumbnail_;
+    int thumbnailVersion_;
 };
 
 #endif // WHITEPAGE_H

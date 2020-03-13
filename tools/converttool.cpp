@@ -79,7 +79,7 @@ void ConvertTool::onImage(const QString &path, int nPage, int total)
     QRectF rect = item_->scene()->sceneRect();
     convThread().postWork([path, page, rect]() {
         QPixmap pixmap(path);
-        QSizeF size = (rect.size() * 100 / rect.height());
+        QSizeF size = (rect.size() * WhiteCanvas::THUMBNAIL_HEIGHT / rect.height());
         qreal scale = qMin(size.width() / pixmap.width(), size.height() / pixmap.height());
         QRectF rect2(0, 0, pixmap.width() * scale, pixmap.height() * scale);
         rect2.moveCenter(QPointF(size.width() / 2, size.height() / 2));

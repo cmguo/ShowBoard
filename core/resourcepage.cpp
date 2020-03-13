@@ -18,6 +18,7 @@ ResourcePage::ResourcePage(ResourceView* mainRes, QObject *parent)
     : QAbstractItemModel(parent)
     , canvasView_(nullptr)
     , currentSubPage_(nullptr)
+    , thumbnailVersion_(0)
 {
     if (parent)
         thumbnail_ = ResourcePackage::toolPage()->thumbnail();
@@ -256,6 +257,7 @@ ResourceView *ResourcePage::mainResource() const
 void ResourcePage::setThumbnail(QPixmap thumb)
 {
     thumbnail_ = thumb;
+    ++thumbnailVersion_;
     ResourcePackage * pkg = qobject_cast<ResourcePackage*>(parent());
     if (pkg)
         pkg->pageChanged(this);

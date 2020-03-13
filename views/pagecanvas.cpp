@@ -1,4 +1,5 @@
 #include "pagecanvas.h"
+#include "whitecanvas.h"
 #include "core/resourcepage.h"
 #include "core/resourcemanager.h"
 #include "core/controlmanager.h"
@@ -58,7 +59,7 @@ void PageCanvas::relayout()
 QPixmap PageCanvas::thumbnail(QPixmap* snapshot)
 {
     QSizeF size = scene()->sceneRect().size();
-    QSizeF size2 = snapshot ? size : size / size.height() * 100;
+    QSizeF size2 = snapshot ? size : size / size.height() * WhiteCanvas::THUMBNAIL_HEIGHT;
     QPixmap pixmap(size2.toSize());
     pixmap.fill(Qt::transparent);
     QPainter painter;
@@ -79,7 +80,8 @@ QPixmap PageCanvas::thumbnail(QPixmap* snapshot)
     painter.end();
     if (snapshot) {
         *snapshot = pixmap;
-        return pixmap.scaled(pixmap.width(), 100, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        return pixmap.scaled(pixmap.width(), WhiteCanvas::THUMBNAIL_HEIGHT,
+                             Qt::KeepAspectRatio, Qt::SmoothTransformation);
     } else {
         return pixmap;
     }

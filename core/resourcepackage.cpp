@@ -229,6 +229,8 @@ void ResourcePackage::addPage(int index, ResourcePage * page)
     beginInsertRows(QModelIndex(), index, index);
     pages_.insert(index, page);
     endInsertRows();
+    if (index + 1 < pages_.size())
+        dataChanged(this->index(index + 1, 0), this->index(pages_.size() - 1, 0));
     emit pageCountChanged(pages_.size());
 }
 
@@ -239,11 +241,26 @@ void ResourcePackage::pageChanged(ResourcePage *page)
         dataChanged(index(i, 0), index(i, 0));
 }
 
+enum PageRole {
+    IndexRole = Qt::UserRole + 1,
+    ThumbRole
+};
+
+QHash<int, QByteArray> ResourcePackage::roleNames() const
+{
+    QHash<int, QByteArray> roles;
+    roles[IndexRole] = "index";
+    roles[ThumbRole] = "thumb";
+    return roles;
+}
+
 QVariant ResourcePackage::data(const QModelIndex &index, int role) const
 {
-    if (role == Qt::CheckStateRole)
-        return index.row() == current_ ? Qt::Checked : Qt::Unchecked;
-    return QVariant::fromValue(pages_[index.row()]);
+    if (role == IndexRole)
+        return index.row();
+    if (role == ThumbRole)
+        return QString("%1.%2").arg(index.row()).arg(pages_[index.row()]->thumbnailVersion());
+    return QVariant();
 }
 
 int ResourcePackage::rowCount(const QModelIndex &parent) const

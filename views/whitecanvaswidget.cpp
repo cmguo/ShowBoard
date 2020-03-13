@@ -134,7 +134,8 @@ void WhiteCanvasWidget::setSceneSize(QSizeF size)
 {
     sceneSize_ = size;
     static QPixmap thumb(":/showboard/icons/drag.png");
-    ResourcePackage::toolPage()->setThumbnail(thumb.scaled((size * 100 / size.height()).toSize()));
+    ResourcePackage::toolPage()->setThumbnail(
+                thumb.scaled((size * WhiteCanvas::THUMBNAIL_HEIGHT / size.height()).toSize()));
     onPageChanged(CurrentPage);
     if (canvas_->page() && !canvas_->page()->isLargePage())
         canvas_->setGeometry(scene()->sceneRect());

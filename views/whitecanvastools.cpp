@@ -10,12 +10,16 @@
 #include <QPainter>
 #include <QGraphicsScene>
 #include <QGraphicsView>
+#include <QQuickWidget>
+#include <QQmlContext>
+#include <QQmlEngine>
+#include <QQuickImageProvider>
 
 static constexpr char const * toolstr =
-        "new|新建|:/showboard/icons/page.new.png,normal=,disabled=.disabled;"
-        "prev|上一页|:/showboard/icons/page.prev.png,normal=,disabled=.disabled;"
+        "new|新建|:/showboard/icons/page.new.svg;"
+        "prev|上一页|:/showboard/icons/page.prev.svg;"
         "page|当前页|;"
-        "next|下一页|:/showboard/icons/page.next.png,normal=,disabled=.disabled;"
+        "next|下一页|:/showboard/icons/page.next.svg;"
         ;
 
 WhiteCanvasTools::WhiteCanvasTools(QObject* parent, WhiteCanvas* whiteCanvas)
@@ -69,8 +73,8 @@ void WhiteCanvasTools::pageList()
     }
     if (!pageList_->isVisible()) {
         canvas_->updateThunmbnail();
-        QModelIndex index(canvas_->package()->currentModelIndex());
-        qobject_cast<QListView*>(pageList_)->scrollTo(index, QListView::PositionAtCenter);
+        //QModelIndex index(canvas_->package()->currentModelIndex());
+        //qobject_cast<QListView*>(pageList_)->scrollTo(index, QListView::PositionAtCenter);
     }
     pageList_->setVisible(!pageList_->isVisible());
 }
@@ -114,47 +118,35 @@ void WhiteCanvasTools::update()
     buttons[3]->setEnabled(index + 1 < total);
 }
 
-class PageDelegate : public QAbstractItemDelegate
+class ResourceImageProvider : public QQuickImageProvider
 {
-    // QAbstractItemDelegate interface
 public:
-    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+    ResourceImageProvider(ResourcePackage * package)
+        : QQuickImageProvider(Pixmap)
+        , package_(package)
     {
-        painter->save();
-        QRect rect = option.rect;
-        painter->drawText(rect.topLeft() + QPoint(5, 20), QString("%1").arg(index.row() + 1));
-        rect.adjust(24, 4, -4, -4);
-        Qt::CheckState checked = index.data(Qt::CheckStateRole).value<Qt::CheckState>();
-        if (checked != Qt::Unchecked) {
-            painter->setPen(QPen(Qt::blue, 2));
-            painter->drawRoundedRect(rect.adjusted(-3, -3, 3, 3), 3, 3);
-        }
-        ResourcePage * page = index.data().value<ResourcePage*>();
-        painter->drawPixmap(rect, page->thumbnail());
-        painter->restore();
     }
-
-    QSize sizeHint(const QStyleOptionViewItem &, const QModelIndex &index) const
+    // QQuickImageProvider interface
+public:
+    QPixmap requestPixmap(const QString &id, QSize *size, const QSize &)
     {
-        ResourcePage * page = index.data().value<ResourcePage*>();
-        return page->thumbnail().size() + QSize(28, 10);
+        QPixmap pixmap = package_->pages().at(static_cast<int>(id.toFloat()))->thumbnail();
+        *size = pixmap.size();
+        return pixmap;
     }
+private:
+    ResourcePackage * package_;
 };
 
 QWidget *WhiteCanvasTools::createPageList(ResourcePackage * package)
 {
-    QListView * list = new QListView;
-    list->setModel(package);
-    list->setStyleSheet("border:1px blue");
-    list->setItemDelegate(new PageDelegate);
-    list->setVerticalScrollMode(QListView::ScrollPerPixel);
-    list->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    list->setFixedHeight(500);
-    QObject::connect(list, &QListView::activated, this, [this](QModelIndex i) {
-       setOption("goto", i.row());
-    });
-    list->installEventFilter(this);
-    return list;
+    QQuickWidget* widget = new QQuickWidget;
+    widget->engine()->addImageProvider("resource", new ResourceImageProvider(package));
+    widget->setClearColor(Qt::transparent);
+    widget->rootContext()->setContextProperty("packageModel", package);
+    widget->setSource(QUrl("qrc:/showboard/qml/PageList.qml"));
+    widget->installEventFilter(this);
+    return widget;
 }
 
 bool WhiteCanvasTools::eventFilter(QObject * watched, QEvent *event)
@@ -164,12 +156,7 @@ bool WhiteCanvasTools::eventFilter(QObject * watched, QEvent *event)
         widget->setFocus();
     }
     if (event->type() == QEvent::FocusOut) {
-        if (QApplication::focusWidget()
-                && QApplication::focusWidget()->parent() == watched) {
-            widget->setFocus();
-        } else {
-            widget->hide();
-        }
+        widget->hide();
     }
     return false;
 }

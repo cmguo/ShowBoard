@@ -16,7 +16,10 @@ class SHOWBOARD_EXPORT ResourcePackage : public QAbstractItemModel
 {
     Q_OBJECT
 
-    Q_PROPERTY(QList<ResourcePage *> pages READ pages())
+    Q_PROPERTY(QList<ResourcePage *> pages READ pages)
+    Q_PROPERTY(int pageCount READ pageCount NOTIFY pageCountChanged)
+    Q_PROPERTY(int currentIndex READ currentIndex NOTIFY currentPageChanged)
+
 public:
     explicit ResourcePackage(QObject *parent = nullptr);
 
@@ -139,6 +142,8 @@ protected:
     void pageChanged(ResourcePage* page);
 
 private:
+    QHash<int, QByteArray> roleNames() const;
+
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;

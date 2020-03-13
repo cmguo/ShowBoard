@@ -28,6 +28,9 @@ class SHOWBOARD_EXPORT WhiteCanvas : public QObject, public CanvasItem
 {
     Q_OBJECT
 public:
+    static constexpr int THUMBNAIL_HEIGHT = 108;
+
+public:
     WhiteCanvas(QObject * parent = nullptr);
 
     virtual ~WhiteCanvas() override;
