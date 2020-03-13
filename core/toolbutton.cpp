@@ -70,7 +70,8 @@ void ToolButton::setIcon(const QVariant &icon)
 
 QString ToolButton::iconSource()
 {
-    if (icon_.type() != QVariant::String)
+    if (icon_.type() != QVariant::String
+            && icon_.type() != QVariant::ByteArray)
         return nullptr;
     QStringList seps = icon_.toString().split(",", QString::SkipEmptyParts);
     if (seps.empty())
@@ -274,7 +275,8 @@ QIcon ToolButton::makeIcon(QVariant& icon, QSize const & size, bool replace)
     QIcon result;
     if (icon.type() == QVariant::Icon)
         return icon.value<QIcon>();
-    else if (icon.type() == QVariant::String)
+    else if (icon.type() == QVariant::String
+             || icon.type() == QVariant::ByteArray)
         result = makeIcon(icon.toString());
     else if (icon.type() == QVariant::Map) {
         QVariantMap icons = icon.toMap();
