@@ -5,11 +5,15 @@
 
 #include <QObject>
 
+class ToolButton;
+
 class SHOWBOARD_EXPORT FloatWidgetManager : public QObject
 {
     Q_OBJECT
 public:
-    static FloatWidgetManager* from(QWidget * main);
+    static FloatWidgetManager* from(QWidget * widget);
+
+    static QPoint getPopupPosition(QWidget * widget, ToolButton* attachButton);
 
     enum Flag {
         Center,
@@ -24,6 +28,9 @@ private:
 public:
     // add/show/raise the widget, see @raiseWidget
     void addWidget(QWidget* widget, Flags flags = nullptr);
+
+    // add/show/raise the widget, see @raiseWidget
+    void addWidget(QWidget* widget, ToolButton* attachButton);
 
     // remove/hide the widget
     void removeWidget(QWidget* widget);
@@ -53,6 +60,8 @@ private:
     void relayout(QWidget * widget, Flags flags);
 
     void focusChanged(QWidget* old, QWidget* now);
+
+    QPoint popupPos(QWidget * widget, ToolButton* attachButton);
 
 private:
     QWidget * main_;

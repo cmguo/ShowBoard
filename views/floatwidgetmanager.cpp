@@ -1,18 +1,27 @@
 #include "floatwidgetmanager.h"
+#include "core/toolbutton.h"
 
 #include <QWidget>
+#include <QLayout>
 #include <QVariant>
 #include <QApplication>
 #include <QDebug>
 
-FloatWidgetManager *FloatWidgetManager::from(QWidget *main)
+FloatWidgetManager *FloatWidgetManager::from(QWidget *widget)
 {
+    QWidget * main = widget->window();
     QObject * m = main->property("FloatWidgetManager").value<QObject*>();
     if (m == nullptr) {
-        m = new FloatWidgetManager(main);
+        m = new FloatWidgetManager(widget);
         main->setProperty("FloatWidgetManager", QVariant::fromValue(m));
     }
     return qobject_cast<FloatWidgetManager*>(m);
+}
+
+QPoint FloatWidgetManager::getPopupPosition(QWidget *widget, ToolButton *attachButton)
+{
+    QWidget* bar = attachButton->associatedWidgets().first();
+    return from(bar)->popupPos(widget, attachButton);
 }
 
 FloatWidgetManager::FloatWidgetManager(QWidget *main)
@@ -40,6 +49,12 @@ void FloatWidgetManager::addWidget(QWidget *widget, Flags flags)
     }
     widget->show();
     widgets_.append(widget);
+}
+
+void FloatWidgetManager::addWidget(QWidget *widget, ToolButton *attachButton)
+{
+    addWidget(widget);
+    widget->move(popupPos(widget, attachButton));
 }
 
 void FloatWidgetManager::removeWidget(QWidget *widget)
@@ -151,4 +166,23 @@ void FloatWidgetManager::focusChanged(QWidget *, QWidget *now)
         now = now->parentWidget();
     if (now)
         raiseWidget(now);
+}
+
+QPoint FloatWidgetManager::popupPos(QWidget *widget, ToolButton *attachButton)
+{
+    QWidget* bar = attachButton->associatedWidgets().first();
+    QRectF rect = attachButton->itemRect();
+    if (rect.isEmpty())
+        rect.setSize(bar->size());
+    rect.setHeight(0);
+    QPoint center = bar->mapTo(main_, rect.center().toPoint());
+    QRect rect2 = widget->rect();
+    rect2.moveCenter(center - QPoint(0, rect2.height() / 2 + 20));
+    QRect bound = main_->rect().adjusted(10, 0, -10, 0);
+    QPoint off;
+    if (rect2.x() < bound.x())
+        off.setX(bound.x() - rect2.x());
+    if (rect2.right() > bound.right())
+        off.setX(bound.right() - rect2.right());
+    return rect2.topLeft() + off;
 }

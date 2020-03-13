@@ -47,6 +47,16 @@ ToolButton::ToolButton(const QByteArray &name, const QString &title,
     //    QAction::setIcon(getIcon());
 }
 
+QRectF ToolButton::itemRect() const
+{
+    return property("ToolButtonItemRect").toRectF();
+}
+
+void ToolButton::setItemRect(const QRectF &rect)
+{
+    setProperty("ToolButtonItemRect", rect);
+}
+
 QIcon ToolButton::getIcon(QSize const & size)
 {
     return makeIcon(icon_, size, !isDynamic());

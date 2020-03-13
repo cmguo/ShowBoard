@@ -74,6 +74,8 @@ QWidget *ToolbarWidget::createPopup(const QList<ToolButton *> &buttons)
             });
         }
     }
+    popup->layout()->activate();
+    popup->resize(popup->sizeHint());
     return popup;
 }
 

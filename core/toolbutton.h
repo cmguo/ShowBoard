@@ -19,6 +19,7 @@ class SHOWBOARD_EXPORT ToolButton : public QAction
     Q_PROPERTY(bool hideSelector READ isHideSelector WRITE setHideSelector)
     Q_PROPERTY(bool needUpdate READ needUpdate WRITE setNeedUpdate)
     Q_PROPERTY(bool unionUpdate READ unionUpdate WRITE setUnionUpdate)
+    Q_PROPERTY(QRectF itemRect READ itemRect WRITE setItemRect)
 
     Q_PROPERTY(QString iconSource READ iconSource NOTIFY changed)
 
@@ -105,6 +106,10 @@ public:
     void setNeedUpdate(bool v) { flags_.setFlag(NeedUpdate, v); }
 
     void setUnionUpdate(bool v) { flags_.setFlag(UnionUpdate, v); }
+
+    QRectF itemRect() const;
+
+    void setItemRect(QRectF const & rect);
 
 public:
     ToolButton(QByteArray const & name, Flags flags);

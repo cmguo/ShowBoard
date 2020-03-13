@@ -1,3 +1,4 @@
+#include "floatwidgetmanager.h"
 #include "whitecanvas.h"
 #include "whitecanvastools.h"
 
@@ -19,7 +20,7 @@
 static constexpr char const * toolstr =
         "new|新建|:/showboard/icons/page.new.svg;"
         "prev|上一页|:/showboard/icons/page.prev.svg;"
-        "page|当前页|;"
+        "list|当前页|;"
         "next|下一页|:/showboard/icons/page.next.svg;"
         ;
 
@@ -60,17 +61,19 @@ void WhiteCanvasTools::pageList()
     if (pageList_ == nullptr) {
         pageList_ = createPageList(canvas_->package());
         QPoint pos(200, 100);
-        ToolButton* button = getStringButton(1);
+        ToolButton* button = getStringButton(2);
         if (button->associatedWidgets().isEmpty()) {
             pageList_->setParent(canvas_->scene()->views().first()->parentWidget());
         } else {
             QWidget* btn = button->associatedWidgets().first();
             pageList_->setParent(btn->window());
-            pos = btn->mapTo(pageList_->parentWidget(), QPoint());
-            pos += QPoint(pageList_->width() / 2 - btn->width() / 2,
-                          -pageList_->sizeHint().height());
+            pos = FloatWidgetManager::getPopupPosition(pageList_, button);
         }
         pageList_->move(pos);
+    } else {
+        ToolButton* button = getStringButton(2);
+        if (!button->associatedWidgets().isEmpty())
+            pageList_->move(FloatWidgetManager::getPopupPosition(pageList_, button));
     }
     if (!pageList_->isVisible()) {
         canvas_->updateThunmbnail();
