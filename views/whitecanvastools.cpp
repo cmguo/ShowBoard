@@ -91,7 +91,9 @@ void WhiteCanvasTools::gotoPage(int n)
 
 void WhiteCanvasTools::setOption(const QByteArray &key, QVariant value)
 {
+#ifndef QT_DEBUG
     canvas_->setProperty("FromUser", true);
+#endif
     if (key == "new")
         newPage();
     else if (key == "prev")
@@ -104,7 +106,9 @@ void WhiteCanvasTools::setOption(const QByteArray &key, QVariant value)
         gotoPage(value.toInt());
     else
         ToolButtonProvider::setOption(key, value);
+#ifndef QT_DEBUG
     canvas_->setProperty("FromUser", QVariant());
+#endif
 }
 
 void WhiteCanvasTools::update()
@@ -144,6 +148,7 @@ QWidget *WhiteCanvasTools::createPageList(ResourcePackage * package)
     widget->engine()->addImageProvider("resource", new ResourceImageProvider(package));
     widget->setClearColor(Qt::transparent);
     widget->rootContext()->setContextProperty("packageModel", package);
+    widget->rootContext()->setContextProperty("whiteCanvasTools", this);
     widget->setSource(QUrl("qrc:/showboard/qml/PageList.qml"));
     widget->installEventFilter(this);
     return widget;

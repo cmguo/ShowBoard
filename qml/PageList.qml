@@ -32,7 +32,6 @@ Rectangle {
                     lastScrollPosY = scrollbar.position
             }
         }
-        spacing: 20
 
         onMovementEnded: {
             lastScrollPosY = scrollbar.position
@@ -93,9 +92,13 @@ Rectangle {
                     border.color: "#FF008FFF"
                 }
             }
+
             MouseArea {
+                anchors.fill: parent
                 onClicked: {
-                    packageModel.switchPage(index)
+                    console.log("onClicked" + index)
+                    //packageModel.switchPage(index)
+                    whiteCanvasTools.setOption("goto", index)
                 }
             }
         }

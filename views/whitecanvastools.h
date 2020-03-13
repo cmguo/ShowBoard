@@ -5,6 +5,8 @@
 
 #include <core/toolbuttonprovider.h>
 
+#include <QVariant>
+
 class WhiteCanvas;
 class ResourcePackage;
 
@@ -28,13 +30,13 @@ protected slots:
 
     void gotoPage(int n);
 
+    virtual void setOption(QByteArray const & key, QVariant value) override;
+
 private:
     void update();
 
 private:
     QWidget * createPageList(ResourcePackage * package);
-
-    virtual void setOption(QByteArray const & key, QVariant value) override;
 
     virtual bool eventFilter(QObject *, QEvent *event) override;
 
