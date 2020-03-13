@@ -5,7 +5,7 @@
 
 #include <QObject>
 
-class SHOWBOARD_EXPORT FloatWidgetManager : QObject
+class SHOWBOARD_EXPORT FloatWidgetManager : public QObject
 {
     Q_OBJECT
 public:
@@ -51,6 +51,8 @@ private:
     QWidget * widgetUnder();
 
     void relayout(QWidget * widget, Flags flags);
+
+    void focusChanged(QWidget* old, QWidget* now);
 
 private:
     QWidget * main_;

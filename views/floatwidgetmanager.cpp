@@ -2,6 +2,8 @@
 
 #include <QWidget>
 #include <QVariant>
+#include <QApplication>
+#include <QDebug>
 
 FloatWidgetManager *FloatWidgetManager::from(QWidget *main)
 {
@@ -14,19 +16,25 @@ FloatWidgetManager *FloatWidgetManager::from(QWidget *main)
 }
 
 FloatWidgetManager::FloatWidgetManager(QWidget *main)
-    : main_(main)
+    : QObject(main)
+    , main_(main)
 {
     for (QObject * c : main->children())
         if (c->isWidgetType())
             widgetOn_ = qobject_cast<QWidget*>(c);
     saveStates_.append(0);
+    connect(qobject_cast<QApplication*>(QApplication::instance()), &QApplication::focusChanged,
+            this, &FloatWidgetManager::focusChanged);
 }
 
 void FloatWidgetManager::addWidget(QWidget *widget, Flags flags)
 {
     QWidget * under = widgetUnder();
     widget->setParent(main_);
-    widget->stackUnder(under);
+    if (under)
+        widget->stackUnder(under);
+    else
+        widget->raise();
     if (flags) {
         relayout(widget, flags);
     }
@@ -54,6 +62,11 @@ void FloatWidgetManager::raiseWidget(QWidget *widget)
     int n = widgets_.indexOf(widget);
     if (n < 0 || widget == widgets_.last())
         return;
+    QWidget * under = widgetUnder();
+    if (under)
+        widget->stackUnder(under);
+    else
+        widget->raise();
     widgets_.removeAt(n);
     int mask1 = (1 << n) - 1;
     int mask2 = -1 << (n + 1);
@@ -130,4 +143,12 @@ void FloatWidgetManager::relayout(QWidget *widget, Flags flags)
         r.moveCenter(rect.center());
         widget->setGeometry(r);
     }
+}
+
+void FloatWidgetManager::focusChanged(QWidget *, QWidget *now)
+{
+    while (now && !widgets_.contains(now))
+        now = now->parentWidget();
+    if (now)
+        raiseWidget(now);
 }
