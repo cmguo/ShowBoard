@@ -10,10 +10,15 @@ class PositionBar;
 
 class WhiteCanvasControl : public Control
 {
+    Q_OBJECT
+
 public:
     WhiteCanvasControl(ResourceView * view, QGraphicsItem * canvas);
 
     virtual ~WhiteCanvasControl() override;
+
+public slots:
+    void setPosBarVisible(bool visible);
 
 private:
     QGraphicsItem * create(ResourceView *res) override;
@@ -31,7 +36,7 @@ private:
     PositionBar * posBar_;
 };
 
-class PositionBar : QGraphicsPathItem
+class PositionBar : public QGraphicsPathItem
 {
 public:
     PositionBar(QGraphicsItem * parent = nullptr);

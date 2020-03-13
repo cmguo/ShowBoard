@@ -3,6 +3,8 @@
 
 #include "canvasitem.h"
 
+#include <QEasingCurve>
+
 class Control;
 
 class AnimCanvas : public QObject, public CanvasItem
@@ -35,6 +37,8 @@ private:
 
     void setPos(QPointF const & pos);
 
+    void setScale(qreal scale);
+
 private:
     virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
 
@@ -43,7 +47,10 @@ private:
 private:
     QPixmap snapshot_;
     Control* canvasControl_;
-    int animTimer_;
+    int timer_;
+    int timeLine_;
+    QPointF total_;
+    QEasingCurve curve_;
 };
 
 #endif // ANIMCANVAS_H

@@ -20,8 +20,8 @@ WhiteCanvasControl::WhiteCanvasControl(ResourceView * view, QGraphicsItem * canv
                      this, &WhiteCanvasControl::updatingTransform);
     QObject::connect(&res_->transform(), &ResourceTransform::changed,
                      this, &WhiteCanvasControl::updateTransform);
-    loadSettings();
     posBar_ = new PositionBar(canvas);
+    loadSettings();
     // adjust to scene, this is done before attaching transform
     res_->transform().translate(QPointF(0, 0));
     qDebug() << "WhiteCanvasControl" << res_->transform().transform();
@@ -30,12 +30,17 @@ WhiteCanvasControl::WhiteCanvasControl(ResourceView * view, QGraphicsItem * canv
 WhiteCanvasControl::~WhiteCanvasControl()
 {
     qDebug() << "~WhiteCanvasControl" << res_->transform().transform();
-    delete posBar_;
     saveSettings();
+    delete posBar_;
     item_->setData(ITEM_KEY_CONTROL, QVariant());
     item_->setTransformations({});
     item_ = nullptr;
     realItem_ = nullptr;
+}
+
+void WhiteCanvasControl::setPosBarVisible(bool visible)
+{
+    posBar_->setVisible(visible);
 }
 
 QGraphicsItem *WhiteCanvasControl::create(ResourceView *res)

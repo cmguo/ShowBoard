@@ -1,4 +1,5 @@
 #include "animcanvas.h"
+#include "pagecanvas.h"
 #include "core/control.h"
 #include "core/resourceview.h"
 #include "core/resourcetransform.h"
@@ -10,26 +11,43 @@
 AnimCanvas::AnimCanvas(QGraphicsItem * parent)
     : CanvasItem(parent)
     , canvasControl_(nullptr)
-    , animTimer_(0)
+    , timer_(0)
+    , timeLine_(0)
+    , curve_(QEasingCurve::InOutQuart)
 {
     setFlag(QGraphicsItem::ItemHasNoContents, false);
 }
 
 void AnimCanvas::startAnimate(int dir)
 {
-    if (animTimer_)
+    if (timer_)
         return;
+    setBrush(scene()->backgroundBrush());
+    scene()->setBackgroundBrush(QBrush());
     updateAnimate();
     QPointF off;
-    setRect(animateRect(dir, off));
-    setPos(-off);
-    animTimer_ = startTimer(20);
+    QRectF r = animateRect(dir, off);
+    setRect(r);
+    setTransformOriginPoint(r.center());
+    qDebug() << "AnimCanvas::startAnimate" << dir << rect();
+    PageCanvas * canvas = static_cast<PageCanvas*>(parentItem()->childItems().first());
+    r.translate(-off);
+    canvas->setRect(r);
+    canvas->setTransformOriginPoint(r.center());
+    canvas->setBrush(brush());
+    canvas->setFlag(ItemHasNoContents, false);
+    canvas->setFlag(ItemClipsChildrenToShape, true);
+    total_ = -off;
+    setPos(total_);
+    timer_ = startTimer(20);
 }
 
 void AnimCanvas::updateAnimate()
 {
     canvasControl_ = Control::fromItem(parentItem());
     if (canvasControl_) {
+        canvasControl_->metaObject()->invokeMethod(
+                    canvasControl_, "setPosBarVisible", Q_ARG(bool,false));
         connect(&canvasControl_->resource()->transform(),
                          &ResourceTransform::changed, this, [this] () {
             updateTransform();
@@ -40,50 +58,65 @@ void AnimCanvas::updateAnimate()
 
 void AnimCanvas::updateTransform()
 {
-    if (!animTimer_)
+    if (!timer_)
         return;
     int dir = 0;
-    QPointF pos = this->pos();
-    if (!qFuzzyIsNull(pos.x()))
-        dir |= pos.x() < 0 ? 1 : 2;
-    if (!qFuzzyIsNull(pos.y()))
-        dir |= pos.y() < 0 ? 4 : 8;
+    if (!qFuzzyIsNull(total_.x()))
+        dir |= total_.x() < 0 ? 1 : 2;
+    if (!qFuzzyIsNull(total_.y()))
+        dir |= total_.y() < 0 ? 4 : 8;
     QRectF old = rect();
     QPointF off;
-    setRect(animateRect(dir, off));
-    qDebug() << "updateAnimate" << dir << rect();
-    pos *= rect().width() / old.width();
+    QRectF r = animateRect(dir, off);
+    setRect(r);
+    setTransformOriginPoint(r.center());
+    qDebug() << "AnimCanvas::updateAnimate" << dir << rect();
+    QPointF pos = this->pos();
+    pos *= r.width() / old.width();
+    total_ *= r.width() / old.width();
     setPos(pos);
     update();
+    PageCanvas * canvas = static_cast<PageCanvas*>(parentItem()->childItems().first());
+    r.translate(-off);
+    canvas->setRect(r);
+    canvas->setTransformOriginPoint(r.center());
+    canvas->update();
 }
 
 bool AnimCanvas::animate()
 {
-    QPointF p = pos();
-    if (qFuzzyIsNull(p.x()) && qFuzzyIsNull(p.y())) {
+    ++timeLine_;
+    if (timeLine_ <= 5) {
+        setScale(1 - 0.02 * timeLine_);
+    } else if (timeLine_ <= 25) {
+        qreal v = curve_.valueForProgress((25 - timeLine_) / 20.0);
+        setPos(total_ * v);
+    } else if (timeLine_ <= 30) {
+        setScale(1 - 0.02 * (30 - timeLine_));
+    } else {
         return true;
     }
-    if (!qFuzzyIsNull(p.x())) {
-        QPointF d{rect().width() / 20, 0};
-        p = p.x() < 0 ? p + d : p - d;
-    }
-    if (!qFuzzyIsNull(p.y())) {
-        QPointF d{0, rect().height() / 20};
-        p = p.y() < 0 ? p + d : p - d;
-    }
-    //qDebug() << "timerEvent" << p;
-    setPos(p);
     return false;
 }
 
 void AnimCanvas::stopAnimate()
 {
-    killTimer(animTimer_);
-    animTimer_ = 0;
+    killTimer(timer_);
+    timer_ = 0;
     setRect(QRectF());
+    PageCanvas * canvas = static_cast<PageCanvas*>(parentItem()->childItems().first());
+    canvas->setBrush(QBrush());
+    canvas->setRect(QRectF());
+    canvas->setTransformOriginPoint(0, 0);
+    canvas->setFlag(ItemHasNoContents, true);
+    canvas->setFlag(ItemClipsChildrenToShape, false);
+    scene()->setBackgroundBrush(brush());
     snapshot_ = QPixmap();
     if (canvasControl_) {
         canvasControl_->resource()->transform().disconnect(this);
+        canvasControl_->metaObject()->invokeMethod(
+                    canvasControl_, "setPosBarVisible", Q_ARG(bool,true));
+        canvasControl_ = nullptr;
     }
     emit animateFinished();
 }
@@ -115,12 +148,20 @@ void AnimCanvas::setPos(const QPointF &pos)
     }
 }
 
-void AnimCanvas::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
+void AnimCanvas::setScale(qreal scale)
+{
+    CanvasItem::setScale(scale);
+    for (QGraphicsItem * sibling : parentItem()->childItems()) {
+        if (sibling == this)
+            break;
+        sibling->setScale(scale);
+    }
+}
+
+void AnimCanvas::paint(QPainter *painter, const QStyleOptionGraphicsItem * option, QWidget * widget)
 {
     //qDebug() << "paint" << rect();
-    painter->setPen(Qt::NoPen);
-    painter->setBrush(scene()->backgroundBrush());
-    painter->drawRect(rect());
+    CanvasItem::paint(painter, option, widget);
     painter->drawPixmap(rect(), snapshot_, QRectF());
 }
 

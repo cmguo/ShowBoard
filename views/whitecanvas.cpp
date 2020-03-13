@@ -74,10 +74,8 @@ Control * WhiteCanvas::getToolControl(const QString &type)
 
 QVariant WhiteCanvas::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value)
 {
-    if (change == ItemParentHasChanged || change == ItemSceneChange) {
-        QRectF rect = change == ItemParentHasChanged
-                ? value.value<QGraphicsItem *>()->boundingRect()
-                : value.value<QGraphicsScene *>()->sceneRect();
+    if ( change == ItemSceneChange) {
+        QRectF rect = value.value<QGraphicsScene *>()->sceneRect();
         rect.moveCenter({0, 0});
         setGeometry(rect);
     }

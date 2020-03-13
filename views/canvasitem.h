@@ -3,6 +3,7 @@
 
 #include "ShowBoard_global.h"
 
+#include <QBrush>
 #include <QGraphicsItem>
 
 class SHOWBOARD_EXPORT CanvasItem : public QGraphicsItem
@@ -13,7 +14,11 @@ public:
 public:
     void setRect(QRectF const & rect);
 
+    void setBrush(QBrush const & brush);
+
     QRectF rect() const;
+
+    QBrush brush() const;
 
 protected:
     virtual QRectF boundingRect() const override;
@@ -22,6 +27,7 @@ protected:
 
 private:
     QRectF rect_;
+    QBrush brush_;
 };
 
 #endif // CANVASITEM_H
