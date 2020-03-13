@@ -14,6 +14,7 @@
 #include <QQmlContext>
 #include <QQmlEngine>
 #include <QQuickImageProvider>
+#include <QQuickItem>
 
 static constexpr char const * toolstr =
         "new|新建|:/showboard/icons/page.new.svg;"
@@ -76,7 +77,9 @@ void WhiteCanvasTools::pageList()
         //QModelIndex index(canvas_->package()->currentModelIndex());
         //qobject_cast<QListView*>(pageList_)->scrollTo(index, QListView::PositionAtCenter);
     }
-    pageList_->setVisible(!pageList_->isVisible());
+    bool v = !pageList_->isVisible();
+    pageList_->setVisible(v);
+    qobject_cast<QQuickWidget*>(pageList_)->rootObject()->setVisible(v);
 }
 
 void WhiteCanvasTools::nextPage()
@@ -162,6 +165,7 @@ bool WhiteCanvasTools::eventFilter(QObject * watched, QEvent *event)
     }
     if (event->type() == QEvent::FocusOut) {
         widget->hide();
+        qobject_cast<QQuickWidget*>(widget)->rootObject()->setVisible(false);
     }
     return false;
 }
