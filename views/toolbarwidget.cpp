@@ -190,6 +190,9 @@ void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWi
         splitter->setLineWidth(0);
         widget = splitter;
     } else if (button == &ToolButton::PLACE_HOOLDER) {
+        QGridLayout *gridLayout = qobject_cast<QGridLayout*>(layout);
+        if (gridLayout)
+            ++col;
         return;
     } else if (button->isCustomWidget()) {
         widget = button->getCustomWidget();

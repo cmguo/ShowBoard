@@ -71,18 +71,26 @@ void OptionToolButtons::updateParent(ToolButton *button, const QVariant &value)
 
 void OptionToolButtons::makeButtons()
 {
-    ToolButton::Flags flags = nullptr;
     int c = column_;
     for (QVariant v : values_) {
-        ToolButton * btn = new ToolButton(buttonName(v), buttonTitle(v), flags, buttonIcon(v));
-        btn->setCheckable(true);
         if (c == 0) {
             buttons_.append(&ToolButton::LINE_BREAK);
             c = column_;
         }
+        ToolButton * btn = makeButton(v);
         buttons_.append(btn);
         --c;
+        if (btn == &ToolButton::LINE_BREAK || btn == &ToolButton::LINE_SPLITTER)
+            c = column_;
     }
+}
+
+ToolButton* OptionToolButtons::makeButton(const QVariant &value)
+{
+    ToolButton * btn = new ToolButton(
+                buttonName(value), buttonTitle(value), ToolButton::Flags(), buttonIcon(value));
+    btn->setCheckable(true);
+    return btn;
 }
 
 QByteArray OptionToolButtons::buttonName(const QVariant &value)
@@ -199,27 +207,35 @@ QGraphicsItem *WidthToolButtons::widthIcon(qreal width)
     return border;
 }
 
-StateWidthToolButtons::StateWidthToolButtons(const QList<qreal> &widths, QColor color)
+StateWidthToolButtons::StateWidthToolButtons(const QList<qreal> &widths, QColor color, QColor borderColor)
     : OptionToolButtons(widths, widths.size())
     , color_(color)
+    , borderColor_(borderColor)
 {
+}
+
+ToolButton *StateWidthToolButtons::makeButton(const QVariant &value)
+{
+    if (qFuzzyIsNull(value.toReal()))
+        return &ToolButton::PLACE_HOOLDER;
+    return OptionToolButtons::makeButton(value);
 }
 
 QVariant StateWidthToolButtons::buttonIcon(const QVariant &value)
 {
     QVariantMap icons;
-    icons.insert("normal", QVariant::fromValue(widthIcon(value.toReal(), false, color_)));
-    icons.insert("+normal", QVariant::fromValue(widthIcon(value.toReal(), true, color_)));
+    icons.insert("normal", QVariant::fromValue(widthIcon(value.toReal(), false, color_, borderColor_)));
+    icons.insert("+normal", QVariant::fromValue(widthIcon(value.toReal(), true, color_, borderColor_)));
     return icons;
 }
 
-QGraphicsItem *StateWidthToolButtons::widthIcon(qreal width, bool selected, QColor color)
+QGraphicsItem *StateWidthToolButtons::widthIcon(qreal width, bool selected, QColor color, QColor borderColor)
 {
     QPainterPath ph;
     ph.addEllipse(QRectF(1, 1, 30, 30));
     QGraphicsPathItem * border = new QGraphicsPathItem(ph);
     if (selected)
-        border->setPen(QPen(color, 2));
+        border->setPen(QPen(borderColor, 2));
     else
         border->setPen(Qt::NoPen);
     border->setBrush(QBrush());

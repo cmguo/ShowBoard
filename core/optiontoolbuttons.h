@@ -44,6 +44,8 @@ protected:
 
     void makeButtons();
 
+    virtual ToolButton* makeButton(QVariant const & value);
+
     virtual QByteArray buttonName(QVariant const & value);
 
     virtual QString buttonTitle(QVariant const & value);
@@ -105,16 +107,20 @@ private:
 class SHOWBOARD_EXPORT StateWidthToolButtons : public OptionToolButtons
 {
 public:
-    StateWidthToolButtons(QList<qreal> const & widths, QColor color = Qt::white);
+    StateWidthToolButtons(QList<qreal> const & widths,
+                          QColor color = Qt::white, QColor borderColor = Qt::white);
 
 protected:
+     virtual ToolButton * makeButton(const QVariant &value) override;
+
     virtual QVariant buttonIcon(const QVariant &value) override;
 
 private:
-    static QGraphicsItem* widthIcon(qreal width, bool selected, QColor color);
+    static QGraphicsItem* widthIcon(qreal width, bool selected, QColor color, QColor borderColor);
 
 private:
     QColor color_;
+    QColor borderColor_;
 };
 
 #endif // OPTIONTOOLBUTTONS_H
