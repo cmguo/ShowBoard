@@ -16,7 +16,15 @@ QPushButton:checked {
 }
 
 #splitter {
-    border-color:#333B3B
+    max-width: 1px;
+    border: none;
+    background-color: #333B3B;
+}
+
+#lineSplitter {
+    max-height: 1px;
+    border: none;
+    background-color: #333B3B;
 }
 
 #toolbarwidget {

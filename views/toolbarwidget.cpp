@@ -176,8 +176,8 @@ void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWi
     if (button == &ToolButton::SPLITTER) {
         QFrame *splitter = new QFrame(parent);
         splitter->setFrameShape(QFrame::VLine);
-        splitter->setFrameShadow(QFrame::Raised);
-        //splitter->setLineWidth(1);
+        splitter->setFrameShadow(QFrame::Plain);
+        splitter->setLineWidth(0);
         widget = splitter;
     } else if (button == &ToolButton::LINE_BREAK) {
         ++row; col = 0;
@@ -186,8 +186,8 @@ void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWi
         if (col > 0) ++row; col = -1;
         QFrame *splitter = new QFrame(parent);
         splitter->setFrameShape(QFrame::HLine);
-        splitter->setFrameShadow(QFrame::Sunken);
-        //splitter->setLineWidth(0);
+        splitter->setFrameShadow(QFrame::Plain);
+        splitter->setLineWidth(0);
         widget = splitter;
     } else if (button == &ToolButton::PLACE_HOOLDER) {
         return;
@@ -329,8 +329,6 @@ void ToolbarWidget::updateProvider()
 void ToolbarWidget::buttonClicked(QWidget * widget)
 {
     QPushButton* btn = qobject_cast<QPushButton*>(widget);
-    for (QAction* a : btn->actions())
-        a->triggered(btn->isChecked());
     ToolButton * button = popupButtons_.value(widget);
     if (!button) {
         button = buttons_.value(widget);
@@ -367,10 +365,20 @@ void ToolbarWidget::buttonClicked(QWidget * widget)
         }
         popUp_->show();
     } else {
+        if (btn) {
+            for (QAction* a : btn->actions())
+                a->triggered(btn->isChecked());
+        }
         onButtonClicked(button);
         if (buttons_.empty()) // may delete & clear
             return;
         popupParents_.pop_back();
+        for (int i = 0; i < popupParents_.size(); ++i) {
+            if (popupParents_[i]->isOptionsGroup()) {
+                button = popupParents_[i];
+                break;
+            }
+        }
         if (button->needUpdate()) {
             for (QWidget * w : buttons_.keys()) {
                 if (buttons_.value(w) == button) {

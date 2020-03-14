@@ -177,7 +177,7 @@ QPoint FloatWidgetManager::popupPos(QWidget *widget, ToolButton *attachButton)
     rect.setHeight(0);
     QPoint center = bar->mapTo(main_, rect.center().toPoint());
     QRect rect2 = widget->rect();
-    rect2.moveCenter(center - QPoint(0, rect2.height() / 2 + 20));
+    rect2.moveCenter(center - QPoint(0, rect2.height() / 2 + 8));
     QRect bound = main_->rect().adjusted(10, 0, -10, 0);
     QPoint off;
     if (rect2.x() < bound.x())
