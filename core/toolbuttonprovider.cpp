@@ -114,12 +114,15 @@ static std::map<QMetaObject const *, std::map<QByteArray, OptionToolButtons*>> &
 
 static OptionToolButtons* optionButton(QMetaObject const * meta, QByteArray const & name)
 {
-    auto iopt = optionButtons().find(meta);
-    if (iopt != optionButtons().end()) {
-        auto iopt2 = iopt->second.find(name);
-        if (iopt2 != iopt->second.end()) {
-            return iopt2->second;
+    while (meta != &ToolButtonProvider::staticMetaObject) {
+        auto iopt = optionButtons().find(meta);
+        if (iopt != optionButtons().end()) {
+            auto iopt2 = iopt->second.find(name);
+            if (iopt2 != iopt->second.end()) {
+                return iopt2->second;
+            }
         }
+        meta = meta->superClass();
     }
     return nullptr;
 }
@@ -215,7 +218,12 @@ void ToolButtonProvider::handleToolButton(QList<ToolButton *> const & buttons)
 
 void ToolButtonProvider::handleToolButton(ToolButton *button, QStringList const & args)
 {
-    exec(button->name(), args);
+    for (QList<ToolButton *> & btns : buttons_) {
+        if (btns.contains(button)) {
+            exec(button->name(), args);
+            break;
+        }
+    }
 }
 
 void ToolButtonProvider::updateToolButton(ToolButton *button)
@@ -243,11 +251,11 @@ QString ToolButtonProvider::toolsString(QByteArray const & parent) const
 void ToolButtonProvider::setOption(QByteArray const & key, QVariant value)
 {
     int i = metaObject()->indexOfProperty(key);
-    if (i < 0)
-        return;
-    QMetaProperty p = metaObject()->property(i);
-    if (!value.canConvert(p.type()))
-        value.convert(QMetaType::QString);
+    if (i >= 0) { // fix convert
+        QMetaProperty p = metaObject()->property(i);
+        if (!value.canConvert(p.type()))
+            value.convert(QMetaType::QString);
+    }
     LifeObject::setProperty(key, value);
 }
 

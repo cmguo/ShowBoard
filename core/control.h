@@ -304,9 +304,7 @@ protected:
 public:
     virtual void getToolButtons(QList<ToolButton *> &buttons, const QList<ToolButton *> &parents = {}) override;
 
-    virtual void setOption(QByteArray const & key, QVariant value) override;
-
-    virtual QVariant getOption(const QByteArray &key) override;
+    virtual void handleToolButton(QList<ToolButton *> const & buttons) override;
 
 protected:
     Flags flags_;

@@ -755,6 +755,7 @@ void Control::onText(QString text)
 
 void Control::getToolButtons(QList<ToolButton *> &buttons, const QList<ToolButton *> &parents)
 {
+    res_->getToolButtons(buttons, parents);
     ToolButtonProvider::getToolButtons(buttons, parents);
     if (parents.isEmpty()) {
         btnFastCopy.setChecked(false);
@@ -773,18 +774,10 @@ void Control::getToolButtons(QList<ToolButton *> &buttons, const QList<ToolButto
     }
 }
 
-void Control::setOption(QByteArray const & key, QVariant value)
+void Control::handleToolButton(const QList<ToolButton *> &buttons)
 {
-    ToolButtonProvider::setOption(key, value);
-    res_->setOption(key, value);
-}
-
-QVariant Control::getOption(const QByteArray &key)
-{
-    QVariant p = property(key);
-    if (!p.isValid())
-        p = res_->property(key);
-    return p;
+    res_->handleToolButton(buttons);
+    ToolButtonProvider::handleToolButton(buttons);
 }
 
 StateItem * Control::stateItem()

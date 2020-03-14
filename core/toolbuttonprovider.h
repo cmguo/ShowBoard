@@ -30,14 +30,15 @@ public:
     virtual void getToolButtons(QList<ToolButton *> & buttons,
                                 QList<ToolButton *> const & parents = {});
 
-    virtual void getToolButtons(QList<ToolButton *> & buttons,
-                                ToolButton * parent);
-
     /*
      * handle button click,
      *  copy, delete are handled by canvas and should not go here
      */
     virtual void handleToolButton(QList<ToolButton *> const & buttons);
+
+protected:
+    virtual void getToolButtons(QList<ToolButton *> & buttons,
+                                ToolButton * parent);
 
     virtual void handleToolButton(ToolButton * button, QStringList const & args);
 
