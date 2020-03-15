@@ -27,9 +27,9 @@ WhiteCanvasWidget::WhiteCanvasWidget(QWidget *parent)
     rect.moveCenter({0, 0});
     scene_ = new QGraphicsScene(rect);
     scene_->setBackgroundBrush(QBrush());
+    setScene(scene_);
     canvas_ = new WhiteCanvas;
     scene_->addItem(canvas_);
-    setScene(scene_);
     setSceneSize(sceneSize_);
 
     setStyleSheet("border: 0px;");

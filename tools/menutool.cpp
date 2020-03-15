@@ -37,12 +37,17 @@ QWidget * MenuTool::createWidget(ResourceView *res)
     return widget;
 }
 
+void MenuTool::attaching()
+{
+    ToolbarWidget * widget = static_cast<ToolbarWidget*>(widget_);
+    widget->attachProvider(this);
+}
+
 void MenuTool::attached()
 {
     item_->setFlag(QGraphicsItem::ItemIsFocusable);
     ToolbarWidget * widget = static_cast<ToolbarWidget*>(widget_);
     widget->installEventFilter(this);
-    widget->attachProvider(this);
     loadFinished(true);
 }
 

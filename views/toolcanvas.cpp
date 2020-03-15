@@ -9,7 +9,6 @@ ToolCanvas::ToolCanvas(QGraphicsItem * parent)
     : PageCanvas(parent)
     , shown_(nullptr)
 {
-    switchPage(ResourcePackage::toolPage());
 }
 
 void ToolCanvas::showToolControl(Control * control)

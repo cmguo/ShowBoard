@@ -16,6 +16,8 @@ protected:
 private:
     virtual QWidget * createWidget(ResourceView *res) override;
 
+    virtual void attaching() override;
+
     virtual void attached() override;
 
     virtual void getToolButtons(QList<ToolButton *> & buttons,
