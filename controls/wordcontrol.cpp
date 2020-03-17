@@ -12,8 +12,8 @@
 #include <QToolButton>
 
 static char const * toolstr =
-        "next()|下一页|:/showboard/icons/icon_delete.png;"
-        "prev()|上一页|:/showboard/icons/icon_delete.png;";
+        "next()|下一页|:/showboard/icon/icon_delete.png;"
+        "prev()|上一页|:/showboard/icon/icon_delete.png;";
 
 WordControl::WordControl(ResourceView * res)
     : ImageControl(res)

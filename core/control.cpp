@@ -33,12 +33,12 @@ Control * Control::fromItem(QGraphicsItem const * item)
     return item->data(ITEM_KEY_CONTROL).value<Control *>();
 }
 
-ToolButton Control::btnTop = { "top", "置顶", ToolButton::Static, ":/showboard/icons/top.svg" };
-ToolButton Control::btnCopy = { "copy", "复制", ToolButton::Static, ":/showboard/icons/copy.png" };
+ToolButton Control::btnTop = { "top", "置顶", ToolButton::Static, ":/showboard/icon/top.svg" };
+ToolButton Control::btnCopy = { "copy", "复制", ToolButton::Static, ":/showboard/icon/copy.png" };
 ToolButton Control::btnFastCopy = { "copy", "快速复制",
                                     ToolButton::Flags{ToolButton::Static, ToolButton::Checkable},
-                                    ":/showboard/icons/copy.svg" };
-ToolButton Control::btnDelete = { "delete", "关闭", ToolButton::Static, ":/showboard/icons/close.png" };
+                                    ":/showboard/icon/copy.svg" };
+ToolButton Control::btnDelete = { "delete", "关闭", ToolButton::Static, ":/showboard/icon/close.png" };
 
 Control::Control(ResourceView *res, Flags flags, Flags clearFlags)
     : flags_((DefaultFlags | flags) & ~clearFlags)

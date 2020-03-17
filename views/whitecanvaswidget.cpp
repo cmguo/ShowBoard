@@ -133,7 +133,7 @@ ResourcePackage * WhiteCanvasWidget::package()
 void WhiteCanvasWidget::setSceneSize(QSizeF size)
 {
     sceneSize_ = size;
-    static QPixmap thumb(":/showboard/icons/drag.png");
+    static QPixmap thumb(":/showboard/icon/drag.png");
     ResourcePackage::toolPage()->setThumbnail(
                 thumb.scaled((size * WhiteCanvas::THUMBNAIL_HEIGHT / size.height()).toSize()));
     onPageChanged(CurrentPage);

@@ -1,0 +1,37 @@
+<RCC>
+    <qresource prefix="/showboard">
+        <file>icon/loading.svg</file>
+        <file>icon/play.normal.svg</file>
+        <file>icon/play.press.svg</file>
+        <file>icon/error.unknown.svg</file>
+        <file>icon/stop.press.svg</file>
+        <file>html/video.htm</file>
+        <file>icon/close.svg</file>
+        <file>icon/copy.svg</file>
+        <file>icon/delete.svg</file>
+        <file>icon/edit.svg</file>
+        <file>icon/erase.svg</file>
+        <file>qml/WhiteCanvas.qml</file>
+        <file>html/embed.htm</file>
+        <file>icon/close.png</file>
+        <file>icon/copy.png</file>
+        <file>icon/top.svg</file>
+        <file>icon/return.png</file>
+        <file>icon/drag.png</file>
+        <file>qss/toolbar.qss</file>
+        <file>qss/draw_finish.qss</file>
+        <file>icon/error.network.svg</file>
+        <file>icon/error.software.svg</file>
+        <file>html/assets/css/chunk-common.css</file>
+        <file>html/assets/css/chunk-vendors.css</file>
+        <file>html/assets/css/embed.css</file>
+        <file>html/assets/js/chunk-common.js</file>
+        <file>html/assets/js/chunk-vendors.js</file>
+        <file>html/assets/js/embed.js</file>
+        <file>icon/stop.hover.svg</file>
+        <file>qml/PageList.qml</file>
+        <file>icon/page.new.svg</file>
+        <file>icon/page.next.svg</file>
+        <file>icon/page.prev.svg</file>
+    </qresource>
+</RCC>

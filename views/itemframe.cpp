@@ -54,7 +54,7 @@ void ItemFrame::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
 
 void ItemFrame::drawTopBar(QPainter *painter, QRectF const & rect, ItemFrame *)
 {
-    static QPixmap icon(":/showboard/icons/drag.png");
+    static QPixmap icon(":/showboard/icon/drag.png");
     painter->setPen(Qt::NoPen);
     painter->setBrush(QColor("#FFF4F4F4"));
     //painter->setOpacity(frame->selected_ ? 1.0 : 0.2);

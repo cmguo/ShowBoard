@@ -26,7 +26,7 @@ HEADERS += \
     ShowBoard_global.h \
 
 RESOURCES += \
-    ShowBoard.qrc
+    res/ShowBoard.qrc
 
 
 include(core/core.pri)

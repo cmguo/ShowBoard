@@ -77,7 +77,7 @@ protected:
      * stringlized definition of context menus
      *   menu strings is seperated with ';' and menu define parts with '|'
      *   for example:
-     *     "open()|打开|:/showboard/icons/icon_open.png;"
+     *     "open()|打开|:/showboard/icon/icon_open.png;"
      */
     virtual QString toolsString(QByteArray const & parent = nullptr) const;
 

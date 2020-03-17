@@ -42,8 +42,8 @@ StateItem::StateItem(QString const & title, QGraphicsItem * parent)
     if (!cache_) {
         cache_ = SvgCache::instance();
     }
-    loading_ = cache_->get(QString(":/showboard/icons/loading.svg"));
-    failed_ = cache_->get(QString(":/showboard/icons/error.unknown.svg"));
+    loading_ = cache_->get(QString(":/showboard/icon/loading.svg"));
+    failed_ = cache_->get(QString(":/showboard/icon/error.unknown.svg"));
     setCursor(Qt::SizeAllCursor);
     updateTransform();
 }
@@ -106,7 +106,7 @@ void StateItem::setFailed(QString const & error)
     QString text = "<center><font style='color:#98FFFFFF;font-size:14pt;'>" + title_ + "</font>"
             "<br/><nobr>" + errmsg + "</nobr></center>";
     state_ = Failed;
-    QSvgRenderer * svg = cache_->get(QString(":/showboard/icons/error." + type + ".svg"));
+    QSvgRenderer * svg = cache_->get(QString(":/showboard/icon/error." + type + ".svg"));
     if (svg == nullptr)
         svg = failed_;
     setSharedRenderer(svg);

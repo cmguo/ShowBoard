@@ -36,7 +36,7 @@ PptxControl::PptxControl(ResourceView * res)
 #ifdef QT_DEBUG
     setToolsString(toolstr);
 #endif
-    setProperty("finishIcon", QString(":/showboard/icons/play.svg"));
+    setProperty("finishIcon", QString(":/showboard/icon/play.svg"));
 }
 
 PptxControl::~PptxControl()
@@ -192,7 +192,7 @@ void PptxControl::showStopButton()
                           "background-color:#F22B3034;border-radius:8px;border:1px solid rgba(67,77,89,1);"
                           "color:#909093;font-family:'Microsoft YaHei';font-size:12px;");
     button->setIconSize({40, 40});
-    button->setIcon(QPixmap(":/showboard/icons/return.png"));
+    button->setIcon(QPixmap(":/showboard/icon/return.png"));
     button->setText("返回课堂");
     button->installEventFilter(this);
     button->setVisible(false);
@@ -280,13 +280,13 @@ bool PptxControl::eventFilter(QObject *obj, QEvent * event)
     } break;
     case QEvent::MouseButtonPress:
         //static_cast<QToolButton*>(stopButton_)->setIcon(
-        //            QPixmap(":/showboard/icons/stop.press.svg"));
+        //            QPixmap(":/showboard/icon/stop.press.svg"));
         obj->setProperty("lastPos", static_cast<QMouseEvent*>(event)->pos());
         obj->setProperty("moved", false);
         break;
     case QEvent::MouseButtonRelease:
         //static_cast<QToolButton*>(stopButton_)->setIcon(
-        //            QPixmap(":/showboard/icons/return.svg"));
+        //            QPixmap(":/showboard/icon/return.svg"));
         if (!obj->property("moved").toBool())
             hide();
         break;
