@@ -44,6 +44,7 @@ private:
 private:
     QList<QWidget*> widgets_;
     QQuickWidget* quickwidget_;
+    QWidget* commonParent_;
     bool active_ = false;
 };
 

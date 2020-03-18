@@ -13,11 +13,23 @@ QuickWidgetItem::QuickWidgetItem(QList<QWidget*> widgets, QQuickWidget* quickwid
     : widgets_(widgets)
     , quickwidget_(quickwidget)
 {
+    commonParent_ = quickwidget_->parentWidget();
     for (QWidget* w : widgets_) {
         QObject::connect(w, &QObject::destroyed, this, [this] () {
             widgets_.removeOne(qobject_cast<QWidget*>(sender()));
         });
+        QWidget * p = w->parentWidget();
+        while (commonParent_) {
+            while (p && p != commonParent_) {
+                p = p->parentWidget();
+            }
+            if (p) break;
+            commonParent_ = commonParent_->parentWidget();
+            p = w->parentWidget();
+        }
     }
+    if (!commonParent_)
+        qDebug() << "QuickWidgetItem: not common parent widget";
 }
 
 QuickWidgetItem::~QuickWidgetItem()
@@ -84,7 +96,11 @@ void QuickWidgetItem::updateState()
         return;
     }
     qDebug() << "QuickWidgetItem" << objectName() << "setMask" << mask;
-    quickwidget_->setMask(mask);
+    QWidget * overlay = quickwidget_;
+    while (overlay != commonParent_) {
+        overlay->setMask(mask);
+        overlay = overlay->parentWidget();
+    }
     qDebug() << "QuickWidgetItem" << objectName() << "setGeometry" << rect;
     for (QWidget* w : widgets_) {
         w->setGeometry(rect);
