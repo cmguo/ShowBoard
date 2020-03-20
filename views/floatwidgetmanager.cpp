@@ -67,6 +67,7 @@ void FloatWidgetManager::removeWidget(QWidget *widget)
     //widget->hide();
     widget->setParent(nullptr);
     widgets_.removeOne(widget);
+    widgetFlags_.remove(widget);
     int mask1 = (1 << n) - 1;
     int mask2 = -1 << (n + 1);
     for (int & state : saveStates_) {
@@ -146,8 +147,8 @@ bool FloatWidgetManager::eventFilter(QObject *watched, QEvent *event)
 
 void FloatWidgetManager::setWidgetFlags2(QWidget *widget, Flags flags)
 {
+    widgetFlags_[widget] = flags;
     relayout(widget, flags);
-    widget->setProperty("FloatWidgetFlags", QVariant::fromValue(flags));
     if (flags.testFlag(RaiseOnShow) || flags.testFlag(HideOnLostFocus))
         widget->installEventFilter(this);
     else
@@ -176,15 +177,11 @@ void FloatWidgetManager::focusChanged(QWidget * old, QWidget *now)
         now = now->parentWidget();
     qDebug() << "FloatWidgetManager::focusChanged" << old << now;
     if (old == now) return;
-    if (now) {
-        Flags flags = now->property("FloatWidgetFlags").value<Flags>();
-        if (flags.testFlag(RaiseOnFocus))
-            raiseWidget(now);
+    if (now && widgetFlags_.value(now).testFlag(RaiseOnFocus)) {
+        raiseWidget(now);
     }
-    if (old) {
-        Flags flags = old->property("FloatWidgetFlags").value<Flags>();
-        if (flags.testFlag(HideOnLostFocus))
-            old->hide();
+    if (old && widgetFlags_.value(old).testFlag(HideOnLostFocus)) {
+        old->hide();
     }
 }
 

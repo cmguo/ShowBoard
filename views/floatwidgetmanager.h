@@ -3,6 +3,7 @@
 
 #include "ShowBoard_global.h"
 
+#include <QMap>
 #include <QObject>
 
 class ToolButton;
@@ -80,6 +81,7 @@ private:
     QWidget * taskBar_;
     QWidget * widgetOn_;
     QList<QWidget*> widgets_;
+    QMap<QWidget*, Flags> widgetFlags_;
     QList<int> saveStates_;
 };
 
