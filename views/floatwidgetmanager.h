@@ -18,8 +18,9 @@ public:
     enum Flag {
         PositionAtCenter = 1,
         FullLayout = 2,
-        RaiseOnShow = 4,
-        HideOnLostFocus = 8,
+        RaiseOnShow = 16,
+        RaiseOnFocus = 32,
+        HideOnLostFocus = 64,
     };
 
     Q_DECLARE_FLAGS(Flags, Flag)
@@ -32,11 +33,11 @@ private:
 
 public:
     // add/show/raise the widget, see @raiseWidget
-    void addWidget(QWidget* widget, Flags flags = nullptr);
+    void addWidget(QWidget* widget, Flags flags = {RaiseOnFocus});
 
     // add/show/raise the widget, see @raiseWidget
     void addWidget(QWidget* widget, ToolButton* attachButton,
-                   Flags flags = {RaiseOnShow, HideOnLostFocus});
+                   Flags flags = {RaiseOnShow, RaiseOnFocus, HideOnLostFocus});
 
     // remove/hide the widget
     void removeWidget(QWidget* widget);
@@ -44,6 +45,8 @@ public:
     // move z-order after all widgets managed here,
     //  but may not last of all siblings
     void raiseWidget(QWidget* widget);
+
+    void setWidgetFlags(QWidget* widget, Flags flags);
 
     // save visibility for restore later
     void saveVisibility();
@@ -64,6 +67,8 @@ protected:
     virtual bool eventFilter(QObject *watched, QEvent *event) override;
 
 private:
+    void setWidgetFlags2(QWidget* widget, Flags flags);
+
     void relayout(QWidget * widget, Flags flags);
 
     void focusChanged(QWidget* old, QWidget* now);
