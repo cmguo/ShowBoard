@@ -7,6 +7,8 @@
 #include <QApplication>
 #include <QDebug>
 
+Q_DECLARE_METATYPE(FloatWidgetManager::Flags);
+
 FloatWidgetManager *FloatWidgetManager::from(QWidget *widget)
 {
     QWidget * main = widget->window();
@@ -24,6 +26,11 @@ QPoint FloatWidgetManager::getPopupPosition(QWidget *widget, ToolButton *attachB
     return from(bar)->popupPos(widget, attachButton);
 }
 
+void FloatWidgetManager::setTaskBar(QWidget *bar)
+{
+    taskBar_ = bar;
+}
+
 FloatWidgetManager::FloatWidgetManager(QWidget *main)
     : QObject(main)
     , main_(main)
@@ -38,22 +45,20 @@ FloatWidgetManager::FloatWidgetManager(QWidget *main)
 
 void FloatWidgetManager::addWidget(QWidget *widget, Flags flags)
 {
-    QWidget * under = widgetUnder();
-    widget->setParent(main_);
-    if (under)
-        widget->stackUnder(under);
-    else
-        widget->raise();
+    widget->raise();
     if (flags) {
         relayout(widget, flags);
     }
-    widget->show();
+    widget->setProperty("FloatWidgetFlags", QVariant::fromValue(flags));
+    if (flags.testFlag(RaiseOnShow) || flags.testFlag(HideOnLostFocus))
+        widget->installEventFilter(this);
+    //widget->show();
     widgets_.append(widget);
 }
 
-void FloatWidgetManager::addWidget(QWidget *widget, ToolButton *attachButton)
+void FloatWidgetManager::addWidget(QWidget *widget, ToolButton *attachButton, Flags flags)
 {
-    addWidget(widget);
+    addWidget(widget, flags);
     widget->move(popupPos(widget, attachButton));
 }
 
@@ -62,7 +67,8 @@ void FloatWidgetManager::removeWidget(QWidget *widget)
     int n = widgets_.indexOf(widget);
     if (n < 0)
         return;
-    widget->hide();
+    widget->removeEventFilter(this);
+    //widget->hide();
     widget->setParent(nullptr);
     widgets_.removeOne(widget);
     int mask1 = (1 << n) - 1;
@@ -74,14 +80,10 @@ void FloatWidgetManager::removeWidget(QWidget *widget)
 
 void FloatWidgetManager::raiseWidget(QWidget *widget)
 {
+    widget->raise();
     int n = widgets_.indexOf(widget);
     if (n < 0 || widget == widgets_.last())
         return;
-    QWidget * under = widgetUnder();
-    if (under)
-        widget->stackUnder(under);
-    else
-        widget->raise();
     widgets_.removeAt(n);
     int mask1 = (1 << n) - 1;
     int mask2 = -1 << (n + 1);
@@ -132,40 +134,41 @@ void FloatWidgetManager::restoreVisibility()
     }
 }
 
-QWidget *FloatWidgetManager::widgetUnder()
+bool FloatWidgetManager::eventFilter(QObject *watched, QEvent *event)
 {
-    QWidget * w = widgets_.isEmpty() ? widgetOn_ : widgets_.last();
-    int n = main_->children().indexOf(w);
-    w = nullptr;
-    QList<QObject*> lst = main_->children();
-    for (int i = n + 1; i < lst.size(); ++i) {
-        if (lst.at(i)->isWidgetType()) {
-            w = qobject_cast<QWidget*>(lst.at(i));
-            break;
-        }
+    if (event->type() == QEvent::Show) {
+        qobject_cast<QWidget*>(watched)->setFocus();
     }
-    return w;
+    return false;
 }
 
 void FloatWidgetManager::relayout(QWidget *widget, Flags flags)
 {
     QRect rect = main_->geometry();
     rect.setHeight(rect.height() - taskBar_->height());
-    if (flags & Full) {
+    if (flags & FullLayout) {
         widget->setGeometry(rect);
-    } else if (flags & Center) {
+    } else if (flags & PositionAtCenter) {
         QRect r = widget->geometry();
         r.moveCenter(rect.center());
         widget->setGeometry(r);
     }
 }
 
-void FloatWidgetManager::focusChanged(QWidget *, QWidget *now)
+void FloatWidgetManager::focusChanged(QWidget * old, QWidget *now)
 {
+    qDebug() << "FloatWidgetManager::focusChanged" << old << now;
+    while (old && !widgets_.contains(old))
+        old = old->parentWidget();
     while (now && !widgets_.contains(now))
         now = now->parentWidget();
-    if (now)
+    qDebug() << "FloatWidgetManager::focusChanged" << old << now;
+    if (now && now->property("FloatWidgetFlags").value<Flags>()
+            .testFlag(RaiseOnShow))
         raiseWidget(now);
+    else if (old && old->property("FloatWidgetFlags").value<Flags>()
+             .testFlag(HideOnLostFocus))
+        old->hide();
 }
 
 QPoint FloatWidgetManager::popupPos(QWidget *widget, ToolButton *attachButton)

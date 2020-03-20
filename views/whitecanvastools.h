@@ -38,8 +38,6 @@ private:
 private:
     QWidget * createPageList(ResourcePackage * package);
 
-    virtual bool eventFilter(QObject *, QEvent *event) override;
-
 private:
     WhiteCanvas * canvas_;
     QWidget* pageList_;

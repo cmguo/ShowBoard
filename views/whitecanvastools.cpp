@@ -60,16 +60,15 @@ void WhiteCanvasTools::pageList()
 {
     if (pageList_ == nullptr) {
         pageList_ = createPageList(canvas_->package());
-        QPoint pos(200, 100);
         ToolButton* button = getStringButton(2);
         if (button->associatedWidgets().isEmpty()) {
             pageList_->setParent(canvas_->scene()->views().first()->parentWidget());
+            pageList_->move(200, 100);
         } else {
             QWidget* btn = button->associatedWidgets().first();
             pageList_->setParent(btn->window());
-            pos = FloatWidgetManager::getPopupPosition(pageList_, button);
+            FloatWidgetManager::from(btn)->addWidget(pageList_, button);
         }
-        pageList_->move(pos);
     } else {
         ToolButton* button = getStringButton(2);
         if (!button->associatedWidgets().isEmpty())
@@ -151,24 +150,11 @@ private:
 QWidget *WhiteCanvasTools::createPageList(ResourcePackage * package)
 {
     QQuickWidget* widget = new QQuickWidget;
+    widget->setObjectName("canvaspagelist");
     widget->engine()->addImageProvider("resource", new ResourceImageProvider(package));
     widget->setClearColor(Qt::transparent);
     widget->rootContext()->setContextProperty("packageModel", package);
     widget->rootContext()->setContextProperty("whiteCanvasTools", this);
     widget->setSource(QUrl("qrc:/showboard/qml/PageList.qml"));
-    widget->installEventFilter(this);
     return widget;
-}
-
-bool WhiteCanvasTools::eventFilter(QObject * watched, QEvent *event)
-{
-    QWidget* widget = qobject_cast<QWidget*>(watched);
-    if (event->type() == QEvent::Show) {
-        widget->setFocus();
-    }
-    if (event->type() == QEvent::FocusOut) {
-        widget->hide();
-        qobject_cast<QQuickWidget*>(widget)->rootObject()->setVisible(false);
-    }
-    return false;
 }

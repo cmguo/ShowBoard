@@ -16,11 +16,16 @@ public:
     static QPoint getPopupPosition(QWidget * widget, ToolButton* attachButton);
 
     enum Flag {
-        Center,
-        Full,
+        PositionAtCenter = 1,
+        FullLayout = 2,
+        RaiseOnShow = 4,
+        HideOnLostFocus = 8,
     };
 
     Q_DECLARE_FLAGS(Flags, Flag)
+
+public:
+    void setTaskBar(QWidget * bar);
 
 private:
     FloatWidgetManager(QWidget * main);
@@ -30,7 +35,8 @@ public:
     void addWidget(QWidget* widget, Flags flags = nullptr);
 
     // add/show/raise the widget, see @raiseWidget
-    void addWidget(QWidget* widget, ToolButton* attachButton);
+    void addWidget(QWidget* widget, ToolButton* attachButton,
+                   Flags flags = {RaiseOnShow, HideOnLostFocus});
 
     // remove/hide the widget
     void removeWidget(QWidget* widget);
@@ -54,9 +60,10 @@ public:
     // restore visibility
     void restoreVisibility();
 
-private:
-    QWidget * widgetUnder();
+protected:
+    virtual bool eventFilter(QObject *watched, QEvent *event) override;
 
+private:
     void relayout(QWidget * widget, Flags flags);
 
     void focusChanged(QWidget* old, QWidget* now);
