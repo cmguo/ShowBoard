@@ -5,7 +5,6 @@
 
 #include <QMap>
 #include <QObject>
-#include <QVector>
 
 class ToolButton;
 

@@ -142,9 +142,10 @@ void FloatWidgetManager::restoreVisibility()
     int state = saveStates_.takeLast();
     int mask = 1;
     for (QWidget * w : widgets_) {
-        if (w->isVisible() != ((state & mask) != 0))
+        if (w->isVisible() != ((state & mask) != 0)) {
             qDebug() << "FloatWidgetManager::restoreVisibility" << w << !w->isVisible();
-        w->setVisible(state & mask);
+            w->setVisible(state & mask);
+        }
         mask <<= 1;
     }
 }
