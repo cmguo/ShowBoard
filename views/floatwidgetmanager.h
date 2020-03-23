@@ -5,6 +5,7 @@
 
 #include <QMap>
 #include <QObject>
+#include <QVector>
 
 class ToolButton;
 
@@ -23,12 +24,13 @@ public:
         RaiseOnFocus = 32,
         HideOnLostFocus = 64,
         HideOthersOnShow = 128,
+        DisableActionsOnShow = 256,
     };
 
     Q_DECLARE_FLAGS(Flags, Flag)
 
 public:
-    void setTaskBar(QWidget * bar);
+    void setTaskBar(QWidget * bar, int disableActions = 0);
 
 private:
     FloatWidgetManager(QWidget * main);
@@ -65,6 +67,15 @@ public:
     // restore visibility
     void restoreVisibility();
 
+    // save action state for restore later
+    void saveActionState();
+
+    // disable taskbar actions
+    void disableActions();
+
+    // restore action state
+    void restoreActionState();
+
 protected:
     virtual bool eventFilter(QObject *watched, QEvent *event) override;
 
@@ -86,6 +97,8 @@ private:
     QList<QWidget*> widgets_;
     QMap<QWidget*, Flags> widgetFlags_;
     QList<int> saveStates_;
+    int disableActions_;
+    QList<int> saveActionStates_;
 };
 
 #endif // FLOATWIDGETMANAGER_H

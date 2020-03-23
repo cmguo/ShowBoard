@@ -38,9 +38,10 @@ FloatWidgetManager::FloatWidgetManager(QWidget *main)
             this, &FloatWidgetManager::focusChanged);
 }
 
-void FloatWidgetManager::setTaskBar(QWidget *bar)
+void FloatWidgetManager::setTaskBar(QWidget *bar, int disableActions)
 {
     taskBar_ = bar;
+    disableActions_ = disableActions;
 }
 
 void FloatWidgetManager::addWidget(QWidget *widget, Flags flags)
@@ -148,6 +149,43 @@ void FloatWidgetManager::restoreVisibility()
     }
 }
 
+void FloatWidgetManager::saveActionState()
+{
+    int state = 0;
+    int mask = 1;
+    for (QAction * a : taskBar_->actions()) {
+        if (a->isEnabled())
+            state |= mask;
+        mask <<= 1;
+    }
+    saveActionStates_.append(state);
+}
+
+void FloatWidgetManager::disableActions()
+{
+    int state = disableActions_;
+    int mask = 1;
+    for (QAction * a : taskBar_->actions()) {
+        if (a->isEnabled() && ((state & mask) != 0)) {
+            qDebug() << "FloatWidgetManager::hideAll" << a;
+            a->setEnabled(false);
+        }
+        mask <<= 1;
+    }
+}
+
+void FloatWidgetManager::restoreActionState()
+{
+    int state = saveActionStates_.takeLast();
+    int mask = 1;
+    for (QAction * a : taskBar_->actions()) {
+        if (a->isEnabled() != ((state & mask) != 0))
+            qDebug() << "FloatWidgetManager::restoreActionState" << a << !a->isEnabled();
+        a->setEnabled(state & mask);
+        mask <<= 1;
+    }
+}
+
 bool FloatWidgetManager::eventFilter(QObject *watched, QEvent *event)
 {
     QWidget * widget = qobject_cast<QWidget*>(watched);
@@ -158,7 +196,14 @@ bool FloatWidgetManager::eventFilter(QObject *watched, QEvent *event)
             saveStates_.back() &= ~(1 << widgets_.indexOf(widget));
             hideAll(widget);
         }
+        if (widgetFlags_.value(widget).testFlag(DisableActionsOnShow)) {
+            saveActionState();
+            disableActions();
+        }
     } else if (event->type() == QEvent::Hide) {
+        if (widgetFlags_.value(widget).testFlag(DisableActionsOnShow)) {
+            restoreActionState();
+        }
         if (widgetFlags_.value(widget).testFlag(HideOthersOnShow)) {
             restoreVisibility();
         }
