@@ -22,6 +22,7 @@ public:
         RaiseOnShow = 16,
         RaiseOnFocus = 32,
         HideOnLostFocus = 64,
+        HideOthersOnShow = 128,
     };
 
     Q_DECLARE_FLAGS(Flags, Flag)
@@ -59,7 +60,7 @@ public:
     void hideWidget(QWidget* widget);
 
     // hide all widgets managed here
-    void hideAll();
+    void hideAll(QWidget* except = nullptr);
 
     // restore visibility
     void restoreVisibility();
@@ -75,6 +76,8 @@ private:
     void focusChanged(QWidget* old, QWidget* now);
 
     QPoint popupPos(QWidget * widget, ToolButton* attachButton);
+
+    void removeDestroyWidget();
 
 private:
     QWidget * main_;

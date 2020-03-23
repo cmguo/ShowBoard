@@ -34,7 +34,6 @@ FloatWidgetManager::FloatWidgetManager(QWidget *main)
     for (QObject * c : main->children())
         if (c->isWidgetType())
             widgetOn_ = qobject_cast<QWidget*>(c);
-    saveStates_.append(0);
     connect(qobject_cast<QApplication*>(QApplication::instance()), &QApplication::focusChanged,
             this, &FloatWidgetManager::focusChanged);
 }
@@ -49,6 +48,7 @@ void FloatWidgetManager::addWidget(QWidget *widget, Flags flags)
     widget->raise();
     setWidgetFlags2(widget, flags);
     //widget->show();
+    connect(widget, &QObject::destroyed, this, &FloatWidgetManager::removeDestroyWidget);
     widgets_.append(widget);
 }
 
@@ -63,9 +63,12 @@ void FloatWidgetManager::removeWidget(QWidget *widget)
     int n = widgets_.indexOf(widget);
     if (n < 0)
         return;
-    widget->removeEventFilter(this);
+    bool fromDestroy = sender() == widget;
+    widget->disconnect(this);
+    setWidgetFlags2(widget, nullptr);
     //widget->hide();
-    widget->setParent(nullptr);
+    if (!fromDestroy)
+        widget->setParent(nullptr);
     widgets_.removeOne(widget);
     widgetFlags_.remove(widget);
     int mask1 = (1 << n) - 1;
@@ -107,6 +110,7 @@ void FloatWidgetManager::saveVisibility()
             state |= mask;
         mask <<= 1;
     }
+    saveStates_.append(state);
 }
 
 void FloatWidgetManager::showWidget(QWidget *widget)
@@ -121,10 +125,15 @@ void FloatWidgetManager::hideWidget(QWidget *widget)
         widget->hide();
 }
 
-void FloatWidgetManager::hideAll()
+void FloatWidgetManager::hideAll(QWidget* except)
 {
-    for (QWidget * w : widgets_)
+    for (QWidget * w : widgets_) {
+        if (w == except)
+            continue;
+        if (w->isVisible())
+            qDebug() << "FloatWidgetManager::hideAll" << w;
         w->hide();
+    }
 }
 
 void FloatWidgetManager::restoreVisibility()
@@ -132,6 +141,8 @@ void FloatWidgetManager::restoreVisibility()
     int state = saveStates_.takeLast();
     int mask = 1;
     for (QWidget * w : widgets_) {
+        if (w->isVisible() != ((state & mask) != 0))
+            qDebug() << "FloatWidgetManager::restoreVisibility" << w << !w->isVisible();
         w->setVisible(state & mask);
         mask <<= 1;
     }
@@ -139,20 +150,41 @@ void FloatWidgetManager::restoreVisibility()
 
 bool FloatWidgetManager::eventFilter(QObject *watched, QEvent *event)
 {
+    QWidget * widget = qobject_cast<QWidget*>(watched);
     if (event->type() == QEvent::Show) {
-        qobject_cast<QWidget*>(watched)->setFocus();
+        widget->setFocus();
+        if (widgetFlags_.value(widget).testFlag(HideOthersOnShow)) {
+            saveVisibility();
+            saveStates_.back() &= ~(1 << widgets_.indexOf(widget));
+            hideAll(widget);
+        }
+    } else if (event->type() == QEvent::Hide) {
+        if (widgetFlags_.value(widget).testFlag(HideOthersOnShow)) {
+            restoreVisibility();
+        }
     }
     return false;
 }
 
 void FloatWidgetManager::setWidgetFlags2(QWidget *widget, Flags flags)
 {
-    widgetFlags_[widget] = flags;
     relayout(widget, flags);
-    if (flags.testFlag(RaiseOnShow) || flags.testFlag(HideOnLostFocus))
+    if (flags.testFlag(RaiseOnShow) || flags.testFlag(HideOnLostFocus)
+            || flags.testFlag(HideOthersOnShow)) {
+        widgetFlags_[widget] = flags;
+        if (widget->isVisible()) {
+            QEvent event(QEvent::Show);
+            eventFilter(widget, &event);
+        }
         widget->installEventFilter(this);
-    else
+    } else {
         widget->removeEventFilter(this);
+        if (widget->isVisible()) {
+            QEvent event(QEvent::Hide);
+            eventFilter(widget, &event);
+        }
+        widgetFlags_[widget] = flags;
+    }
 }
 
 void FloatWidgetManager::relayout(QWidget *widget, Flags flags)
@@ -175,7 +207,7 @@ void FloatWidgetManager::focusChanged(QWidget * old, QWidget *now)
         old = old->parentWidget();
     while (now && !widgets_.contains(now))
         now = now->parentWidget();
-    qDebug() << "FloatWidgetManager::focusChanged" << old << now;
+    qDebug() << "FloatWidgetManager::focusChanged widget" << old << now;
     if (old == now) return;
     if (now && widgetFlags_.value(now).testFlag(RaiseOnFocus)) {
         raiseWidget(now);
@@ -202,4 +234,13 @@ QPoint FloatWidgetManager::popupPos(QWidget *widget, ToolButton *attachButton)
     if (rect2.right() > bound.right())
         off.setX(bound.right() - rect2.right());
     return rect2.topLeft() + off;
+}
+
+void FloatWidgetManager::removeDestroyWidget()
+{
+    QWidget *widget = qobject_cast<QWidget*>(sender());
+    if (widget) {
+        qDebug() << "FloatWidgetManager::removeDestroyWidget" << widget;
+        removeWidget(widget);
+    }
 }
