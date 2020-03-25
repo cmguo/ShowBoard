@@ -11,31 +11,29 @@ Rectangle {
     color: "#FFF9F9F9"
     opacity: 0
 
+    Behavior on opacity {
+         PropertyAnimation { }
+    }
+
+    Behavior on y {
+         PropertyAnimation { }
+    }
+
     onVisibleChanged: {
         if (visible) {
+            opacity = 1
+            y = 0
+        } else {
             opacity = 0
             y = 40
-            animY.restart()
-            animO.restart();
         }
-    }
-
-    PropertyAnimation on y {
-        id: animY
-        from: 40
-        to: 0
-    }
-
-    OpacityAnimator on opacity {
-        id: animO
-        from: 0
-        to: 1
     }
 
     ListView {
         id: list
         x: 4
-        y: 4
+        y: 44
+        spacing: 40
         width: parent.width - 8
         height: parent.height - 8
         model: packageModel
@@ -52,23 +50,21 @@ Rectangle {
         onVisibleChanged: {
             if (visible) {
                 list.positionViewAtIndex(packageModel.currentIndex, ListView.Center)
-                animLY.restart();
-                animLS.restart();
+                spacing = 0
+                y = 4
+            } else {
+                spacing = 40
+                y = 44
             }
         }
 
-        PropertyAnimation on y {
-            id: animLY
-            from: 40
-            to: 0
+        Behavior on spacing {
+             PropertyAnimation { }
         }
 
-        PropertyAnimation on spacing {
-            id: animLS
-            from: 40
-            to: 0
+        Behavior on y {
+             PropertyAnimation { }
         }
-
     }
 
     Component {

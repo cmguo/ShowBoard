@@ -32,6 +32,9 @@ protected slots:
 
     virtual void setOption(QByteArray const & key, QVariant value) override;
 
+protected:
+    virtual bool eventFilter(QObject *watched, QEvent *event) override;
+
 private:
     void update();
 

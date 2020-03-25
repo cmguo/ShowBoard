@@ -69,6 +69,7 @@ void WhiteCanvasTools::pageList()
             pageList_->setParent(btn->window());
             FloatWidgetManager::from(btn)->addWidget(pageList_, button);
         }
+        pageList_->installEventFilter(this);
     } else {
         ToolButton* button = getStringButton(2);
         if (!button->associatedWidgets().isEmpty())
@@ -114,6 +115,19 @@ void WhiteCanvasTools::setOption(const QByteArray &key, QVariant value)
 #ifndef QT_DEBUG
     canvas_->setProperty("FromUser", QVariant());
 #endif
+}
+
+bool WhiteCanvasTools::eventFilter(QObject *watched, QEvent *event)
+{
+    QQuickWidget *widget = qobject_cast<QQuickWidget*>(watched);
+    if (event->type() == QEvent::Show) {
+        widget->rootObject()->update();
+        widget->rootObject()->setVisible(true);
+    } else if (event->type() == QEvent::Hide) {
+        widget->rootObject()->update();
+        widget->rootObject()->setVisible(false);
+    }
+    return false;
 }
 
 void WhiteCanvasTools::update()
