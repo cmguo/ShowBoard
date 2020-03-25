@@ -121,10 +121,8 @@ bool WhiteCanvasTools::eventFilter(QObject *watched, QEvent *event)
 {
     QQuickWidget *widget = qobject_cast<QQuickWidget*>(watched);
     if (event->type() == QEvent::Show) {
-        widget->rootObject()->update();
         widget->rootObject()->setVisible(true);
     } else if (event->type() == QEvent::Hide) {
-        widget->rootObject()->update();
         widget->rootObject()->setVisible(false);
     }
     return false;
@@ -161,9 +159,18 @@ private:
     ResourcePackage * package_;
 };
 
+class MyQuickWidget : public QQuickWidget
+{
+    virtual void showEvent(QShowEvent *event) override
+    {
+        QQuickWidget::showEvent(event);
+        rootObject()->update();
+    }
+};
+
 QWidget *WhiteCanvasTools::createPageList(ResourcePackage * package)
 {
-    QQuickWidget* widget = new QQuickWidget;
+    QQuickWidget* widget = new MyQuickWidget;
     widget->setObjectName("canvaspagelist");
     widget->engine()->addImageProvider("resource", new ResourceImageProvider(package));
     widget->setClearColor(Qt::transparent);
