@@ -111,6 +111,7 @@ void FloatWidgetManager::saveVisibility()
             state |= mask;
         mask <<= 1;
     }
+    qDebug() << "FloatWidgetManager::saveVisibility" << state;
     saveStates_.append(state);
 }
 
@@ -189,6 +190,8 @@ void FloatWidgetManager::restoreActionState()
 
 bool FloatWidgetManager::eventFilter(QObject *watched, QEvent *event)
 {
+    if (!main_->isActiveWindow())
+        return false;
     QWidget * widget = qobject_cast<QWidget*>(watched);
     if (event->type() == QEvent::Show) {
         widget->setFocus();
@@ -248,13 +251,13 @@ void FloatWidgetManager::relayout(QWidget *widget, Flags flags)
 
 void FloatWidgetManager::focusChanged(QWidget * old, QWidget *now)
 {
-    qDebug() << "FloatWidgetManager::focusChanged" << old << now;
+    //qDebug() << "FloatWidgetManager::focusChanged" << old << now;
     while (old && !widgets_.contains(old))
         old = old->parentWidget();
     while (now && !widgets_.contains(now))
         now = now->parentWidget();
-    qDebug() << "FloatWidgetManager::focusChanged widget" << old << now;
     if (old == now) return;
+    qDebug() << "FloatWidgetManager::focusChanged widget" << old << now;
     if (now && widgetFlags_.value(now).testFlag(RaiseOnFocus)) {
         raiseWidget(now);
     }

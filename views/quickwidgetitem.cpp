@@ -46,8 +46,9 @@ void QuickWidgetItem::onActiveChanged(bool active)
 
 void QuickWidgetItem::geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry)
 {
+    (void) newGeometry;
     (void) oldGeometry;
-    qDebug() << "QuickWidgetItem" << objectName() << "geometryChanged" << newGeometry;
+    //qDebug() << "QuickWidgetItem" << objectName() << "geometryChanged" << newGeometry;
     updateState();
 }
 
@@ -85,7 +86,7 @@ void QuickWidgetItem::updateState()
     bool active = false;
     QRectF rect2 = boundingRect();
     if (window() && isVisible() && !rect2.isEmpty()) {
-        qDebug() << "QuickWidgetItem" << objectName() << rect2;
+        //qDebug() << "QuickWidgetItem" << objectName() << rect2;
         QRect rect3 = mapRectToScene(rect2).toRect();
         mask = QRegion(rect) - QRegion(rect3);
         addOverlayItemRegion(mask);
@@ -95,13 +96,13 @@ void QuickWidgetItem::updateState()
     } else if (!active_) {
         return;
     }
-    qDebug() << "QuickWidgetItem" << objectName() << "setMask" << mask;
+    //qDebug() << "QuickWidgetItem" << objectName() << "setMask" << mask;
     QWidget * overlay = quickwidget_;
     while (overlay != commonParent_) {
         overlay->setMask(mask);
         overlay = overlay->parentWidget();
     }
-    qDebug() << "QuickWidgetItem" << objectName() << "setGeometry" << rect;
+    //() << "QuickWidgetItem" << objectName() << "setGeometry" << rect;
     for (QWidget* w : widgets_) {
         w->setGeometry(rect);
     }
@@ -111,7 +112,7 @@ void QuickWidgetItem::updateState()
 void QuickWidgetItem::setActive(bool active)
 {
     if (active != active_) {
-        qDebug() << "QuickWidgetItem" << objectName() << "setActive" << active;
+        //qDebug() << "QuickWidgetItem" << objectName() << "setActive" << active;
         QVariant activeItem = quickwidget_->property("activeWidgetItem");
         if (!active_) {
             if (activeItem.isValid()) {
