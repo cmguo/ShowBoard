@@ -156,5 +156,6 @@ QWidget *WhiteCanvasTools::createPageList(ResourcePackage * package)
     widget->rootContext()->setContextProperty("packageModel", package);
     widget->rootContext()->setContextProperty("whiteCanvasTools", this);
     widget->setSource(QUrl("qrc:/showboard/qml/PageList.qml"));
+    widget->rootObject()->setVisible(false);
     return widget;
 }

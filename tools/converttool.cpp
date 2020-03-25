@@ -39,8 +39,10 @@ void ConvertTool::attached()
         if (!l.isNull())
             convert(url);
     }, [l, this] (std::exception & e) {
-        if (!l.isNull())
+        if (!l.isNull()) {
             loadFinished(false, e.what());
+            startTimer(3000);
+        }
     });
     stateItem()->setLoading("正在下载");
     item_->show();
