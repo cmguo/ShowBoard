@@ -98,6 +98,7 @@ private:
     QGraphicsItem * select_;
     Control * selectControl_;
     ControlTransform* selBoxTransform_;
+    ControlTransform* selBoxCanvasTransform_;
     ControlTransform* toolBarTransform_;
     Control * cloneControl_;
 

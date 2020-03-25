@@ -47,7 +47,7 @@ void OptionToolButtons::updateValue(const QVariant &value)
         lastCheck_ = index;
         if (lastCheck_ >= 0)
             buttons_[lastCheck_]->setChecked(true);
-    } else {
+    } else if (lastCheck_ >= 0) {
         // ui may auto uncheck, fix it
         buttons_[lastCheck_]->changed();
     }

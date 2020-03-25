@@ -129,6 +129,14 @@ void Control::attachTo(QGraphicsItem * parent, QGraphicsItem * before)
     if (flags_ & WithSelectBar && (!withSelectBar.isValid() || withSelectBar.toBool())) {
         itemFrame()->addTopBar();
     }
+    Control * canvasControl = fromItem(parent->parentItem());
+    if (canvasControl && flags_.testFlag(FixedOnCanvas)) {
+        ControlTransform * t = new ControlTransform(
+                    static_cast<ControlTransform*>(canvasControl->transform_), true, false, true);
+        QList<QGraphicsTransform*> transforms = realItem_->transformations();
+        transforms.append(t);
+        realItem_->setTransformations(transforms);
+    }
     attaching();
     realItem_->setParentItem(parent);
     if (before)
@@ -154,8 +162,16 @@ void Control::detachFrom(QGraphicsItem *parent, QGraphicsItem *)
         saveSettings();
     (void) parent;
     realItem_->scene()->removeItem(realItem_);
+    QList<QGraphicsTransform*> transforms = realItem_->transformations();
+    if (transforms.size() > 1) {
+        delete transforms.takeLast();
+    }
     realItem_->setTransformations({});
     realItem_->setData(ITEM_KEY_CONTROL, QVariant());
+    if (item_ != realItem_) {
+        item_->setTransformations({});
+        item_->setData(ITEM_KEY_CONTROL, QVariant());
+    }
     detached();
     //deleteLater();
     delete this;
@@ -414,7 +430,7 @@ void Control::initPosition()
     Control * canvasControl = fromItem(whiteCanvas());
     if (canvasControl) {
         rect = parent->mapFromScene(parent->scene()->sceneRect()).boundingRect();
-        if (!(flags_ & AutoPosition))
+        if (!(flags_ & (AutoPosition | FixedOnCanvas)))
             res_->transform().translate(rect.center());
     }
     if (!(flags_ & AutoPosition)) {
@@ -538,7 +554,7 @@ void Control::initScale()
                 scale *= 2.0;
             }
         }
-        if (canvasControl) {
+        if (canvasControl && !flags_.testFlag(FixedOnCanvas)) {
             qreal s = 1 / canvasControl->resource()->transform().scale().m11();
             size *= s;
             scale *= s;
@@ -682,9 +698,15 @@ ItemFrame * Control::itemFrame()
     }
     ItemFrame * frame = new ItemFrame(item_);
     realItem_ = frame;
-    ControlTransform* ct = static_cast<ControlTransform*>(transform_)->addFrameTransform();
     realItem_->setData(ITEM_KEY_CONTROL, QVariant::fromValue(this));
-    realItem_->setTransformations({ct});
+    QList<QGraphicsTransform*> transforms2;
+    transforms2.append(static_cast<ControlTransform*>(transform_)->addFrameTransform());
+    QList<QGraphicsTransform*> transforms = item_->transformations();
+    if (transforms.size() > 1) {
+        transforms2.append(transforms.takeLast());
+        item_->setTransformations(transforms);
+    }
+    realItem_->setTransformations(transforms2);
     return frame;
 }
 

@@ -99,9 +99,10 @@ void ConvertTool::onImage(const QString &path, int nPage, int total)
 void ConvertTool::onFinished()
 {
     ShowBoard::containter().release_value(sender());
-    if (startPage_ == whiteCanvas()->package()->currentIndex())
-        whiteCanvas()->package()->gotoNext();
+    WhiteCanvas * wc = whiteCanvas();
     res_->removeFromPage();
+    if (startPage_ == wc->package()->currentIndex())
+        wc->package()->gotoNext();
 }
 
 void ConvertTool::onFailed(QString const & error)

@@ -25,6 +25,7 @@ ItemSelector::ItemSelector(QGraphicsItem * parent)
     , select_(nullptr)
     , selectControl_(nullptr)
     , selBoxTransform_(new ControlTransform(ControlTransform::SelectBox))
+    , selBoxCanvasTransform_(new ControlTransform(ControlTransform::InvertScaleTranslate))
     , toolBarTransform_(new ControlTransform(ControlTransform::LargeCanvasTooBar))
     , cloneControl_(nullptr)
     , type_(None)
@@ -37,7 +38,7 @@ ItemSelector::ItemSelector(QGraphicsItem * parent)
 
     selBox_ = new SelectBox(this);
     selBox_->hide();
-    selBox_->setTransformations({selBoxTransform_});
+    selBox_->setTransformations({selBoxTransform_, selBoxCanvasTransform_});
 
     ToolbarWidget * toolBar = new ToolbarWidget();
     QGraphicsProxyWidget * proxy = new QGraphicsProxyWidget(this);
@@ -65,8 +66,11 @@ void ItemSelector::select(QGraphicsItem *item)
         QList<ToolButton *> buttons;
         selectControl_->getToolButtons(buttons);
         Control * canvasControl = Control::fromItem(parentItem());
-        if (canvasControl)
+        if (canvasControl) {
+            if (selectControl_->flags().testFlag(Control::FixedOnCanvas))
+                selBoxCanvasTransform_->attachTo(canvasControl->transform());
             toolBarTransform_->attachTo(canvasControl->transform());
+        }
         toolBar()->setToolButtons(buttons);
         layoutToolbar();
         selBox_->setVisible(true,
@@ -82,6 +86,7 @@ void ItemSelector::select(QGraphicsItem *item)
         if (selectControl_)
             selectControl_->select(false);
         selBoxTransform_->attachTo(nullptr);
+        selBoxCanvasTransform_->attachTo(nullptr);
         toolBarTransform_->attachTo(nullptr);
         selectControl_ = nullptr;
         selBox_->setVisible(false);

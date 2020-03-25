@@ -94,7 +94,8 @@ void ControlTransform::applyTo(QMatrix4x4 *matrix) const
         *matrix *= transform_->scale().inverted().toAffine();
         break;
     case InvertScaleTranslate:
-        *matrix *= (transform_->scale() * transform_->translate()).inverted().toAffine();
+        if (transform_)
+            *matrix *= (transform_->scale() * transform_->translate()).inverted().toAffine();
         break;
     case InvertScaleRotate:
         *matrix *= transform_->scaleRotate().inverted().toAffine();
