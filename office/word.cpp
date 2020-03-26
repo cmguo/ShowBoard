@@ -63,7 +63,7 @@ void Word::open(QString const & file)
                      this, SLOT(onException(int,QString,QString,QString)));
     QAxObject * document = documents_->querySubObject(
                 "Open(const QString&, bool, bool, bool)",
-                file,
+                QString("\"%1\"").arg(file),
                 false/*ConfirmConversions*/,
                 true/*ReadOnly*/,
                 false/*AddToRecentFiles*/

@@ -106,7 +106,7 @@ void PowerPoint::open(QString const & file)
                      this, SLOT(onException(int,QString,QString,QString)));
     QAxObject * presentation = presentations_->querySubObject(
                 "Open(const QString&, bool, bool, bool)",
-                file, true, false, false);
+                QString("\"%1\"").arg(file), true, false, false);
     if (presentation) {
         QObject::connect(presentation, SIGNAL(exception(int,QString,QString,QString)),
                          this, SLOT(onException(int,QString,QString,QString)));
