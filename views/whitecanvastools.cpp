@@ -105,9 +105,10 @@ void WhiteCanvasTools::setOption(const QByteArray &key, QVariant value)
         pageList();
     else if (key == "next")
         nextPage();
-    else if (key == "goto")
+    else if (key == "goto") {
+        pageList_->hide();
         gotoPage(value.toInt());
-    else
+    } else
         ToolButtonProvider::setOption(key, value);
 #ifndef QT_DEBUG
     canvas_->setProperty("FromUser", QVariant());
