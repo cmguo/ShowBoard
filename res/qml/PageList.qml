@@ -96,7 +96,7 @@ Rectangle {
                 width: 192
                 height: 108
                 radius: 4
-                color: "#1E3232"
+                color: "#1B2526"
 
                 Image {
                     width: 192

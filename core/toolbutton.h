@@ -70,6 +70,9 @@ public:
     ToolButton(QByteArray const & name, QString const & title,
                QByteArray const & flags, QVariant const & icon = QVariant());
 
+signals:
+    void delayActive();
+
 public:
     QByteArray name() { return name_; }
 

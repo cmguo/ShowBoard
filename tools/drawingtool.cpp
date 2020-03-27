@@ -24,7 +24,9 @@ DrawingTool::DrawingTool(ResourceView *res)
 
 Control * DrawingTool::newControl()
 {
-    return whiteCanvas()->addResource(newUrl_, newSettings_);
+    Control * control = whiteCanvas()->addResource(newUrl_, newSettings_);
+    emit controlCreated(control);
+    return control;
 }
 
 void DrawingTool::finishControl(Control * control)
@@ -46,6 +48,7 @@ public:
     {
         setCursor(Qt::CrossCursor);
         setAcceptHoverEvents(true);
+        setAcceptTouchEvents(true);
         setFlag(ItemIsFocusable);
 
         QWidget* widget = new QFrame;
@@ -135,6 +138,10 @@ protected:
         if (event->type() == QEvent::FocusOut
                 || event->type() == QEvent::WindowDeactivate)
             finish();
+        if (event->type() == QEvent::TouchBegin) {
+            event->accept();
+            return true;
+        }
         return CanvasItem::sceneEvent(event);
     }
 

@@ -24,6 +24,9 @@ public:
 
     void setTranslucent(bool on);
 
+signals:
+    void controlCreated(Control * control);
+
 private:
     virtual QGraphicsItem * create(ResourceView *res) override;
 
