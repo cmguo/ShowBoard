@@ -87,6 +87,7 @@ void ImageControl::attached()
         data_ = ImageData::put(res_->url(), pixmap, mipmap_);
         adjustMipmap2(whiteCanvas()->rect().size());
     }).fail([this, l](std::exception& e) {
+        if (l.isNull()) return;
         loadFinished(false, e.what());
     });
 }

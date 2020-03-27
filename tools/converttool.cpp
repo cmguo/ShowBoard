@@ -34,6 +34,12 @@ QGraphicsItem *ConvertTool::create(ResourceView *res)
 
 void ConvertTool::attached()
 {
+    if (whiteCanvas()->getToolControl(res_->url().toString()) != this) {
+        loadFinished(false, "当前文档正在转换，请稍后重试");
+        startTimer(3000);
+        item_->show();
+        return;
+    }
     QWeakPointer<int> l = life();
     res_->resource()->getLocalUrl().then([l, this] (QUrl url) {
         if (!l.isNull())
@@ -100,8 +106,9 @@ void ConvertTool::onFinished()
 {
     ShowBoard::containter().release_value(sender());
     WhiteCanvas * wc = whiteCanvas();
+    int startPage = startPage_;
     res_->removeFromPage();
-    if (startPage_ == wc->package()->currentIndex())
+    if (startPage == wc->package()->currentIndex())
         wc->package()->gotoNext();
 }
 
