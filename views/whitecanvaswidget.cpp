@@ -133,9 +133,15 @@ ResourcePackage * WhiteCanvasWidget::package()
 void WhiteCanvasWidget::setSceneSize(QSizeF size)
 {
     sceneSize_ = size;
-    static QPixmap thumb(":/showboard/icon/drag.png");
-    ResourcePackage::toolPage()->setThumbnail(
-                thumb.scaled((size * WhiteCanvas::THUMBNAIL_HEIGHT / size.height()).toSize()));
+    static QPixmap icon(":/showboard/icon/page.loading.svg");
+    static QPixmap thumb((size * WhiteCanvas::THUMBNAIL_HEIGHT / size.height()).toSize());
+    thumb.fill(Qt::transparent);
+    QPainter painter(&thumb);
+    QRect rect(0, 0, icon.width(), icon.height());
+    rect.moveCenter({thumb.width() / 2, thumb.height() / 2});
+    painter.drawPixmap(rect, icon);
+    painter.end();
+    ResourcePackage::toolPage()->setThumbnail(thumb);
     onPageChanged(CurrentPage);
     if (canvas_->page() && !canvas_->page()->isLargePage())
         canvas_->setGeometry(scene()->sceneRect());

@@ -33,5 +33,6 @@
         <file>icon/page.new.svg</file>
         <file>icon/page.next.svg</file>
         <file>icon/page.prev.svg</file>
+        <file>icon/page.loading.svg</file>
     </qresource>
 </RCC>

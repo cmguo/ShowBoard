@@ -69,7 +69,6 @@ void WhiteCanvasTools::pageList()
             pageList_->setParent(btn->window());
             FloatWidgetManager::from(btn)->addWidget(pageList_, button);
         }
-        pageList_->installEventFilter(this);
     } else {
         ToolButton* button = getStringButton(2);
         if (!button->associatedWidgets().isEmpty())
@@ -80,9 +79,7 @@ void WhiteCanvasTools::pageList()
         //QModelIndex index(canvas_->package()->currentModelIndex());
         //qobject_cast<QListView*>(pageList_)->scrollTo(index, QListView::PositionAtCenter);
     }
-    bool v = !pageList_->isVisible();
-    pageList_->setVisible(v);
-    qobject_cast<QQuickWidget*>(pageList_)->rootObject()->setVisible(v);
+    pageList_->setVisible(!pageList_->isVisible());
 }
 
 void WhiteCanvasTools::nextPage()
@@ -115,17 +112,6 @@ void WhiteCanvasTools::setOption(const QByteArray &key, QVariant value)
 #ifndef QT_DEBUG
     canvas_->setProperty("FromUser", QVariant());
 #endif
-}
-
-bool WhiteCanvasTools::eventFilter(QObject *watched, QEvent *event)
-{
-    QQuickWidget *widget = qobject_cast<QQuickWidget*>(watched);
-    if (event->type() == QEvent::Show) {
-        widget->rootObject()->setVisible(true);
-    } else if (event->type() == QEvent::Hide) {
-        widget->rootObject()->setVisible(false);
-    }
-    return false;
 }
 
 void WhiteCanvasTools::update()
@@ -164,7 +150,13 @@ class MyQuickWidget : public QQuickWidget
     virtual void showEvent(QShowEvent *event) override
     {
         QQuickWidget::showEvent(event);
+        rootObject()->setVisible(true);
         rootObject()->update();
+    }
+    virtual void hideEvent(QHideEvent *event) override
+    {
+        QQuickWidget::hideEvent(event);
+        rootObject()->setVisible(false);
     }
 };
 
@@ -172,6 +164,7 @@ QWidget *WhiteCanvasTools::createPageList(ResourcePackage * package)
 {
     QQuickWidget* widget = new MyQuickWidget;
     widget->setObjectName("canvaspagelist");
+    widget->setAttribute(Qt::WA_AcceptTouchEvents);
     widget->engine()->addImageProvider("resource", new ResourceImageProvider(package));
     widget->setClearColor(Qt::transparent);
     widget->rootContext()->setContextProperty("packageModel", package);

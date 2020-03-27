@@ -6,7 +6,7 @@ Rectangle {
     id: pageList
     y: 40
     width: 248
-    height: packageModel.pageCount < 4 ? 392 : 510
+    height: 38 + (packageModel.pageCount < 4 ? packageModel.pageCount : 4) * 118
     radius: 8
     color: "#FFF9F9F9"
     opacity: 0
@@ -32,10 +32,10 @@ Rectangle {
     ListView {
         id: list
         x: 4
-        y: 44
+        y: 64
         spacing: 40
         width: parent.width - 8
-        height: parent.height - 8
+        height: parent.height - 38
         model: packageModel
         delegate: page
         contentY: 0
@@ -51,10 +51,10 @@ Rectangle {
             if (visible) {
                 list.positionViewAtIndex(packageModel.currentIndex, ListView.Center)
                 spacing = 0
-                y = 4
+                y = 24
             } else {
                 spacing = 40
-                y = 44
+                y = 64
             }
         }
 
@@ -83,27 +83,35 @@ Rectangle {
                 radius: 4
                 Text {
                     anchors.centerIn: parent
-                    font.family: "MicrosoftYaHei"
+                    color: index == packageModel.currentIndex ? "white" : "black"
+                    font.family: "Microsoft YaHei"
                     font.pixelSize: 16
                     text: index + 1
                 }
             }
 
-            Image {
-                id: thumbnail
+            Rectangle {
                 x: 32
                 y: 5
                 width: 192
                 height: 108
-                cache: false
-                source: "image://resource/" + thumb
+                radius: 4
+                color: "#1E3232"
 
-                Rectangle {
-                    anchors.fill: parent
-                    radius: 4
-                    color: "transparent"
-                    border.width: index == packageModel.currentIndex ? 2 : 0
-                    border.color: "#FF008FFF"
+                Image {
+                    width: 192
+                    height: 108
+                    id: thumbnail
+                    cache: false
+                    source: "image://resource/" + thumb
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: 4
+                        color: "transparent"
+                        border.width: index == packageModel.currentIndex ? 3 : 1
+                        border.color: index == packageModel.currentIndex ? "#FF008FFF" : "#1E3232"
+                    }
                 }
             }
 
