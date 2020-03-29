@@ -142,7 +142,7 @@ protected:
     void pageChanged(ResourcePage* page);
 
 private:
-    QHash<int, QByteArray> roleNames() const;
+    QHash<int, QByteArray> roleNames() const override;
 
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 

@@ -4,6 +4,7 @@
 #include "core/control.h"
 
 #include <QUrl>
+#include <QVariantMap>
 
 class ConvertTool : public Control
 {
