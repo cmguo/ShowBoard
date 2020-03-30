@@ -29,10 +29,15 @@ Control * DrawingTool::newControl()
     return control;
 }
 
+void DrawingTool::removeControl(Control *control)
+{
+    whiteCanvas()->removeResource(control);
+}
+
 void DrawingTool::finishControl(Control * control)
 {
-    (void) control;
     whiteCanvas()->hideToolControl(this);
+    emit drawFinished(control);
 }
 
 void DrawingTool::setTranslucent(bool on)
@@ -75,16 +80,21 @@ public:
 private:
     void finish()
     {
+        DrawingTool * tool = static_cast<DrawingTool *>(Control::fromItem(this));
+        Control* control = control_;
         if (control_) {
             if (!(control_->resource()->flags() & ResourceView::DrawFinised)) {
                 QEvent event(QEvent::User);
                 control_->event(&event);
+                if (!(control_->resource()->flags() & ResourceView::DrawFinised)) {
+                    tool->removeControl(control_);
+                    control = nullptr;
+                }
             }
             control_ = nullptr;
             finishItem_->hide();
         }
-        DrawingTool * tool = static_cast<DrawingTool *>(Control::fromItem(this));
-        tool->finishControl(control_);
+        tool->finishControl(control);
     }
 
 protected:

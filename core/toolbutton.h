@@ -71,7 +71,7 @@ public:
                QByteArray const & flags, QVariant const & icon = QVariant());
 
 signals:
-    void delayActive();
+    void delayActive(bool done);
 
 public:
     QByteArray name() { return name_; }

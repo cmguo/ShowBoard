@@ -20,12 +20,16 @@ public:
 public:
     Control * newControl();
 
+    void removeControl(Control * control);
+
     void finishControl(Control * control);
 
     void setTranslucent(bool on);
 
 signals:
     void controlCreated(Control * control);
+
+    void drawFinished(bool done);
 
 private:
     virtual QGraphicsItem * create(ResourceView *res) override;
