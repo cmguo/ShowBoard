@@ -72,6 +72,17 @@ ResourceView * ResourcePage::findResource(QUrl const & url) const
     return nullptr;
 }
 
+ResourceView *ResourcePage::findResource(const QByteArray &type) const
+{
+    for (ResourceView * res : resources()) {
+        if (res->resource()->type() == type)
+            return res;
+    }
+    if (currentSubPage_)
+        return currentSubPage_->findResource(type);
+    return nullptr;
+}
+
 void ResourcePage::addResource(ResourceView * res)
 {
     if (currentSubPage_) {

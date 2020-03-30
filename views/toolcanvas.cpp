@@ -23,11 +23,13 @@ void ToolCanvas::hideToolControl(Control * control)
         hideItem(control->item());
 }
 
-Control * ToolCanvas::getToolControl(const QString &type)
+Control * ToolCanvas::getToolControl(const QString &typeOrUrl)
 {
-    QUrl url(type.contains(':') ? type : type + ":");
-    ResourceView * res = page_->findResource(url);
+    ResourceView * res = typeOrUrl.contains(':')
+            ? page_->findResource(QUrl(typeOrUrl))
+            : page_->findResource(typeOrUrl.toUtf8());
     if (!res) {
+        QUrl url(typeOrUrl.contains(':') ? typeOrUrl : typeOrUrl + ":");
         res = page_->addResource(url);
     }
     return findControl(res);

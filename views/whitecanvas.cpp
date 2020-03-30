@@ -47,9 +47,9 @@ ResourcePage *WhiteCanvas::page()
     return canvas_->page();
 }
 
-void WhiteCanvas::showToolControl(const QString &type)
+void WhiteCanvas::showToolControl(const QString &typeOrUrl)
 {
-    tools_->showToolControl(getToolControl(type));
+    tools_->showToolControl(getToolControl(typeOrUrl));
 }
 
 void WhiteCanvas::showToolControl(Control *control)
@@ -57,9 +57,9 @@ void WhiteCanvas::showToolControl(Control *control)
     tools_->showToolControl(control);
 }
 
-void WhiteCanvas::hideToolControl(const QString &type)
+void WhiteCanvas::hideToolControl(const QString &typeOrUrl)
 {
-    tools_->hideToolControl(getToolControl(type));
+    tools_->hideToolControl(getToolControl(typeOrUrl));
 }
 
 void WhiteCanvas::hideToolControl(Control *control)
@@ -67,9 +67,9 @@ void WhiteCanvas::hideToolControl(Control *control)
     tools_->hideToolControl(control);
 }
 
-Control * WhiteCanvas::getToolControl(const QString &type)
+Control * WhiteCanvas::getToolControl(const QString &typeOrUrl)
 {
-    return tools_->getToolControl(type);
+    return tools_->getToolControl(typeOrUrl);
 }
 
 QVariant WhiteCanvas::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value)

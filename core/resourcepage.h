@@ -52,6 +52,11 @@ public:
     ResourceView * findResource(QUrl const & url) const;
 
     /*
+     * find resource by type, return first if more than one
+     */
+    ResourceView * findResource(QByteArray const & type) const;
+
+    /*
      * add resource at back (top), but under resources with flag TopMost
      */
     void addResource(ResourceView * res);

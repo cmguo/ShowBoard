@@ -77,15 +77,15 @@ public:
      *  these controls are not backed by resource and is single instance
      *  a new control of type @type is created if not exists in canvas
      */
-    void showToolControl(QString const & type);
+    void showToolControl(QString const & typeOrUrl);
 
     void showToolControl(Control * control);
 
-    void hideToolControl(QString const & type);
+    void hideToolControl(QString const & typeOrUrl);
 
     void hideToolControl(Control * control);
 
-    Control * getToolControl(QString const & type);
+    Control * getToolControl(QString const & typeOrUrl);
 
 public:
     /*

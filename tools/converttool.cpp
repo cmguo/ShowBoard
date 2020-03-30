@@ -40,6 +40,12 @@ void ConvertTool::attached()
         item_->show();
         return;
     }
+    if (whiteCanvas()->getToolControl(res_->resource()->type()) != this) {
+        loadFinished(false, "当前有其他文档正在转换，请稍后重试");
+        startTimer(3000);
+        item_->show();
+        return;
+    }
     QWeakPointer<int> l = life();
     res_->resource()->getLocalUrl().then([l, this] (QUrl url) {
         if (!l.isNull())

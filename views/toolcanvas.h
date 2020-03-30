@@ -13,7 +13,7 @@ public:
 
     void hideToolControl(Control * control);
 
-    Control * getToolControl(QString const & type);
+    Control * getToolControl(QString const & typeOrUrl);
 
 private:
     void showItem(QGraphicsItem * item);
