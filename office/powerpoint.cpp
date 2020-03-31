@@ -27,7 +27,7 @@ QAxObject * PowerPoint::application_ = nullptr;
 static char const * titleParts[] = {"PowerPoint", "ppt", nullptr};
 static char const * titleParts2[] = {"WPS", "ppt", nullptr};
 
-static QThread & workThread() {
+static AxThread & workThread() {
     static AxThread thread("PowerPoint");
     return thread;
 }
@@ -92,6 +92,7 @@ void PowerPoint::open(QString const & file)
         }
         if (application_) {
             application_->moveToThread(&workThread());
+            workThread().atexit(quit);
         }
     }
     if (application_ && !presentations_) {
@@ -354,4 +355,14 @@ void PowerPoint::onException(int code, const QString &source, const QString &des
     (void) source;
     (void) help;
     qDebug() << "PowerPoint onException" << desc;
+}
+
+void PowerPoint::quit()
+{
+    qDebug() << "Word::quit()";
+    if (application_) {
+        application_->dynamicCall("Quit()");
+        delete application_;
+        application_ = nullptr;
+    }
 }

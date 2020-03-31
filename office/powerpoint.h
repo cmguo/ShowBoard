@@ -103,6 +103,8 @@ private:
 private:
     static QAxObject * application_;
 
+    static void quit();
+
 private:
     QAxObject * presentations_;
     QString file_;

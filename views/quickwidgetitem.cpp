@@ -68,7 +68,7 @@ static constexpr char const * changeNames[] {
 
 void QuickWidgetItem::itemChange(QQuickItem::ItemChange change, const QQuickItem::ItemChangeData & value)
 {
-    qDebug() << "QuickWidgetItem" << objectName() << "itemChange" << changeNames[change];
+    //qDebug() << "QuickWidgetItem" << objectName() << "itemChange" << changeNames[change];
     (void) value;
     if (change == ItemSceneChange) {
         updateState();
@@ -112,7 +112,7 @@ void QuickWidgetItem::updateState()
 void QuickWidgetItem::setActive(bool active)
 {
     if (active != active_) {
-        //qDebug() << "QuickWidgetItem" << objectName() << "setActive" << active;
+        qDebug() << "QuickWidgetItem" << objectName() << "setActive" << active;
         QVariant activeItem = quickwidget_->property("activeWidgetItem");
         if (!active_) {
             if (activeItem.isValid()) {
