@@ -158,8 +158,8 @@ protected:
     virtual QVariant itemChange(GraphicsItemChange change, const QVariant &variant) override
     {
         if (change == ItemVisibleHasChanged && variant.toBool()) {
-            setFocus();
             scene()->views().first()->setFocus();
+            setFocus();
         }
         return CanvasItem::itemChange(change, variant);
     }
