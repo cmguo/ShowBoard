@@ -74,7 +74,7 @@ void FloatWidgetManager::removeWidget(QWidget *widget)
     widgets_.removeOne(widget);
     widgetFlags_.remove(widget);
     int mask1 = (1 << n) - 1;
-    int mask2 = -1 << (n + 1);
+    int mask2 = static_cast<int>(uint(-1) << (n + 1));
     for (int & state : saveStates_) {
         state = (state & mask1) | ((state & mask2) >> 1);
     }
@@ -82,15 +82,17 @@ void FloatWidgetManager::removeWidget(QWidget *widget)
 
 void FloatWidgetManager::raiseWidget(QWidget *widget)
 {
-    widget->raise();
     int n = widgets_.indexOf(widget);
-    if (n < 0 || widget == widgets_.last())
+    if (n < 0)
+        return;
+    widget->raise();
+    if (widget == widgets_.last())
         return;
     widgets_.removeAt(n);
     int mask1 = (1 << n) - 1;
-    int mask2 = -1 << (n + 1);
+    int mask2 = static_cast<int>(uint(-1) << (n + 1));
     int mask3 = 1 << n;
-    n = widgets_.size() - n + 1;
+    n = widgets_.size() - n;
     for (int & state : saveStates_) {
         state = (state & mask1) | ((state & mask2) >> 1) | ((state & mask3) << n);
     }
@@ -202,7 +204,7 @@ bool FloatWidgetManager::eventFilter(QObject *watched, QEvent *event)
             if (flags.testFlag(HideOnLostFocus))
                 widget->setFocus();
             if (flags.testFlag(RaiseOnShow))
-                widget->raise();
+                raiseWidget(widget);
         }
         if (flags.testFlag(HideOthersOnShow)) {
             saveVisibility();
