@@ -6,6 +6,7 @@
 #include <QVariant>
 #include <QApplication>
 #include <QDebug>
+#include <QElapsedTimer>
 
 Q_DECLARE_METATYPE(FloatWidgetManager::Flags);
 
@@ -193,22 +194,30 @@ bool FloatWidgetManager::eventFilter(QObject *watched, QEvent *event)
     if (!main_->isActiveWindow())
         return false;
     QWidget * widget = qobject_cast<QWidget*>(watched);
+    Flags flags = widgetFlags_.value(widget);
     if (event->type() == QEvent::Show) {
-        widget->setFocus();
-        if (widgetFlags_.value(widget).testFlag(HideOthersOnShow)) {
+        if (flags.testFlag(RaiseOnFocus)) {
+            widget->setFocus();
+        } else {
+            if (flags.testFlag(HideOnLostFocus))
+                widget->setFocus();
+            if (flags.testFlag(RaiseOnShow))
+                widget->raise();
+        }
+        if (flags.testFlag(HideOthersOnShow)) {
             saveVisibility();
             saveStates_.back() &= ~(1 << widgets_.indexOf(widget));
             hideAll(widget);
         }
-        if (widgetFlags_.value(widget).testFlag(DisableActionsOnShow)) {
+        if (flags.testFlag(DisableActionsOnShow)) {
             saveActionState();
             disableActions();
         }
     } else if (event->type() == QEvent::Hide) {
-        if (widgetFlags_.value(widget).testFlag(DisableActionsOnShow)) {
+        if (flags.testFlag(DisableActionsOnShow)) {
             restoreActionState();
         }
-        if (widgetFlags_.value(widget).testFlag(HideOthersOnShow)) {
+        if (flags.testFlag(HideOthersOnShow)) {
             restoreVisibility();
         }
     }
@@ -257,12 +266,24 @@ void FloatWidgetManager::focusChanged(QWidget * old, QWidget *now)
     while (now && !widgets_.contains(now))
         now = now->parentWidget();
     if (old == now) return;
-    qDebug() << "FloatWidgetManager::focusChanged widget" << old << now;
-    if (now && widgetFlags_.value(now).testFlag(RaiseOnFocus)) {
-        raiseWidget(now);
-    }
+    qDebug() << "FloatWidgetManager::focusChanged" << old << now;
+    static QWidget * lastFocus = nullptr;
+    static QElapsedTimer lastFocusTime;
     if (old && widgetFlags_.value(old).testFlag(HideOnLostFocus)) {
-        old->hide();
+        if (lastFocus == old && !lastFocusTime.hasExpired(300)) {
+            qDebug() << "FloatWidgetManager::focusChanged: ignore fast focus lost";
+            old->setFocus();
+            return;
+        } else {
+            old->hide();
+        }
+    }
+    if (now) {
+        lastFocus = now;
+        lastFocusTime.start();
+        if (widgetFlags_.value(now).testFlag(RaiseOnFocus)) {
+            raiseWidget(now);
+        }
     }
 }
 

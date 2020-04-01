@@ -24,6 +24,9 @@ public:
         HideOnLostFocus = 64,
         HideOthersOnShow = 128,
         DisableActionsOnShow = 256,
+        FixedWidget = RaiseOnShow | RaiseOnFocus,
+        TemporaryWidget = RaiseOnShow | HideOnLostFocus,
+        ExclusiveWidget = HideOthersOnShow | DisableActionsOnShow
     };
 
     Q_DECLARE_FLAGS(Flags, Flag)
@@ -40,7 +43,7 @@ public:
 
     // add/show/raise the widget, see @raiseWidget
     void addWidget(QWidget* widget, ToolButton* attachButton,
-                   Flags flags = {RaiseOnShow, RaiseOnFocus, HideOnLostFocus});
+                   Flags flags = TemporaryWidget);
 
     // remove/hide the widget
     void removeWidget(QWidget* widget);
