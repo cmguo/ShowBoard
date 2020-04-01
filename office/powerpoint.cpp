@@ -332,7 +332,7 @@ void PowerPoint::timerEvent(QTimerEvent * event)
             } catch(...) {
             }
         } else {
-            reopen();
+            mayStopped();
         }
     }
 }
