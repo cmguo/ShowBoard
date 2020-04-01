@@ -99,6 +99,24 @@ void FloatWidgetManager::raiseWidget(QWidget *widget)
     widgets_.append(widget);
 }
 
+void FloatWidgetManager::lowerWidget(QWidget *widget)
+{
+    int n = widgets_.indexOf(widget);
+    if (n < 0)
+        return;
+    if (widget == widgets_.first())
+        return;
+    widget->stackUnder(widgets_[1]);
+    widgets_.removeAt(n);
+    int mask1 = (1 << n) - 1;
+    int mask2 = static_cast<int>(uint(-1) << (n + 1));
+    int mask3 = 1 << n;
+    for (int & state : saveStates_) {
+        state = ((state & mask1) >> 1) | (state & mask2) | ((state & mask3) >> n);
+    }
+    widgets_.prepend(widget);
+}
+
 void FloatWidgetManager::setWidgetFlags(QWidget *widget, Flags flags)
 {
     if (widgets_.contains(widget))
@@ -132,8 +150,12 @@ void FloatWidgetManager::hideWidget(QWidget *widget)
 
 void FloatWidgetManager::hideAll(QWidget* except)
 {
+    QStringList hides = except->property(HIDE_LIST).toStringList();
     for (QWidget * w : widgets_) {
         if (w == except)
+            continue;
+        if (!hides.isEmpty() && !hides.contains(w->objectName())
+                 && !hides.contains(w->metaObject()->className()))
             continue;
         if (w->isVisible())
             qDebug() << "FloatWidgetManager::hideAll" << w;
@@ -205,6 +227,8 @@ bool FloatWidgetManager::eventFilter(QObject *watched, QEvent *event)
                 widget->setFocus();
             if (flags.testFlag(RaiseOnShow))
                 raiseWidget(widget);
+            else if (flags.testFlag(LowerOnShow))
+                lowerWidget(widget);
         }
         if (flags.testFlag(HideOthersOnShow)) {
             saveVisibility();
@@ -229,7 +253,8 @@ bool FloatWidgetManager::eventFilter(QObject *watched, QEvent *event)
 void FloatWidgetManager::setWidgetFlags2(QWidget *widget, Flags flags)
 {
     relayout(widget, flags);
-    if (flags.testFlag(RaiseOnShow) || flags.testFlag(HideOnLostFocus)
+    if (flags.testFlag(RaiseOnShow) || flags.testFlag(LowerOnShow)
+            || flags.testFlag(HideOnLostFocus)
             || flags.testFlag(HideOthersOnShow)) {
         widgetFlags_[widget] = flags;
         if (widget->isVisible()) {

@@ -16,14 +16,17 @@ public:
 
     static QPoint getPopupPosition(QWidget * widget, ToolButton* attachButton);
 
+    static constexpr char const * HIDE_LIST = "HIDE_LIST";
+
     enum Flag {
         PositionAtCenter = 1,
         FullLayout = 2,
         RaiseOnShow = 16,
         RaiseOnFocus = 32,
-        HideOnLostFocus = 64,
-        HideOthersOnShow = 128,
-        DisableActionsOnShow = 256,
+        LowerOnShow = 64,
+        HideOnLostFocus = 128,
+        HideOthersOnShow = 256,
+        DisableActionsOnShow = 512,
         FixedWidget = RaiseOnShow | RaiseOnFocus,
         TemporaryWidget = RaiseOnShow | HideOnLostFocus,
         ExclusiveWidget = HideOthersOnShow | DisableActionsOnShow
@@ -51,6 +54,10 @@ public:
     // move z-order after all widgets managed here,
     //  but may not last of all siblings
     void raiseWidget(QWidget* widget);
+
+    // move z-order before all widgets managed here,
+    //  but may not first of all siblings
+    void lowerWidget(QWidget* widget);
 
     void setWidgetFlags(QWidget* widget, Flags flags);
 
