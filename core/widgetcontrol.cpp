@@ -8,12 +8,14 @@
 
 WidgetControl::WidgetControl(ResourceView *res, Flags flags, Flags clearFlags)
     : Control(res, flags, clearFlags)
+    , widget_(nullptr)
 {
 }
 
 WidgetControl::~WidgetControl()
 {
-    widget_->deleteLater();
+    if (widget_)
+        widget_->deleteLater();
     widget_ = nullptr;
 }
 
@@ -31,12 +33,17 @@ QGraphicsItem * WidgetControl::create(ResourceView *res)
 
 void WidgetControl::attaching()
 {
+    if (!widget_) // restore from persist session
+        widget_ = static_cast<QGraphicsProxyWidget*>(item_)->widget();
     itemObj_ = widget_;
 }
 
 void WidgetControl::detached()
 {
-    static_cast<QGraphicsProxyWidget*>(item_)->setWidget(nullptr);
+    if (res_->flags().testFlag(ResourceView::PersistSession))
+        widget_ = nullptr;
+    else
+        static_cast<QGraphicsProxyWidget*>(item_)->setWidget(nullptr);
 }
 
 void WidgetControl::resize(QSizeF const & size)

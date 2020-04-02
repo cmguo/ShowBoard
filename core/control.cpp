@@ -119,14 +119,20 @@ void Control::setExpandScale(bool b)
 
 void Control::attachTo(QGraphicsItem * parent, QGraphicsItem * before)
 {
-    item_ = create(res_);
+    bool fromPersist = false;
+    if (res_->flags().testFlag(ResourceView::PersistSession))
+        item_ = res_->loadSession();
+    if (item_ == nullptr)
+        item_ = create(res_);
+    else
+        fromPersist = true;
     itemObj_ = item_->toGraphicsObject();
     if (transform_)
         item_->setTransformations({transform_});
     item_->setData(ITEM_KEY_CONTROL, QVariant::fromValue(this));
     realItem_ = item_;
     QVariant withSelectBar = res_->property("withSelectBar");
-    if (flags_ & WithSelectBar && (!withSelectBar.isValid() || withSelectBar.toBool())) {
+    if (flags_.testFlag(WithSelectBar) && (!withSelectBar.isValid() || withSelectBar.toBool())) {
         itemFrame()->addTopBar();
     }
     Control * canvasControl = fromItem(parent->parentItem());
@@ -145,6 +151,8 @@ void Control::attachTo(QGraphicsItem * parent, QGraphicsItem * before)
     sizeChanged();
     initPosition();
     relayout();
+    if (fromPersist)
+        flags_.setFlag(RestorePersisted);
     flags_ |= Loading;
     whiteCanvas()->onControlLoad(true);
     attached();
@@ -173,6 +181,13 @@ void Control::detachFrom(QGraphicsItem *parent, QGraphicsItem *)
         item_->setData(ITEM_KEY_CONTROL, QVariant());
     }
     detached();
+    if (res_->flags().testFlag(ResourceView::PersistSession)) {
+        res_->saveSession(item_);
+        if (item_ == realItem_)
+            realItem_ = nullptr;
+        else
+            item_->setParentItem(nullptr);
+    }
     //deleteLater();
     delete this;
 }

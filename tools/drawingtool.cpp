@@ -40,6 +40,11 @@ void DrawingTool::finishControl(Control * control)
     emit drawFinished(control);
 }
 
+bool DrawingTool::translucent() const
+{
+    return item_->flags().testFlag(CanvasItem::ItemHasNoContents);
+}
+
 void DrawingTool::setTranslucent(bool on)
 {
     item_->setFlag(CanvasItem::ItemHasNoContents, !on);

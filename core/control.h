@@ -56,6 +56,7 @@ public:
         RestoreSession = 1 << 18,
         Selected = 1 << 19,
         Adjusting = 1 << 20,
+        RestorePersisted = 1 << 21,
     };
 
     Q_DECLARE_FLAGS(Flags, Flag)

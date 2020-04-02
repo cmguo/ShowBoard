@@ -16,6 +16,8 @@ class SHOWBOARD_EXPORT ToolButtonProvider : public LifeObject
 public:
     ToolButtonProvider(QObject * parent = nullptr);
 
+    ToolButtonProvider(ToolButtonProvider const & o);
+
     virtual ~ToolButtonProvider() override;
 
 signals:
@@ -86,7 +88,6 @@ protected:
 private:
     QMap<QByteArray, QList<ToolButton *>> buttons_;
     QList<ToolButton *> privateButtons_;
-    QMap<QByteArray, OptionToolButtons*> optionButtons_;
     bool followTrigger_;
 };
 

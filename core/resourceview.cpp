@@ -3,11 +3,14 @@
 #include "resourcetransform.h"
 #include "resourcepage.h"
 
+#include <QGraphicsItem>
 #include <QMetaMethod>
 
 char const * ResourceView::EXPORT_ATTR_TYPE = "rtype";
 char const * ResourceView::EXPORT_ATTR_FACTORY = "rfactory";
 
+static constexpr char const * SESSION_GROUP = "SESSION_GROUP";
+static constexpr char const * SESSION = "SESSION";
 
 ResourceView::ResourceView(Resource * res, Flags flags, Flags clearFlags)
     : res_(res)
@@ -41,8 +44,88 @@ void ResourceView::setIndependent(bool v)
     flags_.setFlag(Independent, v);
 }
 
+QByteArray ResourceView::sessionGroup()
+{
+    return res_->property(SESSION_GROUP).toByteArray();
+}
+
+void ResourceView::setSessionGroup(const QByteArray &session)
+{
+    flags_.setFlag(PersistSession);
+    res_->setProperty(SESSION_GROUP, session);
+}
+
+class ResourceSession
+{
+public:
+    ResourceSession() : view_(nullptr), item_(nullptr) {}
+    ResourceSession(ResourceView * view, QGraphicsItem * item)
+        : view_(view)
+        , item_(item)
+    {
+    }
+    ~ResourceSession()
+    {
+        delete detach();
+    }
+    void clear()
+    {
+        if (view_)
+            view_->saveSession(nullptr);
+        // here this is detroyed
+    }
+    QGraphicsItem* detach()
+    {
+        QGraphicsItem * item = item_;
+        view_ = nullptr;
+        item_ = nullptr;
+        return item;
+    }
+private:
+    ResourceView * view_;
+    QGraphicsItem * item_;
+};
+
+Q_DECLARE_METATYPE(QSharedPointer<ResourceSession>)
+
+static QMap<QByteArray, QWeakPointer<ResourceSession>> groupSessions;
+
+QGraphicsItem *ResourceView::loadSession()
+{
+    QSharedPointer<ResourceSession> session =
+            res_->property(SESSION).value<QSharedPointer<ResourceSession>>();
+    QGraphicsItem * item = session ? session->detach() : nullptr;
+    QByteArray group = sessionGroup();
+    if (!group.isEmpty()) {
+        QWeakPointer<ResourceSession> groupSession = groupSessions.take(group);
+        QSharedPointer<ResourceSession> groupSession2 = groupSession.toStrongRef();
+        if (groupSession2)
+            groupSession2->clear();
+    }
+    return item;
+}
+
+void ResourceView::saveSession(QGraphicsItem *item)
+{
+    if (item == nullptr) {
+        res_->setProperty(SESSION, QVariant());
+        return;
+    }
+    QSharedPointer<ResourceSession> session(new ResourceSession(this, item));
+    res_->setProperty(SESSION, QVariant::fromValue(session));
+    QByteArray group = sessionGroup();
+    if (!group.isEmpty()) {
+        QWeakPointer<ResourceSession> groupSession = groupSessions.take(group);
+        QSharedPointer<ResourceSession> groupSession2 = groupSession.toStrongRef();
+        if (groupSession2)
+            groupSession2->clear();
+        groupSessions.insert(group, session);
+    }
+}
+
 ResourceView::ResourceView(ResourceView const & o)
-    : res_(new Resource(*o.res_))
+    : ToolButtonProvider(o)
+    , res_(new Resource(*o.res_))
     , flags_(o.flags_)
     , name_(o.name_)
     , transform_(new ResourceTransform(*o.transform_, this))
@@ -50,8 +133,6 @@ ResourceView::ResourceView(ResourceView const & o)
     //flags_ &= ~SavedSession;
     res_->setParent(this);
     //transform_->translate({60, 60});
-    for (QByteArray & k : o.dynamicPropertyNames())
-        setProperty(k, o.property(k));
 }
 
 ResourceView * ResourceView::clone() const

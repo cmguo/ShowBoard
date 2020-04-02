@@ -11,6 +11,13 @@ ToolButtonProvider::ToolButtonProvider(QObject * parent)
 {
 }
 
+ToolButtonProvider::ToolButtonProvider(const ToolButtonProvider &o)
+    : LifeObject(o)
+    , followTrigger_(o.followTrigger_)
+{
+
+}
+
 ToolButtonProvider::~ToolButtonProvider()
 {
     for (ToolButton * btn : privateButtons_)

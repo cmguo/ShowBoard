@@ -40,7 +40,8 @@ Resource::Resource(QByteArray const & type, QUrl const & url)
 }
 
 Resource::Resource(Resource const & o)
-    : url_(o.url_)
+    : LifeObject(o)
+    , url_(o.url_)
     , type_(o.type_)
 {
 }

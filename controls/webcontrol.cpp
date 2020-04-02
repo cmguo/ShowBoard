@@ -117,6 +117,10 @@ QWidget * WebControl::createWidget(ResourceView * res)
 
 void WebControl::attached()
 {
+    if (flags_.testFlag(RestorePersisted)) {
+        loadFinished(true);
+        return;
+    }
     item_->setFlag(QGraphicsItem::ItemIsFocusable);
     QWebEngineView * view = qobject_cast<QWebEngineView *>(widget_);
     view->load(res_->resource()->url());

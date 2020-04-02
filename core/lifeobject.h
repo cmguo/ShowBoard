@@ -13,6 +13,8 @@ public:
     explicit LifeObject(QObject *parent = nullptr);
 
 protected:
+    LifeObject(LifeObject const & o);
+
     QWeakPointer<int> life();
 
 private:

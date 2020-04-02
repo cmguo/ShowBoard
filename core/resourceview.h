@@ -11,6 +11,7 @@
 class Resource;
 class ResourceTransform;
 class ResourcePage;
+class QGraphicsItem;
 
 class SHOWBOARD_EXPORT ResourceView : public ToolButtonProvider
 {
@@ -21,6 +22,7 @@ class SHOWBOARD_EXPORT ResourceView : public ToolButtonProvider
     Q_PROPERTY(QString name MEMBER name_)
 
     Q_PROPERTY(bool independent READ independent WRITE setIndependent)
+    Q_PROPERTY(QByteArray sessionGroup READ sessionGroup WRITE setSessionGroup)
 
 public:
     static char const * EXPORT_ATTR_TYPE;
@@ -51,6 +53,7 @@ public:
         VirtualPage = Independent | (1 << 11),
         LargeCanvas = Independent | (1 << 12),
         ListOfPages = Independent | (1 << 13),
+        PersistSession = 1 << 14,
         // States
         SavedSession = 1 << 16,
         DrawFinised = 1 << 17,
@@ -70,6 +73,14 @@ public:
     bool independent() const;
 
     void setIndependent(bool v);
+
+    QByteArray sessionGroup();
+
+    void setSessionGroup(QByteArray const & session);
+
+    QGraphicsItem* loadSession();
+
+    void saveSession(QGraphicsItem* item);
 
 public:
     virtual ResourceView * clone() const ;
