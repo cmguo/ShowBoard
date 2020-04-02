@@ -91,6 +91,8 @@ WebControl::WebControl(ResourceView * res)
 {
     setToolsString(toolstr);
     setMinSize({0.1, 0.1});
+    if (!res_->flags().testFlag(ResourceView::PersistSession))
+        res_->setSessionGroup(nullptr);
 }
 
 bool WebControl::fitToContent() const
