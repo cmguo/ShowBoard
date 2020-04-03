@@ -13,11 +13,8 @@
         <file>icon/erase.svg</file>
         <file>qml/WhiteCanvas.qml</file>
         <file>html/embed.htm</file>
-        <file>icon/close.png</file>
-        <file>icon/copy.png</file>
         <file>icon/top.svg</file>
         <file>icon/return.png</file>
-        <file>icon/drag.png</file>
         <file>qss/toolbar.qss</file>
         <file>qss/draw_finish.qss</file>
         <file>icon/error.network.svg</file>
@@ -34,5 +31,6 @@
         <file>icon/page.next.svg</file>
         <file>icon/page.prev.svg</file>
         <file>icon/page.loading.svg</file>
+        <file>icon/drag.png</file>
     </qresource>
 </RCC>

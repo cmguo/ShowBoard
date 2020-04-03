@@ -12,6 +12,7 @@
 class QLayout;
 class ToolButtonProvider;
 class QPushButton;
+class QssHelper;
 
 class SHOWBOARD_EXPORT ToolbarWidget : public QFrame
 {
@@ -35,6 +36,8 @@ public:
 
 public:
     void setButtonTemplate(int typeId);
+
+    void setStyleSheet(QssHelper const & style);
 
     void setPopupPosition(PopupPosition pos);
 
@@ -100,6 +103,8 @@ private:
 
 private:
     QMetaObject const * template_;
+    QSize iconSize_;
+    //
     QLayout * layout_;
     QMap<QWidget *, ToolButton *> buttons_;
     //

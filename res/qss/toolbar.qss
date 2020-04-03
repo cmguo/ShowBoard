@@ -2,13 +2,12 @@ QPushButton,.QLabel {
     color:#80ffffff;
     background-color:#00000000;
     border:none;
-    font-size:16pt;
+    font-size: 16pt; /* [size] */
     font-family:'Microsoft YaHei';
-    spacing:30px; /* [large] */
 }
 
 QPushButton {
-    qproperty-iconSize:32px 32px;
+    qproperty-iconSize: 32px 32px; /* [size] */
 }
 
 QPushButton:checked {

@@ -51,7 +51,7 @@ public:
     Q_DECLARE_FLAGS(Flags, Flag)
 
 public:
-    static QIcon makeIcon(QString const & iconString);
+    static QIcon makeIcon(QString const & iconString, QSize const & size);
 
     static QIcon makeIcon(QVariant& icon, QSize const & size, bool replace);
 

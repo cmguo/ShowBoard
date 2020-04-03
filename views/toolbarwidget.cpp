@@ -48,6 +48,13 @@ void ToolbarWidget::setButtonTemplate(int typeId)
         template_ = meta;
 }
 
+void ToolbarWidget::setStyleSheet(const QssHelper &style)
+{
+    QFrame::setStyleSheet(style);
+    QString iconSize = style.value("QPushButton", "qproperty-iconSize");
+    iconSize_ = QssHelper::sizeFromString(iconSize);
+}
+
 void ToolbarWidget::setPopupPosition(PopupPosition pos)
 {
     popupPosition_ = pos;
@@ -206,6 +213,7 @@ void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWi
                 ? qobject_cast<QPushButton *>(template_->newInstance())
                 : new QPushButton;
         btn->addAction(button);
+        btn->setIconSize(iconSize_);
         applyButton(btn, button);
         void (ToolbarWidget::*slot)() = &ToolbarWidget::buttonClicked;
         QObject::connect(btn, &QPushButton::clicked, this, slot);
@@ -237,7 +245,7 @@ void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWi
 void ToolbarWidget::applyButton(QPushButton * btn, ToolButton *button)
 {
     //btn->setIconSize(QSize(40,40));
-    btn->setIcon(button->getIcon());
+    btn->setIcon(button->getIcon(btn->iconSize()));
     btn->setText(((button->isPopup()) && !button->text().isEmpty())
                  ? button->text() + " ▼" : button->text());
     if (button->isCheckable()) {

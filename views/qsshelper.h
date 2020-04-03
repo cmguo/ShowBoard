@@ -15,21 +15,41 @@ public:
 public:
     static QString loadText(QString const & file);
 
-    static void applyValuesToAllStylesheet(QMap<QByteArray, QMap<QByteArray, QString>> styleValues);
+    static qreal sizeScale();
+
+    static qreal sizeScale(qreal size);
+
+    static int sizeScale(int size);
+
+    static int fontSizeScale(int size);
+
+    static QSize sizeFromString(QString const & size);
+
+    typedef QString (*StyleFunc)(QString const &);
+
+    // key/spec/value
+    static void setStyleSpecValues(QMap<QByteArray, QMap<QByteArray, QString>> styleValues);
+
+    // key/name/func
+    static void setStyleFunctions(QMap<QByteArray, QMap<QByteArray, StyleFunc>> styleFunctions);
+
+    static bool applyToAllStylesheet();
 
 public:
     void loadFromFile(QString const & file);
 
-    void loadFromString(QByteArray const & string);
+    void loadFromString(QString const & string);
 
     void loadFromData(QByteArray const & data);
 
 public:
     void setValue(QByteArray const & section, QByteArray const & key, QString const & value);
 
-    QString value(QByteArray const & section, QByteArray const & key);
+    QString value(QByteArray const & section, QByteArray const & key) const;
 
     void applyValues(QMap<QByteArray, QMap<QByteArray, QString>> styleValues);
+
+    void applyFunctions(QMap<QByteArray, QMap<QByteArray, StyleFunc>> styleFunctions);
 
 public:
     operator QString() const;

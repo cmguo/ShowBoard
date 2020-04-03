@@ -221,7 +221,7 @@ static QMap<QString, QIcon::Mode> IconModes = {
     {"selected", QIcon::Selected},
 };
 
-QIcon ToolButton::makeIcon(QString const & iconString)
+QIcon ToolButton::makeIcon(QString const & iconString, QSize const & size)
 {
     QStringList seps = iconString.split(",", QString::SkipEmptyParts);
     if (seps.empty())
@@ -243,6 +243,7 @@ QIcon ToolButton::makeIcon(QString const & iconString)
             }
             file = sep;
             pixmap.load(file);
+            pixmap = pixmap.scaled(size);
         } else {
             QString m = sep.left(n);
             QIcon::State s = QIcon::Off;
@@ -259,6 +260,7 @@ QIcon ToolButton::makeIcon(QString const & iconString)
                 int n1 = file.lastIndexOf('.');
                 file.replace(n1, 0, v);
                 pixmap.load(file);
+                pixmap = pixmap.scaled(size);
                 p = pixmap;
             } else {
                 p = pixmap;
@@ -277,7 +279,7 @@ QIcon ToolButton::makeIcon(QVariant& icon, QSize const & size, bool replace)
         return icon.value<QIcon>();
     else if (icon.type() == QVariant::String
              || icon.type() == QVariant::ByteArray)
-        result = makeIcon(icon.toString());
+        result = makeIcon(icon.toString(), size);
     else if (icon.type() == QVariant::Map) {
         QVariantMap icons = icon.toMap();
         for (QString k : icons.keys()) {
