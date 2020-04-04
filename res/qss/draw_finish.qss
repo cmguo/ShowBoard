@@ -1,6 +1,6 @@
 QPushButton,.QLabel {
     color:white;
-    font-size:16pt;
+    font-size:16pt; /* [size] */
     font-family:'Microsoft YaHei';
 }
 
@@ -10,8 +10,8 @@ QPushButton,.QLabel {
 }
 
 QPushButton {
-    border-radius:6px;
-    padding: 6px;
+    border-radius:6px; /* [size] */
+    padding: 6px; /* [size] */
     background-color: #5D6C85;
 }
 

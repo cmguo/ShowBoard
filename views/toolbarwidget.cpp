@@ -219,7 +219,8 @@ void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWi
         QObject::connect(btn, &QPushButton::clicked, this, slot);
         widget = btn;
     }
-    widget->setObjectName(button->name());
+    if (!button->isCustomWidget())
+        widget->setObjectName(button->name());
     QGridLayout *gridLayout = qobject_cast<QGridLayout*>(layout);
     if (gridLayout) {
         if (col == -1) {

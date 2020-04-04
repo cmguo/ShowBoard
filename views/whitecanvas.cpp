@@ -1,4 +1,5 @@
 #include "animcanvas.h"
+#include "qsshelper.h"
 #include "whitecanvas.h"
 
 #include "pagecanvas.h"
@@ -17,12 +18,17 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QGuiApplication>
 
+int WhiteCanvas::THUMBNAIL_HEIGHT = 108;
+
 WhiteCanvas::WhiteCanvas(QObject * parent)
     : QObject(parent)
     , package_(nullptr)
     , animCanvas_(nullptr)
     , loadingCount_(0)
 {
+    static int THUMBNAIL_HEIGHT2 = QssHelper::sizeScale(THUMBNAIL_HEIGHT);
+    THUMBNAIL_HEIGHT = THUMBNAIL_HEIGHT2;
+
     setAcceptedMouseButtons(Qt::LeftButton);
     //setFlags(ItemIsMovable);
     //setBrush(QBrush(Qt::green));

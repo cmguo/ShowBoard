@@ -39,7 +39,7 @@ static QMap<QByteArray, QMap<QByteArray, QString> > gStyleValues;
 static QMap<QByteArray, QMap<QByteArray, QssHelper::StyleFunc>> gStyleFunctions = {
     {"font-size", {{"size", &sizeScale}}},
     {"width", {{"size", &sizeScale}}},
-    {"heigth", {{"size", &sizeScale}}},
+    {"height", {{"size", &sizeScale}}},
     {"margin", {{"size", &sizeScale}}},
     {"border-radius", {{"size", &sizeScale}}},
     {"qproperty-iconSize", {{"size", &sizeScale2}}}

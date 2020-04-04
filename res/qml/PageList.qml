@@ -3,11 +3,13 @@ import QtQuick.Controls 2.5
 
 Rectangle {
 
+    property real sizeScale: 1.0
+
     id: pageList
-    y: 40
-    width: 248
-    height: 38 + (packageModel.pageCount < 4 ? packageModel.pageCount : 4) * 118
-    radius: 8
+    y: 40 * sizeScale
+    width: 248 * sizeScale
+    height: 38 * sizeScale + (packageModel.pageCount < 4 ? packageModel.pageCount : 4) * 118 * sizeScale
+    radius: 8 * sizeScale
     color: "#FFF9F9F9"
     opacity: 0
 
@@ -25,17 +27,17 @@ Rectangle {
             y = 0
         } else {
             opacity = 0
-            y = 40
+            y = 40 * sizeScale
         }
     }
 
     ListView {
         id: list
-        x: 4
-        y: 64
-        spacing: 40
-        width: parent.width - 8
-        height: parent.height - 38
+        x: 4 * sizeScale
+        y: 64 * sizeScale
+        spacing: 40 * sizeScale
+        width: parent.width - 8 * sizeScale
+        height: parent.height - 38 * sizeScale
         model: packageModel
         delegate: page
         contentY: 0
@@ -51,10 +53,10 @@ Rectangle {
             if (visible) {
                 list.positionViewAtIndex(packageModel.currentIndex, ListView.Center)
                 spacing = 0
-                y = 24
+                y = 24 * sizeScale
             } else {
-                spacing = 40
-                y = 64
+                spacing = 40 * sizeScale
+                y = 64 * sizeScale
             }
         }
 
@@ -70,44 +72,43 @@ Rectangle {
     Component {
         id: page
         Rectangle {
-            width: 240
-            height: 118
+            width: 240 * sizeScale
+            height: 118 * sizeScale
             color: "transparent"
 
             Rectangle {
-                x: 4
-                y: 4
-                width: 24
-                height: 21
+                x: 4 * sizeScale
+                y: 4 * sizeScale
+                width: 24 * sizeScale
+                height: 21 * sizeScale
                 color: index == packageModel.currentIndex ? "#FF008FFF" : "transparent"
-                radius: 4
+                radius: 4 * sizeScale
                 Text {
                     anchors.centerIn: parent
                     color: index == packageModel.currentIndex ? "white" : "black"
                     font.family: "Microsoft YaHei"
-                    font.pixelSize: 16
+                    font.pixelSize: 16 * sizeScale
                     text: index + 1
                 }
             }
 
             Rectangle {
-                x: 32
-                y: 5
-                width: 192
-                height: 108
-                radius: 4
+                x: 32 * sizeScale
+                y: 5 * sizeScale
+                width: 192 * sizeScale
+                height: 108 * sizeScale
+                radius: 4 * sizeScale
                 color: "#1B2526"
 
                 Image {
-                    width: 192
-                    height: 108
+                    anchors.fill: parent
                     id: thumbnail
                     cache: false
                     source: "image://resource/" + thumb
 
                     Rectangle {
                         anchors.fill: parent
-                        radius: 4
+                        radius: 4 * sizeScale
                         color: "transparent"
                         border.width: index == packageModel.currentIndex ? 3 : 1
                         border.color: index == packageModel.currentIndex ? "#FF008FFF" : "#1E3232"
