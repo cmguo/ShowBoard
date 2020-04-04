@@ -30,23 +30,23 @@ public:
      */
     virtual ResourceView * create(Resource * res) = 0;
 
-    virtual QUrl newUrl(QString const & type) const = 0;
+    virtual QUrl newUrl(QByteArray const & type) const = 0;
 
 public slots:
     void onComposition();
 
 public:
-    QList<QString> resourceTypes() const;
+    QList<QByteArray> resourceTypes() const;
 
 protected:
     /*
      * create resource of type @type under (group by) this factory
      */
-    ResourceView * create(Resource * res, QString const & type);
+    ResourceView * create(Resource * res, QByteArray const & type);
 
 private:
     std::vector<QLazy> resource_types_;
-    QMap<QString, QLazy *> resources_;
+    QMap<QByteArray, QLazy *> resources_;
 };
 
 /*

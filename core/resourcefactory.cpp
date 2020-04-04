@@ -12,23 +12,23 @@ ResourceFactory::ResourceFactory(QObject *parent)
 void ResourceFactory::onComposition()
 {
     for (auto & r : resource_types_) {
-        QString types = r.part()->attr(ResourceView::EXPORT_ATTR_TYPE);
-        for (auto t : types.split(",", QString::SkipEmptyParts)) {
+        QByteArray types = r.part()->attr(ResourceView::EXPORT_ATTR_TYPE);
+        for (auto t : types.split(',')) {
             resources_[t] = &r;
         }
     }
 }
 
-ResourceView * ResourceFactory::create(Resource *res, const QString &type)
+ResourceView * ResourceFactory::create(Resource *res, const QByteArray &type)
 {
-    QString type1(type);
-    QString type2;
+    QByteArray type1(type);
+    QByteArray type2;
     int n = type.indexOf('.');
     if (n > 0) {
         type1 = type.left(n);
         type2 = type.mid(n + 1);
     }
-    QMap<QString, QLazy*>::iterator iter = resources_.find(type1);
+    QMap<QByteArray, QLazy*>::iterator iter = resources_.find(type1);
     if (iter == resources_.end()) {
         return nullptr;
     }
@@ -38,7 +38,7 @@ ResourceView * ResourceFactory::create(Resource *res, const QString &type)
     return iter.value()->create<ResourceView>(Q_ARG(Resource *, res));
 }
 
-QList<QString> ResourceFactory::resourceTypes() const
+QList<QByteArray> ResourceFactory::resourceTypes() const
 {
     return resources_.keys();
 }
