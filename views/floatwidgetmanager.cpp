@@ -52,6 +52,9 @@ void FloatWidgetManager::addWidget(QWidget *widget, Flags flags)
     //widget->show();
     connect(widget, &QObject::destroyed, this, &FloatWidgetManager::removeDestroyWidget);
     widgets_.append(widget);
+    if (!modifiedStates_.empty()) {
+        modifiedStates_.back() |= 1 << widgets_.indexOf(widget);
+    }
 }
 
 void FloatWidgetManager::addWidget(QWidget *widget, ToolButton *attachButton, Flags flags)
@@ -78,6 +81,9 @@ void FloatWidgetManager::removeWidget(QWidget *widget)
     for (int & state : saveStates_) {
         state = (state & mask1) | ((state & mask2) >> 1);
     }
+    for (int & state : modifiedStates_) {
+        state = (state & mask1) | ((state & mask2) >> 1);
+    }
 }
 
 void FloatWidgetManager::raiseWidget(QWidget *widget)
@@ -96,6 +102,9 @@ void FloatWidgetManager::raiseWidget(QWidget *widget)
     for (int & state : saveStates_) {
         state = (state & mask1) | ((state & mask2) >> 1) | ((state & mask3) << n);
     }
+    for (int & state : modifiedStates_) {
+        state = (state & mask1) | ((state & mask2) >> 1) | ((state & mask3) << n);
+    }
     widgets_.append(widget);
 }
 
@@ -112,6 +121,9 @@ void FloatWidgetManager::lowerWidget(QWidget *widget)
     int mask2 = static_cast<int>(uint(-1) << (n + 1));
     int mask3 = 1 << n;
     for (int & state : saveStates_) {
+        state = ((state & mask1) >> 1) | (state & mask2) | ((state & mask3) >> n);
+    }
+    for (int & state : modifiedStates_) {
         state = ((state & mask1) >> 1) | (state & mask2) | ((state & mask3) >> n);
     }
     widgets_.prepend(widget);
@@ -134,6 +146,7 @@ void FloatWidgetManager::saveVisibility()
     }
     qDebug() << "FloatWidgetManager::saveVisibility" << state;
     saveStates_.append(state);
+    modifiedStates_.append(0);
 }
 
 void FloatWidgetManager::showWidget(QWidget *widget)
@@ -166,9 +179,10 @@ void FloatWidgetManager::hideAll(QWidget* except)
 void FloatWidgetManager::restoreVisibility()
 {
     int state = saveStates_.takeLast();
+    int modifiedState = modifiedStates_.takeLast();
     int mask = 1;
     for (QWidget * w : widgets_) {
-        if (w->isVisible() != ((state & mask) != 0)) {
+        if ((modifiedState & mask) == 0 && w->isVisible() != ((state & mask) != 0)) {
             qDebug() << "FloatWidgetManager::restoreVisibility" << w << !w->isVisible();
             w->setVisible(state & mask);
         }
@@ -220,6 +234,9 @@ bool FloatWidgetManager::eventFilter(QObject *watched, QEvent *event)
     QWidget * widget = qobject_cast<QWidget*>(watched);
     Flags flags = widgetFlags_.value(widget);
     if (event->type() == QEvent::Show) {
+        if (!modifiedStates_.empty()) {
+            modifiedStates_.back() |= 1 << widgets_.indexOf(widget);
+        }
         if (flags.testFlag(RaiseOnFocus)) {
             widget->setFocus();
         } else {
@@ -233,6 +250,7 @@ bool FloatWidgetManager::eventFilter(QObject *watched, QEvent *event)
         if (flags.testFlag(HideOthersOnShow)) {
             saveVisibility();
             saveStates_.back() &= ~(1 << widgets_.indexOf(widget));
+            modifiedStates_.back() |= 1 << widgets_.indexOf(widget);
             hideAll(widget);
         }
         if (flags.testFlag(DisableActionsOnShow)) {
@@ -240,6 +258,9 @@ bool FloatWidgetManager::eventFilter(QObject *watched, QEvent *event)
             disableActions();
         }
     } else if (event->type() == QEvent::Hide) {
+        if (!modifiedStates_.empty()) {
+            modifiedStates_.back() |= 1 << widgets_.indexOf(widget);
+        }
         if (flags.testFlag(DisableActionsOnShow)) {
             restoreActionState();
         }
