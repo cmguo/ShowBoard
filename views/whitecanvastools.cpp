@@ -122,9 +122,10 @@ void WhiteCanvasTools::update()
     getToolButtons(buttons);
     int total = canvas_->package()->pageCount();
     int index = canvas_->package()->currentIndex();
-    buttons[1]->setEnabled(index > 0);
+    bool isVirtual = canvas_->package()->currentPage() && canvas_->package()->currentPage()->isVirtualPage();
+    buttons[1]->setEnabled(!isVirtual && index > 0);
     buttons[2]->setIconText(QString("%1/%2").arg(index + 1).arg(total));
-    buttons[3]->setEnabled(index + 1 < total);
+    buttons[3]->setEnabled(!isVirtual && index + 1 < total);
 }
 
 class ResourceImageProvider : public QQuickImageProvider

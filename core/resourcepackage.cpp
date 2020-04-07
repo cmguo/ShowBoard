@@ -47,7 +47,7 @@ ResourcePage *ResourcePackage::newPage(int index, ResourceView * mainRes)
 
 ResourcePage * ResourcePackage::currentPage() const
 {
-    return visiblePages_.empty() ? (pages_.empty() ? nullptr : pages_[current_])
+    return visiblePages_.empty() ? (current_ < 0 ? nullptr : pages_[current_])
                                  : visiblePages_.back();
 }
 
