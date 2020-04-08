@@ -31,6 +31,8 @@ FloatWidgetManager::FloatWidgetManager(QWidget *main)
     : QObject(main)
     , main_(main)
     , taskBar_(nullptr)
+    , restoring_(false)
+    , disableActions_(0)
 {
     for (QObject * c : main->children())
         if (c->isWidgetType())
@@ -51,9 +53,11 @@ void FloatWidgetManager::addWidget(QWidget *widget, Flags flags)
     setWidgetFlags2(widget, flags);
     //widget->show();
     connect(widget, &QObject::destroyed, this, &FloatWidgetManager::removeDestroyWidget);
+    int n = widgets_.size();
+    qDebug() << "FloatWidgetManager::addWidget at" << n << widget;
     widgets_.append(widget);
     if (!modifiedStates_.empty()) {
-        modifiedStates_.back() |= 1 << widgets_.indexOf(widget);
+        modifiedStates_.back() |= 1 << n;
     }
 }
 
@@ -77,7 +81,8 @@ void FloatWidgetManager::removeWidget(QWidget *widget)
     widgets_.removeOne(widget);
     widgetFlags_.remove(widget);
     int mask1 = (1 << n) - 1;
-    int mask2 = static_cast<int>(uint(-1) << (n + 1));
+    int mask2 = ((1 << (widgets_.size() - n)) - 1) << (n + 1);
+    qDebug() << "FloatWidgetManager::removeWidget at" << n << widget << mask1 << mask2;
     for (int & state : saveStates_) {
         state = (state & mask1) | ((state & mask2) >> 1);
     }
@@ -88,6 +93,8 @@ void FloatWidgetManager::removeWidget(QWidget *widget)
 
 void FloatWidgetManager::raiseWidget(QWidget *widget)
 {
+    if (restoring_)
+        return;
     int n = widgets_.indexOf(widget);
     if (n < 0)
         return;
@@ -96,20 +103,23 @@ void FloatWidgetManager::raiseWidget(QWidget *widget)
         return;
     widgets_.removeAt(n);
     int mask1 = (1 << n) - 1;
-    int mask2 = static_cast<int>(uint(-1) << (n + 1));
-    int mask3 = 1 << n;
+    int mask2 = 1 << n;
+    int mask3 = ((1 << (widgets_.size() - n)) - 1) << (n + 1);
+    qDebug() << "FloatWidgetManager::raiseWidget at" << n << widget << mask1 << mask2 << mask3;
     n = widgets_.size() - n;
     for (int & state : saveStates_) {
-        state = (state & mask1) | ((state & mask2) >> 1) | ((state & mask3) << n);
+        state = (state & mask1) | ((state & mask2) << n) | ((state & mask3) >> 1);
     }
     for (int & state : modifiedStates_) {
-        state = (state & mask1) | ((state & mask2) >> 1) | ((state & mask3) << n);
+        state = (state & mask1) | ((state & mask2) << n) | ((state & mask3) >> 1);
     }
     widgets_.append(widget);
 }
 
 void FloatWidgetManager::lowerWidget(QWidget *widget)
 {
+    if (restoring_)
+        return;
     int n = widgets_.indexOf(widget);
     if (n < 0)
         return;
@@ -118,13 +128,14 @@ void FloatWidgetManager::lowerWidget(QWidget *widget)
     widget->stackUnder(widgets_[1]);
     widgets_.removeAt(n);
     int mask1 = (1 << n) - 1;
-    int mask2 = static_cast<int>(uint(-1) << (n + 1));
-    int mask3 = 1 << n;
+    int mask2 = 1 << n;
+    int mask3 = ((1 << (widgets_.size() - n)) - 1) << (n + 1);
+    qDebug() << "FloatWidgetManager::lowerWidget at" << n << widget << mask1 << mask2 << mask3;
     for (int & state : saveStates_) {
-        state = ((state & mask1) >> 1) | (state & mask2) | ((state & mask3) >> n);
+        state = ((state & mask1) >> 1) | ((state & mask2) >> n) | (state & mask3);
     }
     for (int & state : modifiedStates_) {
-        state = ((state & mask1) >> 1) | (state & mask2) | ((state & mask3) >> n);
+        state = ((state & mask1) >> 1) | ((state & mask2) >> n) | (state & mask3);
     }
     widgets_.prepend(widget);
 }
@@ -180,7 +191,9 @@ void FloatWidgetManager::restoreVisibility()
 {
     int state = saveStates_.takeLast();
     int modifiedState = modifiedStates_.takeLast();
+    qDebug() << "FloatWidgetManager::restoreVisibility" << state << modifiedState;
     int mask = 1;
+    restoring_ = true;
     for (QWidget * w : widgets_) {
         if ((modifiedState & mask) == 0 && w->isVisible() != ((state & mask) != 0)) {
             qDebug() << "FloatWidgetManager::restoreVisibility" << w << !w->isVisible();
@@ -188,6 +201,7 @@ void FloatWidgetManager::restoreVisibility()
         }
         mask <<= 1;
     }
+    restoring_ = false;
 }
 
 void FloatWidgetManager::saveActionState()
@@ -234,6 +248,7 @@ bool FloatWidgetManager::eventFilter(QObject *watched, QEvent *event)
     QWidget * widget = qobject_cast<QWidget*>(watched);
     Flags flags = widgetFlags_.value(widget);
     if (event->type() == QEvent::Show) {
+        qDebug() << "FloatWidgetManager::eventFilter show" << widget;
         if (!modifiedStates_.empty()) {
             modifiedStates_.back() |= 1 << widgets_.indexOf(widget);
         }
@@ -249,15 +264,16 @@ bool FloatWidgetManager::eventFilter(QObject *watched, QEvent *event)
         }
         if (flags.testFlag(HideOthersOnShow)) {
             saveVisibility();
-            saveStates_.back() &= ~(1 << widgets_.indexOf(widget));
-            modifiedStates_.back() |= 1 << widgets_.indexOf(widget);
             hideAll(widget);
+            // modifiedState is modified by hideAll, restore it
+            modifiedStates_.back() = 1 << widgets_.indexOf(widget);
         }
         if (flags.testFlag(DisableActionsOnShow)) {
             saveActionState();
             disableActions();
         }
     } else if (event->type() == QEvent::Hide) {
+        qDebug() << "FloatWidgetManager::eventFilter hide" << widget;
         if (!modifiedStates_.empty()) {
             modifiedStates_.back() |= 1 << widgets_.indexOf(widget);
         }

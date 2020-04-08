@@ -107,6 +107,7 @@ private:
     QMap<QWidget*, Flags> widgetFlags_;
     QList<int> saveStates_;
     QList<int> modifiedStates_;
+    bool restoring_;
     int disableActions_;
     QList<int> saveActionStates_;
 };
