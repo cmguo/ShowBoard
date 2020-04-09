@@ -176,7 +176,7 @@ void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos, bool f
                     selectControl_ = ct;
                     selectControl_->select(true);
                 } else {
-                    type_ = AgainNoMove;
+                    type_ = selBox_->isVisible() ? Translate : AgainNoMove;
                 }
                 if (autoTop_) {
                     selectControl_->resource()->moveTop();

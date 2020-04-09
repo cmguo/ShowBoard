@@ -110,9 +110,9 @@ SelectBox::SelectBox(QGraphicsItem * parent)
     bottom_->setPen(pen1);
 
     setPen(QPen(Qt::white, 2));
-    setBrush(QColor("#40808080"));
+    //setBrush(QColor("#40808080"));
     //setOpacity(1.0);
-    setCursor(Qt::SizeAllCursor);
+    //setCursor(Qt::SizeAllCursor);
 }
 
 void SelectBox::setRect(QRectF const & rect)
@@ -179,9 +179,9 @@ int SelectBox::hitTest(const QPointF &pos, QRectF &direction)
                            0, pos.y() < 0 ? -1 : 1);
         return 2;
     }
-    if (contains(pos)) {
-        return 1;
-    }
+    //if (contains(pos)) {
+    //    return 1;
+    //}
     return 0;
 }
 
