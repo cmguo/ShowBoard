@@ -72,7 +72,7 @@ public:
 
     Q_ENUM(SelectMode)
 
-    static char const * EXPORT_ATTR_TYPE;
+    static char const * const EXPORT_ATTR_TYPE;
 
 protected:
     static constexpr int ITEM_KEY_CONTROL = 1000;

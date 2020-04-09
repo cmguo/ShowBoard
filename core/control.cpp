@@ -23,7 +23,7 @@
 
 #include <math.h>
 
-char const * Control::EXPORT_ATTR_TYPE = "ctrl_type";
+char const * const Control::EXPORT_ATTR_TYPE = "ctrl_type";
 
 static qreal MIN_SIZE = 120.0;
 static qreal MAX_SIZE = 4096.0;

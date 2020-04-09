@@ -31,8 +31,8 @@ ControlManager::ControlManager(QObject *parent)
 void ControlManager::onComposition()
 {
     for (auto & r : control_types_) {
-        QString types = r.part()->attr(Control::EXPORT_ATTR_TYPE);
-        for (auto t : types.split(",", QString::SkipEmptyParts)) {
+        QByteArray types = r.part()->attr(Control::EXPORT_ATTR_TYPE);
+        for (auto t : types.split(',')) {
             controls_[t] = &r;
         }
     }
@@ -40,7 +40,7 @@ void ControlManager::onComposition()
 
 Control * ControlManager::createControl(ResourceView * res)
 {
-    std::map<QString, QLazy *>::iterator iter = controls_.find(res->resource()->type());
+    std::map<QByteArray, QLazy *>::iterator iter = controls_.find(res->resource()->type());
     if (iter == controls_.end())
         return new UnknownControl(res);
     return iter->second->create<Control>(Q_ARG(ResourceView*, res));

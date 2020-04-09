@@ -25,8 +25,8 @@ class SHOWBOARD_EXPORT ResourceView : public ToolButtonProvider
     Q_PROPERTY(QByteArray sessionGroup READ sessionGroup WRITE setSessionGroup)
 
 public:
-    static char const * EXPORT_ATTR_TYPE;
-    static char const * EXPORT_ATTR_FACTORY;
+    static char const * const EXPORT_ATTR_TYPE;
+    static char const * const EXPORT_ATTR_FACTORY;
 
 public:
     enum Flag {

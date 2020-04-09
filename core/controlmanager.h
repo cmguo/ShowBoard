@@ -32,7 +32,7 @@ public slots:
 
 private:
     std::vector<QLazy> control_types_;
-    std::map<QString, QLazy *> controls_;
+    std::map<QByteArray, QLazy *> controls_;
 };
 
 #endif // CONTROLMANAGER_H

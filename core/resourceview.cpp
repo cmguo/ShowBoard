@@ -6,8 +6,8 @@
 #include <QGraphicsItem>
 #include <QMetaMethod>
 
-char const * ResourceView::EXPORT_ATTR_TYPE = "rtype";
-char const * ResourceView::EXPORT_ATTR_FACTORY = "rfactory";
+char const * const ResourceView::EXPORT_ATTR_TYPE = "rtype";
+char const * const ResourceView::EXPORT_ATTR_FACTORY = "rfactory";
 
 static constexpr char const * SESSION_GROUP = "SESSION_GROUP";
 static constexpr char const * SESSION = "SESSION";
