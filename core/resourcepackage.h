@@ -77,6 +77,8 @@ signals:
 
     void pageCountChanged(int count);
 
+    void currentSubPageChanged(ResourcePage* page);
+
 public:
     ResourcePage * newVirtualPage(ResourceView* mainRes = nullptr);
 

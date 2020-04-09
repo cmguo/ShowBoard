@@ -230,6 +230,23 @@ void ResourcePage::switchSubPage(int nPage)
     }
     currentSubPage_ = subPages_[nPage];
     emit currentSubPageChanged(currentSubPage_);
+    ResourcePage * page = this;
+    while (page) {
+        ResourcePackage * pkg = qobject_cast<ResourcePackage*>(page->parent());
+        if (pkg) {
+            if (pkg->currentPage() == page) {
+                ResourcePage * page = currentSubPage_;
+                while (page->currentSubPage_) page = page->currentSubPage_;
+                emit pkg->currentSubPageChanged(page);
+            }
+            break;
+        } else {
+            ResourcePage * pge = qobject_cast<ResourcePage*>(page->parent());
+            if (pge->currentSubPage_ != page)
+                break;
+            page = pge;
+        }
+    }
 }
 
 bool ResourcePage::isIndependentPage() const
