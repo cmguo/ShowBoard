@@ -179,9 +179,9 @@ int SelectBox::hitTest(const QPointF &pos, QRectF &direction)
                            0, pos.y() < 0 ? -1 : 1);
         return 2;
     }
-    //if (contains(pos)) {
-    //    return 1;
-    //}
+    if (contains(pos)) {
+        return 1;
+    }
     return 0;
 }
 

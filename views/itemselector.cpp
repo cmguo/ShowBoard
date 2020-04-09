@@ -139,6 +139,8 @@ void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos, bool f
         if (type_ == None && fromTouch) { // maybe hit menu bar
             return;
         }
+        if (type_ == Translate && !selectControl_->flags().testFlag(Control::ShowSelectMask))
+            type_ = None;
     }
     if (type_ == None) {
         QList<QGraphicsItem*> items = scene()->items(scenePos);

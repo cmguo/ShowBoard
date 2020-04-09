@@ -50,13 +50,14 @@ public:
         Touchable = 1 << 12,
         ImpliedEditable = 1 << 13, // for geometry
         FixedOnCanvas = 1 << 14,
+        ShowSelectMask = 1 << 15,
         // States
-        Loading = 1 << 16,
-        LoadFinished = 1 << 17,
-        RestoreSession = 1 << 18,
-        Selected = 1 << 19,
-        Adjusting = 1 << 20,
-        RestorePersisted = 1 << 21,
+        Loading = 1 << 24,
+        LoadFinished = 1 << 25,
+        RestoreSession = 1 << 26,
+        Selected = 1 << 27,
+        Adjusting = 1 << 28,
+        RestorePersisted = 1 << 29,
     };
 
     Q_DECLARE_FLAGS(Flags, Flag)
