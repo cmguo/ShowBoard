@@ -108,6 +108,7 @@ private:
     QList<int> saveStates_;
     QList<int> modifiedStates_;
     bool restoring_;
+    bool mainHidden_;
     int disableActions_;
     QList<int> saveActionStates_;
 };

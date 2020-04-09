@@ -32,6 +32,7 @@ FloatWidgetManager::FloatWidgetManager(QWidget *main)
     , main_(main)
     , taskBar_(nullptr)
     , restoring_(false)
+    , mainHidden_(false)
     , disableActions_(0)
 {
     for (QObject * c : main->children())
@@ -39,6 +40,7 @@ FloatWidgetManager::FloatWidgetManager(QWidget *main)
             widgetOn_ = qobject_cast<QWidget*>(c);
     connect(qobject_cast<QApplication*>(QApplication::instance()), &QApplication::focusChanged,
             this, &FloatWidgetManager::focusChanged);
+    main_->installEventFilter(this);
 }
 
 void FloatWidgetManager::setTaskBar(QWidget *bar, int disableActions)
@@ -243,8 +245,15 @@ void FloatWidgetManager::restoreActionState()
 
 bool FloatWidgetManager::eventFilter(QObject *watched, QEvent *event)
 {
-    if (!main_->isActiveWindow())
+    if (watched == main_) {
+        if (event->type() == QEvent::Show)
+            mainHidden_ = false;
+        else if (event->type() == QEvent::Hide)
+            mainHidden_ = true;
         return false;
+    } else if (mainHidden_) {
+        return false;
+    }
     QWidget * widget = qobject_cast<QWidget*>(watched);
     Flags flags = widgetFlags_.value(widget);
     if (event->type() == QEvent::Show) {
@@ -273,6 +282,10 @@ bool FloatWidgetManager::eventFilter(QObject *watched, QEvent *event)
             disableActions();
         }
     } else if (event->type() == QEvent::Hide) {
+        if (watched == main_) {
+            qDebug() << "FloatWidgetManager::eventFilter main hide";
+            return false;
+        }
         qDebug() << "FloatWidgetManager::eventFilter hide" << widget;
         if (!modifiedStates_.empty()) {
             modifiedStates_.back() |= 1 << widgets_.indexOf(widget);
