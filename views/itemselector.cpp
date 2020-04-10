@@ -2,6 +2,7 @@
 #include "core/control.h"
 #include "core/resourceview.h"
 #include "core/controltransform.h"
+#include "core/resourcetransform.h"
 #include "toolbarwidget.h"
 #include "whitecanvas.h"
 #include "selectbox.h"
@@ -25,7 +26,7 @@ ItemSelector::ItemSelector(QGraphicsItem * parent)
     , select_(nullptr)
     , selectControl_(nullptr)
     , selBoxTransform_(new ControlTransform(ControlTransform::SelectBox))
-    , selBoxCanvasTransform_(new ControlTransform(ControlTransform::InvertScaleTranslate))
+    , selBoxCanvasTransform_(new ControlTransform(ControlTransform::SelectBoxLargeCanvas))
     , toolBarTransform_(new ControlTransform(ControlTransform::LargeCanvasTooBar))
     , cloneControl_(nullptr)
     , type_(None)
@@ -46,7 +47,7 @@ ItemSelector::ItemSelector(QGraphicsItem * parent)
     toolBar_ = proxy;
     toolBar_->setTransformations({toolBarTransform_});
     toolBar_->hide();
-    QObject::connect(toolBar, &ToolbarWidget::sizeChanged, [this](QSizeF const &) {
+    QObject::connect(toolBar, &ToolbarWidget::sizeChanged, [this]() {
         layoutToolbar();
     });
 }
@@ -70,6 +71,8 @@ void ItemSelector::select(QGraphicsItem *item)
             if (selectControl_->flags().testFlag(Control::FixedOnCanvas))
                 selBoxCanvasTransform_->attachTo(canvasControl->transform());
             toolBarTransform_->attachTo(canvasControl->transform());
+            QObject::connect(&canvasControl->resource()->transform(), &ResourceTransform::changed, toolBar(),
+                             [this]() { layoutToolbar(); });
         }
         toolBar()->setToolButtons(buttons);
         layoutToolbar();
@@ -89,6 +92,10 @@ void ItemSelector::select(QGraphicsItem *item)
         selBoxCanvasTransform_->attachTo(nullptr);
         toolBarTransform_->attachTo(nullptr);
         selectControl_ = nullptr;
+        Control * canvasControl = Control::fromItem(parentItem());
+        if (canvasControl) {
+            canvasControl->resource()->transform().disconnect(toolBar());
+        }
         selBox_->setVisible(false);
         toolBar_->hide();
         toolBar()->clear();
@@ -200,7 +207,8 @@ void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos, bool f
         //    type_ = Canvas;
         //}
     } else {
-        if (selectControl_->metaObject() == &WhiteCanvasControl::staticMetaObject)
+        if (selectControl_->metaObject() == &WhiteCanvasControl::staticMetaObject
+                || (selectControl_->flags() & Control::FixedOnCanvas))
             start_ = scenePos;
         qInfo() << "select" << type_ << selectControl_->resource()->url();
         selectControl_->adjusting(true);
@@ -210,7 +218,8 @@ void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos, bool f
 void ItemSelector::selectMove(QPointF const & pos, QPointF const & scenePos)
 {
     QPointF pt = pos;
-    if (selectControl_->metaObject() == &WhiteCanvasControl::staticMetaObject)
+    if (selectControl_->metaObject() == &WhiteCanvasControl::staticMetaObject
+            || (selectControl_->flags() & Control::FixedOnCanvas))
         pt = scenePos;
     if (!scene()->sceneRect().contains(scenePos))
         return;
