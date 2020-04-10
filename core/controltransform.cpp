@@ -59,57 +59,60 @@ void ControlTransform::applyTo(QMatrix4x4 *matrix) const
     case Identity:
         break;
     case Translate:
-        *matrix *= transform_->translate().toAffine();
+        *matrix = matrix->toTransform() * transform_->translate();
         break;
     case Rotate:
-        *matrix *= transform_->rotate().toAffine();
+        *matrix = matrix->toTransform() * transform_->rotate();
         break;
     case RotateTranslate: // Frame
-        *matrix *= transform_->rotateTranslate().toAffine();
+        *matrix = matrix->toTransform() * transform_->rotateTranslate();
         break;
     case Scale: // FrameItem
-        *matrix *= transform_->scale().toAffine();
+        *matrix = matrix->toTransform() * transform_->scale();
         break;
     case ScaleTranslate:
-        *matrix *= (transform_->scale() * transform_->translate()).toAffine();
+        *matrix = matrix->toTransform() * (transform_->scale() * transform_->translate());
         break;
     case ScaleRotate:
-        *matrix *= transform_->scaleRotate().toAffine();
+        *matrix = matrix->toTransform() * transform_->scaleRotate();
         break;
     case ScaleRotateTranslate: // PureItem
-        *matrix *= transform_->transform().toAffine();
+        *matrix = matrix->toTransform() * transform_->transform();
         break;
     case NoInvert:
          break;
     case InvertTranslate:
-        *matrix *= transform_->translate().inverted().toAffine();
+        *matrix = matrix->toTransform() * transform_->translate().inverted();
         break;
     case InvertRotate:
-        *matrix *= transform_->rotate().inverted().toAffine();
+        *matrix = matrix->toTransform() * transform_->rotate().inverted();
         break;
     case InvertRotateTranslate:
-        *matrix *= transform_->rotateTranslate().inverted().toAffine();
+        *matrix = matrix->toTransform() * transform_->rotateTranslate().inverted();
         break;
     case InvertScale:
-        *matrix *= transform_->scale().inverted().toAffine();
+        *matrix = matrix->toTransform() * transform_->scale().inverted();
         break;
     case InvertScaleTranslate:
-        if (transform_)
-            *matrix *= (transform_->scale() * transform_->translate()).inverted().toAffine();
+        *matrix = matrix->toTransform() * (transform_->scale() * transform_->translate()).inverted();
         break;
     case InvertScaleRotate:
-        *matrix *= transform_->scaleRotate().inverted().toAffine();
+        *matrix = matrix->toTransform() * transform_->scaleRotate().inverted();
         break;
     case InvertScaleRotateTranslate:
-        *matrix *= transform_->transform().inverted().toAffine();
+        *matrix = matrix->toTransform() * transform_->transform().inverted();
         break;
     case SelectBox:
         if (transform_)
-            *matrix *= transform_->rotateTranslate().toAffine();
+            *matrix = matrix->toTransform() * transform_->rotateTranslate();
         break;
     case LargeCanvasTooBar:
         if (transform_)
-            *matrix *= transform_->scale().inverted().toAffine();
+            *matrix = matrix->toTransform() * transform_->scale().inverted();
+        break;
+    case SelectBoxLargeCanvas:
+        if (transform_)
+            *matrix = matrix->toTransform() * transform_->transform().inverted();
         break;
     }
 }

@@ -33,6 +33,7 @@ public:
         Frame = RotateTranslate,
         SelectBox = 16 | RotateTranslate, // nullable
         LargeCanvasTooBar = 16 | InvertScale, // nullable
+        SelectBoxLargeCanvas = 16 | InvertScaleRotateTranslate, // nullable
     };
 
 public:
