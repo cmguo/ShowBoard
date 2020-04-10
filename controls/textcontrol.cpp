@@ -7,7 +7,7 @@
 #include <QScrollBar>
 
 TextControl::TextControl(ResourceView * res)
-    : WidgetControl(res, {WithSelectBar, ExpandScale, LayoutScale})
+    : WidgetControl(res, {WithSelectBar, ExpandScale, LayoutScale, FixedOnCanvas})
 {
     setMinSize({0.1, 0.1});
 }

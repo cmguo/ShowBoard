@@ -54,6 +54,9 @@ Control::Control(ResourceView *res, Flags flags, Flags clearFlags)
         flags_.setFlag(CanSelect, false);
         flags_.setFlag(CanRotate, false);
     }
+    if (flags_.testFlag(FullLayout)) {
+        flags_.setFlag(FixedOnCanvas, false);
+    }
     transform_ = new ControlTransform(res->transform());
     if (res_->flags() & ResourceView::SavedSession) {
         flags_ |= RestoreSession;
@@ -138,7 +141,7 @@ void Control::attachTo(QGraphicsItem * parent, QGraphicsItem * before)
     Control * canvasControl = fromItem(parent->parentItem());
     if (canvasControl && flags_.testFlag(FixedOnCanvas)) {
         ControlTransform * t = new ControlTransform(
-                    static_cast<ControlTransform*>(canvasControl->transform_), true, false, true);
+                    static_cast<ControlTransform*>(canvasControl->transform_), true, true, true);
         QList<QGraphicsTransform*> transforms = realItem_->transformations();
         transforms.append(t);
         realItem_->setTransformations(transforms);
@@ -441,13 +444,19 @@ void Control::initPosition()
     if (flags_ & (FullLayout | RestoreSession))
         return;
     QGraphicsItem *parent = realItem_->parentItem();
-    QRectF rect = whiteCanvas()->rect();
+    QRectF rect = parent->boundingRect();
+    // in large canvas, use visible rect of canvas
     Control * canvasControl = fromItem(whiteCanvas());
     if (canvasControl) {
+        QPointF center = rect.center();
         rect = parent->mapFromScene(parent->scene()->sceneRect()).boundingRect();
-        if (!(flags_ & (AutoPosition | FixedOnCanvas)))
+        if (flags_.testFlag(FixedOnCanvas))
+            rect.moveCenter(center);
+        if (!(flags_ & AutoPosition))
             res_->transform().translate(rect.center());
     }
+    // if has frame and if item is not at center of frame,
+    //  there will be a little offset, fix it here
     if (!(flags_ & AutoPosition)) {
         if (frame) {
             res_->transform().translate(-frame->padding().center());

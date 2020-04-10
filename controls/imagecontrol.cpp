@@ -44,7 +44,7 @@ private:
 };
 
 ImageControl::ImageControl(ResourceView * res, Flags flags, Flags clearFlags)
-    : Control(res, flags | Flags{KeepAspectRatio, FullSelect}, clearFlags)
+    : Control(res, flags | Flags{KeepAspectRatio, FullSelect, FixedOnCanvas}, clearFlags)
     , mipmap_(0)
 {
     setMinSize({0.1, 0});

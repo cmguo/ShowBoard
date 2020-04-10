@@ -309,6 +309,9 @@ public:
 
     virtual void handleToolButton(QList<ToolButton *> const & buttons) override;
 
+private:
+    Q_DISABLE_COPY(Control)
+
 protected:
     Flags flags_;
     ResourceView * res_;

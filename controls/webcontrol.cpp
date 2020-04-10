@@ -86,7 +86,7 @@ private:
 };
 
 WebControl::WebControl(ResourceView * res)
-    : WidgetControl(res, {WithSelectBar, ExpandScale, LayoutScale, Touchable}, {CanRotate})
+    : WidgetControl(res, {WithSelectBar, ExpandScale, LayoutScale, Touchable, FixedOnCanvas}, {CanRotate})
     , fitToContent_(false)
 {
     setToolsString(toolstr);

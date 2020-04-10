@@ -10,7 +10,7 @@ static constexpr char const * toolstr =
         "playRate||OptionsGroup,Popup,NeedUpdate|;";
 
 VideoControl::VideoControl(ResourceView * res)
-    : Control(res, {LayoutScale, Touchable})
+    : Control(res, {LayoutScale, Touchable, FixedOnCanvas})
 {
     setToolsString(toolstr);
 }
