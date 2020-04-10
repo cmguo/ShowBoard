@@ -10,7 +10,7 @@ static constexpr char const * toolstr =
         "playRate||OptionsGroup,Popup,NeedUpdate|;";
 
 VideoControl::VideoControl(ResourceView * res)
-    : Control(res, {LayoutScale, Touchable, FixedOnCanvas})
+    : Control(res, {KeepAspectRatio, LayoutScale, Touchable, FixedOnCanvas})
 {
     setToolsString(toolstr);
 }
@@ -38,12 +38,10 @@ void VideoControl::attached()
     QGraphicsVideoItem * item = static_cast<QGraphicsVideoItem *>(item_);
     QObject::connect(item, &QGraphicsVideoItem::nativeSizeChanged,
                      this, [this](QSizeF const & size) {
-        resize(size);
+         resize(size);
+         loadFinished(true);
     });
     QMediaPlayer * player = new QMediaPlayer(this);
-    QObject::connect(player, &QMediaPlayer::durationChanged, [this]() {
-        loadFinished(true);
-    });
     player->setVideoOutput(item);
     player->setMedia(res_->resource()->url());
     player->setVolume(50);
