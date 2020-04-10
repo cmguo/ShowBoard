@@ -140,14 +140,9 @@ void PptxControl::showed()
 void PptxControl::thumbed(QPixmap pixmap)
 {
     if (!pixmap.isNull()) {
-        QGraphicsPixmapItem * item = static_cast<QGraphicsPixmapItem *>(item_);
-        if ((flags_ & LoadFinished) == 0) {
-            QPointF off(pixmap.width() / 2, pixmap.height() / 2);
-            item->setOffset(-off);
-            stateItem()->setPos(off - QPointF(100, 100));
-        } else {
-            if (pixmap.size() != item->pixmap().size()) {
-                pixmap = pixmap.scaled(item->pixmap().size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+        if (flags_ & LoadFinished) {
+            if (pixmap.size() != this->pixmap().size()) {
+                pixmap = pixmap.scaled(this->pixmap().size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
             }
         }
         setPixmap(pixmap);
@@ -262,6 +257,19 @@ void PptxControl::close()
 void PptxControl::detached()
 {
     close();
+}
+
+void PptxControl::sizeChanged()
+{
+    QGraphicsPixmapItem * item = static_cast<QGraphicsPixmapItem *>(item_);
+    if (!item->pixmap().isNull()) {
+        QPointF off(item->pixmap().width(), item->pixmap().height());
+        qreal scale = off.x() / pixmap().width();
+        off /= 2;
+        item->setOffset(-off);
+        stateItem()->setPos(off - QPointF(100, 100) * scale);
+    }
+    Control::sizeChanged();
 }
 
 bool PptxControl::eventFilter(QObject *obj, QEvent * event)

@@ -23,6 +23,8 @@ protected:
 protected:
     void setPixmap(QPixmap const & pixmap);
 
+    QPixmap pixmap() const;
+
     friend class ImageData;
     void setMipMapPixmap(QPixmap const & pixmap, QSizeF const & sizeHint);
 

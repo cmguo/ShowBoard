@@ -30,6 +30,11 @@ public:
 
     virtual ~ImageData();
 
+    QPixmap pixmap() const
+    {
+        return pixmap_;
+    }
+
     QPromise<QPixmap> load(QSizeF const & sizeHint);
 
 private:
@@ -112,6 +117,12 @@ void ImageControl::setPixmap(const QPixmap &pixmap)
             adjustMipmap2(item_->boundingRect().size() * scale);
         }
     }
+}
+
+QPixmap ImageControl::pixmap() const
+{
+    return data_ ? data_->pixmap()
+                 : static_cast<QGraphicsPixmapItem*>(item_)->pixmap();
 }
 
 void ImageControl::setMipMapPixmap(const QPixmap &pixmap, QSizeF const & sizeHint)

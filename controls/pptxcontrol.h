@@ -46,6 +46,8 @@ protected:
 
     virtual void detached() override;
 
+    virtual void sizeChanged() override;
+
 private:
     virtual bool eventFilter(QObject *obj, QEvent * event) override;
 
