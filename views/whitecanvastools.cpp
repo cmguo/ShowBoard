@@ -93,8 +93,9 @@ void WhiteCanvasTools::gotoPage(int n)
     canvas_->package()->switchPage(n);
 }
 
-void WhiteCanvasTools::setOption(const QByteArray &key, QVariant value)
+bool WhiteCanvasTools::setOption(const QByteArray &key, QVariant value)
 {
+    bool result = true;
 #ifndef QT_DEBUG
     canvas_->setProperty("FromUser", true);
 #endif
@@ -109,11 +110,13 @@ void WhiteCanvasTools::setOption(const QByteArray &key, QVariant value)
     else if (key == "goto") {
         pageList_->hide();
         gotoPage(value.toInt());
-    } else
-        ToolButtonProvider::setOption(key, value);
+    } else {
+        result = ToolButtonProvider::setOption(key, value);
+    }
 #ifndef QT_DEBUG
     canvas_->setProperty("FromUser", QVariant());
 #endif
+    return result;
 }
 
 void WhiteCanvasTools::update()

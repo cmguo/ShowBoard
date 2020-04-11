@@ -20,10 +20,9 @@ private:
 
     virtual void attached() override;
 
-    virtual void getToolButtons(QList<ToolButton *> & buttons,
-                                QList<ToolButton *> const & parents = {}) override;
+    virtual void getToolButtons(QList<ToolButton *> & buttons, ToolButton * parent) override;
 
-    virtual void handleToolButton(QList<ToolButton *> const & buttons) override;
+    virtual bool handleToolButton(QList<ToolButton *> const & buttons) override;
 };
 
 #endif // MENUTOOL_H

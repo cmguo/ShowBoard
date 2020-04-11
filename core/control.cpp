@@ -66,10 +66,12 @@ Control::Control(ResourceView *res, Flags flags, Flags clearFlags)
     }
     minMaxSize_[0] = {MIN_SIZE, MIN_SIZE};
     minMaxSize_[1] = {MAX_SIZE, MAX_SIZE};
+    attachSubProvider(res_, true);
 }
 
 Control::~Control()
 {
+    attachSubProvider(nullptr, true);
     if (transform_)
         delete transform_;
     if (realItem_)
@@ -799,11 +801,10 @@ void Control::onText(QString text)
     throw std::runtime_error("Not implemets onText");
 }
 
-void Control::getToolButtons(QList<ToolButton *> &buttons, const QList<ToolButton *> &parents)
+void Control::getToolButtons(QList<ToolButton *> &buttons, ToolButton * parent)
 {
-    res_->getToolButtons(buttons, parents);
-    ToolButtonProvider::getToolButtons(buttons, parents);
-    if (parents.isEmpty()) {
+    ToolButtonProvider::getToolButtons(buttons, parent);
+    if (parent == nullptr) {
         btnFastCopy.setChecked(false);
         if (!buttons.empty())
             buttons.append(&ToolButton::SPLITTER);
@@ -818,12 +819,6 @@ void Control::getToolButtons(QList<ToolButton *> &buttons, const QList<ToolButto
         if (buttons.endsWith(&ToolButton::SPLITTER))
             buttons.pop_back();
     }
-}
-
-void Control::handleToolButton(const QList<ToolButton *> &buttons)
-{
-    res_->handleToolButton(buttons);
-    ToolButtonProvider::handleToolButton(buttons);
 }
 
 StateItem * Control::stateItem()

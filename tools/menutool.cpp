@@ -51,15 +51,15 @@ void MenuTool::attached()
     loadFinished(true);
 }
 
-void MenuTool::getToolButtons(QList<ToolButton *> &buttons, const QList<ToolButton *> &parents)
+void MenuTool::getToolButtons(QList<ToolButton *> &buttons, ToolButton * parent)
 {
     // skip control implements
-    return ToolButtonProvider::getToolButtons(buttons, parents);
+    return ToolButtonProvider::getToolButtons(buttons, parent);
 }
 
-void MenuTool::handleToolButton(const QList<ToolButton *> &buttons)
+bool MenuTool::handleToolButton(QList<ToolButton *> const & buttons)
 {
-    WidgetControl::handleToolButton(buttons);
     whiteCanvas()->hideToolControl(this);
+    return ToolButtonProvider::handleToolButton(buttons);
 }
 

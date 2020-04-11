@@ -305,9 +305,10 @@ protected:
     virtual void onText(QString text);
 
 public:
-    virtual void getToolButtons(QList<ToolButton *> &buttons, const QList<ToolButton *> &parents = {}) override;
+    using ToolButtonProvider::getToolButtons;
 
-    virtual void handleToolButton(QList<ToolButton *> const & buttons) override;
+protected:
+    virtual void getToolButtons(QList<ToolButton *> &buttons, ToolButton * parent) override;
 
 private:
     Q_DISABLE_COPY(Control)

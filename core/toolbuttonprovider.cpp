@@ -7,12 +7,16 @@
 
 ToolButtonProvider::ToolButtonProvider(QObject * parent)
     : LifeObject(parent)
+    , subProviderBefore_(nullptr)
+    , subProviderAfter_(nullptr)
     , followTrigger_(false)
 {
 }
 
 ToolButtonProvider::ToolButtonProvider(const ToolButtonProvider &o)
     : LifeObject(o)
+    , subProviderBefore_(nullptr)
+    , subProviderAfter_(nullptr)
     , followTrigger_(o.followTrigger_)
 {
 
@@ -25,7 +29,7 @@ ToolButtonProvider::~ToolButtonProvider()
     privateButtons_.clear();
 }
 
-void ToolButtonProvider::exec(QByteArray const & cmd, QGenericArgument arg0,
+bool ToolButtonProvider::exec(QByteArray const & cmd, QGenericArgument arg0,
                    QGenericArgument arg1, QGenericArgument arg2)
 {
     int index = metaObject()->indexOfSlot(cmd);
@@ -41,37 +45,35 @@ void ToolButtonProvider::exec(QByteArray const & cmd, QGenericArgument arg0,
             }
         }
         if (list.isEmpty())
-            setOption(cmd, QVariant());
+            return setOption(cmd, QVariant());
         else if (list.size() == 1)
-            setOption(cmd, list.front());
+            return setOption(cmd, list.front());
         else
-            setOption(cmd, list);
-        return;
+            return setOption(cmd, list);
     }
     QMetaMethod method = metaObject()->method(index);
     method.parameterType(index);
-    method.invoke(this, arg0, arg1, arg2);
+    return method.invoke(this, arg0, arg1, arg2);
 }
 
-void ToolButtonProvider::exec(QByteArray const & cmd, QStringList const & args)
+bool ToolButtonProvider::exec(QByteArray const & cmd, QStringList const & args)
 {
     int index = metaObject()->indexOfSlot(cmd);
     if (index < 0) {
         if (args.size() == 0) {
-            setOption(cmd, QVariant());
+            return setOption(cmd, QVariant());
         } else if (args.size() == 1) {
-            setOption(cmd, args[0]);
+            return setOption(cmd, args[0]);
         } else {
             QVariantList list;
             for (QString const & arg : args)
                 list.append(arg);
-            setOption(cmd, list);
+            return setOption(cmd, list);
         }
-        return;
     }
     QMetaMethod method = metaObject()->method(index);
     if (method.parameterCount() >= 4)
-        return;
+        return false;
     QGenericArgument argv[4];
     QVariant varg[4];
     for (int i = 0; i < method.parameterCount(); ++i) {
@@ -79,12 +81,12 @@ void ToolButtonProvider::exec(QByteArray const & cmd, QStringList const & args)
             varg[i] = args[i];
         int t = method.parameterType(i);
         if (!varg[i].canConvert(t))
-            return;
+            return false;
         if (!varg[i].convert(t))
-            return;
+            return false;
         argv[i] = QGenericArgument(QMetaType::typeName(t), varg[i].data());
     }
-    method.invoke(this, argv[0], argv[1], argv[2], argv[3]);
+    return method.invoke(this, argv[0], argv[1], argv[2], argv[3]);
 }
 
 void ToolButtonProvider::setToolsString(const QString &tools)
@@ -109,6 +111,21 @@ void ToolButtonProvider::followTrigger(QList<ToolButton *> &buttons, ToolButton 
                 handleToolButton({button});
             });
     }
+}
+
+void ToolButtonProvider::attachSubProvider(ToolButtonProvider *provider, bool before)
+{
+    ToolButtonProvider * & subProvider = before ? subProviderBefore_ : subProviderAfter_;
+    if (provider == subProvider)
+        return;
+    if (subProvider) {
+        subProvider->disconnect(this);
+    }
+    subProvider = provider;
+    if (subProvider) {
+        connect(subProvider, &ToolButtonProvider::buttonsChanged, this, &ToolButtonProvider::buttonsChanged);
+    }
+    emit buttonsChanged();
 }
 
 static bool inHandle = false;
@@ -159,8 +176,12 @@ ToolButton* ToolButtonProvider::getStringButton(int index)
 
 void ToolButtonProvider::getToolButtons(QList<ToolButton *> & buttons, QList<ToolButton *> const & parents)
 {
+    if (subProviderBefore_)
+        subProviderBefore_->getToolButtons(buttons, parents);
     ToolButton *parent = parents.empty() ? nullptr : parents.last();
     getToolButtons(buttons, parent);
+    if (subProviderAfter_)
+        subProviderAfter_->getToolButtons(buttons, parents);
 }
 
 void ToolButtonProvider::getToolButtons(QList<ToolButton *> &buttons, ToolButton *parent)
@@ -172,8 +193,10 @@ void ToolButtonProvider::getToolButtons(QList<ToolButton *> &buttons, ToolButton
         buttons.pop_back();
 }
 
-void ToolButtonProvider::handleToolButton(QList<ToolButton *> const & buttons)
+bool ToolButtonProvider::handleToolButton(QList<ToolButton *> const & buttons)
 {
+    if (subProviderBefore_ && subProviderBefore_->handleToolButton(buttons))
+        return true;
     ToolButton * button = buttons.back();
     int i = 0;
     for (; i < buttons.size(); ++i) {
@@ -189,12 +212,12 @@ void ToolButtonProvider::handleToolButton(QList<ToolButton *> const & buttons)
         args.append(buttons[j]->name());
     }
     inHandle = true;
-    handleToolButton(button, args);
-    if (button->needUpdate()) {
+    bool result = handleToolButton(button, args);
+    if (result && button->needUpdate()) {
         updateToolButton(button);
         if (button->unionUpdate()) {
             QList<ToolButton *> siblins;
-            getToolButtons(siblins, buttons.mid(0, i));
+            getToolButtons(siblins, i > 0 ? buttons.at(i - 1) : nullptr);
             int n = siblins.indexOf(button);
             for (int i = n - 1; i >= 0; --i) {
                 if (siblins[i]->unionUpdate()) {
@@ -221,16 +244,19 @@ void ToolButtonProvider::handleToolButton(QList<ToolButton *> const & buttons)
         }
     }
     inHandle = false;
+    if (!result && subProviderAfter_)
+        result = subProviderAfter_->handleToolButton(buttons);
+    return result;
 }
 
-void ToolButtonProvider::handleToolButton(ToolButton *button, QStringList const & args)
+bool ToolButtonProvider::handleToolButton(ToolButton *button, QStringList const & args)
 {
     for (QList<ToolButton *> & btns : buttons_) {
         if (btns.contains(button)) {
-            exec(button->name(), args);
-            break;
+            return exec(button->name(), args);
         }
     }
+    return false;
 }
 
 void ToolButtonProvider::updateToolButton(ToolButton *button)
@@ -255,15 +281,17 @@ QString ToolButtonProvider::toolsString(QByteArray const & parent) const
     return nullptr;
 }
 
-void ToolButtonProvider::setOption(QByteArray const & key, QVariant value)
+bool ToolButtonProvider::setOption(QByteArray const & key, QVariant value)
 {
     int i = metaObject()->indexOfProperty(key);
-    if (i >= 0) { // fix convert
-        QMetaProperty p = metaObject()->property(i);
-        if (!value.canConvert(p.type()))
-            value.convert(QMetaType::QString);
-    }
+    if (i < 0)
+        return false;
+    // fix convert
+    QMetaProperty p = metaObject()->property(i);
+    if (!value.canConvert(p.type()))
+        value.convert(QMetaType::QString);
     LifeObject::setProperty(key, value);
+    return true;
 }
 
 QVariant ToolButtonProvider::getOption(const QByteArray &key)

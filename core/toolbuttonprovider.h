@@ -36,32 +36,32 @@ public:
      * handle button click,
      *  copy, delete are handled by canvas and should not go here
      */
-    virtual void handleToolButton(QList<ToolButton *> const & buttons);
-
-protected:
-    virtual void getToolButtons(QList<ToolButton *> & buttons,
-                                ToolButton * parent);
-
-    virtual void handleToolButton(ToolButton * button, QStringList const & args);
-
-    virtual void updateToolButton(ToolButton * button);
+    virtual bool handleToolButton(QList<ToolButton *> const & buttons);
 
 public:
     /*
      * invoke slot by name, use for lose relation call
      */
-    void exec(QByteArray const & cmd, QGenericArgument arg0 = QGenericArgument(),
+    bool exec(QByteArray const & cmd, QGenericArgument arg0 = QGenericArgument(),
               QGenericArgument arg1 = QGenericArgument(), QGenericArgument arg2 = QGenericArgument());
 
     /*
      * invoke slot by name, use for lose relation call
      */
-    void exec(QByteArray const & cmd, QStringList const & args);
+    bool exec(QByteArray const & cmd, QStringList const & args);
 
 public:
-    virtual void setOption(QByteArray const & key, QVariant value);
+    virtual bool setOption(QByteArray const & key, QVariant value);
 
     virtual QVariant getOption(QByteArray const & key);
+
+protected:
+    virtual void getToolButtons(QList<ToolButton *> & buttons,
+                                ToolButton * parent);
+
+    virtual bool handleToolButton(ToolButton * button, QStringList const & args);
+
+    virtual void updateToolButton(ToolButton * button);
 
 protected:
     void setToolsString(QString const & tools);
@@ -70,6 +70,7 @@ protected:
 
     void followTrigger(QList<ToolButton *> & buttons, ToolButton * parent = nullptr);
 
+    void attachSubProvider(ToolButtonProvider * provider, bool before = false);
 
     ToolButton* getStringButton(QByteArray const & name);
 
@@ -86,8 +87,12 @@ protected:
     QList<ToolButton *> tools(ToolButton * parent = nullptr);
 
 private:
+
+private:
     QMap<QByteArray, QList<ToolButton *>> buttons_;
     QList<ToolButton *> privateButtons_;
+    ToolButtonProvider * subProviderBefore_;
+    ToolButtonProvider * subProviderAfter_;
     bool followTrigger_;
 };
 

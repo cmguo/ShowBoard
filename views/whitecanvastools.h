@@ -30,7 +30,7 @@ protected slots:
 
     void gotoPage(int n);
 
-    virtual void setOption(QByteArray const & key, QVariant value) override;
+    virtual bool setOption(QByteArray const & key, QVariant value) override;
 
 private:
     void update();
