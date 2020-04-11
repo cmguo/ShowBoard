@@ -8,6 +8,7 @@
 #include <QGraphicsProxyWidget>
 #include <QGraphicsScene>
 #include <QPushButton>
+#include <QGraphicsLayout>
 
 static QssHelper QSS(":/showboard/qss/toolbar.qss");
 
@@ -86,24 +87,20 @@ QWidget *ToolbarWidget::createPopup(const QList<ToolButton *> &buttons)
     return popup;
 }
 
-void ToolbarWidget::setToolButtons(QList<ToolButton *> const & buttons)
+QGraphicsItem *ToolbarWidget::toGraphicsProxy(QGraphicsItem * parent)
 {
-    clear();
-    for (ToolButton * b : buttons) {
-        addToolButton(layout_, b, buttons_);
-    }
-    setVisible(!buttons.empty());
-    updateGeometry(); //
+    QGraphicsProxyWidget * proxy = new QGraphicsProxyWidget(parent);
+    proxy->setWidget(this);
+    QObject::connect(this, &ToolbarWidget::sizeChanged, proxy, [proxy](){
+        QPointF pos = -proxy->boundingRect().center();
+        proxy->setTransform(QTransform::fromTranslate(pos.x(), pos.y()));
+    });
+    return proxy;
 }
 
-void ToolbarWidget::setToolButtons(ToolButton buttons[], int count)
+void ToolbarWidget::setToolButtons(QList<ToolButton *> const & buttons)
 {
-    clear();
-    for (int i = 0; i < count; ++i) {
-        addToolButton(layout_, buttons + i, buttons_);
-    }
-    setVisible(count > 0);
-    updateGeometry();
+    setButtons(layout_, buttons, buttons_);
 }
 
 void ToolbarWidget::updateButton(ToolButton *button)
@@ -116,25 +113,16 @@ void ToolbarWidget::updateButton(ToolButton *button)
     }
 }
 
-void ToolbarWidget::showPopupButtons(const QList<ToolButton *> &buttons)
+void ToolbarWidget::updateToolButtons()
 {
-    clearPopup();
-    for (ToolButton * b : buttons) {
-        addToolButton(popUp_->layout(), b, popupButtons_);
+    for (QWidget * w : buttons_.keys()) {
+        updateButton(qobject_cast<QPushButton*>(w), buttons_.value(w));
     }
-    popUp_->layout()->activate();
-    popUp_->updateGeometry();
 }
 
-void ToolbarWidget::showPopupButtons(ToolButton *buttons, int count)
+void ToolbarWidget::showPopupButtons(const QList<ToolButton *> &buttons)
 {
-    clearPopup();
-    for (int i = 0; i < count; ++i) {
-        addToolButton(popUp_->layout(), buttons + i, popupButtons_);
-    }
-    popUp_->layout()->activate();
-    popUp_->updateGeometry();
-
+    setButtons(popUp_->layout(), buttons, popupButtons_);
 }
 
 static int row = 0;
@@ -146,11 +134,6 @@ void ToolbarWidget::clearPopup()
     if (popUp_) {
         popUp_->hide();
         clearButtons(popUp_->layout(), popupButtons_);
-        popUp_->layout()->activate();
-        QGraphicsProxyWidget * proxy = popUp_->graphicsProxyWidget();
-        if (proxy) {
-            proxy->resize(popUp_->minimumSize());
-        }
     }
 }
 
@@ -292,10 +275,22 @@ void ToolbarWidget::clear()
     clearPopup();
     popupParents_.clear();
     clearButtons(layout_, buttons_);
-    layout_->activate();
-    QGraphicsProxyWidget * proxy = graphicsProxyWidget();
-    if (proxy)
-        proxy->resize(minimumSize());
+}
+
+void ToolbarWidget::setButtons(QLayout *layout, const QList<ToolButton *> &buttons, QMap<QWidget *, ToolButton *> & map)
+{
+    clearButtons(layout, map);
+    for (ToolButton * b : buttons) {
+        addToolButton(layout, b, map);
+    }
+    QWidget * container = layout->parentWidget();
+    layout->activate();
+    QGraphicsProxyWidget * proxy = container->graphicsProxyWidget();
+    if (proxy) {
+        // TODO: sizeHint is not correct
+        proxy->resize(layout->sizeHint());
+    }
+    container->setVisible(!buttons.empty());
 }
 
 void ToolbarWidget::clearButtons(QLayout *layout, QMap<QWidget *, ToolButton *> &buttons)
@@ -313,7 +308,6 @@ void ToolbarWidget::clearButtons(QLayout *layout, QMap<QWidget *, ToolButton *> 
             widget->deleteLater();
         }
     }
-    layout->update();
     buttons.clear();
 }
 
@@ -477,6 +471,7 @@ QWidget *ToolbarWidget::createPopupWidget()
 
 void ToolbarWidget::resizeEvent(QResizeEvent *event)
 {
+    QFrame::resizeEvent(event);
     emit sizeChanged(event->size());
 }
 

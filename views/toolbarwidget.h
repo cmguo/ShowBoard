@@ -13,6 +13,7 @@ class QLayout;
 class ToolButtonProvider;
 class QPushButton;
 class QssHelper;
+class QGraphicsItem;
 
 class SHOWBOARD_EXPORT ToolbarWidget : public QFrame
 {
@@ -43,16 +44,16 @@ public:
 
     QWidget * createPopup(QList<ToolButton *> const & buttons);
 
+    QGraphicsItem* toGraphicsProxy(QGraphicsItem * parent = nullptr);
+
 public:
     void setToolButtons(QList<ToolButton *> const & buttons);
 
-    void setToolButtons(ToolButton buttons[], int count);
-
     void showPopupButtons(QList<ToolButton *> const & buttons);
 
-    void showPopupButtons(ToolButton buttons[], int count);
-
     void updateButton(ToolButton * button);
+
+    void updateToolButtons();
 
     void clear();
 
@@ -90,6 +91,8 @@ private:
     static void applyButton(QPushButton * btn, ToolButton * button);
 
     void updateButton(QPushButton * btn, ToolButton * button);
+
+    void setButtons(QLayout * layout, QList<ToolButton *> const & buttons, QMap<QWidget *, ToolButton *>& map);
 
     void clearButtons(QLayout * layout, QMap<QWidget *, ToolButton *>& buttons);
 

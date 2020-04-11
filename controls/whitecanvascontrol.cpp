@@ -2,12 +2,15 @@
 #include "views/whitecanvas.h"
 #include "core/resourceview.h"
 #include "core/resourcetransform.h"
+#include "core/resourcepage.h"
+#include "views/toolbarwidget.h"
 
 #include <QUrl>
 #include <QGraphicsScene>
 #include <QPen>
 #include <QtMath>
 #include <QDebug>
+#include <QGraphicsProxyWidget>
 
 WhiteCanvasControl::WhiteCanvasControl(ResourceView * view, QGraphicsItem * canvas)
     : Control(view, {}, {CanSelect, CanRotate})
@@ -21,14 +24,21 @@ WhiteCanvasControl::WhiteCanvasControl(ResourceView * view, QGraphicsItem * canv
     QObject::connect(&res_->transform(), &ResourceTransform::changed,
                      this, &WhiteCanvasControl::updateTransform);
     posBar_ = new PositionBar(canvas);
+    ToolbarWidget* toolbar = new ToolbarWidget;
+    toolbar->attachProvider(this);
+    toolBar_ = toolbar->toGraphicsProxy();
     loadSettings();
     // adjust to scene, this is done before attaching transform
     res_->transform().translate(QPointF(0, 0));
     qDebug() << "WhiteCanvasControl" << res_->transform().transform();
+    item_->scene()->addItem(toolBar_);
+    toolBar_->setPos(QPointF(0, item_->scene()->sceneRect().bottom() - 60));
 }
 
 WhiteCanvasControl::~WhiteCanvasControl()
 {
+    delete toolBar_;
+    toolBar_ = nullptr;
     qDebug() << "~WhiteCanvasControl" << res_->transform().transform();
     saveSettings();
     delete posBar_;
@@ -80,6 +90,7 @@ void WhiteCanvasControl::updateTransform()
     posBar_->update(srect, crect, transform.scale().m11(), transform.offset());
 }
 
+/* PositionBar */
 
 PositionBar::PositionBar(QGraphicsItem * parent)
     : QGraphicsPathItem(parent)

@@ -95,6 +95,8 @@ Control * PageCanvas::findControl(ResourceView * res)
             return subCanvas_->findControl(res);
         return nullptr;
     }
+    if (index >= childItems().size())
+        return nullptr;
     QGraphicsItem * item = childItems()[index];
     return Control::fromItem(item);
 }

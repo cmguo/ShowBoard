@@ -161,6 +161,8 @@ void Control::attachTo(QGraphicsItem * parent, QGraphicsItem * before)
     flags_ |= Loading;
     whiteCanvas()->onControlLoad(true);
     attached();
+    if (res_->flags().testFlag(ResourceView::LargeCanvas))
+        canvasControl->attachSubProvider(this);
     if (flags_ & Loading) {
         stateItem()->setLoading();
     }
@@ -168,6 +170,8 @@ void Control::attachTo(QGraphicsItem * parent, QGraphicsItem * before)
 
 void Control::detachFrom(QGraphicsItem *parent, QGraphicsItem *)
 {
+    if (res_->flags().testFlag(ResourceView::LargeCanvas))
+        fromItem(whiteCanvas())->attachSubProvider(nullptr);
     detaching();
     if (flags_ & Loading)
         whiteCanvas()->onControlLoad(false);

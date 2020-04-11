@@ -34,6 +34,7 @@ private:
 
 private:
     PositionBar * posBar_;
+    QGraphicsItem* toolBar_;
 };
 
 class PositionBar : public QGraphicsPathItem

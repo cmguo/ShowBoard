@@ -32,5 +32,7 @@
         <file>icon/page.prev.svg</file>
         <file>icon/page.loading.svg</file>
         <file>icon/drag.png</file>
+        <file>icon/zoom_in.svg</file>
+        <file>icon/zoom_out.svg</file>
     </qresource>
 </RCC>
