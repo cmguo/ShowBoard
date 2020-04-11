@@ -78,7 +78,8 @@ void ItemSelector::select(QGraphicsItem *item)
         layoutToolbar();
         selBox_->setVisible(true,
                             selectControl_->flags() & Control::CanScale,
-                            selectControl_->flags() & Control::CanRotate);
+                            selectControl_->flags() & Control::CanRotate,
+                            selectControl_->flags() & Control::ShowSelectMask);
         if (autoTop_) {
             selectControl_->resource()->moveTop();
         }

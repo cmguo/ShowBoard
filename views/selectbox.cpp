@@ -72,9 +72,6 @@ SelectBox::SelectBox(QGraphicsItem * parent)
     rotate_->setCursor(Qt::CrossCursor);
 
     setPen(QPen(Qt::blue, 2));
-    //setBrush(QColor("#40808080"));
-    //setOpacity(1.0);
-    //setCursor(Qt::SizeAllCursor);
 }
 
 void SelectBox::setRect(QRectF const & rect)
@@ -94,7 +91,7 @@ void SelectBox::setRect(QRectF const & rect)
     bottom_->setPos(center.x(), rect2.bottom());
 }
 
-void SelectBox::setVisible(bool select, bool scale, bool rotate)
+void SelectBox::setVisible(bool select, bool scale, bool rotate, bool mask)
 {
     QGraphicsRectItem::setVisible(select || scale || rotate);
     rotate_->setVisible(rotate);
@@ -106,6 +103,13 @@ void SelectBox::setVisible(bool select, bool scale, bool rotate)
     top_->setVisible(scale);
     right_->setVisible(scale);
     bottom_->setVisible(scale);
+    if (mask) {
+        setBrush(QColor("#40808080"));
+        setCursor(Qt::SizeAllCursor);
+    } else {
+        setBrush(Qt::transparent);
+        unsetCursor();
+    }
 }
 
 int SelectBox::hitTest(const QPointF &pos, QRectF &direction)
