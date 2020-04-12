@@ -17,6 +17,7 @@ bool MenuTool::eventFilter(QObject *, QEvent *event)
 {
     if (event->type() == QEvent::Show) {
         whiteCanvas()->scene()->views().first()->setFocus();
+        widget_->show(); // sometimes not sync
         widget_->setFocus();
     }
     if (event->type() == QEvent::FocusOut) {
@@ -24,6 +25,7 @@ bool MenuTool::eventFilter(QObject *, QEvent *event)
                 && whiteCanvas()->scene()->focusItem() == item_) {
             widget_->setFocus();
         } else {
+            widget_->hide(); // sometimes not sync
             whiteCanvas()->hideToolControl(this);
         }
     }
