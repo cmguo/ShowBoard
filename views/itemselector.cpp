@@ -137,7 +137,6 @@ void ItemSelector::enableFastClone(bool enable)
 
 void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos, bool fromTouch)
 {
-    start_ = pos;
     type_ = None;
     if (select_ && selBox_->isVisible()) {
         type_ = static_cast<SelectType>(
@@ -208,6 +207,7 @@ void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos, bool f
         //    type_ = Canvas;
         //}
     } else {
+        start_ = pos;
         if (selectControl_->metaObject() == &WhiteCanvasControl::staticMetaObject
                 || (selectControl_->flags() & Control::FixedOnCanvas))
             start_ = scenePos;
@@ -419,7 +419,8 @@ void ItemSelector::touchBegin(QTouchEvent *event)
     QTouchEvent::TouchPoint const & point(event->touchPoints().first());
     selectAt(point.pos(), point.scenePos(), true);
     if (type_ != None) {
-        bool isCanvas = selectControl_->metaObject() == &WhiteCanvasControl::staticMetaObject;
+        bool isCanvas = selectControl_->metaObject() == &WhiteCanvasControl::staticMetaObject
+                || (selectControl_->flags() & Control::FixedOnCanvas);
         for (QTouchEvent::TouchPoint const & point : event->touchPoints()) {
             lastPositions_[point.id()] = isCanvas ? point.scenePos() : point.pos();
         }
@@ -435,7 +436,8 @@ void ItemSelector::touchUpdate(QTouchEvent *event)
         return;
     //qDebug() << "touchUpdate";
     QMap<int, QPointF> positions;
-    bool isCanvas = selectControl_->metaObject() == &WhiteCanvasControl::staticMetaObject;
+    bool isCanvas = selectControl_->metaObject() == &WhiteCanvasControl::staticMetaObject
+            || (selectControl_->flags() & Control::FixedOnCanvas);
     for (QTouchEvent::TouchPoint const & point : event->touchPoints()) {
         positions[point.id()] = isCanvas ? point.scenePos() : point.pos();
     }
