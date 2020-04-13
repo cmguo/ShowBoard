@@ -228,25 +228,17 @@ void ResourcePage::switchSubPage(int nPage)
             p = p->parent();
         }
     }
-    currentSubPage_ = subPages_[nPage];
-    emit currentSubPageChanged(currentSubPage_);
-    ResourcePage * page = this;
-    while (page) {
-        ResourcePackage * pkg = qobject_cast<ResourcePackage*>(page->parent());
-        if (pkg) {
-            if (pkg->currentPage() == page) {
-                ResourcePage * page = currentSubPage_;
-                while (page->currentSubPage_) page = page->currentSubPage_;
-                emit pkg->currentSubPageChanged(page);
-            }
-            break;
-        } else {
-            ResourcePage * pge = qobject_cast<ResourcePage*>(page->parent());
-            if (pge->currentSubPage_ != page)
-                break;
-            page = pge;
-        }
+    switchSubPage(subPages_[nPage]);
+}
+
+void ResourcePage::clearSubPages()
+{
+    if (currentSubPage_) {
+        switchSubPage(nullptr);
     }
+    for (ResourcePage * sp : subPages_)
+        delete sp;
+    subPages_.clear();
 }
 
 bool ResourcePage::isIndependentPage() const
@@ -318,6 +310,31 @@ void ResourcePage::moveResource(int pos, int newPos)
         --pos2;
     }
     endMoveRows();
+}
+
+void ResourcePage::switchSubPage(ResourcePage * subPage)
+{
+    if (currentSubPage_ == subPage)
+        return;
+    currentSubPage_ = subPage;
+    emit currentSubPageChanged(currentSubPage_);
+    ResourcePage * page = this;
+    while (page) {
+        ResourcePackage * pkg = qobject_cast<ResourcePackage*>(page->parent());
+        if (pkg) {
+            if (pkg->currentPage() == page) {
+                if (subPage)
+                    while (subPage->currentSubPage_) subPage = subPage->currentSubPage_;
+                emit pkg->currentSubPageChanged(subPage);
+            }
+            break;
+        } else {
+            ResourcePage * pge = qobject_cast<ResourcePage*>(page->parent());
+            if (pge->currentSubPage_ != page)
+                break;
+            page = pge;
+        }
+    }
 }
 
 QVariant ResourcePage::data(const QModelIndex &index, int role) const

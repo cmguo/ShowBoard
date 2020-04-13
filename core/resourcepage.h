@@ -109,6 +109,9 @@ public:
         return currentSubPage_;
     }
 
+    void clearSubPages();
+
+public:
     bool isIndependentPage() const;
 
     bool isVirtualPage() const;
@@ -151,6 +154,8 @@ signals:
 
 private:
     void moveResource(int pos, int newPos);
+
+    void switchSubPage(ResourcePage* subPage);
 
 private:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
