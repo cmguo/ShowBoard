@@ -23,6 +23,8 @@ public:
 
     static int fontSizeScale(int size);
 
+    static int singleSizeFromString(QString const & size);
+
     static QSize sizeFromString(QString const & size);
 
     typedef QString (*StyleFunc)(QString const &);

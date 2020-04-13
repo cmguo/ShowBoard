@@ -27,9 +27,11 @@ QPushButton:checked {
 }
 
 #toolbarwidget {
-    background-color:#80000000;
+    background-color:black;
+    border-radius:6px; /* [size] */
 }
 
 #popupwidget {
-    background-color:#80000000;
+    background-color:black;
+    border-radius:6px; /* [size] */
 }

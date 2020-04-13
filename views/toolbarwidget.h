@@ -15,7 +15,23 @@ class QPushButton;
 class QssHelper;
 class QGraphicsItem;
 
-class SHOWBOARD_EXPORT ToolbarWidget : public QFrame
+class SHOWBOARD_EXPORT QFrameEx : public QFrame
+{
+public:
+    QFrameEx(QWidget *parent = nullptr);
+
+    void setStyleSheet(QssHelper const & style);
+
+private:
+    virtual void paintEvent(QPaintEvent *) override;
+
+    virtual void connectNotify(const QMetaMethod &signal) override;
+
+private:
+    int borderRadius_;
+};
+
+class SHOWBOARD_EXPORT ToolbarWidget : public QFrameEx
 {
     Q_OBJECT
 public:
@@ -81,9 +97,9 @@ protected:
     virtual QWidget* createPopupWidget();
 
 private:
-    virtual void resizeEvent(QResizeEvent *event) override;
-
     virtual void setVisible(bool visible) override;
+
+    virtual void resizeEvent(QResizeEvent *event) override;
 
 private:
     void addToolButton(QLayout * layout, ToolButton * button, QMap<QWidget *, ToolButton *>& buttons);

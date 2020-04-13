@@ -9,6 +9,8 @@
 #include <QGraphicsScene>
 #include <QPushButton>
 #include <QGraphicsLayout>
+#include <QPainter>
+#include <QMetaMethod>
 
 static QssHelper QSS(":/showboard/qss/toolbar.qss");
 
@@ -18,7 +20,7 @@ ToolbarWidget::ToolbarWidget(QWidget *parent)
 }
 
 ToolbarWidget::ToolbarWidget(bool horizontal, QWidget *parent)
-    : QFrame(parent)
+    : QFrameEx(parent)
     , template_(nullptr)
     , popupPosition_(BottomRight)
     , popUp_(nullptr)
@@ -51,7 +53,7 @@ void ToolbarWidget::setButtonTemplate(int typeId)
 
 void ToolbarWidget::setStyleSheet(const QssHelper &style)
 {
-    QFrame::setStyleSheet(style);
+    QFrameEx::setStyleSheet(style);
     QString iconSize = style.value("QPushButton", "qproperty-iconSize");
     iconSize_ = QssHelper::sizeFromString(iconSize);
 }
@@ -461,10 +463,10 @@ void ToolbarWidget::onButtonClicked(ToolButton *)
 
 QWidget *ToolbarWidget::createPopupWidget()
 {
-    QWidget * widget = new QFrame();
+    QFrameEx * widget = new QFrameEx();
     widget->setWindowFlags(Qt::FramelessWindowHint);
-    widget->setStyleSheet(QSS);
     widget->setObjectName("popupwidget");
+    widget->setStyleSheet(QSS);
     widget->setLayout(new QGridLayout());
     return widget;
 }
@@ -487,3 +489,38 @@ void ToolbarWidget::setVisible(bool visible) {
     }
 }
 
+QFrameEx::QFrameEx(QWidget *parent)
+    : QFrame(parent)
+{
+}
+
+void QFrameEx::setStyleSheet(const QssHelper &style)
+{
+    QFrame::setStyleSheet(style);
+    QByteArray objname = "#" + objectName().toUtf8();
+    borderRadius_ = QssHelper::singleSizeFromString(style.value(objname, "border-radius"));
+}
+
+void QFrameEx::paintEvent(QPaintEvent * event)
+{
+    if (graphicsProxyWidget()) {
+        QRect r(0, 0, width(), height());
+        QPainter p(this);
+        QPen pn = p.pen();
+        QBrush br = p.brush();
+        p.setPen(Qt::NoPen);
+        p.setBrush(palette().brush(QPalette::Window));
+        p.drawRoundedRect(r, borderRadius_, borderRadius_);
+        p.setBrush(br);
+        p.setPen(pn);
+    }
+    QFrame::paintEvent(event);
+}
+
+void QFrameEx::connectNotify(const QMetaMethod &signal)
+{
+    if (signal ==  QMetaMethod::fromSignal(&QObject::destroyed)) {
+        if (graphicsProxyWidget())
+            setAttribute(Qt::WA_TranslucentBackground);
+    }
+}

@@ -97,6 +97,12 @@ int QssHelper::fontSizeScale(int size)
     return static_cast<int>(size * sizeScale());
 }
 
+int QssHelper::singleSizeFromString(const QString &size)
+{
+    QString unit;
+    return strToInt(size, unit);
+}
+
 QSize QssHelper::sizeFromString(const QString &size)
 {
     QStringList list(size.split(' '));
