@@ -20,7 +20,7 @@ QGraphicsItem *UnknownControl::create(ResourceView *res)
 
 void UnknownControl::attached()
 {
-    QtPromise::resolve().delay(10000).then([this, l = life()]() {
+    QtPromise::resolve().delay(1000).then([this, l = life()]() {
         if (l.isNull()) return;
         loadFinished(false, "未知资源类型");
     });

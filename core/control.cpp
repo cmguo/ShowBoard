@@ -51,8 +51,11 @@ Control::Control(ResourceView *res, Flags flags, Flags clearFlags)
 {
     if (res_->flags().testFlag(ResourceView::LargeCanvas)) {
         flags_.setFlag(FullLayout, true);
-        flags_.setFlag(CanSelect, false);
         flags_.setFlag(CanRotate, false);
+    }
+    if (res_->flags().testFlag(ResourceView::Independent)) {
+        flags_.setFlag(CanSelect, false);
+        flags_.setFlag(CanMove, false);
     }
     if (flags_.testFlag(FullLayout)) {
         flags_.setFlag(FixedOnCanvas, false);

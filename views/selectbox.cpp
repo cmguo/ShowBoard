@@ -27,7 +27,7 @@ public:
         handle->setPen(QPen(QColor("#990091FF"), 3));
         QPainterPath shape;
         shape.moveTo(0, QssHelper::sizeScale(BOX_RADIUS));
-        shape.lineTo(0, QssHelper::sizeScale(ROTATE_OFFSET));
+        shape.lineTo(0, QssHelper::sizeScale(ROTATE_OFFSET + BOX_RADIUS));
         handle->setPath(shape);
         handle->setFlag(QGraphicsItem::ItemStacksBehindParent);
     }
@@ -102,18 +102,19 @@ void SelectBox::setRect(QRectF const & rect)
     bottom_->setPos(center.x(), rect2.bottom());
 }
 
-void SelectBox::setVisible(bool select, bool scale, bool rotate, bool mask)
+void SelectBox::setVisible(bool select, bool scale, bool scale2, bool rotate, bool mask)
 {
-    QGraphicsRectItem::setVisible(select || scale || rotate);
+    QGraphicsRectItem::setVisible(select || scale || scale2 || rotate);
+    scale2 &= scale;
     rotate_->setVisible(rotate);
     leftTop_->setVisible(scale);
     rightTop_->setVisible(scale);
     rightBottom_->setVisible(scale);
     leftBottom_->setVisible(scale);
-    left_->setVisible(scale);
-    top_->setVisible(scale);
-    right_->setVisible(scale);
-    bottom_->setVisible(scale);
+    left_->setVisible(scale2);
+    top_->setVisible(scale2);
+    right_->setVisible(scale2);
+    bottom_->setVisible(scale2);
     if (mask) {
         setBrush(QColor("#40808080"));
         setCursor(Qt::SizeAllCursor);
@@ -140,13 +141,13 @@ int SelectBox::hitTest(const QPointF &pos, QRectF &direction)
         if (off2.y() > off3.y() / 2) {
             direction = QRectF(pos.x() < 0 ? 1 : 0, pos.y() < 0 ? 1 : 0,
                                pos.x() < 0 ? -1 : 1, pos.y() < 0 ? -1 : 1);
-        } else {
+        } else if (right_->isVisible()) {
             off3.setY(0); // right
             direction = QRectF(pos.x() < 0 ? 1 : 0, 0,
                                pos.x() < 0 ? -1 : 1, 0);
         }
-    } else {
-        off3.setX(0); // left
+    } else if (bottom_->isVisible()) {
+        off3.setX(0); // bottom
         direction = QRectF(0, pos.y() < 0 ? 1 : 0,
                            0, pos.y() < 0 ? -1 : 1);
     }
