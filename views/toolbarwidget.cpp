@@ -162,7 +162,7 @@ void ToolbarWidget::buttonClicked()
 
 void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWidget *, ToolButton *>& buttons)
 {
-    QWidget * parent = layout->widget();
+    QWidget * parent = layout->parentWidget();
     QWidget * widget = nullptr;
     if (button == &ToolButton::SPLITTER) {
         QFrame *splitter = new QFrame(parent);
@@ -175,11 +175,17 @@ void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWi
         return;
     } else if (button == &ToolButton::LINE_SPLITTER) {
         if (col > 0) ++row; col = -1;
-        QFrame *splitter = new QFrame(parent);
+        QWidget * border = new QFrame(parent);
+        border->setObjectName("lineBorder");
+        QGridLayout * layout2 = new QGridLayout(border);
+        QFrame *splitter = new QFrame(border);
         splitter->setFrameShape(QFrame::HLine);
         splitter->setFrameShadow(QFrame::Plain);
         splitter->setLineWidth(0);
-        widget = splitter;
+        layout2->setContentsMargins(10, 10, 10, 10);
+        layout2->addWidget(splitter, 0, 0);
+        widget = border;
+        widget->show(); // must show, not known why?
     } else if (button == &ToolButton::PLACE_HOOLDER) {
         QGridLayout *gridLayout = qobject_cast<QGridLayout*>(layout);
         if (gridLayout)
@@ -191,11 +197,11 @@ void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWi
             buttonClicked(widget);
         });
         widget->setProperty(ToolButton::ACTION_PROPERTY, QVariant::fromValue(action));
-        widget->show();
     } else {
         QPushButton * btn = template_
                 ? qobject_cast<QPushButton *>(template_->newInstance())
                 : new QPushButton;
+        btn->setParent(parent);
         btn->addAction(button);
         btn->setIconSize(iconSize_);
         applyButton(btn, button);
@@ -222,7 +228,7 @@ void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWi
     } else {
         layout->addWidget(widget);
     }
-    widget->show();
+    widget->show(); // let size valid
     if (button) {
         buttons.insert(widget, button);
     }
