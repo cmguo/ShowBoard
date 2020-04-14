@@ -21,7 +21,7 @@ public:
     Q_ENUM(State)
 
 public:
-    StateItem(QString const & title, QGraphicsItem * parent = nullptr);
+    StateItem(QGraphicsItem * parent = nullptr);
 
 public:
     void showBackground(bool show);
@@ -42,7 +42,9 @@ signals:
     void clicked();
 
 private:
-    void setSharedRenderer(QSvgRenderer * renderer);
+    void setSvg(QSvgRenderer * renderer);
+
+    void setMovie(QMovie * movie);
 
     void setText(QString const & text);
 
@@ -60,23 +62,33 @@ public:
     virtual bool sceneEvent(QEvent *event) override;
 
 private:
+    static QGraphicsItem* createIconItem(QGraphicsItem *parent);
+
+    static QGraphicsItem* createTextItem(QGraphicsItem *parent);
+
+    static QGraphicsItem* createButtonItem(QGraphicsItem *parent, bool independent);
+
+private:
     static SvgCache * cache_;
     static QSvgRenderer * loading_;
     static QSvgRenderer * failed_;
+    static QMovie * loadingi_;
 
 private:
     QGraphicsItem * iconItem_;
     QGraphicsItem * textItem_;
+    QGraphicsItem * btnItem_;
     QSvgRenderer * normal_;
     QSvgRenderer * hover_;
     QSvgRenderer * pressed_;
 
 private:
     State state_;
+    bool independent_;
     QString title_;
     bool showBackground_;
     int timerId_;
-    qreal rotate_;
+    int animate_;
     int touchId_;
 };
 

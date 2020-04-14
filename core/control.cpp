@@ -829,8 +829,9 @@ StateItem * Control::stateItem()
 {
     if (stateItem_)
         return stateItem_;
-    stateItem_ = new StateItem(res_->name(), item_);
-    stateItem_->showBackground(item_ == realItem_);
+    stateItem_ = new StateItem(item_);
+    stateItem_->showBackground(item_ == realItem_
+                               && !res_->flags().testFlag(ResourceView::Independent));
     stateItem_->setData(ITEM_KEY_CONTROL, QVariant::fromValue(this));
     ControlTransform * ct = new ControlTransform(static_cast<ControlTransform*>(transform_), true, false, false);
     stateItem_->setTransformations({ct});

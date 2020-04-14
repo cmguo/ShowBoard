@@ -3,6 +3,7 @@
 
 #include <qcomponentcontainer.h>
 
+#include <QMovie>
 #include <QSvgRenderer>
 
 static QExport<SvgCache> export_(QPart::shared);
@@ -18,6 +19,7 @@ SvgCache::SvgCache(QObject *parent)
 }
 
 static QSvgRenderer * nil = reinterpret_cast<QSvgRenderer *>(1);
+static QMovie * nil2 = reinterpret_cast<QMovie *>(1);
 
 QSvgRenderer * SvgCache::get(const QString &file)
 {
@@ -35,4 +37,22 @@ QSvgRenderer * SvgCache::get(const QString &file)
         renderer = nullptr;
     }
     return renderer;
+}
+
+QMovie *SvgCache::getMovie(const QString &file)
+{
+    QMovie * movie = cache2_.value(file);
+    if (!movie) {
+        movie = new QMovie(file, nullptr, this);
+        if (movie->isValid())
+            cache2_[file] = movie;
+        else {
+            cache2_[file] = nil2;
+            delete movie;
+            movie = nullptr;
+        }
+    } else if (movie == nil2) {
+        movie = nullptr;
+    }
+    return movie;
 }

@@ -3,6 +3,7 @@
 
 #include <QGraphicsRectItem>
 #include <QPen>
+#include <QtPromise>
 
 UnknownControl::UnknownControl(ResourceView *res)
     : Control(res, {FullSelect}, {CanRotate, CanScale})
@@ -19,5 +20,8 @@ QGraphicsItem *UnknownControl::create(ResourceView *res)
 
 void UnknownControl::attached()
 {
-    loadFinished(false, "未知资源类型");
+    QtPromise::resolve().delay(10000).then([this, l = life()]() {
+        if (l.isNull()) return;
+        loadFinished(false, "未知资源类型");
+    });
 }

@@ -1,5 +1,7 @@
 #include "stateitem.h"
 #include "core/svgcache.h"
+#include "core/control.h"
+#include "core/resourceview.h"
 
 #include <QSvgRenderer>
 #include <QGraphicsSceneMouseEvent>
@@ -9,41 +11,47 @@
 #include <QDebug>
 #include <QCloseEvent>
 #include <QCursor>
+#include <QMovie>
 
 SvgCache * StateItem::cache_ = nullptr;
 QSvgRenderer * StateItem::loading_ = nullptr;
 QSvgRenderer * StateItem::failed_ = nullptr;
+QMovie * StateItem::loadingi_ = nullptr;
 
 static void truncateText(QString & text, QFont font, int maxWidth);
 
 static constexpr int MAX_TEXT_WIDTH = 300;
 
-StateItem::StateItem(QString const & title, QGraphicsItem * parent)
+StateItem::StateItem(QGraphicsItem * parent)
     : QGraphicsObject(parent)
     , iconItem_(nullptr)
     , textItem_(nullptr)
+    , btnItem_(nullptr)
     , normal_(nullptr)
     , hover_(nullptr)
     , pressed_(nullptr)
     , state_(None)
-    , title_(title)
+    , independent_(false)
     , showBackground_(true)
     , timerId_(0)
+    , animate_(0)
     , touchId_(0)
 {
     setAcceptedMouseButtons(Qt::LeftButton);
     setAcceptTouchEvents(true);
-    iconItem_ = new QGraphicsSvgItem(this);
-    QGraphicsTextItem* textItem = new QGraphicsTextItem(this);
-    textItem->setFont(QFont("Microsoft YaHei", 16));
-    textItem->setDefaultTextColor(Qt::white);
-    textItem_ = textItem;
-    truncateText(title_, textItem->font(), MAX_TEXT_WIDTH);
+    Control * control = Control::fromItem(parent);
+    independent_ = control->resource()->flags().testFlag(ResourceView::Independent);
+    title_ = control->resource()->name();
+    iconItem_ = createIconItem(this);
+    textItem_ = createTextItem(this);
+    truncateText(title_, static_cast<QGraphicsTextItem*>(textItem_)->font(), MAX_TEXT_WIDTH);
+    btnItem_ = createButtonItem(this, independent_);
     if (!cache_) {
         cache_ = SvgCache::instance();
+        loading_ = cache_->get(QString(":/showboard/icon/loading.svg"));
+        loadingi_ = cache_->getMovie(QString(":/showboard/icon/loadingi.svg"));
+        failed_ = cache_->get(QString(":/showboard/icon/error.independent.svg"));
     }
-    loading_ = cache_->get(QString(":/showboard/icon/loading.svg"));
-    failed_ = cache_->get(QString(":/showboard/icon/error.unknown.svg"));
     setCursor(Qt::SizeAllCursor);
     updateTransform();
 }
@@ -65,16 +73,30 @@ void StateItem::setLoading()
 
 void StateItem::setLoading(const QString &msg)
 {
-    if (state_ != Loading)
-        setSharedRenderer(loading_);
-    QString text =  "<center><nobr>" + msg + "...</nobr><br/>"
-                    "<font style='color:#98FFFFFF;font-size:14pt;'>" + title_ + "</font></center>";
-    setText(text);
     if (state_ != Loading) {
+        if (independent_) {
+            setMovie(loadingi_);
+        } else {
+            setSvg(loading_);
+            if (loading_->animated()) {
+                int interval = 1000 / loading_->framesPerSecond();
+                timerId_ = startTimer(interval);
+            } else {
+                timerId_ = startTimer(100);
+            }
+        }
         state_ = Loading;
-        rotate_ = 45.0;
-        timerId_ = startTimer(100);
     }
+    if (independent_) {
+        setText(nullptr);
+    } else {
+        QString title = title_.isEmpty() ? ""
+                                         : "<br/><font style='color:#98FFFFFF;font-size:14pt;'>"
+                    + title_ + "</font>";
+        QString text =  "<center><nobr>" + msg + "...</nobr>" + title + "</center>";
+        setText(text);
+    }
+    btnItem_->hide();
 }
 
 void StateItem::setLoaded(const QString &icon)
@@ -90,7 +112,7 @@ void StateItem::setLoaded(const QString &icon)
     pressed_ = cache_->get(filePressed);
     state_ = Loaded;
     if (normal_)
-        setSharedRenderer(normal_);
+        setSvg(normal_);
     setText(nullptr);
 }
 
@@ -105,23 +127,79 @@ void StateItem::setFailed(QString const & error)
     }
     QString text = "<center><font style='color:#98FFFFFF;font-size:14pt;'>" + title_ + "</font>"
             "<br/><nobr>" + errmsg + "</nobr></center>";
+    if (independent_) {
+        text = "<center><font style='color:#98FFFFFF;font-size:18pt;'>" + error + "</font></center>";
+        type = "independent";
+    }
     state_ = Failed;
     QSvgRenderer * svg = cache_->get(QString(":/showboard/icon/error." + type + ".svg"));
     if (svg == nullptr)
         svg = failed_;
-    setSharedRenderer(svg);
+    setSvg(svg);
     setText(text);
+    if (btnItem_) {
+        QPointF center(btnItem_->boundingRect().center());
+        center.setY(-btnItem_->boundingRect().height() / 2 - textItem_->pos().y()
+                    - textItem_->boundingRect().height() - 10);
+        btnItem_->setPos(-center);
+        btnItem_->show();
+    }
 }
 
-void StateItem::setSharedRenderer(QSvgRenderer * renderer)
+void StateItem::setSvg(QSvgRenderer * renderer)
 {
+    static QSvgRenderer emptySvg;
+    QGraphicsSvgItem * svgIcon =
+        static_cast<QGraphicsSvgItem*>(iconItem_->childItems()[0]);
+    if (svgIcon->renderer() == renderer)
+        return;
     killTimer(timerId_);
     timerId_ = 0;
-    static_cast<QGraphicsSvgItem*>(iconItem_)->setSharedRenderer(renderer);
-    QPointF center(iconItem_->boundingRect().center());
-    iconItem_->setRotation(0);
-    iconItem_->setTransformOriginPoint(center);
-    iconItem_->setPos(-center);
+    if (renderer == nullptr) {
+        svgIcon->setSharedRenderer(&emptySvg);
+        svgIcon->hide();
+        return;
+    }
+    setMovie(nullptr);
+    svgIcon->setSharedRenderer(renderer);
+    QRectF rect = svgIcon->boundingRect();
+    QPointF center(rect.center());
+    svgIcon->setRotation(0);
+    svgIcon->setTransformOriginPoint(center);
+    svgIcon->setPos(-center);
+    svgIcon->show();
+    rect.moveCenter({0, 0});
+    static_cast<QGraphicsRectItem*>(iconItem_)->setRect(rect);
+    prepareGeometryChange();
+}
+
+void StateItem::setMovie(QMovie *movie /* = loadingi_ */)
+{
+    QGraphicsPixmapItem * movieIcon =
+        static_cast<QGraphicsPixmapItem*>(iconItem_->childItems()[1]);
+    QMovie * old = movieIcon->data(1000).value<QMovie*>();
+    if (old == movie)
+        return;
+    if (old) {
+        old->disconnect(this);
+        old->stop();
+    }
+    movieIcon->setData(1000, QVariant::fromValue(movie));
+    if (movie == nullptr) {
+        movieIcon->setPixmap(QPixmap());
+        movieIcon->hide();
+        return;
+    }
+    setSvg(nullptr);
+    connect(movie, &QMovie::updated, this, [movieIcon, movie] () {
+        movieIcon->setPixmap(movie->currentPixmap());
+    });
+    movie->start();
+    QRectF rect = movieIcon->boundingRect();
+    QPointF center(rect.center());
+    movieIcon->setPos(-center);
+    movieIcon->show();
+    static_cast<QGraphicsRectItem*>(iconItem_)->setRect(rect);
     prepareGeometryChange();
 }
 
@@ -154,13 +232,17 @@ QRectF StateItem::boundingRect() const
     if (textItem_->isVisible()) {
         rect |= textItem_->mapToParent(textItem_->boundingRect()).boundingRect();
     }
+    if (btnItem_->isVisible()) {
+        rect |= btnItem_->mapToParent(btnItem_->boundingRect()).boundingRect();
+    }
     rect.adjust(-32, -12, 32, 32);
     return rect;
 }
 
 bool StateItem::hitTest(QGraphicsItem * child, const QPointF &)
 {
-    return child == this || receivers(SIGNAL(clicked())) == 0;
+    return (child != btnItem_ && child->parentItem() != btnItem_)
+            || receivers(SIGNAL(clicked())) == 0;
 }
 
 void StateItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -182,7 +264,14 @@ void StateItem::timerEvent(QTimerEvent * event)
 {
     (void) event;
     //qDebug() << "timerEvent";
-    iconItem_->setRotation(iconItem_->rotation() + rotate_);
+    ++animate_;
+    QGraphicsSvgItem * svgIcon =
+        static_cast<QGraphicsSvgItem*>(iconItem_->childItems()[0]);
+    if (svgIcon->renderer()->animated()) {
+        svgIcon->renderer()->setCurrentFrame(animate_);
+    } else {
+        svgIcon->setRotation(iconItem_->rotation() + animate_ * 45.0);
+    }
 }
 
 void StateItem::mousePressEvent(QGraphicsSceneMouseEvent * event)
@@ -230,6 +319,44 @@ bool StateItem::sceneEvent(QEvent *event)
         break;
     }
     return QGraphicsObject::sceneEvent(event);
+}
+
+QGraphicsItem *StateItem::createIconItem(QGraphicsItem *parent)
+{
+    QGraphicsRectItem * iconItem = new QGraphicsRectItem(parent);
+    iconItem->setPen(Qt::NoPen);
+    new QGraphicsSvgItem(iconItem);
+    new QGraphicsPixmapItem(iconItem);
+    return iconItem;
+}
+
+QGraphicsItem *StateItem::createTextItem(QGraphicsItem *parent)
+{
+    QGraphicsTextItem* textItem = new QGraphicsTextItem(parent);
+    textItem->setFont(QFont("Microsoft YaHei", 16));
+    textItem->setDefaultTextColor(Qt::white);
+    return textItem;
+}
+
+QGraphicsItem *StateItem::createButtonItem(QGraphicsItem *parent, bool independent)
+{
+    QGraphicsPathItem * btnItem = new QGraphicsPathItem(parent);
+    btnItem->setPen(Qt::NoPen);
+    btnItem->setBrush(QColor("#FF008FFF"));
+    QPainterPath path;
+    if (independent)
+        path.addRoundedRect({-128, -32, 256, 64}, 32, 32);
+    else
+        path.addRoundedRect({-64, -16, 128, 32}, 16, 16);
+    btnItem->setPath(path);
+    QGraphicsTextItem * btnText = new QGraphicsTextItem(btnItem);
+    btnText->setFont(QFont("Microsoft YaHei", independent ? 18 : 16));
+    btnText->setDefaultTextColor(Qt::white);
+    btnText->setPlainText("重新尝试");
+    btnText->adjustSize();
+    btnText->setPos(-btnText->boundingRect().center());
+    btnItem->hide();
+    return btnItem;
 }
 
 static void truncateText(QString & text, QFont font, int maxWidth)
