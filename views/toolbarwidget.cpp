@@ -54,8 +54,7 @@ void ToolbarWidget::setButtonTemplate(int typeId)
 void ToolbarWidget::setStyleSheet(const QssHelper &style)
 {
     QFrameEx::setStyleSheet(style);
-    QString iconSize = style.value("QPushButton", "qproperty-iconSize");
-    iconSize_ = QssHelper::sizeFromString(iconSize);
+    iconSize_ = style.value("QPushButton", "qproperty-iconSize").toSize();
 }
 
 void ToolbarWidget::setPopupPosition(PopupPosition pos)
@@ -497,7 +496,7 @@ void QFrameEx::setStyleSheet(const QssHelper &style)
 {
     QFrame::setStyleSheet(style);
     QByteArray objname = "#" + objectName().toUtf8();
-    borderRadius_ = QssHelper::singleSizeFromString(style.value(objname, "border-radius"));
+    borderRadius_ = style.value(objname, "border-radius").toInt();
 }
 
 void QFrameEx::paintEvent(QPaintEvent * event)

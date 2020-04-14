@@ -7,14 +7,23 @@
 #include <QMap>
 #include <QList>
 
+class SHOWBOARD_EXPORT QssValue : public QVariant
+{
+public:
+    QssValue(QString const & value);
+
+public:
+    QSize toSize() const;
+
+    int toInt() const;
+};
+
 class SHOWBOARD_EXPORT QssHelper
 {
 public:
     QssHelper(QString const & file = nullptr);
 
 public:
-    static QString loadText(QString const & file);
-
     static qreal sizeScale();
 
     static qreal sizeScale(qreal size);
@@ -23,9 +32,8 @@ public:
 
     static int fontSizeScale(int size);
 
-    static int singleSizeFromString(QString const & size);
-
-    static QSize sizeFromString(QString const & size);
+public:
+    static QString loadText(QString const & file);
 
     typedef QString (*StyleFunc)(QString const &);
 
@@ -47,7 +55,7 @@ public:
 public:
     void setValue(QByteArray const & section, QByteArray const & key, QString const & value);
 
-    QString value(QByteArray const & section, QByteArray const & key) const;
+    QssValue value(QByteArray const & section, QByteArray const & key) const;
 
     void applyValues(QMap<QByteArray, QMap<QByteArray, QString>> styleValues);
 

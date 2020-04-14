@@ -97,21 +97,6 @@ int QssHelper::fontSizeScale(int size)
     return static_cast<int>(size * sizeScale());
 }
 
-int QssHelper::singleSizeFromString(const QString &size)
-{
-    QString unit;
-    return strToInt(size, unit);
-}
-
-QSize QssHelper::sizeFromString(const QString &size)
-{
-    QStringList list(size.split(' '));
-    QString unit;
-    int w = strToInt(list[0], unit);
-    int h = strToInt(list[1], unit);
-    return {w, h};
-}
-
 /* static */
 void QssHelper::setStyleSpecValues(QMap<QByteArray, QMap<QByteArray, QString> > styleValues)
 {
@@ -163,7 +148,7 @@ void QssHelper::setValue(const QByteArray &section, const QByteArray &key, const
     cache_ = nullptr;
 }
 
-QString QssHelper::value(const QByteArray &section, const QByteArray &key) const
+QssValue QssHelper::value(const QByteArray &section, const QByteArray &key) const
 {
     static QMap<QByteArray, QString> emptySection;
     static QString emptyValue;
@@ -278,4 +263,24 @@ void QssHelper::parse(const QString &style)
     if (!kvs.isEmpty()) {
         styles_[""] = kvs;
     }
+}
+
+QssValue::QssValue(const QString &value)
+    : QVariant(value)
+{
+}
+
+QSize QssValue::toSize() const
+{
+    QStringList list(toString().split(' '));
+    QString unit;
+    int w = strToInt(list[0], unit);
+    int h = strToInt(list[1], unit);
+    return {w, h};
+}
+
+int QssValue::toInt() const
+{
+    QString unit;
+    return strToInt(toString(), unit);
 }
