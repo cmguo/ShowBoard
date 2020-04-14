@@ -242,8 +242,7 @@ QIcon ToolButton::makeIcon(QString const & iconString, QSize const & size)
                 continue;
             }
             file = sep;
-            pixmap.load(file);
-            pixmap = pixmap.scaled(size);
+            pixmap = QIcon(file).pixmap(size);
         } else {
             QString m = sep.left(n);
             QIcon::State s = QIcon::Off;
@@ -259,8 +258,7 @@ QIcon ToolButton::makeIcon(QString const & iconString, QSize const & size)
             } else if (!v.isEmpty()) {
                 int n1 = file.lastIndexOf('.');
                 file.replace(n1, 0, v);
-                pixmap.load(file);
-                pixmap = pixmap.scaled(size);
+                pixmap = QIcon(file).pixmap(size);
                 p = pixmap;
             } else {
                 p = pixmap;
