@@ -241,7 +241,8 @@ QRectF StateItem::boundingRect() const
 
 bool StateItem::hitTest(QGraphicsItem * child, const QPointF &)
 {
-    return (child != btnItem_ && child->parentItem() != btnItem_)
+    QGraphicsItem* hitItem = state_ == Failed ? btnItem_ : iconItem_;
+    return (child != hitItem && child->parentItem() != hitItem)
             || receivers(SIGNAL(clicked())) == 0;
 }
 
@@ -281,20 +282,25 @@ void StateItem::mousePressEvent(QGraphicsSceneMouseEvent * event)
         event->ignore();
         return;
     }
+    QGraphicsItem* hitItem = state_ == Failed ? btnItem_ : iconItem_;
+    if (!hitItem->contains(hitItem->mapFromParent(event->pos())))
+        return;
     if (touchId_)
         return;
+    touchId_ = 1;
     if (pressed_)
-        static_cast<QGraphicsSvgItem*>(iconItem_)->setSharedRenderer(pressed_);
+        setSvg(pressed_);
 }
 
 void StateItem::mouseReleaseEvent(QGraphicsSceneMouseEvent * event)
 {
     (void) event;
-    if (touchId_)
+    if (touchId_ != 1)
         return;
     if (normal_)
-        static_cast<QGraphicsSvgItem*>(iconItem_)->setSharedRenderer(normal_);
+        setSvg(normal_);
     emit clicked();
+    touchId_ = 0;
 }
 
 bool StateItem::sceneEvent(QEvent *event)
@@ -304,16 +310,22 @@ bool StateItem::sceneEvent(QEvent *event)
         if (receivers(SIGNAL(clicked())) == 0) {
             event->ignore();
             return false;
+        } else {
+            QTouchEvent::TouchPoint const & pt = static_cast<QTouchEvent*>(event)->touchPoints().first();
+            QGraphicsItem* hitItem = state_ == Failed ? btnItem_ : iconItem_;
+            if (!hitItem->contains(hitItem->mapFromParent(pt.pos())))
+                return false;
+            touchId_ = pt.id();
+            if (pressed_)
+                static_cast<QGraphicsSvgItem*>(iconItem_)->setSharedRenderer(pressed_);
+            return true;
         }
-        touchId_ = static_cast<QTouchEvent*>(event)->touchPoints().first().id();
-        if (pressed_)
-            static_cast<QGraphicsSvgItem*>(iconItem_)->setSharedRenderer(pressed_);
-        return true;
     case QEvent::TouchEnd:
         if (normal_)
             static_cast<QGraphicsSvgItem*>(iconItem_)->setSharedRenderer(normal_);
+        if (touchId_)
+            emit clicked();
         touchId_ = 0;
-        emit clicked();
         return true;
     default:
         break;

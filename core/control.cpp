@@ -51,11 +51,10 @@ Control::Control(ResourceView *res, Flags flags, Flags clearFlags)
 {
     if (res_->flags().testFlag(ResourceView::LargeCanvas)) {
         flags_.setFlag(FullLayout, true);
-        flags_.setFlag(CanRotate, false);
-    }
-    if (res_->flags().testFlag(ResourceView::Independent)) {
         flags_.setFlag(CanSelect, false);
-        flags_.setFlag(CanMove, false);
+        flags_.setFlag(CanRotate, false);
+    } else if (res_->flags().testFlag(ResourceView::Independent)) {
+        flags_.setFlag(DefaultFlags, false);
     }
     if (flags_.testFlag(FullLayout)) {
         flags_.setFlag(FixedOnCanvas, false);
@@ -406,6 +405,8 @@ Control::SelectMode Control::selectTest(QGraphicsItem * child, QGraphicsItem * i
         return static_cast<ItemFrame*>(realItem_)->hitTest(child, point) ? Select : NotSelect;
     }
     if (stateItem_ == item) { // hit state
+        if (!(flags_ & DefaultFlags))
+            return NotSelect;
         return stateItem()->hitTest(child, point) ? Select : NotSelect;
     }
     if (res_->flags().testFlag(ResourceView::LargeCanvas))
