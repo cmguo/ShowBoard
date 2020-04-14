@@ -5,7 +5,8 @@
 #include <QCursor>
 
 static constexpr qreal BORDER_OFFSET = 3;
-static constexpr qreal BOX_RADIUS = 7;
+static constexpr qreal ROTATE_OFFSET = 30;
+static constexpr qreal BOX_RADIUS = 8;
 static constexpr qreal BOX_RADIUS2 = 20;
 
 class BorderItem : public QGraphicsPathItem
@@ -19,7 +20,17 @@ public:
         static QPainterPath boxShape = circle(QssHelper::sizeScale(BOX_RADIUS));
         setPath(boxShape);
     }
-
+    BorderItem(int, QGraphicsItem *parent = nullptr)
+        : BorderItem(parent)
+    {
+        QGraphicsPathItem * handle = new QGraphicsPathItem(this);
+        handle->setPen(QPen(QColor("#990091FF"), 3));
+        QPainterPath shape;
+        shape.moveTo(0, QssHelper::sizeScale(BOX_RADIUS));
+        shape.lineTo(0, QssHelper::sizeScale(ROTATE_OFFSET));
+        handle->setPath(shape);
+        handle->setFlag(QGraphicsItem::ItemStacksBehindParent);
+    }
 private:
     virtual QPainterPath shape() const override
     {
@@ -47,6 +58,9 @@ private:
 SelectBox::SelectBox(QGraphicsItem * parent)
     : QGraphicsRectItem(parent)
 {
+    rotate_ = new BorderItem(0, this);
+    rotate_->setCursor(Qt::CrossCursor);
+
     //       4
     //    1     2
     //       8
@@ -68,10 +82,7 @@ SelectBox::SelectBox(QGraphicsItem * parent)
     leftBottom_ = new BorderItem(this);
     leftBottom_->setCursor(Qt::SizeBDiagCursor);
 
-    rotate_ = new BorderItem(this);
-    rotate_->setCursor(Qt::CrossCursor);
-
-    setPen(QPen(Qt::blue, 2));
+    setPen(QPen(QColor("#990091FF"), 3));
 }
 
 void SelectBox::setRect(QRectF const & rect)
@@ -80,7 +91,7 @@ void SelectBox::setRect(QRectF const & rect)
     QRectF rect2(rect.adjusted(-offset, -offset, offset, offset));
     QGraphicsRectItem::setRect(rect2);
     QPointF center = rect.center();
-    rotate_->setPos(center.x(), rect2.top() - QssHelper::sizeScale(BOX_RADIUS2));
+    rotate_->setPos(center.x(), rect2.top() - QssHelper::sizeScale(BOX_RADIUS + ROTATE_OFFSET));
     leftTop_->setPos(rect2.left(), rect2.top());
     rightTop_->setPos(rect2.right(), rect2.top());
     rightBottom_->setPos(rect2.right(), rect2.bottom());
