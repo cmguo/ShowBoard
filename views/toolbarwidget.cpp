@@ -223,6 +223,7 @@ void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWi
     } else {
         layout->addWidget(widget);
     }
+    widget->show();
     if (button) {
         buttons.insert(widget, button);
     }
@@ -289,8 +290,7 @@ void ToolbarWidget::setButtons(QLayout *layout, const QList<ToolButton *> &butto
     layout->activate();
     QGraphicsProxyWidget * proxy = container->graphicsProxyWidget();
     if (proxy) {
-        // TODO: sizeHint is not correct
-        proxy->resize(layout->sizeHint());
+        proxy->resize(container->minimumSize());
     }
     container->setVisible(!buttons.empty());
 }
@@ -393,7 +393,6 @@ void ToolbarWidget::buttonClicked(QWidget * widget)
                     updateButton(qobject_cast<QPushButton*>(w), button);
                     layout_->activate();
                     if (graphicsProxyWidget()) {
-                        graphicsProxyWidget()->update();
                         graphicsProxyWidget()->resize(minimumSize());
                     }
                     break;
