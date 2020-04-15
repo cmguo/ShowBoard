@@ -2,6 +2,7 @@
 #define STATEITEM_H
 
 #include <QGraphicsObject>
+#include <QPen>
 
 class SvgCache;
 class QSvgRenderer;
@@ -48,6 +49,10 @@ private:
 
     void setText(QString const & text);
 
+    void decideStyles();
+
+    void updateLayout();
+
 public:
     virtual QRectF boundingRect() const override;
 
@@ -62,17 +67,16 @@ public:
     virtual bool sceneEvent(QEvent *event) override;
 
 private:
-    static QGraphicsItem* createIconItem(QGraphicsItem *parent);
+    static QGraphicsItem* createIconItem(QGraphicsItem *parent, bool independent);
 
-    static QGraphicsItem* createTextItem(QGraphicsItem *parent);
+    static QGraphicsItem* createTextItem(QGraphicsItem *parent, bool independent);
 
     static QGraphicsItem* createButtonItem(QGraphicsItem *parent, bool independent);
 
 private:
     static SvgCache * cache_;
-    static QSvgRenderer * loading_;
+    static QMovie * loading_;
     static QSvgRenderer * failed_;
-    static QMovie * loadingi_;
 
 private:
     QGraphicsItem * iconItem_;
@@ -83,9 +87,22 @@ private:
     QSvgRenderer * pressed_;
 
 private:
-    State state_;
-    bool independent_;
     QString title_;
+    State state_;
+    QRectF rect_;
+    bool fixedSize_ = false;
+
+private:
+    // styles
+    QPen pen_;
+    QBrush brush_;
+    qreal borderRadius_;
+    QColor textColor1_;
+    QColor textColor2_;
+    int textSize1_;
+    int textSize2_;
+
+    bool independent_;
     bool showBackground_;
     int timerId_;
     int animate_;

@@ -1,3 +1,4 @@
+#include "qsshelper.h"
 #include "stateitem.h"
 #include "core/svgcache.h"
 #include "core/control.h"
@@ -14,13 +15,15 @@
 #include <QMovie>
 
 SvgCache * StateItem::cache_ = nullptr;
-QSvgRenderer * StateItem::loading_ = nullptr;
+QMovie * StateItem::loading_ = nullptr;
 QSvgRenderer * StateItem::failed_ = nullptr;
-QMovie * StateItem::loadingi_ = nullptr;
 
 static void truncateText(QString & text, QFont font, int maxWidth);
 
-static constexpr int MAX_TEXT_WIDTH = 300;
+static constexpr int MAX_TEXT_WIDTH = 250;
+static constexpr int ID_PADDING = 1000;
+static constexpr int ID_MOVIE = 1001;
+
 
 StateItem::StateItem(QGraphicsItem * parent)
     : QGraphicsObject(parent)
@@ -37,22 +40,27 @@ StateItem::StateItem(QGraphicsItem * parent)
     , animate_(0)
     , touchId_(0)
 {
-    setAcceptedMouseButtons(Qt::LeftButton);
-    setAcceptTouchEvents(true);
-    Control * control = Control::fromItem(parent);
-    independent_ = control->resource()->flags().testFlag(ResourceView::Independent);
-    title_ = control->resource()->name();
-    iconItem_ = createIconItem(this);
-    textItem_ = createTextItem(this);
-    truncateText(title_, static_cast<QGraphicsTextItem*>(textItem_)->font(), MAX_TEXT_WIDTH);
-    btnItem_ = createButtonItem(this, independent_);
     if (!cache_) {
         cache_ = SvgCache::instance();
-        loading_ = cache_->get(QString(":/showboard/icon/loading.svg"));
-        loadingi_ = cache_->getMovie(QString(":/showboard/icon/loadingi.svg"));
-        failed_ = cache_->get(QString(":/showboard/icon/error.independent.svg"));
+        loading_ = cache_->getMovie(QString(":/showboard/icon/loading.svg"));
+        failed_ = cache_->get(QString(":/showboard/icon/error.unknown.svg"));
     }
+
+    setAcceptedMouseButtons(Qt::LeftButton);
+    setAcceptTouchEvents(true);
     setCursor(Qt::SizeAllCursor);
+
+    Control * control = Control::fromItem(parent);
+    independent_ = control->resource()->flags().testFlag(ResourceView::Independent);
+
+    decideStyles();
+
+    title_ = control->resource()->name();
+    iconItem_ = createIconItem(this, independent_);
+    textItem_ = createTextItem(this, independent_);
+    truncateText(title_, static_cast<QGraphicsTextItem*>(textItem_)->font(), MAX_TEXT_WIDTH);
+    btnItem_ = createButtonItem(this, independent_);
+
     updateTransform();
 }
 
@@ -74,29 +82,12 @@ void StateItem::setLoading()
 void StateItem::setLoading(const QString &msg)
 {
     if (state_ != Loading) {
-        if (independent_) {
-            setMovie(loadingi_);
-        } else {
-            setSvg(loading_);
-            if (loading_->animated()) {
-                int interval = 1000 / loading_->framesPerSecond();
-                timerId_ = startTimer(interval);
-            } else {
-                timerId_ = startTimer(100);
-            }
-        }
+        setMovie(loading_);
         state_ = Loading;
     }
-    if (independent_) {
-        setText(nullptr);
-    } else {
-        QString title = title_.isEmpty() ? ""
-                                         : "<br/><font style='color:#98FFFFFF;font-size:14pt;'>"
-                    + title_ + "</font>";
-        QString text =  "<center><nobr>" + msg + "...</nobr>" + title + "</center>";
-        setText(text);
-    }
+    setText(msg);
     btnItem_->hide();
+    updateLayout();
 }
 
 void StateItem::setLoaded(const QString &icon)
@@ -114,6 +105,7 @@ void StateItem::setLoaded(const QString &icon)
     if (normal_)
         setSvg(normal_);
     setText(nullptr);
+    updateLayout();
 }
 
 void StateItem::setFailed(QString const & error)
@@ -125,25 +117,14 @@ void StateItem::setFailed(QString const & error)
         type = error.left(n).toUtf8();
         errmsg = error.mid(n + 1);
     }
-    QString text = "<center><font style='color:#98FFFFFF;font-size:14pt;'>" + title_ + "</font>"
-            "<br/><nobr>" + errmsg + "</nobr></center>";
-    if (independent_) {
-        text = "<center><font style='color:#98FFFFFF;font-size:18pt;'>" + error + "</font></center>";
-        type = "independent";
-    }
     state_ = Failed;
     QSvgRenderer * svg = cache_->get(QString(":/showboard/icon/error." + type + ".svg"));
     if (svg == nullptr)
         svg = failed_;
     setSvg(svg);
-    setText(text);
-    if (btnItem_) {
-        QPointF center(btnItem_->boundingRect().center());
-        center.setY(-btnItem_->boundingRect().height() / 2 - textItem_->pos().y()
-                    - textItem_->boundingRect().height() - 10);
-        btnItem_->setPos(-center);
-        btnItem_->show();
-    }
+    setText(errmsg);
+    btnItem_->show();
+    updateLayout();
 }
 
 void StateItem::setSvg(QSvgRenderer * renderer)
@@ -162,29 +143,24 @@ void StateItem::setSvg(QSvgRenderer * renderer)
     }
     setMovie(nullptr);
     svgIcon->setSharedRenderer(renderer);
-    QRectF rect = svgIcon->boundingRect();
-    QPointF center(rect.center());
     svgIcon->setRotation(0);
-    svgIcon->setTransformOriginPoint(center);
-    svgIcon->setPos(-center);
     svgIcon->show();
-    rect.moveCenter({0, 0});
+    QRectF rect = svgIcon->mapToParent(svgIcon->boundingRect()).boundingRect();
     static_cast<QGraphicsRectItem*>(iconItem_)->setRect(rect);
-    prepareGeometryChange();
 }
 
 void StateItem::setMovie(QMovie *movie /* = loadingi_ */)
 {
     QGraphicsPixmapItem * movieIcon =
         static_cast<QGraphicsPixmapItem*>(iconItem_->childItems()[1]);
-    QMovie * old = movieIcon->data(1000).value<QMovie*>();
+    QMovie * old = movieIcon->data(ID_MOVIE).value<QMovie*>();
     if (old == movie)
         return;
     if (old) {
         old->disconnect(this);
         old->stop();
     }
-    movieIcon->setData(1000, QVariant::fromValue(movie));
+    movieIcon->setData(ID_MOVIE, QVariant::fromValue(movie));
     if (movie == nullptr) {
         movieIcon->setPixmap(QPixmap());
         movieIcon->hide();
@@ -195,16 +171,18 @@ void StateItem::setMovie(QMovie *movie /* = loadingi_ */)
         movieIcon->setPixmap(movie->currentPixmap());
     });
     movie->start();
-    QRectF rect = movieIcon->boundingRect();
-    QPointF center(rect.center());
-    movieIcon->setPos(-center);
     movieIcon->show();
+    QRectF rect = movieIcon->mapToParent(movieIcon->boundingRect()).boundingRect();
     static_cast<QGraphicsRectItem*>(iconItem_)->setRect(rect);
-    prepareGeometryChange();
 }
 
-void StateItem::setText(const QString &text)
+void StateItem::setText(const QString &msg)
 {
+    QString messg = "<font style='color:" + QVariant(textColor1_).toByteArray()
+            + ";font-size:16pt;'>" + msg + "</font>";
+    QString title = "<font style='color:" + QVariant(textColor2_).toByteArray()
+            + ";font-size:14pt;'>" + title_ + "</font>";
+    QString text =  "<center><nobr>" + messg + "...</nobr><br/>" + title + "</center>";
     QGraphicsTextItem* textItem = static_cast<QGraphicsTextItem*>(textItem_);
     textItem->setTextWidth(MAX_TEXT_WIDTH);
     if (text.startsWith("<") && text.endsWith(">"))
@@ -212,11 +190,72 @@ void StateItem::setText(const QString &text)
     else
         textItem->setPlainText(text);
     textItem->adjustSize();
-    QPointF center(textItem->boundingRect().center());
-    center.setY(-iconItem_->boundingRect().height() / 2 - 10);
-    textItem->setPos(-center);
     textItem->setVisible(!text.isEmpty());
-    prepareGeometryChange();
+}
+
+void StateItem::decideStyles()
+{
+    borderRadius_ = QssHelper::sizeScale(8.0);
+    if (true) {
+        textColor1_ = "#CC2B2B2B"; // 80%
+        textColor2_ = "#FFB6B6B6";
+        brush_ = QBrush(Qt::white);
+        pen_ = QPen(QColor("#FFE2E3E4"), 1);
+    } else {
+        textColor1_ = "#FFFFFFFF";
+        textColor2_ = "#FF7E7E7E";
+        brush_ = QBrush(QColor("#FF2B3034"));
+        pen_ = QPen(QColor("#FF434D59"), 1);
+    }
+    if (independent_) {
+        textSize1_ = textSize2_ = QssHelper::fontSizeScale(18);
+        showBackground_ = false;
+    } else {
+        textSize2_ = QssHelper::fontSizeScale(16);
+        textSize2_ = QssHelper::fontSizeScale(14);
+        if (parentItem()->boundingRect().isEmpty()) {
+            showBackground_ = true;
+            fixedSize_ = true;
+            rect_ = QRectF({0, 0}, QssHelper::sizeScale(QSizeF(400, 300)));
+            rect_.moveCenter({0, 0});
+        }
+    }
+}
+
+void StateItem::updateLayout()
+{
+    qreal width = 0;
+    qreal height = 0;
+    for (QGraphicsItem * item : childItems()) {
+        if (item->isVisible()) {
+            QRectF r(item->boundingRect());
+            qDebug() << r.height();
+            if (r.width() > width)
+                width = r.width();
+            if (height > 0)
+                height += item->data(ID_PADDING).toInt();
+            height += r.height();
+        }
+    }
+    if (!fixedSize_) {
+        prepareGeometryChange();
+        rect_ = QRectF(0, 0, width + 64, height + 64);
+        rect_.moveCenter({0, 0});
+    }
+    qDebug() << height;
+    height *= -0.5;
+    QPointF pos(0, height);
+    for (QGraphicsItem * item : childItems()) {
+        if (item->isVisible()) {
+            QRectF r(item->boundingRect());
+            if (pos.y() > height)
+                pos.setY(pos.y() + item->data(ID_PADDING).toInt());
+            pos.setY(pos.y() + r.height() / 2);
+            qDebug() << pos;
+            item->setPos(pos - r.center());
+            pos.setY(pos.y() + r.height() / 2);
+        }
+    }
 }
 
 void StateItem::updateTransform()
@@ -227,16 +266,7 @@ void StateItem::updateTransform()
 
 QRectF StateItem::boundingRect() const
 {
-    QRectF rect = iconItem_->boundingRect();
-    rect.moveCenter(QPointF(0, 0)); // not map to this, ignore rotate
-    if (textItem_->isVisible()) {
-        rect |= textItem_->mapToParent(textItem_->boundingRect()).boundingRect();
-    }
-    if (btnItem_->isVisible()) {
-        rect |= btnItem_->mapToParent(btnItem_->boundingRect()).boundingRect();
-    }
-    rect.adjust(-32, -12, 32, 32);
-    return rect;
+    return rect_;
 }
 
 bool StateItem::hitTest(QGraphicsItem * child, const QPointF &)
@@ -255,9 +285,9 @@ void StateItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     if (state_ == Loaded)
         return;
     painter->save();
-    painter->setPen(QColor("#FF434D59"));
-    painter->setBrush(QColor("#F22B3034"));
-    painter->drawRoundedRect(boundingRect(), 8, 8);
+    painter->setPen(pen_);
+    painter->setBrush(brush_);
+    painter->drawRoundedRect(boundingRect(), borderRadius_, borderRadius_);
     painter->restore();
 }
 
@@ -283,10 +313,14 @@ void StateItem::mousePressEvent(QGraphicsSceneMouseEvent * event)
         return;
     }
     QGraphicsItem* hitItem = state_ == Failed ? btnItem_ : iconItem_;
-    if (!hitItem->contains(hitItem->mapFromParent(event->pos())))
+    if (!hitItem->contains(hitItem->mapFromParent(event->pos()))) {
+        event->ignore();
         return;
-    if (touchId_)
+    }
+    if (touchId_) {
+        event->ignore();
         return;
+    }
     touchId_ = 1;
     if (pressed_)
         setSvg(pressed_);
@@ -333,20 +367,22 @@ bool StateItem::sceneEvent(QEvent *event)
     return QGraphicsObject::sceneEvent(event);
 }
 
-QGraphicsItem *StateItem::createIconItem(QGraphicsItem *parent)
+QGraphicsItem *StateItem::createIconItem(QGraphicsItem *parent, bool independent)
 {
     QGraphicsRectItem * iconItem = new QGraphicsRectItem(parent);
     iconItem->setPen(Qt::NoPen);
-    new QGraphicsSvgItem(iconItem);
+    QGraphicsSvgItem * svg = new QGraphicsSvgItem(iconItem);
+    svg->setScale(QssHelper::sizeScale(independent ? 4.0 : 1.0));
     new QGraphicsPixmapItem(iconItem);
     return iconItem;
 }
 
-QGraphicsItem *StateItem::createTextItem(QGraphicsItem *parent)
+QGraphicsItem *StateItem::createTextItem(QGraphicsItem *parent, bool independent)
 {
     QGraphicsTextItem* textItem = new QGraphicsTextItem(parent);
-    textItem->setFont(QFont("Microsoft YaHei", 16));
+    textItem->setFont(QFont("Microsoft YaHei"));
     textItem->setDefaultTextColor(Qt::white);
+    textItem->setData(ID_PADDING, QssHelper::sizeScale(independent ? 16 : 8));
     return textItem;
 }
 
@@ -359,15 +395,16 @@ QGraphicsItem *StateItem::createButtonItem(QGraphicsItem *parent, bool independe
     if (independent)
         path.addRoundedRect({-128, -32, 256, 64}, 32, 32);
     else
-        path.addRoundedRect({-64, -16, 128, 32}, 16, 16);
+        path.addRoundedRect({-42, -20, 84, 40}, 16, 16);
     btnItem->setPath(path);
     QGraphicsTextItem * btnText = new QGraphicsTextItem(btnItem);
-    btnText->setFont(QFont("Microsoft YaHei", independent ? 18 : 16));
+    btnText->setFont(QFont("Microsoft YaHei", QssHelper::fontSizeScale(independent ? 18 : 16)));
     btnText->setDefaultTextColor(Qt::white);
-    btnText->setPlainText("重新尝试");
+    btnText->setPlainText("重试");
     btnText->adjustSize();
     btnText->setPos(-btnText->boundingRect().center());
     btnItem->hide();
+    btnItem->setData(ID_PADDING, QssHelper::sizeScale(independent ? 12 : 24));
     return btnItem;
 }
 

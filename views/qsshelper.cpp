@@ -92,6 +92,16 @@ int QssHelper::sizeScale(int size)
     return static_cast<int>(size * sizeScale());
 }
 
+QSizeF QssHelper::sizeScale(const QSizeF &size)
+{
+    return size * sizeScale();
+}
+
+QSize QssHelper::sizeScale(const QSize &size)
+{
+    return sizeScale(QSizeF(size)).toSize();
+}
+
 int QssHelper::fontSizeScale(int size)
 {
     return static_cast<int>(size * sizeScale());

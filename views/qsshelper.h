@@ -30,6 +30,10 @@ public:
 
     static int sizeScale(int size);
 
+    static QSizeF sizeScale(QSizeF const & size);
+
+    static QSize sizeScale(QSize const & size);
+
     static int fontSizeScale(int size);
 
 public:
