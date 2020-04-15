@@ -23,6 +23,8 @@ public:
     BorderItem(int, QGraphicsItem *parent = nullptr)
         : BorderItem(parent)
     {
+        setBrush(QBrush(QColor("#990091FF")));
+        // line
         QGraphicsPathItem * handle = new QGraphicsPathItem(this);
         handle->setPen(QPen(QColor("#990091FF"), 3));
         QPainterPath shape;

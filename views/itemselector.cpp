@@ -6,6 +6,7 @@
 #include "toolbarwidget.h"
 #include "whitecanvas.h"
 #include "selectbox.h"
+#include "qsshelper.h"
 #include "controls/whitecanvascontrol.h"
 
 #include <QPen>
@@ -322,7 +323,11 @@ void ItemSelector::layoutToolbar()
     QRectF boxRect = selBox_->mapToScene(selBox_->boundingRect()).boundingRect();
     QRectF sceneRect = scene()->sceneRect();
     QSizeF size = toolBar()->size();
-    boxRect.adjust(0, 0, 0, size.height() + 10);
+    qreal padding = QssHelper::sizeScale(10);
+    if (Control * canvasControl = Control::fromItem(parentItem())) {
+        padding *= canvasControl->resource()->transform().scale().m11();
+    }
+    boxRect.adjust(0, 0, 0, size.height() + padding);
     boxRect &= sceneRect;
     QPointF pos(boxRect.center().x() - size.width() / 2, boxRect.bottom() - size.height());
     if (pos.x() < sceneRect.left())
