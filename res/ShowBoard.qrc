@@ -34,6 +34,6 @@
         <file>icon/drag.png</file>
         <file>icon/zoom_in.svg</file>
         <file>icon/zoom_out.svg</file>
-        <file>icon/loadingi.svg</file>
+        <file>icon/loading2.svg</file>
     </qresource>
 </RCC>

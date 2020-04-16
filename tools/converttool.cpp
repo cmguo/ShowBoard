@@ -34,16 +34,15 @@ QGraphicsItem *ConvertTool::create(ResourceView *res)
 
 void ConvertTool::attached()
 {
+    item_->show();
     if (whiteCanvas()->getToolControl(res_->url().toString()) != this) {
         loadFinished(false, "当前文档正在转换，请稍后重试");
         startTimer(3000);
-        item_->show();
         return;
     }
     if (whiteCanvas()->getToolControl(res_->resource()->type()) != this) {
         loadFinished(false, "当前有其他文档正在转换，请稍后重试");
         startTimer(3000);
-        item_->show();
         return;
     }
     QWeakPointer<int> l = life();
@@ -57,7 +56,6 @@ void ConvertTool::attached()
         }
     });
     stateItem()->setLoading("正在下载");
-    item_->show();
 }
 
 void ConvertTool::timerEvent(QTimerEvent *)

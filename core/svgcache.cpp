@@ -39,6 +39,28 @@ QSvgRenderer * SvgCache::get(const QString &file)
     return renderer;
 }
 
+QSvgRenderer *SvgCache::lock(QSvgRenderer *renderer)
+{
+    if (!locked_.contains(renderer)) {
+        locked_.append(renderer);
+        return renderer;
+    }
+    auto iter = cache_.keyValueBegin();
+    for (; iter != cache_.keyValueEnd(); ++iter) {
+        if ((*iter).second == renderer) {
+            renderer = new QSvgRenderer((*iter).first, this);
+            return renderer;
+        }
+    }
+    return nullptr;
+}
+
+void SvgCache::unlock(QSvgRenderer *renderer)
+{
+    if (!locked_.removeOne(renderer))
+        delete renderer;
+}
+
 QMovie *SvgCache::getMovie(const QString &file)
 {
     QMovie * movie = cache2_.value(file);

@@ -25,8 +25,6 @@ public:
     StateItem(QGraphicsItem * parent = nullptr);
 
 public:
-    void showBackground(bool show);
-
     void setLoading();
 
     void setLoading(QString const & msg);
@@ -43,13 +41,13 @@ signals:
     void clicked();
 
 private:
+    void decideStyles(bool independent, bool istool);
+
     void setSvg(QSvgRenderer * renderer);
 
     void setMovie(QMovie * movie);
 
     void setText(QString const & text);
-
-    void decideStyles();
 
     void updateLayout();
 
@@ -75,7 +73,8 @@ private:
 
 private:
     static SvgCache * cache_;
-    static QMovie * loading_;
+    static QMovie * loading2_;
+    static QSvgRenderer * loading_;
     static QSvgRenderer * failed_;
 
 private:
@@ -102,7 +101,6 @@ private:
     int textSize1_;
     int textSize2_;
 
-    bool independent_;
     bool showBackground_;
     int timerId_;
     int animate_;

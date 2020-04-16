@@ -23,11 +23,16 @@ public:
      */
     QSvgRenderer * get(QString const & file);
 
+    QSvgRenderer * lock(QSvgRenderer * renderer);
+
+    void unlock(QSvgRenderer * renderer);
+
     QMovie * getMovie(QString const & file);
 
 private:
     QMap<QString, QSvgRenderer *> cache_;
     QMap<QString, QMovie *> cache2_;
+    QList<QSvgRenderer *> locked_;
 };
 
 #endif // SVGPOOL_H
