@@ -128,7 +128,7 @@ void ToolButtonProvider::attachSubProvider(ToolButtonProvider *provider, bool be
     emit buttonsChanged();
 }
 
-static bool inHandle = false;
+static ToolButtonProvider * inHandle = nullptr;
 
 static std::map<QMetaObject const *, std::map<QByteArray, OptionToolButtons*>> & optionButtons()
 {
@@ -153,8 +153,8 @@ static OptionToolButtons* optionButton(QMetaObject const * meta, QByteArray cons
 
 ToolButton* ToolButtonProvider::getStringButton(const QByteArray &name)
 {
-    bool in = inHandle;
-    inHandle = true;
+    ToolButtonProvider* in = inHandle;
+    inHandle = this;
     QList<ToolButton *> btns = tools();
     inHandle = in;
     for (ToolButton * b : btns)
@@ -165,8 +165,8 @@ ToolButton* ToolButtonProvider::getStringButton(const QByteArray &name)
 
 ToolButton* ToolButtonProvider::getStringButton(int index)
 {
-    bool in = inHandle;
-    inHandle = true;
+    ToolButtonProvider* in = inHandle;
+    inHandle = this;
     QList<ToolButton *> btns = tools();
     inHandle = in;
     if (index < btns.size())
@@ -211,7 +211,7 @@ bool ToolButtonProvider::handleToolButton(QList<ToolButton *> const & buttons)
     for (int j = i + 1; j < buttons.size(); ++j) {
         args.append(buttons[j]->name());
     }
-    inHandle = true;
+    inHandle = this;
     bool result = handleToolButton(button, args);
     if (result && button->needUpdate()) {
         updateToolButton(button);
@@ -243,7 +243,7 @@ bool ToolButtonProvider::handleToolButton(QList<ToolButton *> const & buttons)
             opt->updateValue(value);
         }
     }
-    inHandle = false;
+    inHandle = nullptr;
     if (!result && subProviderAfter_)
         result = subProviderAfter_->handleToolButton(buttons);
     return result;
@@ -273,10 +273,24 @@ void ToolButtonProvider::updateToolButton(ToolButton *button)
 QString ToolButtonProvider::toolsString(QByteArray const & parent) const
 {
     if (parent.isEmpty()) {
-        int i = metaObject()->indexOfClassInfo("toolsString");
-        if (i >= 0)
-            return metaObject()->classInfo(i).value();
-        return property("toolsString").toString();
+        QMetaObject const * meta = metaObject();
+        QString tools = property("toolsString").toString();
+        while (meta != &QObject::staticMetaObject) {
+            int i = meta->indexOfClassInfo("toolsString");
+            if (i >= 0) {
+                if (!tools.isEmpty()) {
+                    tools.append("|;");
+                }
+                tools += metaObject()->classInfo(i).value();
+                while (i < meta->classInfoOffset()) {
+                    meta = meta->superClass();
+                }
+                meta = meta->superClass();
+            } else {
+                break;
+            }
+        }
+        return tools;
     }
     return nullptr;
 }
@@ -304,7 +318,7 @@ QList<ToolButton *> ToolButtonProvider::tools(ToolButton * parent)
     QByteArray name = parent ? parent->name() : "";
     auto ilst = buttons_.find(name);
     if (ilst != buttons_.end()) {
-        if (inHandle)
+        if (inHandle == this)
             return *ilst;
         OptionToolButtons* opt = optionButton(metaObject(), name);
         if (opt) {
@@ -346,7 +360,7 @@ QList<ToolButton *> ToolButtonProvider::tools(ToolButton * parent)
         if (button->needUpdate()) {
             button = new ToolButton(*button);
             privateButtons_.append(button);
-            if (!inHandle)
+            if (inHandle != this)
                 updateToolButton(button);
         }
     }
