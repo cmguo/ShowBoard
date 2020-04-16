@@ -1,4 +1,5 @@
 #include "floatwidgetmanager.h"
+#include "framewidget.h"
 #include "qsshelper.h"
 #include "whitecanvas.h"
 #include "whitecanvastools.h"
@@ -178,5 +179,5 @@ QWidget *WhiteCanvasTools::createPageList(ResourcePackage * package)
     widget->setSource(QUrl("qrc:/showboard/qml/PageList.qml"));
     widget->rootObject()->setVisible(false);
     widget->rootObject()->setProperty("sizeScale", QssHelper::sizeScale(1.0));
-    return widget;
+    return new FrameWidget(widget);
 }

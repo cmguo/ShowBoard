@@ -1,4 +1,5 @@
 #include "floatwidgetmanager.h"
+#include "framewidget.h"
 #include "core/toolbutton.h"
 
 #include <QWidget>
@@ -367,19 +368,24 @@ void FloatWidgetManager::focusChanged(QWidget * old, QWidget *now)
 QPoint FloatWidgetManager::popupPos(QWidget *widget, ToolButton *attachButton)
 {
     QWidget* bar = attachButton->associatedWidgets().first();
-    QRectF rect = attachButton->itemRect();
+    QRect rect = attachButton->itemRect().toRect();
     if (rect.isEmpty())
         rect.setSize(bar->size());
     rect.setHeight(0);
-    QPoint center = bar->mapTo(main_, rect.center().toPoint());
+    QPoint center = bar->mapTo(main_, rect.center());
+    center.setY(center.y() - 8);
     QRect rect2 = widget->rect();
-    rect2.moveCenter(center - QPoint(0, rect2.height() / 2 + 8));
+    rect2.moveCenter(center - QPoint(0, rect2.height() / 2));
     QRect bound = main_->rect().adjusted(10, 0, -10, 0);
     QPoint off;
     if (rect2.x() < bound.x())
         off.setX(bound.x() - rect2.x());
     if (rect2.right() > bound.right())
         off.setX(bound.right() - rect2.right());
+    FrameWidget * frame = qobject_cast<FrameWidget*>(widget);
+    if (frame && off.x() != 0) {
+        frame->setArrowPosition(center, 2, center.x() - rect2.left() - off.x());
+    }
     return rect2.topLeft() + off;
 }
 
