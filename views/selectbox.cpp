@@ -17,7 +17,7 @@ public:
     {
         setPen(QPen(Qt::black, 2.0));
         setBrush(QBrush(Qt::white));
-        static QPainterPath boxShape = circle(QssHelper::sizeScale(BOX_RADIUS));
+        static QPainterPath boxShape = circle(dp(BOX_RADIUS));
         setPath(boxShape);
     }
     BorderItem(int, QGraphicsItem *parent = nullptr)
@@ -28,15 +28,15 @@ public:
         QGraphicsPathItem * handle = new QGraphicsPathItem(this);
         handle->setPen(QPen(QColor("#990091FF"), 3));
         QPainterPath shape;
-        shape.moveTo(0, QssHelper::sizeScale(BOX_RADIUS));
-        shape.lineTo(0, QssHelper::sizeScale(ROTATE_OFFSET + BOX_RADIUS));
+        shape.moveTo(0, dp(BOX_RADIUS));
+        shape.lineTo(0, dp(ROTATE_OFFSET + BOX_RADIUS));
         handle->setPath(shape);
         handle->setFlag(QGraphicsItem::ItemStacksBehindParent);
     }
 private:
     virtual QPainterPath shape() const override
     {
-        static QPainterPath boxShape2 = circle(QssHelper::sizeScale(BOX_RADIUS2));
+        static QPainterPath boxShape2 = circle(dp(BOX_RADIUS2));
         return boxShape2;
     }
 
@@ -89,11 +89,11 @@ SelectBox::SelectBox(QGraphicsItem * parent)
 
 void SelectBox::setRect(QRectF const & rect)
 {
-    qreal offset = QssHelper::sizeScale(BORDER_OFFSET);
+    qreal offset = dp(BORDER_OFFSET);
     QRectF rect2(rect.adjusted(-offset, -offset, offset, offset));
     QGraphicsRectItem::setRect(rect2);
     QPointF center = rect.center();
-    rotate_->setPos(center.x(), rect2.top() - QssHelper::sizeScale(BOX_RADIUS + ROTATE_OFFSET));
+    rotate_->setPos(center.x(), rect2.top() - dp(BOX_RADIUS + ROTATE_OFFSET));
     leftTop_->setPos(rect2.left(), rect2.top());
     rightTop_->setPos(rect2.right(), rect2.top());
     rightBottom_->setPos(rect2.right(), rect2.bottom());

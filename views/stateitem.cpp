@@ -210,7 +210,7 @@ void StateItem::setText(const QString &msg)
 
 void StateItem::decideStyles(bool independent, bool isTool)
 {
-    borderRadius_ = QssHelper::sizeScale(8.0);
+    borderRadius_ = dp(8.0);
     if (!isTool) {
         textColor1_ = "#CC2B2B2B"; // 80%
         textColor2_ = "#FFB6B6B6";
@@ -231,7 +231,7 @@ void StateItem::decideStyles(bool independent, bool isTool)
         if (parentItem()->boundingRect().isEmpty()) {
             showBackground_ = true;
             fixedSize_ = true;
-            rect_ = QRectF({0, 0}, QssHelper::sizeScale(QSizeF(400, 300)));
+            rect_ = QRectF({0, 0}, dp(QSizeF(400, 300)));
             rect_.moveCenter({0, 0});
         }
     }
@@ -383,7 +383,7 @@ QGraphicsItem *StateItem::createIconItem(QGraphicsItem *parent, bool independent
     QGraphicsRectItem * iconItem = new QGraphicsRectItem(parent);
     iconItem->setPen(Qt::NoPen);
     QGraphicsSvgItem * svg = new QGraphicsSvgItem(iconItem);
-    svg->setScale(QssHelper::sizeScale(independent ? 4.0 : 1.0));
+    svg->setScale(dp(independent ? 4.0 : 1.0));
     new QGraphicsPixmapItem(iconItem);
     return iconItem;
 }
@@ -393,7 +393,7 @@ QGraphicsItem *StateItem::createTextItem(QGraphicsItem *parent, bool independent
     QGraphicsTextItem* textItem = new QGraphicsTextItem(parent);
     textItem->setFont(QFont("Microsoft YaHei"));
     textItem->setDefaultTextColor(Qt::white);
-    textItem->setData(ID_PADDING, QssHelper::sizeScale(independent ? 16 : 8));
+    textItem->setData(ID_PADDING, dp(independent ? 16 : 8));
     return textItem;
 }
 
@@ -415,7 +415,7 @@ QGraphicsItem *StateItem::createButtonItem(QGraphicsItem *parent, bool independe
     btnText->adjustSize();
     btnText->setPos(-btnText->boundingRect().center());
     btnItem->hide();
-    btnItem->setData(ID_PADDING, QssHelper::sizeScale(independent ? 12 : 24));
+    btnItem->setData(ID_PADDING, dp(independent ? 12 : 24));
     return btnItem;
 }
 

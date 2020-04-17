@@ -172,12 +172,15 @@ QWidget *WhiteCanvasTools::createPageList(ResourcePackage * package)
     QQuickWidget* widget = new MyQuickWidget;
     widget->setObjectName("canvaspagelist");
     widget->setAttribute(Qt::WA_AcceptTouchEvents);
+    widget->setStyleSheet("{background-color:#F9F9F9}");
     widget->engine()->addImageProvider("resource", new ResourceImageProvider(package));
     widget->setClearColor(Qt::transparent);
     widget->rootContext()->setContextProperty("packageModel", package);
     widget->rootContext()->setContextProperty("whiteCanvasTools", this);
     widget->setSource(QUrl("qrc:/showboard/qml/PageList.qml"));
     widget->rootObject()->setVisible(false);
-    widget->rootObject()->setProperty("sizeScale", QssHelper::sizeScale(1.0));
-    return new FrameWidget(widget);
+    widget->rootObject()->setProperty("sizeScale", dp(1.0));
+    FrameWidget * frame = new FrameWidget(widget);
+    frame->setBorder("#52000000");
+    return frame;
 }

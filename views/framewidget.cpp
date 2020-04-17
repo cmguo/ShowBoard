@@ -1,4 +1,5 @@
 #include "framewidget.h"
+#include "qsshelper.h"
 #include "core/resourcemanager.h"
 
 #include <QEvent>
@@ -10,10 +11,11 @@
 FrameWidget::FrameWidget(QWidget * content, QWidget *parent)
     : QWidget(parent ? parent : content->parentWidget())
     , content_(content)
-    , borderSize_(1)
-    , borderRadius_(8)
+    , borderColor_("#434D59")
+    , borderSize_(dp(1))
+    , borderRadius_(dp(8))
     , paddingSize_(0)
-    , arrowSize_(30, 12)
+    , arrowSize_(dp(30), dp(12))
     , arrowPos_(0, 0)
     , arrowDir_(2)
     , arrowOff_(-1)
@@ -29,17 +31,18 @@ QWidget *FrameWidget::content()
     return content_;
 }
 
-void FrameWidget::setBorderRadius(int size, int radius, int padding)
+void FrameWidget::setBorder(QColor const & color, int size, int radius, int padding)
 {
-    borderSize_ = size;
-    borderRadius_ = radius;
-    paddingSize_ = padding;
+    borderColor_ = color;
+    borderSize_ = dp(size);
+    borderRadius_ = dp(radius);
+    paddingSize_ = dp(padding);
     updateShape();
 }
 
 void FrameWidget::setArrowSize(const QSize &size)
 {
-    arrowSize_ = size;
+    arrowSize_ = dp(size);
     updateShape();
 }
 
@@ -57,7 +60,7 @@ void FrameWidget::paintEvent(QPaintEvent *event)
     QStyleOption option;
     option.initFrom(content_);
     painter.setRenderHint(QPainter::Antialiasing);
-    painter.setPen(QPen(QColor("#434D59"), borderSize_));
+    painter.setPen(QPen(borderColor_, borderSize_));
     painter.setBrush(option.palette.background());
     painter.drawPath(path_);
     QWidget::paintEvent(event);

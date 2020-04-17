@@ -26,7 +26,7 @@ WhiteCanvas::WhiteCanvas(QObject * parent)
     , animCanvas_(nullptr)
     , loadingCount_(0)
 {
-    static int THUMBNAIL_HEIGHT2 = QssHelper::sizeScale(THUMBNAIL_HEIGHT);
+    static int THUMBNAIL_HEIGHT2 = dp(THUMBNAIL_HEIGHT);
     THUMBNAIL_HEIGHT = THUMBNAIL_HEIGHT2;
 
     setAcceptedMouseButtons(Qt::LeftButton);

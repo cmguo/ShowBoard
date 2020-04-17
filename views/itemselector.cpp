@@ -323,7 +323,7 @@ void ItemSelector::layoutToolbar()
     QRectF boxRect = selBox_->mapToScene(selBox_->boundingRect()).boundingRect();
     QRectF sceneRect = scene()->sceneRect();
     QSizeF size = toolBar()->size();
-    qreal padding = QssHelper::sizeScale(10);
+    qreal padding = dp(10);
     if (Control * canvasControl = Control::fromItem(parentItem())) {
         padding *= canvasControl->resource()->transform().scale().m11();
     }

@@ -10,7 +10,7 @@ Rectangle {
     width: 248 * sizeScale
     height: 38 * sizeScale + (packageModel.pageCount < 4 ? packageModel.pageCount : 4) * 118 * sizeScale
     radius: 8 * sizeScale
-    color: "#FFF9F9F9"
+    color: "transparent"
     opacity: 0
 
     Behavior on opacity {

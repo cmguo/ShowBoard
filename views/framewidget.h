@@ -16,7 +16,7 @@ public:
 public:
     QWidget * content();
 
-    void setBorderRadius(int size, int radius, int padding = 0);
+    void setBorder(QColor const & color, int size = 1, int radius = 8, int padding = 0);
 
     void setArrowSize(QSize const & size);
 
@@ -35,6 +35,7 @@ private:
 private:
     QWidget * content_;
     QPainterPath path_;
+    QColor borderColor_;
     int borderSize_ = 0;
     int borderRadius_ = 0;
     int paddingSize_ = 0;

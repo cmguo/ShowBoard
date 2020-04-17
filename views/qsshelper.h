@@ -78,4 +78,10 @@ private:
     QMap<QByteArray, QMap<QByteArray, QList<QString*>>> vstyles_;
 };
 
+template <typename T>
+inline T dp(T const & t)
+{
+    return QssHelper::sizeScale(t);
+}
+
 #endif // QSSHELPER_H
