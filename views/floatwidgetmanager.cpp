@@ -67,6 +67,7 @@ void FloatWidgetManager::addWidget(QWidget *widget, Flags flags)
 void FloatWidgetManager::addWidget(QWidget *widget, ToolButton *attachButton, Flags flags)
 {
     addWidget(widget, flags);
+    widgetButtons_.insert(widget, attachButton);
     widget->move(popupPos(widget, attachButton));
 }
 
@@ -341,8 +342,15 @@ void FloatWidgetManager::focusChanged(QWidget * old, QWidget *now)
     //qDebug() << "FloatWidgetManager::focusChanged" << old << now;
     while (old && !widgets_.contains(old))
         old = old->parentWidget();
-    while (now && !widgets_.contains(now))
+    while (now && !widgets_.contains(now) && now != taskBar_)
         now = now->parentWidget();
+    if (now == taskBar_) {
+        if (isMouseInButtonArea(widgetButtons_.value(old))) {
+            old->setFocus();
+            return;
+        }
+        now = nullptr;
+    }
     if (old == now) return;
     qDebug() << "FloatWidgetManager::focusChanged" << old << now;
     static QWidget * lastFocus = nullptr;
@@ -387,6 +395,18 @@ QPoint FloatWidgetManager::popupPos(QWidget *widget, ToolButton *attachButton)
         frame->setArrowPosition(center, 2, center.x() - rect2.left() - off.x());
     }
     return rect2.topLeft() + off;
+}
+
+bool FloatWidgetManager::isMouseInButtonArea(ToolButton *attachButton)
+{
+    if (attachButton == nullptr)
+        return false;
+    QWidget* bar = attachButton->associatedWidgets().first();
+    QRect rect = attachButton->itemRect().toRect();
+    if (rect.isEmpty())
+        rect.setSize(bar->size());
+    rect.moveTopLeft(bar->mapToGlobal(rect.topLeft()));
+    return rect.contains(QCursor::pos());
 }
 
 void FloatWidgetManager::removeDestroyWidget()

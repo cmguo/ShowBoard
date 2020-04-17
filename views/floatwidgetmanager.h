@@ -97,6 +97,8 @@ private:
 
     QPoint popupPos(QWidget * widget, ToolButton* attachButton);
 
+    bool isMouseInButtonArea(ToolButton* attachButton);
+
     void removeDestroyWidget();
 
 private:
@@ -105,6 +107,7 @@ private:
     QWidget * widgetOn_;
     QList<QWidget*> widgets_;
     QMap<QWidget*, Flags> widgetFlags_;
+    QMap<QWidget*, ToolButton*> widgetButtons_;
     QList<int> saveStates_;
     QList<int> modifiedStates_;
     bool restoring_;
