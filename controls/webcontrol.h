@@ -3,11 +3,14 @@
 
 #include "core/widgetcontrol.h"
 
+#include <QColor>
+
 class WebControl : public WidgetControl
 {
     Q_OBJECT
 
     Q_PROPERTY(bool fitToContent READ fitToContent WRITE setFitToContent)
+    Q_PROPERTY(QColor background READ background WRITE setBackground)
 
 public:
     Q_INVOKABLE WebControl(ResourceView *res);
@@ -16,6 +19,10 @@ public:
     bool fitToContent() const;
 
     void setFitToContent(bool b);
+
+    QColor background() const;
+
+    void setBackground(QColor const & color);
 
 protected:
     virtual QWidget * createWidget(ResourceView * res) override;
@@ -39,6 +46,8 @@ private slots:
 
 private:
     bool fitToContent_;
+    bool hasBackground_;
+    QColor background_;
 };
 
 #endif // WEBCONTROL_H

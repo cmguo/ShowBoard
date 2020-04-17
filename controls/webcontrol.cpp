@@ -88,6 +88,7 @@ private:
 WebControl::WebControl(ResourceView * res)
     : WidgetControl(res, {WithSelectBar, ExpandScale, LayoutScale, Touchable, FixedOnCanvas}, {CanRotate})
     , fitToContent_(false)
+    , hasBackground_(false)
 {
     setToolsString(toolstr);
     setMinSize({0.1, 0.1});
@@ -103,6 +104,17 @@ bool WebControl::fitToContent() const
 void WebControl::setFitToContent(bool b)
 {
     fitToContent_ = b;
+}
+
+QColor WebControl::background() const
+{
+    return background_;
+}
+
+void WebControl::setBackground(const QColor &color)
+{
+    hasBackground_ = true;
+    background_ = color;
 }
 
 QWidget * WebControl::createWidget(ResourceView * res)
@@ -122,6 +134,15 @@ void WebControl::attached()
     if (flags_.testFlag(RestorePersisted)) {
         loadFinished(true);
         return;
+    }
+    if (hasBackground_) {
+        QGraphicsRectItem * background = new QGraphicsRectItem(item_);
+        background->setPen(QPen(Qt::NoPen));
+        background->setBrush(QBrush(background_));
+        QRectF rect = whiteCanvas()->rect();
+        rect.moveCenter(item_->boundingRect().center());
+        background->setRect(rect);
+        background->setFlag(QGraphicsItem::ItemStacksBehindParent);
     }
     item_->setFlag(QGraphicsItem::ItemIsFocusable);
     QWebEngineView * view = qobject_cast<QWebEngineView *>(widget_);
