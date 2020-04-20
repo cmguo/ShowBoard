@@ -155,6 +155,8 @@ ResourceView * ResourceManager::createResource(QUrl const & uri, QByteArray cons
     if (rv && originType != type) {
         rv->resource()->setProperty(Resource::PROP_ORIGIN_TYPE, originType);
     }
+    if (rv == nullptr)
+        qWarning() << "ResourceManager::createResource failed" << uri << typeHint;
     return rv;
 }
 

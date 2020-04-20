@@ -343,20 +343,29 @@ void Control::setSizeHint(QSizeF const & size)
 static void setMinMaxSize(QSizeF & ms, const QSizeF &size, bool min)
 {
     static QSizeF screenSize = QApplication::primaryScreen()->size();
-    qreal sw = size.width() - floor(size.width());
+    QSizeF sz(floor(size.width()), floor(size.height()));
+    qreal sw = size.width() - sz.width();
     qreal const & (*cmp) (qreal const& a, qreal const & b) = min ? &qMax<qreal> : &qMin<qreal>;
-    if (!qFuzzyIsNull(sw)) {
-        qreal w = screenSize.width() * sw;
-        ms.setWidth(cmp(w, floor(size.width())));
-    } else {
+    if (qFuzzyIsNull(sw)) {
         ms.setWidth(size.width());
-    }
-    qreal sh = size.height() - floor(size.height());
-    if (!qFuzzyIsNull(sh)) {
-        qreal h = screenSize.height() * sh;
-        ms.setHeight(cmp(h, floor(size.height())));
     } else {
+        qreal w = screenSize.width() * sw;
+        if (qFuzzyIsNull(sz.width())) {
+            ms.setWidth(w);
+        } else {
+            ms.setWidth(cmp(w, sz.width()));
+        }
+    }
+    qreal sh = size.height() - sz.height();
+    if (qFuzzyIsNull(sh)) {
         ms.setHeight(size.height());
+    } else {
+        qreal h = screenSize.height() * sh;
+        if (qFuzzyIsNull(sz.height())) {
+            ms.setHeight(h);
+        } else {
+            ms.setHeight(cmp(h, sz.height()));
+        }
     }
 }
 
