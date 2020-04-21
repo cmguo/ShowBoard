@@ -1,15 +1,15 @@
-#ifndef GLDYNAMICSTROKE_H
-#define GLDYNAMICSTROKE_H
+#ifndef GLDYNAMICRENDERER_H
+#define GLDYNAMICRENDERER_H
 
 #include "resources/strokes.h"
 #include "glstroke.h"
 
 class GLStrokeRenderer;
 
-class GLDynamicStroke : public GLStroke, IDynamicStrokes
+class GLDynamicRenderer : public GLStroke, IDynamicRenderer
 {
 public:
-    GLDynamicStroke(GLStrokeRenderer * sr);
+    GLDynamicRenderer(GLStrokeRenderer * sr);
 
 public:
     void addPoint(float point[3]);
@@ -19,4 +19,4 @@ private:
     float points_[3];
 };
 
-#endif // GLDYNAMICSTROKE_H
+#endif // GLDYNAMICRENDERER_H

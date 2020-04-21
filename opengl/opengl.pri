@@ -1,5 +1,5 @@
 HEADERS += \
-    $$PWD/gldynamicstroke.h \
+    $$PWD/gldynamicrenderer.h \
     $$PWD/glstroke.h \
     $$PWD/glstrokerenderer.h \
     $$PWD/glstrokeshaders.h \
@@ -7,7 +7,7 @@ HEADERS += \
     $$PWD/opengl.h
 
 SOURCES += \
-    $$PWD/gldynamicstroke.cpp \
+    $$PWD/gldynamicrenderer.cpp \
     $$PWD/glstroke.cpp \
     $$PWD/glstrokerenderer.cpp \
     $$PWD/glstrokeshaders.cpp \

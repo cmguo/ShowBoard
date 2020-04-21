@@ -5,14 +5,12 @@
 
 #include <QtPromise>
 
-#include <QSizeF>
+typedef std::array<ushort, 3> stroke_point_t;
 
-typedef std::array<float, 3> stroke_point_t;
-
-class IDynamicStrokes
+class IDynamicRenderer
 {
 public:
-    virtual ~IDynamicStrokes() {}
+    virtual ~IDynamicRenderer() {}
     virtual void addPoint(float point[3]) = 0;
 };
 
@@ -29,12 +27,27 @@ public:
     Q_INVOKABLE Strokes(Strokes const & o);
 
 public:
-    QtPromise::QPromise<void> load();
+    QtPromise::QPromise<void> load(QSizeF const & maxSize, IDynamicRenderer * dr = nullptr);
 
 public:
-    QSizeF canvasSize() const
+    QSize canvasSize() const
     {
-        return  canvasSize_;
+        return QSize(maximun_[0], maximun_[1]);
+    }
+
+    int maxPressure() const
+    {
+        return maximun_[2];
+    }
+
+    qreal scale() const
+    {
+        return scale_;
+    }
+
+    QSizeF size() const
+    {
+        return QSizeF(canvasSize()) * scale_;
     }
 
     QList<stroke_point_t> const & points() const
@@ -43,8 +56,9 @@ public:
     }
 
 private:
-    QSizeF canvasSize_;
+    stroke_point_t maximun_;
     QList<stroke_point_t> points_;
+    qreal scale_;
 };
 
 #endif // STROKES_H

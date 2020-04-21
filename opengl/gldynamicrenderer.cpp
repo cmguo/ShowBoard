@@ -1,13 +1,13 @@
-#include "gldynamicstroke.h"
+#include "gldynamicrenderer.h"
 #include "glstrokerenderer.h"
 
-GLDynamicStroke::GLDynamicStroke(GLStrokeRenderer * sr)
+GLDynamicRenderer::GLDynamicRenderer(GLStrokeRenderer * sr)
     : renderer_(sr)
 {
 
 }
 
-void GLDynamicStroke::addPoint(float point[3])
+void GLDynamicRenderer::addPoint(float point[3])
 {
     if (point == nullptr)
     {

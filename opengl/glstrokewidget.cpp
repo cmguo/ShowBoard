@@ -1,12 +1,12 @@
 #include "glstrokewidget.h"
 
 #include "opengl/glstrokerenderer.h"
-#include "opengl/gldynamicstroke.h"
+#include "opengl/gldynamicrenderer.h"
 
 #include <QMouseEvent>
 #include <QGraphicsProxyWidget>
 
-class MouseStroke : public GLDynamicStroke
+class MouseStroke : public GLDynamicRenderer
 {
 private:
     float point[3] = { 0.0f, 0.0f, 0.0f };
@@ -14,7 +14,7 @@ private:
 
 public:
     MouseStroke(GLStrokeRenderer * renderer)
-        : GLDynamicStroke(renderer)
+        : GLDynamicRenderer(renderer)
     {
     }
 
