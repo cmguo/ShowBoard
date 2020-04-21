@@ -11,11 +11,13 @@
 
 class ResourceView;
 class ResourceFactory;
+class DataProvider;
 
 class SHOWBOARD_EXPORT ResourceManager : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(std::vector<QLazy> resource_types MEMBER resource_types_)
+    Q_PROPERTY(std::vector<QLazy> resourceTypes MEMBER resourceTypes_)
+    Q_PROPERTY(std::vector<QLazy> providerTypes MEMBER providerTypes_)
 
 public:
     Q_INVOKABLE explicit ResourceManager(QObject *parent = nullptr);
@@ -35,6 +37,8 @@ public:
 
     ResourceFactory * getFactory(QByteArray const & type) const;
 
+    DataProvider * getProvider(QByteArray const & type) const;
+
 public slots:
     void onComposition();
 
@@ -42,8 +46,10 @@ private:
     QByteArray findType(QUrl const & uri, QByteArray& originType, QLazy*& lazy, QPair<int, int> const*& flags) const;
 
 private:
-    std::vector<QLazy> resource_types_;
+    std::vector<QLazy> resourceTypes_;
+    std::vector<QLazy> providerTypes_;
     std::map<QByteArray, QLazy *> resources_;
+    std::map<QByteArray, QLazy *> providers_;
     std::map<QByteArray, QPair<int, int>> commonResources_;
     QMap<QByteArray, QByteArray> mapTypes_;
 };

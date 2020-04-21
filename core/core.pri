@@ -2,6 +2,7 @@ HEADERS += \
     $$PWD/control.h \
     $$PWD/controlmanager.h \
     $$PWD/controltransform.h \
+    $$PWD/dataprovider.h \
     $$PWD/lifeobject.h \
     $$PWD/lrucache.h \
     $$PWD/optiontoolbuttons.h \
@@ -24,6 +25,7 @@ SOURCES += \
     $$PWD/control.cpp \
     $$PWD/controlmanager.cpp \
     $$PWD/controltransform.cpp \
+    $$PWD/dataprovider.cpp \
     $$PWD/lifeobject.cpp \
     $$PWD/lrucache.cpp \
     $$PWD/optiontoolbuttons.cpp \

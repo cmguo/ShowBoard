@@ -4,6 +4,7 @@
 #include "resourceview.h"
 #include "qlazy.hpp"
 #include "qcomponentcontainer.h"
+#include "dataprovider.h"
 
 #include "resources/resources.h"
 #include "showboard.h"
@@ -19,7 +20,8 @@ ResourceManager * ResourceManager::instance()
 }
 
 static QExport<ResourceManager> export_(QPart::shared);
-static QImportMany<ResourceManager, ResourceView> import_resources("resource_types", QPart::nonshared, true);
+static QImportMany<ResourceManager, ResourceView> import_resources("resourceTypes", QPart::nonshared, true);
+static QImportMany<ResourceManager, DataProvider> import_providers("providerTypes", QPart::nonshared, true);
 
 static QMap<char const *, QPair<ResourceView::Flags, ResourceView::Flags>>& commonResourceTypes()
 {
@@ -48,10 +50,16 @@ ResourceManager::ResourceManager(QObject *parent)
 
 void ResourceManager::onComposition()
 {
-    for (auto & r : resource_types_) {
+    for (auto & r : resourceTypes_) {
         QByteArray types = r.part()->attr(ResourceView::EXPORT_ATTR_TYPE);
         for (auto t : types.split(',')) {
             resources_[t.trimmed()] = &r;
+        }
+    }
+    for (auto & r : providerTypes_) {
+        QByteArray types = r.part()->attr(DataProvider::EXPORT_ATTR_TYPE);
+        for (auto t : types.split(',')) {
+            providers_[t.trimmed()] = &r;
         }
     }
 }
@@ -161,4 +169,12 @@ ResourceFactory * ResourceManager::getFactory(QByteArray const & type) const
     } else {
         return nullptr;
     }
+}
+
+DataProvider *ResourceManager::getProvider(const QByteArray &type) const
+{
+    std::map<QByteArray, QLazy*>::const_iterator iter = providers_.find(type);
+    if (iter == providers_.end())
+        return nullptr;
+    return iter->second->get<DataProvider>();
 }
