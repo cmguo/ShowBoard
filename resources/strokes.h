@@ -7,8 +7,9 @@
 
 typedef std::array<ushort, 3> stroke_point_t;
 
-class IDynamicRenderer
+class IDynamicRenderer : public QObject
 {
+    Q_OBJECT
 public:
     virtual ~IDynamicRenderer() {}
     virtual void addPoint(float point[3]) = 0;

@@ -24,9 +24,6 @@ public:
 
     // return maximun of point values
     virtual stroke_point_t load(QByteArray const & type, QIODevice * stream, QList<stroke_point_t> & points, IDynamicRenderer * renderer) = 0;
-
-signals:
-    void onPoint(stroke_point_t const & pt);
 };
 
 #define REGISTER_STROKE_PARSER(ctype, type) \
