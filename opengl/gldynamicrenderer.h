@@ -6,16 +6,19 @@
 
 class GLStrokeRenderer;
 
-class GLDynamicRenderer : public GLStroke, IDynamicRenderer
+class GLDynamicRenderer : public IDynamicRenderer, public GLStroke
 {
 public:
     GLDynamicRenderer(GLStrokeRenderer * sr);
 
 public:
-    void addPoint(float point[3]);
+    virtual void setMaximun(stroke_point_t const & max) override;
+
+    virtual void addPoint(stroke_point_t const & point) override;
 
 private:
     GLStrokeRenderer * renderer_;
+    float scales_[3];
     float points_[3];
 };
 

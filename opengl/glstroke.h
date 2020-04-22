@@ -55,8 +55,6 @@ private:
     void releaseBuffer(OpenGL & gl);
 
 private:
-    typedef unsigned short ushort;
-
     std::vector<float> mPoints;
     ushort mPointCount = 0;
     std::vector<ushort> mIndices;

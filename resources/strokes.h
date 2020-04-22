@@ -11,8 +11,9 @@ class IDynamicRenderer : public QObject
 {
     Q_OBJECT
 public:
-    virtual ~IDynamicRenderer() {}
-    virtual void addPoint(float point[3]) = 0;
+    virtual void setMaximun(stroke_point_t const & max) = 0;
+
+    virtual void addPoint(stroke_point_t const & point) = 0;
 };
 
 class SHOWBOARD_EXPORT Strokes : public ResourceView

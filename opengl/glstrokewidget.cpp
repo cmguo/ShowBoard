@@ -9,7 +9,7 @@
 class MouseStroke : public GLDynamicRenderer
 {
 private:
-    float point[3] = { 0.0f, 0.0f, 0.0f };
+    stroke_point_t point = { 0, 0, 0 };
     QPointF lpt;
 
 public:
@@ -18,29 +18,37 @@ public:
     {
     }
 
-    void Start(QSizeF glc, QPointF pt)
+    void setSize(QSize const & size)
     {
-        point[0] = static_cast<float>(pt.x() / glc.width());
-        point[1] = static_cast<float>(1 - pt.y() / glc.height());
-        point[2] = 2.0f;
+        point[0] = static_cast<ushort>(size.width());
+        point[1] = static_cast<ushort>(size.height());
+        point[2] = 2;
+        setMaximun(point);
+    }
+
+    void Start(QPoint const & pt)
+    {
+        point[0] = static_cast<ushort>(pt.x());
+        point[1] = static_cast<ushort>(pt.y());
+        point[2] = 2;
         lpt = pt;
         addPoint(point);
     }
 
-    void Push(QSizeF glc, QPointF pt)
+    void Push(QPoint const & pt)
     {
-        point[0] = static_cast<float>(pt.x() / glc.width());
-        point[1] = static_cast<float>(1 - pt.y() / glc.height());
+        point[0] = static_cast<ushort>(pt.x());
+        point[1] = static_cast<ushort>(pt.y());
         auto d = pt - lpt;
-        double dd = d.x() * d.x() + d.y() * d.y();
-        point[2] = dd > 200.0 ? 1.0f : 2.0f;
+        auto dd = d.x() * d.x() + d.y() * d.y();
+        point[2] = dd > 200 ? 1 : 2;
         lpt = pt;
         addPoint(point);
     }
 
     void End()
     {
-        addPoint(nullptr);
+        addPoint({0, 0, 0});
     }
 };
 
@@ -79,6 +87,7 @@ void GLStrokeWidget::initializeGL()
 void GLStrokeWidget::resizeGL(int w, int h)
 {
     renderer_->OnSizeChanged(w, h);
+    mouseStroke_->setSize({w, h});
 }
 
 void GLStrokeWidget::paintGL()
@@ -88,8 +97,7 @@ void GLStrokeWidget::paintGL()
 
 void GLStrokeWidget::mousePressEvent(QMouseEvent *event)
 {
-    QPointF pt = event->pos();
-    mouseStroke_->Start(size(), pt);
+    mouseStroke_->Start(event->pos());
 }
 
 void GLStrokeWidget::mouseMoveEvent(QMouseEvent *event)
@@ -98,8 +106,7 @@ void GLStrokeWidget::mouseMoveEvent(QMouseEvent *event)
         QOpenGLWidget::mouseMoveEvent(event);
         return;
     }
-    QPointF pt = event->pos();
-    mouseStroke_->Push(size(), pt);
+    mouseStroke_->Push(event->pos());
 }
 
 void GLStrokeWidget::mouseReleaseEvent(QMouseEvent *event)
