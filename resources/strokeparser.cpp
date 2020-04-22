@@ -10,11 +10,6 @@
 
 static QImportMany<StrokeParser, IStrokeParser> import_controls("parserTypes", QPart::any, true);
 
-IStrokeParser::IStrokeParser(QObject *parent)
-    : QObject(parent)
-{
-}
-
 StrokeParser * StrokeParser::instance()
 {
     return QComponentContainer::globalInstance().get_export_value<StrokeParser>(QPart::shared);
@@ -40,11 +35,11 @@ void StrokeParser::onComposition()
     }
 }
 
-stroke_point_t StrokeParser::load(const QByteArray & type, QIODevice *stream, QList<stroke_point_t> &points, IDynamicRenderer * renderer)
+StrokePoint StrokeParser::load(const QByteArray & type, QIODevice *stream, QList<StrokePoint> &points, IDynamicRenderer * renderer)
 {
     std::map<QString, QLazy *>::iterator iter = parsers_.find(type);
     if (iter == parsers_.end())
-        return stroke_point_t{0, 0, 0};
+        return StrokePoint{0, 0, 0};
     IStrokeParser * p = iter->second->get<IStrokeParser>();
     return p->load(type, stream, points, renderer);
 }

@@ -2,26 +2,16 @@
 #define STROKES_H
 
 #include "core/resourceview.h"
+#include "istrokeparser.h"
 
 #include <QtPromise>
-
-typedef std::array<ushort, 3> stroke_point_t;
-
-class IDynamicRenderer : public QObject
-{
-    Q_OBJECT
-public:
-    virtual void setMaximun(stroke_point_t const & max) = 0;
-
-    virtual void addPoint(stroke_point_t const & point) = 0;
-};
 
 class SHOWBOARD_EXPORT Strokes : public ResourceView
 {
     Q_OBJECT
 
     Q_PROPERTY(QSizeF canvasSize READ canvasSize())
-    Q_PROPERTY(QList<stroke_point_t> points READ points())
+    Q_PROPERTY(QList<StrokePoint> points READ points())
 
 public:
     Q_INVOKABLE Strokes(Resource * res, Flags flags = nullptr, Flags clearFlags = nullptr);
@@ -52,15 +42,16 @@ public:
         return QSizeF(canvasSize()) * scale_;
     }
 
-    QList<stroke_point_t> const & points() const
+    QList<StrokePoint> const & points() const
     {
         return points_;
     }
 
 private:
-    stroke_point_t maximun_;
-    QList<stroke_point_t> points_;
+    StrokePoint maximun_;
+    QList<StrokePoint> points_;
     qreal scale_;
+    QSharedPointer<QIODevice> stream_;
 };
 
 #endif // STROKES_H

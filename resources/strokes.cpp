@@ -20,13 +20,15 @@ Strokes::Strokes(Strokes const & o)
 
 QPromise<void> Strokes::load(QSizeF const & maxSize, IDynamicRenderer * dr)
 {
-    QWeakPointer<int> life(this->life());
+    stream_.reset();
     if (url().scheme() == res_->type())
         return QPromise<void>::resolve();
     int n = url().path().lastIndexOf('.');
     if (n < 0)
         throw std::invalid_argument("no stroke type");
+    qDebug() << "Strokes::load";
     QByteArray type = url().path().mid(n + 1).toUtf8();
+    QWeakPointer<int> life(this->life());
     return res_->getStream().then([this, life, dr, type, maxSize](QSharedPointer<QIODevice> stream) {
         if (life.isNull())
             return;
@@ -34,14 +36,14 @@ QPromise<void> Strokes::load(QSizeF const & maxSize, IDynamicRenderer * dr)
         if (!sp)
             throw std::runtime_error("StrokeParser not found");
         maximun_ = sp->load(type, stream.get(), points_, dr);
+        qDebug() << "Strokes::loaded";
         if (canvasSize().isEmpty())
             throw std::invalid_argument("empty canvas size");
         qreal scale = 1.0;
         QSizeF size = canvasSize();
-        while (size.width() > maxSize.width() || size.height() > maxSize.height()) {
-            scale *= 0.5;
-            size *= 0.5;
-        }
-        scale_ = static_cast<qreal>(scale);
+        scale = qMin(maxSize.width() / size.width(), maxSize.height() / size.height());
+        scale_ = scale;
+        if (dr)
+            stream_ = stream;
     });
 }

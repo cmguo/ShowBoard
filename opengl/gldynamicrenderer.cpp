@@ -6,14 +6,14 @@ GLDynamicRenderer::GLDynamicRenderer(GLStrokeRenderer * sr)
 {
 }
 
-void GLDynamicRenderer::setMaximun(const stroke_point_t &max)
+void GLDynamicRenderer::setMaximun(const StrokePoint &max)
 {
     scales_[0] = 2.0f / max[0];
     scales_[1] = 2.0f / max[1];
     scales_[2] = 4.0f / max[0];
 }
 
-void GLDynamicRenderer::addPoint(stroke_point_t const & point)
+void GLDynamicRenderer::addPoint(StrokePoint const & point)
 {
     if (point[2] == 0)
     {

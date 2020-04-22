@@ -9,7 +9,7 @@
 class MouseStroke : public GLDynamicRenderer
 {
 private:
-    stroke_point_t point = { 0, 0, 0 };
+    StrokePoint point = { 0, 0, 0 };
     QPointF lpt;
 
 public:
