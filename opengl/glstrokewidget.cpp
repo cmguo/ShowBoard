@@ -1,12 +1,12 @@
 #include "glstrokewidget.h"
 
 #include "opengl/glstrokerenderer.h"
-#include "opengl/gldynamicrenderer.h"
+#include "opengl/glcanvasstroke.h"
 
 #include <QMouseEvent>
 #include <QGraphicsProxyWidget>
 
-class MouseStroke : public GLDynamicRenderer
+class MouseStroke : public GLInputStroke
 {
 private:
     StrokePoint point = { 0, 0, 0 };
@@ -14,7 +14,7 @@ private:
 
 public:
     MouseStroke(GLStrokeRenderer * renderer)
-        : GLDynamicRenderer(renderer)
+        : GLInputStroke(renderer)
     {
     }
 
@@ -48,7 +48,7 @@ public:
 
     void End()
     {
-        addPoint({0, 0, 0});
+        endStroke();
     }
 };
 

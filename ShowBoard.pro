@@ -34,7 +34,9 @@ include(resources/resources.pri)
 include(controls/controls.pri)
 include(opengl/opengl.pri)
 include(tools/tools.pri)
+include(stroke/stroke.pri)
 include(views/views.pri)
+
 win32 {
     include(office/office.pri)
 }

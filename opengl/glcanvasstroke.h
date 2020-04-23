@@ -1,20 +1,24 @@
 #ifndef GLDYNAMICRENDERER_H
 #define GLDYNAMICRENDERER_H
 
-#include "resources/strokes.h"
-#include "glstroke.h"
+#include "stroke/strokerenderer.h"
+#include "glinputstroke.h"
 
 class GLStrokeRenderer;
 
-class GLDynamicRenderer : public IDynamicRenderer, public GLStroke
+class GLCanvasStroke : public StrokeRenderer, public GLInputStroke
 {
 public:
-    GLDynamicRenderer(GLStrokeRenderer * sr);
+    GLCanvasStroke(StrokeReader* reader, GLStrokeRenderer * sr, QObject * parent = nullptr);
 
 public:
     virtual void setMaximun(StrokePoint const & max) override;
 
     virtual void addPoint(StrokePoint const & point) override;
+
+    virtual void endStroke() override;
+
+    virtual void startDynamic() override;
 
 private:
     GLStrokeRenderer * renderer_;

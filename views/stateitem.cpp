@@ -244,7 +244,6 @@ void StateItem::updateLayout()
     for (QGraphicsItem * item : childItems()) {
         if (item->isVisible()) {
             QRectF r(item->boundingRect());
-            qDebug() << r.height();
             if (r.width() > width)
                 width = r.width();
             if (height > 0)
@@ -257,7 +256,6 @@ void StateItem::updateLayout()
         rect_ = QRectF(0, 0, width + 64, height + 64);
         rect_.moveCenter({0, 0});
     }
-    qDebug() << height;
     height *= -0.5;
     QPointF pos(0, height);
     for (QGraphicsItem * item : childItems()) {
@@ -266,7 +264,6 @@ void StateItem::updateLayout()
             if (pos.y() > height)
                 pos.setY(pos.y() + item->data(ID_PADDING).toInt());
             pos.setY(pos.y() + r.height() / 2);
-            qDebug() << pos;
             item->setPos(pos - r.center());
             pos.setY(pos.y() + r.height() / 2);
         }
