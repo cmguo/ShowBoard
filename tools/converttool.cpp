@@ -21,7 +21,7 @@ static WorkThread& convThread() {
 }
 
 ConvertTool::ConvertTool(ResourceView *res)
-    : Control(res, {}, DefaultFlags)
+    : Control(res, {FixedOnCanvas}, DefaultFlags)
     , startPage_(0)
 {
 }
