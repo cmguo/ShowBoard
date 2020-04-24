@@ -4,7 +4,7 @@
 using namespace QtPromise;
 
 Strokes::Strokes(Resource * res, Flags flags, Flags clearFlags)
-    : ResourceView(res, flags | TopMost, clearFlags | CanDelete)
+    : ResourceView(res, flags, clearFlags)
 {
 }
 
@@ -15,9 +15,9 @@ Strokes::Strokes(Strokes const & o)
 
 QPromise<StrokeReader*> Strokes::load()
 {
-    stream_.reset();
-    if (url().scheme() == res_->type())
+    if (url().scheme() == res_->type()) // should not happen
         return QPromise<StrokeReader*>::resolve(nullptr);
+    stream_.reset();
     int n = url().path().lastIndexOf('.');
     if (n < 0)
         throw std::invalid_argument("no stroke type");

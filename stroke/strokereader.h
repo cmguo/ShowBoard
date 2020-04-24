@@ -27,6 +27,7 @@ public:
 public:
     StrokeReader(QIODevice * stream, QObject *parent = nullptr);
 
+public:
     virtual bool getMaximun(StrokePoint & max);
 
     virtual bool read(StrokePoint & point) = 0;

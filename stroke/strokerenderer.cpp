@@ -5,6 +5,7 @@ StrokeRenderer::StrokeRenderer(StrokeReader* reader, QObject *parent)
     : LifeObject(parent)
     , reader_(reader)
 {
+    reader->setParent(this);
 }
 
 bool StrokeRenderer::start()
