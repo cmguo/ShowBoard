@@ -2,7 +2,7 @@
 #define STROKES_H
 
 #include "core/resourceview.h"
-#include "strokereader.h"
+#include "stroke/strokereader.h"
 
 #include <QtPromise>
 
