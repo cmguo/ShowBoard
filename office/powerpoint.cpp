@@ -37,6 +37,14 @@ class PptObject : public QAxObject
 public:
     PptObject() {}
 
+    bool setControl(QString const & control)
+    {
+        name_ = control;
+        return QAxObject::setControl(control);
+    }
+
+    QString const & name() const { return name_; }
+
     QString foundControl() {
         return control_;
     }
@@ -49,6 +57,7 @@ protected:
     }
 
 private:
+    QString name_;
     QString control_;
 };
 
@@ -76,20 +85,24 @@ PowerPoint::~PowerPoint()
 void PowerPoint::open(QString const & file)
 {
     if (application_ == nullptr) {
-        application_ = new PptObject;
-        if (!application_->setControl("PowerPoint.Application")) {
-            if (static_cast<PptObject*>(application_)->foundControl().startsWith("{")) {
-                application_ = nullptr;
+        std::unique_ptr<PptObject> application(new PptObject);
+        if (!application->setControl("PowerPoint.Application1")) {
+            if (application->foundControl().startsWith("{")) {
                 emit failed("software|打开失败，请关闭其他演讲文稿后重试");
                 return;
             }
-            if (application_->setControl("Kwpp.Application")) {
+            if (application->setControl("Kwpp.Application")) {
                 titleParts[0] = nullptr; // not check PowerPoint
             } else {
-                delete application_;
-                application_ = nullptr;
+                if (application->foundControl().startsWith("{")) {
+                    emit failed("software|打开失败，请关闭其他演讲文稿后重试");
+                    return;
+                }
+                emit failed("software|未检测到PPT放映软件，请安装Office软件");
+                return;
             }
         }
+        application_ = application.release();
         if (application_) {
             application_->moveToThread(&workThread());
             workThread().atexit(quit);
@@ -105,9 +118,12 @@ void PowerPoint::open(QString const & file)
     file_ = file;
     QObject::connect(presentations_, SIGNAL(exception(int,QString,QString,QString)),
                      this, SLOT(onException(int,QString,QString,QString)));
+    QString file2 = file;
+    if (static_cast<PptObject*>(application_)->name().startsWith("PowerPoint"))
+        file2 = QString("\"%1\"").arg(file);
     QAxObject * presentation = presentations_->querySubObject(
                 "Open(const QString&, bool, bool, bool)",
-                QString("\"%1\"").arg(file), true, false, false);
+                file2, true, false, false);
     if (presentation) {
         QObject::connect(presentation, SIGNAL(exception(int,QString,QString,QString)),
                          this, SLOT(onException(int,QString,QString,QString)));

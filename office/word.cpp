@@ -39,13 +39,14 @@ static constexpr int wdDoNotSaveChanges = 0;
 void Word::open(QString const & file)
 {
     if (application_ == nullptr) {
-        application_ = new QAxObject;
-        if (!application_->setControl("Word.Application")) {
-            if (!application_->setControl("Kwps.Application")) {
-                delete application_;
-                application_ = nullptr;
+        std::unique_ptr<QAxObject> application(new QAxObject);
+        if (!application->setControl("Word.Application")) {
+            if (!application->setControl("Kwps.Application")) {
+                emit failed("No Word Application");
+                return;
             }
         }
+        application_ = application.release();
         if (application_) {
             application_->moveToThread(&workThread());
             workThread().atexit(quit);
