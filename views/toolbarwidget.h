@@ -60,7 +60,7 @@ public:
 
     QWidget * createPopup(QList<ToolButton *> const & buttons);
 
-    QGraphicsItem* toGraphicsProxy(QGraphicsItem * parent = nullptr);
+    QGraphicsItem* toGraphicsProxy(QGraphicsItem * parent = nullptr, bool centerPos = false);
 
 public:
     void setToolButtons(QList<ToolButton *> const & buttons);

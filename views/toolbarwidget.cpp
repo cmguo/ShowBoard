@@ -88,14 +88,17 @@ QWidget *ToolbarWidget::createPopup(const QList<ToolButton *> &buttons)
     return popup;
 }
 
-QGraphicsItem *ToolbarWidget::toGraphicsProxy(QGraphicsItem * parent)
+QGraphicsItem *ToolbarWidget::toGraphicsProxy(QGraphicsItem * parent, bool centerPos)
 {
     QGraphicsProxyWidget * proxy = new QGraphicsProxyWidget(parent);
     proxy->setWidget(this);
-    QObject::connect(this, &ToolbarWidget::sizeChanged, proxy, [proxy](){
-        QPointF pos = -proxy->boundingRect().center();
-        proxy->setTransform(QTransform::fromTranslate(pos.x(), pos.y()));
-    });
+    if (centerPos) {
+        QObject::connect(this, &ToolbarWidget::sizeChanged, proxy, [proxy](){
+            QPointF pos = -proxy->boundingRect().center();
+            proxy->setTransform(QTransform::fromTranslate(pos.x(), pos.y()));
+            proxy->setTransformOriginPoint(-pos);
+        });
+    }
     return proxy;
 }
 

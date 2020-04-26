@@ -26,7 +26,7 @@ WhiteCanvasControl::WhiteCanvasControl(ResourceView * view, QGraphicsItem * canv
     posBar_ = new PositionBar(canvas);
     ToolbarWidget* toolbar = new ToolbarWidget;
     toolbar->attachProvider(this);
-    toolBar_ = toolbar->toGraphicsProxy();
+    toolBar_ = toolbar->toGraphicsProxy(nullptr, true);
     loadSettings();
     // adjust to scene, this is done before attaching transform
     res_->transform().translate(QPointF(0, 0));
