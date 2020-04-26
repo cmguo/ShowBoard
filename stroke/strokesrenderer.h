@@ -1,18 +1,18 @@
-#ifndef STROKERENDERER_H
-#define STROKERENDERER_H
+#ifndef STROKESRENDERER_H
+#define STROKESRENDERER_H
 
 #include "ShowBoard_global.h"
 #include "core/lifeobject.h"
 
 #include "strokepoint.h"
 
-class StrokeReader;
+class StrokesReader;
 
-class SHOWBOARD_EXPORT StrokeRenderer : public LifeObject
+class SHOWBOARD_EXPORT StrokesRenderer : public LifeObject
 {
     Q_OBJECT
 public:
-    explicit StrokeRenderer(StrokeReader* reader, QObject *parent = nullptr);
+    explicit StrokesRenderer(StrokesReader* reader, QObject *parent = nullptr);
 
 public:
     bool start();
@@ -32,8 +32,8 @@ private:
     void addPoint2(StrokePoint const & point);
 
 protected:
-    StrokeReader* reader_;
+    StrokesReader* reader_;
     bool strokeStarted_ = false;
 };
 
-#endif // STROKERENDERER_H
+#endif // STROKESRENDERER_H

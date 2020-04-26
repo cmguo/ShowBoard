@@ -1,8 +1,8 @@
 #include "glcanvasstroke.h"
 #include "glstrokerenderer.h"
 
-GLCanvasStroke::GLCanvasStroke(StrokeReader* reader, GLStrokeRenderer * sr, QObject * parent)
-    : StrokeRenderer(reader, parent)
+GLCanvasStroke::GLCanvasStroke(StrokesReader* reader, GLStrokeRenderer * sr, QObject * parent)
+    : StrokesRenderer(reader, parent)
     , GLInputStroke(sr)
     , renderer_(sr)
 {

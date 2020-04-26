@@ -13,10 +13,10 @@ Strokes::Strokes(Strokes const & o)
 {
 }
 
-QPromise<StrokeReader*> Strokes::load()
+QPromise<StrokesReader*> Strokes::load()
 {
     if (url().scheme() == res_->type()) // should not happen
-        return QPromise<StrokeReader*>::resolve(nullptr);
+        return QPromise<StrokesReader*>::resolve(nullptr);
     stream_.reset();
     int n = url().path().lastIndexOf('.');
     if (n < 0)
@@ -26,7 +26,7 @@ QPromise<StrokeReader*> Strokes::load()
     return res_->getStream().then([this, l = life(), type](QSharedPointer<QIODevice> stream) {
         if (l.isNull())
             throw std::runtime_error("life dead");
-        StrokeReader * reader = StrokeReader::createReader(stream.get(), type);
+        StrokesReader * reader = StrokesReader::createReader(stream.get(), type);
         if (!reader)
             throw std::runtime_error("StrokeReader not found");
         stream_ = stream;

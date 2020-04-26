@@ -1,15 +1,15 @@
 #ifndef GLDYNAMICRENDERER_H
 #define GLDYNAMICRENDERER_H
 
-#include "stroke/strokerenderer.h"
+#include "stroke/strokesrenderer.h"
 #include "glinputstroke.h"
 
 class GLStrokeRenderer;
 
-class GLCanvasStroke : public StrokeRenderer, public GLInputStroke
+class GLCanvasStroke : public StrokesRenderer, public GLInputStroke
 {
 public:
-    GLCanvasStroke(StrokeReader* reader, GLStrokeRenderer * sr, QObject * parent = nullptr);
+    GLCanvasStroke(StrokesReader* reader, GLStrokeRenderer * sr, QObject * parent = nullptr);
 
 public:
     virtual void setMaximun(StrokePoint const & max) override;

@@ -2,7 +2,7 @@
 #define STROKES_H
 
 #include "core/resourceview.h"
-#include "stroke/strokereader.h"
+#include "stroke/strokesreader.h"
 
 #include <QtPromise>
 
@@ -16,7 +16,7 @@ public:
     Q_INVOKABLE Strokes(Strokes const & o);
 
 public:
-    QtPromise::QPromise<StrokeReader*> load();
+    QtPromise::QPromise<StrokesReader*> load();
 
 private:
     QSharedPointer<QIODevice> stream_;

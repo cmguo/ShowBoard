@@ -1,9 +1,9 @@
 HEADERS += \
     $$PWD/strokepoint.h \
-    $$PWD/strokereader.h \
-    $$PWD/strokerenderer.h
+    $$PWD/strokesreader.h \
+    $$PWD/strokesrenderer.h
 
 SOURCES += \
     $$PWD/strokepoint.cpp \
-    $$PWD/strokereader.cpp \
-    $$PWD/strokerenderer.cpp
+    $$PWD/strokesreader.cpp \
+    $$PWD/strokesrenderer.cpp

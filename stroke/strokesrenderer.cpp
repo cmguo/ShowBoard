@@ -1,14 +1,14 @@
-#include "strokerenderer.h"
-#include "strokereader.h"
+#include "strokesrenderer.h"
+#include "strokesreader.h"
 
-StrokeRenderer::StrokeRenderer(StrokeReader* reader, QObject *parent)
+StrokesRenderer::StrokesRenderer(StrokesReader* reader, QObject *parent)
     : LifeObject(parent)
     , reader_(reader)
 {
     reader->setParent(this);
 }
 
-bool StrokeRenderer::start()
+bool StrokesRenderer::start()
 {
     StrokePoint point;
     if (!reader_->getMaximun(point))
@@ -27,7 +27,7 @@ bool StrokeRenderer::start()
     return true;
 }
 
-void StrokeRenderer::addPoint2(const StrokePoint &point)
+void StrokesRenderer::addPoint2(const StrokePoint &point)
 {
     if (point[2]) {
         addPoint(point);

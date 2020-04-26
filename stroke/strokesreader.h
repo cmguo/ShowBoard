@@ -1,5 +1,5 @@
-#ifndef STROKEREADER_H
-#define STROKEREADER_H
+#ifndef STROKESREADER_H
+#define STROKESREADER_H
 
 #include "ShowBoard_global.h"
 
@@ -11,7 +11,7 @@
 
 class QIODevice;
 
-class SHOWBOARD_EXPORT StrokeReader : public QObject
+class SHOWBOARD_EXPORT StrokesReader : public QObject
 {
     Q_OBJECT
 
@@ -22,10 +22,10 @@ public:
 
     typedef std::function<void (StrokePoint const & point)> AsyncHandler;
 
-    static StrokeReader * createReader(QIODevice * stream, QByteArray const & format);
+    static StrokesReader * createReader(QIODevice * stream, QByteArray const & format);
 
 public:
-    StrokeReader(QIODevice * stream, QObject *parent = nullptr);
+    StrokesReader(QIODevice * stream, QObject *parent = nullptr);
 
 public:
     virtual bool getMaximun(StrokePoint & max);
@@ -43,4 +43,4 @@ protected:
 #define REGISTER_STROKE_READER(ctype, type) \
     static QExport<ctype, StrokeReader> const export_stroke_reader_##ctype(QPart::Attribute(StrokeReader::EXPORT_ATTR_TYPE, type));
 
-#endif // STROKEREADER_H
+#endif // STROKESREADER_H
