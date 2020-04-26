@@ -41,6 +41,6 @@ protected:
 };
 
 #define REGISTER_STROKE_READER(ctype, type) \
-    static QExport<ctype, StrokesReader> const export_strokes_reader_##ctype(QPart::Attribute(StrokedReader::EXPORT_ATTR_TYPE, type));
+    static QExport<ctype, StrokesReader> const export_strokes_reader_##ctype(QPart::Attribute(StrokesReader::EXPORT_ATTR_TYPE, type));
 
 #endif // STROKESREADER_H
