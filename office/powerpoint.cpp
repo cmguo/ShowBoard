@@ -108,6 +108,11 @@ void PowerPoint::open(QString const & file)
             workThread().atexit(quit);
         }
     }
+    if (titleParts[0]) {
+        QString caption = application_->property("Caption").toString();
+        if (caption.contains("WPS"))
+            titleParts[0] = nullptr;
+    }
     if (application_ && !presentations_) {
         presentations_ = application_->querySubObject("Presentations");
     }
@@ -119,7 +124,7 @@ void PowerPoint::open(QString const & file)
     QObject::connect(presentations_, SIGNAL(exception(int,QString,QString,QString)),
                      this, SLOT(onException(int,QString,QString,QString)));
     QString file2 = file;
-    if (static_cast<PptObject*>(application_)->name().startsWith("PowerPoint"))
+    if (titleParts[0])
         file2 = QString("\"%1\"").arg(file);
     QAxObject * presentation = presentations_->querySubObject(
                 "Open(const QString&, bool, bool, bool)",
