@@ -20,6 +20,7 @@ FrameWidget::FrameWidget(QWidget * content, QWidget *parent)
     , arrowDir_(2)
     , arrowOff_(-1)
 {
+    setObjectName(content->objectName());
     content_->setParent(this);
     content_->setAttribute(Qt::WA_TranslucentBackground);
     content_->installEventFilter(this);

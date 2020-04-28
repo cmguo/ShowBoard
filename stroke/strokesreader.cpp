@@ -39,6 +39,13 @@ StrokesReader::StrokesReader(QIODevice * stream, QObject *parent)
 {
 }
 
+StrokesReader::~StrokesReader()
+{
+    close();
+    if (!stream2_)
+        delete stream_;
+}
+
 bool StrokesReader::getMaximun(StrokePoint &point)
 {
     return read(point);
@@ -52,4 +59,10 @@ bool StrokesReader::startAsyncRead(StrokesReader::AsyncHandler)
 void StrokesReader::close()
 {
     stream_->close();
+}
+
+void StrokesReader::storeStreamLife(QSharedPointer<QIODevice> stream)
+{
+    assert(stream.get() == stream_);
+    stream2_ = stream;
 }

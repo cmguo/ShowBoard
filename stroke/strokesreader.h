@@ -7,6 +7,7 @@
 
 #include <QObject>
 
+#include <QSharedPointer>
 #include <functional>
 
 class QIODevice;
@@ -27,6 +28,8 @@ public:
 public:
     StrokesReader(QIODevice * stream, QObject *parent = nullptr);
 
+    virtual ~StrokesReader() override;
+
 public:
     virtual bool getMaximun(StrokePoint & max);
 
@@ -36,8 +39,12 @@ public:
 
     virtual void close();
 
+public:
+    void storeStreamLife(QSharedPointer<QIODevice> stream);
+
 protected:
     QIODevice * stream_;
+    QSharedPointer<QIODevice> stream2_;
 };
 
 #define REGISTER_STROKE_READER(ctype, type) \

@@ -17,19 +17,16 @@ QPromise<StrokesReader*> Strokes::load()
 {
     if (url().scheme() == res_->type()) // should not happen
         return QPromise<StrokesReader*>::resolve(nullptr);
-    stream_.reset();
     int n = url().path().lastIndexOf('.');
     if (n < 0)
         throw std::invalid_argument("no stroke type");
     qDebug() << "Strokes::load";
     QByteArray type = url().path().mid(n + 1).toUtf8();
-    return res_->getStream().then([this, l = life(), type](QSharedPointer<QIODevice> stream) {
-        if (l.isNull())
-            throw std::runtime_error("life dead");
+    return res_->getStream().then([type](QSharedPointer<QIODevice> stream) {
         StrokesReader * reader = StrokesReader::createReader(stream.get(), type);
         if (!reader)
             throw std::runtime_error("StrokeReader not found");
-        stream_ = stream;
+        reader->storeStreamLife(stream);
         return reader;
     });
 }

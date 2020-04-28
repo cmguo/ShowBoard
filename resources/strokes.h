@@ -17,9 +17,6 @@ public:
 
 public:
     QtPromise::QPromise<StrokesReader*> load();
-
-private:
-    QSharedPointer<QIODevice> stream_;
 };
 
 #endif // STROKES_H

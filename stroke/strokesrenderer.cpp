@@ -18,7 +18,8 @@ bool StrokesRenderer::start()
         addPoint2(point);
     }
     bool async = reader_->startAsyncRead([l = life(), this] (StrokePoint const & point) {
-       addPoint2(point);
+        if (!l.isNull())
+            addPoint2(point);
     });
     if (async)
         startDynamic();
