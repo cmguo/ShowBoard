@@ -33,6 +33,7 @@ private:
 
 protected:
     StrokesReader* reader_;
+    bool dynamicStarted_ = false;
     bool strokeStarted_ = false;
 };
 

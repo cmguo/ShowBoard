@@ -21,6 +21,7 @@ bool StrokesRenderer::start()
         if (!l.isNull())
             addPoint2(point);
     });
+    dynamicStarted_ = true;
     if (async)
         startDynamic();
     else
