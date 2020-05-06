@@ -65,11 +65,11 @@ public:
     virtual bool sceneEvent(QEvent *event) override;
 
 private:
-    static QGraphicsItem* createIconItem(QGraphicsItem *parent, bool independent);
+    QGraphicsItem* createIconItem(bool independent);
 
-    static QGraphicsItem* createTextItem(QGraphicsItem *parent, bool independent);
+    QGraphicsItem* createTextItem(bool independent);
 
-    static QGraphicsItem* createButtonItem(QGraphicsItem *parent, bool independent);
+    QGraphicsItem* createButtonItem(bool independent);
 
 private:
     static SvgCache * cache_;
@@ -98,8 +98,8 @@ private:
     qreal borderRadius_;
     QColor textColor1_;
     QColor textColor2_;
-    int textSize1_;
-    int textSize2_;
+    QString textSize1_;
+    QString textSize2_;
 
     bool showBackground_;
     int timerId_;

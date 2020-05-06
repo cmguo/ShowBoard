@@ -15,7 +15,7 @@ public:
     BorderItem(QGraphicsItem *parent = nullptr)
         : QGraphicsPathItem(parent)
     {
-        setPen(QPen(Qt::black, 2.0));
+        setPen(QPen(Qt::black, dp(2.0)));
         setBrush(QBrush(Qt::white));
         static QPainterPath boxShape = circle(dp(BOX_RADIUS));
         setPath(boxShape);
@@ -23,13 +23,13 @@ public:
     BorderItem(int, QGraphicsItem *parent = nullptr)
         : BorderItem(parent)
     {
-        setBrush(QBrush(QColor("#990091FF")));
+        setBrush(QBrush(QColor("#0091FF")));
         // line
         QGraphicsPathItem * handle = new QGraphicsPathItem(this);
-        handle->setPen(QPen(QColor("#990091FF"), 3));
+        handle->setPen(QPen(QColor("#990091FF"), dp(3.0)));
         QPainterPath shape;
         shape.moveTo(0, dp(BOX_RADIUS));
-        shape.lineTo(0, dp(ROTATE_OFFSET + BOX_RADIUS));
+        shape.lineTo(0, dp(ROTATE_OFFSET + BOX_RADIUS - 3.0));
         handle->setPath(shape);
         handle->setFlag(QGraphicsItem::ItemStacksBehindParent);
     }
@@ -84,7 +84,7 @@ SelectBox::SelectBox(QGraphicsItem * parent)
     leftBottom_ = new BorderItem(this);
     leftBottom_->setCursor(Qt::SizeBDiagCursor);
 
-    setPen(QPen(QColor("#990091FF"), 3));
+    setPen(QPen(QColor("#990091FF"), dp(3.0)));
 }
 
 void SelectBox::setRect(QRectF const & rect)

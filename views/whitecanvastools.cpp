@@ -172,7 +172,7 @@ QWidget *WhiteCanvasTools::createPageList(ResourcePackage * package)
     QQuickWidget* widget = new MyQuickWidget;
     widget->setObjectName("canvaspagelist");
     widget->setAttribute(Qt::WA_AcceptTouchEvents);
-    widget->setStyleSheet("{background-color:#F9F9F9}");
+    widget->setStyleSheet("QQuickWidget{background-color:#F9F9F9}");
     widget->engine()->addImageProvider("resource", new ResourceImageProvider(package));
     widget->setClearColor(Qt::transparent);
     widget->rootContext()->setContextProperty("packageModel", package);
