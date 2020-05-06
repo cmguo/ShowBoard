@@ -16,6 +16,8 @@ public:
 public:
     QWidget * content();
 
+    void setBackground(QColor const & color);
+
     void setBorder(QColor const & color, int size = 1, int radius = 8, int padding = 0);
 
     void setArrowSize(QSize const & size);
@@ -33,8 +35,15 @@ private:
     static QPainterPath toRoundPolygon(QPolygonF const & polygon, QVector<qreal> const & radiuses);
 
 private:
+    enum Flags {
+        BackgroundSet = 1
+    };
+
+private:
     QWidget * content_;
     QPainterPath path_;
+    int flags_ = 0;
+    QColor backgroundColor_;
     QColor borderColor_;
     int borderSize_ = 0;
     int borderRadius_ = 0;

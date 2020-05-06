@@ -11,6 +11,7 @@
 FrameWidget::FrameWidget(QWidget * content, QWidget *parent)
     : QWidget(parent ? parent : content->parentWidget())
     , content_(content)
+    , backgroundColor_(Qt::white)
     , borderColor_("#434D59")
     , borderSize_(dp(1))
     , borderRadius_(dp(8))
@@ -30,6 +31,12 @@ FrameWidget::FrameWidget(QWidget * content, QWidget *parent)
 QWidget *FrameWidget::content()
 {
     return content_;
+}
+
+void FrameWidget::setBackground(const QColor &color)
+{
+    backgroundColor_ = color;
+    flags_ |= BackgroundSet;
 }
 
 void FrameWidget::setBorder(QColor const & color, int size, int radius, int padding)
@@ -62,7 +69,10 @@ void FrameWidget::paintEvent(QPaintEvent *event)
     option.initFrom(content_);
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setPen(QPen(borderColor_, borderSize_));
-    painter.setBrush(option.palette.background());
+    if (flags_ & BackgroundSet)
+        painter.setBrush(QBrush(backgroundColor_));
+    else
+        painter.setBrush(option.palette.background());
     painter.drawPath(path_);
     QWidget::paintEvent(event);
 }
