@@ -111,7 +111,7 @@ Rectangle {
                         radius: 4 * sizeScale
                         color: "transparent"
                         border.width: index == packageModel.currentIndex ? 3 : 1
-                        border.color: index == packageModel.currentIndex ? "#FF008FFF" : "#1E3232"
+                        border.color: index == packageModel.currentIndex ? "#FF008FFF" : "#FFE2E3E4"
                     }
                 }
             }
