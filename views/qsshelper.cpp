@@ -104,7 +104,7 @@ QSize QssHelper::sizeScale(const QSize &size)
 
 int QssHelper::fontSizeScale(int size)
 {
-    return static_cast<int>(size * sizeScale());
+    return qMax(11, static_cast<int>(size * sizeScale()));
 }
 
 /* static */
