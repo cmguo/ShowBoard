@@ -138,6 +138,7 @@ void WhiteCanvas::switchPage(ResourcePage * page)
     } else if (animCanvas_) {
         animCanvas_->updateAnimate();
     }
+    emit currentPageChanged(canvas_->subPage());
     lastPage_ = index;
 }
 

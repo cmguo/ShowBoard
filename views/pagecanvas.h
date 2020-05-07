@@ -36,6 +36,8 @@ public:
         return page_;
     }
 
+    ResourcePage * subPage();
+
 public:
     QPixmap thumbnail(QPixmap* snapshot = nullptr);
 

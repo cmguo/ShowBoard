@@ -56,6 +56,11 @@ void PageCanvas::relayout()
     }
 }
 
+ResourcePage *PageCanvas::subPage()
+{
+    return subCanvas_ ? subCanvas_->subPage() : page_;
+}
+
 QPixmap PageCanvas::thumbnail(QPixmap* snapshot)
 {
     QSizeF size = scene()->sceneRect().size();
@@ -171,6 +176,13 @@ void PageCanvas::subPageChanged(ResourcePage *page)
             delete subCanvas_;
             subCanvas_ = nullptr;
         }
+    }
+    if (sender()) {
+        PageCanvas * canvas = this;
+        if (canvas->page_->isSubPage()) {
+            canvas = static_cast<PageCanvas*>(parentItem());
+        }
+        static_cast<WhiteCanvas*>(parentItem())->currentPageChanged(subPage());
     }
 }
 

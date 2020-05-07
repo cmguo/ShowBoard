@@ -38,6 +38,9 @@ public:
 signals:
     void loadingChanged(bool loading);
 
+    // include sub page
+    void currentPageChanged(ResourcePage* page);
+
 public:
     ResourcePackage * package()
     {
