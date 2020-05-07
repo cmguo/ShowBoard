@@ -418,7 +418,7 @@ QGraphicsItem *StateItem::createButtonItem(bool independent)
         radius = dp(32);
     } else {
         size = dp(QSizeF(84, 40));
-        radius = dp(16);
+        radius = dp(20);
     }
     QRectF rect({0, 0}, size);
     path.addRoundedRect(rect, radius, radius);

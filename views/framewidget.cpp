@@ -13,7 +13,7 @@ FrameWidget::FrameWidget(QWidget * content, QWidget *parent)
     , content_(content)
     , backgroundColor_(Qt::white)
     , borderColor_("#434D59")
-    , borderSize_(dp(1))
+    , borderSize_(1) // fixed
     , borderRadius_(dp(8))
     , paddingSize_(0)
     , arrowSize_(dp(30), dp(12))

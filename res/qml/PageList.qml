@@ -18,7 +18,9 @@ Rectangle {
     }
 
     Behavior on y {
-         PropertyAnimation { }
+         PropertyAnimation {
+             easing.type: Easing.InOutQuad
+         }
     }
 
     onVisibleChanged: {
@@ -54,19 +56,26 @@ Rectangle {
                 list.positionViewAtIndex(packageModel.currentIndex, ListView.Center)
                 spacing = 0
                 y = 24 * sizeScale
+                height = parent.height - 38 * sizeScale;
             } else {
                 spacing = 40 * sizeScale
                 y = 64 * sizeScale
+                height = parent.height - 38 * sizeScale + spacing * (packageModel.pageCount < 4 ? packageModel.pageCount  - 1 : 3)
             }
         }
 
         Behavior on spacing {
-             PropertyAnimation { }
+             PropertyAnimation {
+                 easing.type: Easing.InOutQuad
+             }
         }
 
         Behavior on y {
-             PropertyAnimation { }
+             PropertyAnimation {
+                 easing.type: Easing.InOutQuad
+             }
         }
+
     }
 
     Component {
