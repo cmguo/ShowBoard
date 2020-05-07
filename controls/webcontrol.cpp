@@ -154,7 +154,7 @@ void WebControl::loadFinished(bool ok)
     if (ok) {
         Control::loadFinished(ok);
     } else {
-        Control::loadFinished(ok, "Load failed");
+        Control::loadFinished(ok, "加载失败");
     }
 }
 

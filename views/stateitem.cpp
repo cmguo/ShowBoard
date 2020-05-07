@@ -161,6 +161,10 @@ void StateItem::setSvg(QSvgRenderer * renderer)
         }
     }
     svgIcon->show();
+    Control * control = Control::fromItem(this);
+    bool independent = control->resource()->flags().testFlag(ResourceView::Independent);
+    if (independent && state_ == Failed)
+        svgIcon->setScale(dp(4.0));
     QRectF rect = svgIcon->mapToParent(svgIcon->boundingRect()).boundingRect();
     static_cast<QGraphicsRectItem*>(iconItem_)->setRect(rect);
 }
@@ -228,6 +232,8 @@ void StateItem::decideStyles(bool independent, bool isTool)
         brush_ = QBrush(QColor("#FF2B3034"));
         pen_ = QPen(QColor("#FF434D59"), 1);
     }
+    rect_ = QRectF({0, 0}, dp(QSizeF(400, 300)));
+    rect_.moveCenter({0, 0});
     if (independent) {
         textSize1_ = textSize2_ = QString::number(QssHelper::fontSizeScale(18));
         showBackground_ = false;
@@ -237,8 +243,6 @@ void StateItem::decideStyles(bool independent, bool isTool)
         if (parentItem()->boundingRect().isEmpty()) {
             showBackground_ = true;
             fixedSize_ = true;
-            rect_ = QRectF({0, 0}, dp(QSizeF(400, 300)));
-            rect_.moveCenter({0, 0});
         }
     }
 }
@@ -259,7 +263,7 @@ void StateItem::updateLayout()
     }
     if (!fixedSize_) {
         prepareGeometryChange();
-        rect_ = QRectF(0, 0, width + dp(64), height + dp(64));
+        rect_.setHeight(height + dp(64));
         rect_.moveCenter({0, 0});
     }
     height *= -0.5;
@@ -383,10 +387,11 @@ bool StateItem::sceneEvent(QEvent *event)
 
 QGraphicsItem *StateItem::createIconItem(bool independent)
 {
+    (void) independent;
     QGraphicsRectItem * iconItem = new QGraphicsRectItem(this);
     iconItem->setPen(Qt::NoPen);
     QGraphicsSvgItem * svg = new QGraphicsSvgItem(iconItem);
-    svg->setScale(dp(independent ? 4.0 : 1.0));
+    svg->setScale(dp(1.0));
     new QGraphicsPixmapItem(iconItem);
     return iconItem;
 }

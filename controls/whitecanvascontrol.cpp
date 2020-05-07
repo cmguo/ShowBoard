@@ -4,6 +4,7 @@
 #include "core/resourcetransform.h"
 #include "core/resourcepage.h"
 #include "views/toolbarwidget.h"
+#include "views/qsshelper.h"
 
 #include <QUrl>
 #include <QGraphicsScene>
@@ -11,6 +12,8 @@
 #include <QtMath>
 #include <QDebug>
 #include <QGraphicsProxyWidget>
+
+static QssHelper QSS(":/showboard/qss/canvastoolbar.qss");
 
 WhiteCanvasControl::WhiteCanvasControl(ResourceView * view, QGraphicsItem * canvas)
     : Control(view, {}, {CanSelect, CanRotate})
@@ -25,7 +28,9 @@ WhiteCanvasControl::WhiteCanvasControl(ResourceView * view, QGraphicsItem * canv
                      this, &WhiteCanvasControl::updateTransform);
     posBar_ = new PositionBar(canvas);
     ToolbarWidget* toolbar = new ToolbarWidget;
+    toolbar->setObjectName("canvastoolbar");
     toolbar->attachProvider(this);
+    toolbar->setStyleSheet(QSS);
     toolBar_ = toolbar->toGraphicsProxy(nullptr, true);
     loadSettings();
     // adjust to scene, this is done before attaching transform

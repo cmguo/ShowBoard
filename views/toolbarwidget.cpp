@@ -33,8 +33,11 @@ ToolbarWidget::ToolbarWidget(bool horizontal, QWidget *parent)
     setObjectName("toolbarwidget");
     setWindowFlag(Qt::FramelessWindowHint);
     setStyleSheet(QSS);
-    if (horizontal)
-        layout_->setContentsMargins(10, 10, 10, 10);
+    if (horizontal) {
+        int margins = dp(10);
+        layout_->setContentsMargins(margins, margins, margins, margins);
+        layout_->setSpacing(dp(12));
+    }
     setLayout(layout_);
     hide();
 }
