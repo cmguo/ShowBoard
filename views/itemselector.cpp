@@ -108,6 +108,12 @@ void ItemSelector::select(QGraphicsItem *item)
     }
 }
 
+void ItemSelector::unselect(QGraphicsItem *item)
+{
+    if (item == select_)
+        select(nullptr);
+}
+
 void ItemSelector::selectImplied(QGraphicsItem *item)
 {
     if (item != select_)

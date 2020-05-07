@@ -20,6 +20,8 @@ public:
 public:
     void select(QGraphicsItem * item);
 
+    void unselect(QGraphicsItem * item);
+
     void selectImplied(QGraphicsItem * item);
 
     void updateSelect(QGraphicsItem * item);

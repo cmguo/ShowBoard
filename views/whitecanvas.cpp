@@ -115,7 +115,6 @@ bool WhiteCanvas::sceneEvent(QEvent *event)
 void WhiteCanvas::switchPage(ResourcePage * page)
 {
     loadingCount_ = 0;
-    selector_->select(nullptr);
     AnimCanvas* anim = nullptr;
     if (this->page() && !animCanvas_) {
         if (page && !this->page()->isVirtualPage()
@@ -170,8 +169,6 @@ Control *WhiteCanvas::copyResource(Control *control)
 
 void WhiteCanvas::removeResource(Control *control)
 {
-    if (control->item() == selector_->selected())
-        selector_->select(nullptr);
     canvas_->page()->removeResource(control->resource());
 }
 
@@ -381,7 +378,6 @@ void WhiteCanvas::toolButtonClicked(QList<ToolButton *> const & buttons)
         selector_->enableFastClone(checked);
         btn->setChecked(checked);
     } else if (btn == &Control::btnDelete) {
-        selector_->select(nullptr);
         canvas_->page()->removeResource(ct->resource());
     } else {
         ct->handleToolButton(buttons);

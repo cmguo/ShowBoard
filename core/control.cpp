@@ -180,6 +180,8 @@ void Control::detachFrom(QGraphicsItem *parent, QGraphicsItem *)
     if (flags_ & LoadFinished)
         saveSettings();
     (void) parent;
+    if (flags_ & Selected)
+        whiteCanvas()->selector()->unselect(realItem_);
     realItem_->scene()->removeItem(realItem_);
     QList<QGraphicsTransform*> transforms = realItem_->transformations();
     if (transforms.size() > 1) {
