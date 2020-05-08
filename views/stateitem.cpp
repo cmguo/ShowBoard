@@ -114,12 +114,17 @@ void StateItem::setFailed(QString const & error)
         errmsg = error.mid(n + 1);
     }
     state_ = Failed;
+    bool retry = true;
+    Control * control = Control::fromItem(this);
+    if (control->resource()->resource()->type().endsWith("tool"))
+        retry = false;
     QSvgRenderer * svg = cache_->get(QString(":/showboard/icon/error." + type + ".svg"));
     if (svg == nullptr)
         svg = failed_;
     setSvg(svg);
     setText(errmsg);
-    btnItem_->show();
+    if (retry)
+        btnItem_->show();
     updateLayout();
 }
 
