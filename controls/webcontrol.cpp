@@ -151,9 +151,13 @@ void WebControl::attached()
 
 void WebControl::loadFinished(bool ok)
 {
+    if (!flags_.testFlag(Loading))
+        return;
     if (ok) {
         Control::loadFinished(ok);
     } else {
+        QWebEngineView * view = qobject_cast<QWebEngineView *>(widget_);
+        view->setContent("");
         Control::loadFinished(ok, "加载失败");
     }
 }
