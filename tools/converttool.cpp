@@ -29,7 +29,9 @@ ConvertTool::ConvertTool(ResourceView *res)
 QGraphicsItem *ConvertTool::create(ResourceView *res)
 {
     (void) res;
-    return new QGraphicsRectItem;
+    QGraphicsRectItem * item = new QGraphicsRectItem;
+    item->setPen(Qt::NoPen);
+    return item;
 }
 
 void ConvertTool::attached()

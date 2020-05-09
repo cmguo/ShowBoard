@@ -247,7 +247,7 @@ void StateItem::decideStyles(bool independent, bool isTool)
         textSize2_ = QString::number(QssHelper::fontSizeScale(14));
         if (parentItem()->boundingRect().isEmpty()) {
             showBackground_ = true;
-            fixedSize_ = true;
+            fixedSize_ = !isTool;
         }
     }
 }
