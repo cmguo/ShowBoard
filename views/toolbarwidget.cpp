@@ -34,9 +34,9 @@ ToolbarWidget::ToolbarWidget(bool horizontal, QWidget *parent)
     setWindowFlag(Qt::FramelessWindowHint);
     setStyleSheet(QSS);
     if (horizontal) {
-        int margins = dp(10);
+        int margins = dp(6);
         layout_->setContentsMargins(margins, margins, margins, margins);
-        layout_->setSpacing(dp(12));
+        layout_->setSpacing(dp(8));
     }
     setLayout(layout_);
     hide();

@@ -41,6 +41,7 @@ static QMap<QByteArray, QMap<QByteArray, QssHelper::StyleFunc>> gStyleFunctions 
     {"width", {{"size", &sizeScale}}},
     {"height", {{"size", &sizeScale}}},
     {"margin", {{"size", &sizeScale}}},
+    {"padding", {{"size", &sizeScale}}},
     {"border-radius", {{"size", &sizeScale}}},
     {"qproperty-iconSize", {{"size", &sizeScale2}}}
 };

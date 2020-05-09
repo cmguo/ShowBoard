@@ -8,7 +8,7 @@ QPushButton,.QLabel {
 
 QPushButton {
     qproperty-iconSize:32px 32px; /* [size] */
-    padding:2px;
+    padding:6px; /* [size] */
     border-radius:8px; /* [size] */
 }
 
@@ -26,6 +26,6 @@ QPushButton:unchecked:hover {
 
 #canvastoolbar {
     background-color:#2B3034;
-    border-radius:6px;
+    border-radius:6px; /* [size] */
 }
 
