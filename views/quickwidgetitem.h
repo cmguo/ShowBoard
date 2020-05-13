@@ -3,13 +3,15 @@
 
 #include "ShowBoard_global.h"
 
+#include "quickproxyitem.h"
+
 #include <QList>
 #include <QQuickItem>
 
 class QWidget;
 class QQuickWidget;
 
-class SHOWBOARD_EXPORT QuickWidgetItem : public QQuickItem
+class SHOWBOARD_EXPORT QuickWidgetItem : public QuickProxyItem
 {
     Q_OBJECT
 public:
@@ -19,33 +21,15 @@ public:
 
     virtual ~QuickWidgetItem() override;
 
-public slots:
-    void updateState();
-
 protected:
-    virtual void onActiveChanged(bool active);
+    virtual void onGeometryChanged(const QRect &newGeometry) override;
 
-    bool isActive() const { return active_; }
+    virtual void onActiveChanged(bool active) override;
 
     QList<QWidget*> const & widgets() { return widgets_; }
 
 private:
-    virtual void geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry) override;
-
-    virtual void itemChange(ItemChange change, const ItemChangeData & value) override;
-
-private:
-    void setActive(bool active);
-
-    void addOverlayItemRegion(QRegion & region);
-
-    static void addOverlayItemRegion(QRegion & region, QQuickItem* item);
-
-private:
     QList<QWidget*> widgets_;
-    QQuickWidget* quickwidget_;
-    QWidget* commonParent_;
-    bool active_ = false;
 };
 
 #endif // QUICKWIDGETITEM_H

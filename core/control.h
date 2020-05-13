@@ -174,6 +174,8 @@ public:
      */
     void rotate(QPointF const & center, QPointF const & from, QPointF & to);
 
+    void setGeometry(QRectF const & geometry);
+
     QRectF boundRect() const;
 
     QGraphicsTransform* transform() const

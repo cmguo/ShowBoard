@@ -701,6 +701,14 @@ void Control::rotate(QPointF const & center, QPointF const & from, QPointF &to)
     res_->transform().rotate(center, from, to);
 }
 
+void Control::setGeometry(const QRectF &geometry)
+{
+    QSizeF s = geometry.size() - boundRect().size();
+    QPointF d(s.width(), s.height());
+    scale(QRectF(0, 0, 1, 1), d);
+    res_->transform().translate(geometry.center());
+}
+
 QRectF Control::boundRect() const
 {
     QRectF rect = realItem_->boundingRect();
