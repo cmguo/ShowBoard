@@ -23,6 +23,14 @@ static char const * toolstr = ""
         #endif
         ;
 
+class WebPage : public QWebEnginePage
+{
+public:
+    WebPage(QObject * parent) : QWebEnginePage(parent) {}
+protected:
+    QWebEnginePage *createWindow(WebWindowType );
+};
+
 class WebView : public QWebEngineView
 {
 public:
@@ -31,6 +39,7 @@ public:
         sinit();
         // make sure that touch events are delivered at all
         setAttribute(Qt::WA_AcceptTouchEvents);
+        setPage(new WebPage(this));
     }
 protected:
     virtual bool event(QEvent * event) override;
@@ -41,6 +50,8 @@ private:
 private:
     QPointer<QWidget> childWidget;
 };
+
+// TODO: fix multiple touch crash
 
 WebControl::WebControl(ResourceView * res)
     : WidgetControl(res, {WithSelectBar, ExpandScale, LayoutScale, Touchable, FixedOnCanvas}, {CanRotate})
@@ -257,4 +268,17 @@ QWidget *WebView::findChildWidget(const QString &className) const
         if (className == QString(w->metaObject()->className()))
             return w;
     return nullptr;
+}
+
+// https://forum.qt.io/topic/112858/qwebengineview-how-to-open-new-tab-link-in-same-tab/2
+
+QWebEnginePage *WebPage::createWindow(QWebEnginePage::WebWindowType){
+    WebPage *page = new WebPage(this);
+    connect(page, &QWebEnginePage::urlChanged, this, [this](QUrl const & url) {
+        if(QWebEnginePage *page = qobject_cast<QWebEnginePage *>(sender())){
+            setUrl(url);
+            page->deleteLater();
+        }
+    });
+    return page;
 }
