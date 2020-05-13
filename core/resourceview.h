@@ -22,6 +22,7 @@ class SHOWBOARD_EXPORT ResourceView : public ToolButtonProvider
     Q_PROPERTY(QString name MEMBER name_)
 
     Q_PROPERTY(bool independent READ independent WRITE setIndependent)
+    Q_PROPERTY(Flags pageMode READ pageMode WRITE setPageMode)
     Q_PROPERTY(QByteArray sessionGroup READ sessionGroup WRITE setSessionGroup)
 
 public:
@@ -60,6 +61,7 @@ public:
     };
 
     Q_DECLARE_FLAGS(Flags, Flag)
+    Q_FLAGS(Flags)
 
 public:
     Q_INVOKABLE explicit ResourceView(Resource * res,
@@ -73,6 +75,10 @@ public:
     bool independent() const;
 
     void setIndependent(bool v);
+
+    Flags pageMode() const;
+
+    void setPageMode(Flags mode);
 
     QByteArray sessionGroup();
 
@@ -135,6 +141,8 @@ protected:
     QString name_;
     ResourceTransform* transform_;
 };
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(ResourceView::Flags)
 
 /*
  * register resource view class @ctype with resource type @type

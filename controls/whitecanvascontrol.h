@@ -20,12 +20,23 @@ public:
 public slots:
     void setPosBarVisible(bool visible);
 
+public slots:
+    void scaleUp();
+
+    void scaleDown();
+
 private:
     QGraphicsItem * create(ResourceView *res) override;
 
     virtual void resize(const QSizeF &size) override;
 
+    virtual void attached() override;
+
     virtual void sizeChanged() override;
+
+    virtual void getToolButtons(QList<ToolButton *> &buttons, ToolButton *parent) override;
+
+    virtual void updateToolButton(ToolButton *button) override;
 
 private:
     void updatingTransform();

@@ -61,6 +61,7 @@ public:
     };
 
     Q_DECLARE_FLAGS(Flags, Flag)
+    Q_FLAGS(Flags)
 
     enum SelectMode
     {
@@ -325,6 +326,8 @@ protected:
     StateItem * stateItem_;
     QSizeF minMaxSize_[2];
 };
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(Control::Flags)
 
 /*
  * register control of @ctype with resource type @type

@@ -15,9 +15,14 @@
 
 static QssHelper QSS(":/showboard/qss/canvastoolbar.qss");
 
+static constexpr char const * toolsStr =
+        "scaleUp()||UnionUpdate|:/showboard/icon/zoom_in.svg,default;"
+        "scaleDown()||UnionUpdate|:/showboard/icon/zoom_out.svg,default;";
+
 WhiteCanvasControl::WhiteCanvasControl(ResourceView * view, QGraphicsItem * canvas)
-    : Control(view, {}, {CanSelect, CanRotate})
+    : Control(view, {}, {CanSelect, CanScale, CanRotate})
 {
+    setToolsString(toolsStr);
     item_ = canvas;
     item_->setTransformations({transform_});
     item_->setData(ITEM_KEY_CONTROL, QVariant::fromValue(this));
@@ -58,6 +63,16 @@ void WhiteCanvasControl::setPosBarVisible(bool visible)
     posBar_->setVisible(visible);
 }
 
+void WhiteCanvasControl::scaleUp()
+{
+    res_->transform().scale({1.25, 1.25});
+}
+
+void WhiteCanvasControl::scaleDown()
+{
+    res_->transform().scale({0.8, 0.8});
+}
+
 QGraphicsItem *WhiteCanvasControl::create(ResourceView *res)
 {
     (void) res;
@@ -67,15 +82,46 @@ QGraphicsItem *WhiteCanvasControl::create(ResourceView *res)
 void WhiteCanvasControl::resize(const QSizeF &size)
 {
     qDebug() << "WhiteCanvasControl resize" << size;
+    QRectF old = item_->boundingRect();
     QRectF rect(QPointF(0, 0), size);
     rect.moveCenter(QPointF(0, 0));
-    rect |= item_->boundingRect();
+    rect |= old;
     static_cast<WhiteCanvas*>(item_)->setGeometry(rect);
+    QSizeF ds = (rect.size() - old.size()) / 2;
+    QPointF d{ds.width(), ds.height()};
+    move(d);
+}
+
+void WhiteCanvasControl::attached()
+{
+    if (flags_.testFlag(CanScale)) {
+        buttonsChanged();
+    }
 }
 
 void WhiteCanvasControl::sizeChanged()
 {
     // do nothing
+}
+
+void WhiteCanvasControl::getToolButtons(QList<ToolButton *> &buttons, ToolButton *parent)
+{
+    if (parent == nullptr) {
+        if (!flags_.testFlag(CanScale))
+            return;
+    }
+    return Control::getToolButtons(buttons, parent);
+}
+
+void WhiteCanvasControl::updateToolButton(ToolButton *button)
+{
+    if (button->name() == "scaleUp()") {
+        button->setEnabled(resource()->transform().scale().m11() < 10);
+    } else if (button->name() == "scaleDown()") {
+        button->setEnabled(resource()->transform().scale().m11() > 1.1);
+    } else {
+        ToolButtonProvider::updateToolButton(button);
+    }
 }
 
 void WhiteCanvasControl::updatingTransform()

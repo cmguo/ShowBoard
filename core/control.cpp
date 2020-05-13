@@ -50,7 +50,7 @@ Control::Control(ResourceView *res, Flags flags, Flags clearFlags)
     , stateItem_(nullptr)
 {
     if (res_->flags().testFlag(ResourceView::LargeCanvas)) {
-        flags_.setFlag(FullLayout, true);
+        //flags_.setFlag(FullLayout, true);
         flags_.setFlag(CanSelect, false);
         flags_.setFlag(CanRotate, false);
     } else if (res_->flags().testFlag(ResourceView::Independent)) {
@@ -551,18 +551,14 @@ void Control::initScale()
     QSizeF size = item_->boundingRect().size();
     if (res_->flags().testFlag(ResourceView::LargeCanvas)) {
         Control * canvasControl = fromItem(whiteCanvas());
-        if (canvasControl) {
-            canvasControl->flags_.setFlag(CanScale, flags_.testFlag(CanScale));
-            flags_.setFlag(DefaultFlags, 0);
-            if (flags_ & RestoreSession) {
-                return;
-            }
-            canvasControl->resize(size);
-            size -= ps;
-            QPointF d(size.width() / 2, size.height() / 2);
-            canvasControl->move(d);
+        if (flags_ & RestoreSession) {
             return;
         }
+        canvasControl->flags_.setFlag(CanScale, flags_.testFlag(CanScale));
+        flags_.setFlag(DefaultFlags, 0);
+        canvasControl->resize(size);
+        canvasControl->attached();
+        return;
     }
     if (flags_ & (FullLayout | LoadFinished)) {
         return;

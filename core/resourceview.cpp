@@ -44,6 +44,17 @@ void ResourceView::setIndependent(bool v)
     flags_.setFlag(Independent, v);
 }
 
+ResourceView::Flags ResourceView::pageMode() const
+{
+    return flags_ & (LargeCanvas | VirtualPage | ListOfPages);
+}
+
+void ResourceView::setPageMode(Flags mode)
+{
+    constexpr Flags modeFlags{LargeCanvas, VirtualPage, ListOfPages};
+    flags_ = (flags_ & ~modeFlags) | (mode & modeFlags);
+}
+
 QByteArray ResourceView::sessionGroup()
 {
     return res_->property(SESSION_GROUP).toByteArray();
