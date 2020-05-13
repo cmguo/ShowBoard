@@ -27,12 +27,16 @@ public:
 protected:
     virtual QWidget * createWidget(ResourceView * res) override;
 
+    virtual void loadSettings() override;
+
     virtual void attached() override;
 
 private slots:
     void loadFinished(bool ok);
 
     void contentsSizeChanged(const QSizeF &size);
+
+    void scrollPositionChanged(const QPointF &pos);
 
     void reload();
 
