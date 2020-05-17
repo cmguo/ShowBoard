@@ -3,8 +3,6 @@
 
 #include "core/control.h"
 
-#include <QGraphicsPathItem>
-
 class WhiteCanvas;
 class PositionBar;
 
@@ -46,15 +44,6 @@ private:
 private:
     PositionBar * posBar_;
     QGraphicsItem* toolBar_;
-};
-
-class PositionBar : public QGraphicsPathItem
-{
-public:
-    PositionBar(QGraphicsItem * parent = nullptr);
-
-public:
-    void update(QRectF const & viewRect, QRectF const & canvasRect, qreal scale, QPointF offset);
 };
 
 #endif // WHITECANVASCONTROL_H

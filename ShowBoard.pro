@@ -81,6 +81,13 @@ else:unix: LIBS += -L$$OUT_PWD/../QtComposition/ -lQtComposition
 INCLUDEPATH += $$PWD/../QtComposition
 DEPENDPATH += $$PWD/../QtComposition
 
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../QtEventBus/release/ -lQtEventBus
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../QtEventBus/debug/ -lQtEventBusd
+else:unix: LIBS += -L$$OUT_PWD/../QtEventBus/ -lQtEventBus
+
+INCLUDEPATH += $$PWD/../QtEventBus
+DEPENDPATH += $$PWD/../QtEventBus
+
 INCLUDEPATH += $$PWD/../QtPromise/src
 
 INCLUDEPATH += $$PWD/../qtpromise/src/qtpromise $$PWD/../qtpromise/include
