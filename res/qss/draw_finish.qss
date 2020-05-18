@@ -17,5 +17,6 @@ QPushButton {
 
 #finishwidget {
     background-color:#80000000;
+    border-radius:6px; /* [size] */
 }
 

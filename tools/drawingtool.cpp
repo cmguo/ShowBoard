@@ -1,6 +1,7 @@
 #include "drawingtool.h"
 #include "views/whitecanvas.h"
 #include "views/qsshelper.h"
+#include "views/toolbarwidget.h"
 #include "core/resourceview.h"
 #include "core/resourcetransform.h"
 #include "core/resourcepage.h"
@@ -61,7 +62,7 @@ public:
         setAcceptTouchEvents(true);
         setFlag(ItemIsFocusable);
 
-        QWidget* widget = new QFrame;
+        QFrameEx* widget = new QFrameEx;
         widget->setObjectName("finishwidget");
         widget->setWindowFlag(Qt::FramelessWindowHint);
         widget->setStyleSheet(QSS);

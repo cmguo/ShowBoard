@@ -3,7 +3,7 @@
 
 #include "ShowBoard_global.h"
 
-#include "core/widgetcontrol.h"
+#include "controls/widgetcontrol.h"
 
 class SHOWBOARD_EXPORT MenuTool : public WidgetControl
 {
