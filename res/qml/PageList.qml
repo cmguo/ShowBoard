@@ -39,7 +39,7 @@ Rectangle {
         y: 64 * sizeScale
         spacing: 40 * sizeScale
         width: parent.width - 8 * sizeScale
-        height: parent.height - 38 * sizeScale
+        height: parent.height - 38 * sizeScale + spacing * (packageModel.pageCount < 4 ? packageModel.pageCount  - 1 : 3)
         model: packageModel
         delegate: page
         contentY: 0
@@ -56,11 +56,9 @@ Rectangle {
                 list.positionViewAtIndex(packageModel.currentIndex, ListView.Center)
                 spacing = 0
                 y = 24 * sizeScale
-                height = parent.height - 38 * sizeScale;
             } else {
                 spacing = 40 * sizeScale
                 y = 64 * sizeScale
-                height = parent.height - 38 * sizeScale + spacing * (packageModel.pageCount < 4 ? packageModel.pageCount  - 1 : 3)
             }
         }
 
