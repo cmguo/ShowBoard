@@ -1,9 +1,10 @@
-#ifndef QMLCONTROL_H
+﻿#ifndef QMLCONTROL_H
 #define QMLCONTROL_H
 
+#include "ShowBoard_global.h"
 #include "core/widgetcontrol.h"
 
-class QmlControl : WidgetControl
+class SHOWBOARD_EXPORT QmlControl : public WidgetControl
 {
     Q_OBJECT
 public:
