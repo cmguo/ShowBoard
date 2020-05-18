@@ -1,7 +1,7 @@
 #ifndef WEBCONTROL_H
 #define WEBCONTROL_H
 
-#include "core/widgetcontrol.h"
+#include "widgetcontrol.h"
 
 #include <QColor>
 
@@ -47,6 +47,8 @@ private slots:
     void fitContent();
 
     void debug();
+
+    void dump();
 
 private:
     bool fitToContent_;

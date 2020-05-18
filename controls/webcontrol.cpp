@@ -5,11 +5,15 @@
 #include "views/stateitem.h"
 #include "views/whitecanvas.h"
 
+#include <qproperty.h>
+
 #include <QWebEngineView>
 #include <QWebEngineSettings>
 #include <QApplication>
 #include <QGraphicsItem>
 #include <QGraphicsScene>
+#include <QQuickWidget>
+#include <QQuickItem>
 
 #define LARGE_CANVAS_LINKAGE 1
 
@@ -17,6 +21,7 @@ static char const * toolstr = ""
         #ifdef QT_DEBUG
         "reload()|刷新|;"
         "debug()|调试|;"
+        "dump()|输出|;"
         "hide()|隐藏|Checkable|;"
         "fitContent()|适合内容|;"
         "full()|全屏|Checkable|;"
@@ -33,6 +38,8 @@ protected:
 
 class WebView : public QWebEngineView
 {
+private:
+    static void sinit();
 public:
     WebView()
     {
@@ -41,14 +48,16 @@ public:
         setAttribute(Qt::WA_AcceptTouchEvents);
         setPage(new WebPage(this));
     }
+    void scaleTo(qreal scale);
+    void debug();
+    void dump();
 protected:
     virtual bool event(QEvent * event) override;
 private:
-    static void sinit();
-private:
     QWidget *findChildWidget(const QString &className) const;
 private:
-    QPointer<QWidget> childWidget;
+    QPointer<QQuickWidget> childWidget_;
+    qreal scale_ = 1.0;
 };
 
 // TODO: fix multiple touch crash
@@ -136,15 +145,17 @@ void WebControl::attached()
         background->setFlag(QGraphicsItem::ItemStacksBehindParent);
     }
     item_->setFlag(QGraphicsItem::ItemIsFocusable);
-    QWebEngineView * view = qobject_cast<QWebEngineView *>(widget_);
+    WebView * view = static_cast<WebView *>(widget_);
     if (res_->flags().testFlag(ResourceView::LargeCanvas)) {
         Control * canvasControl = Control::fromItem(whiteCanvas());
 #if LARGE_CANVAS_LINKAGE
-//        connect(&canvasControl->resource()->transform(), &ResourceTransform::changed,
-//                this, [this, view]() {
-//            qreal scale = qobject_cast<ResourceTransform*>(sender())->scale().m11();
-//            view->setZoomFactor(scale);
-//        });
+        connect(&canvasControl->resource()->transform(), &ResourceTransform::changed,
+                this, [this, view]() {
+            if (flags_.testFlag(Loading))
+                return;
+            qreal scale = qobject_cast<ResourceTransform*>(sender())->scale().m11();
+            view->scaleTo(scale);
+        });
 #endif
     }
     view->load(res_->resource()->url());
@@ -214,32 +225,15 @@ void WebControl::fitContent()
 
 void WebControl::debug()
 {
-    QWebEngineView * web = new QWebEngineView();
-    web->setWindowFlags(Qt::WindowStaysOnTopHint | Qt::Window);
-    web->setMinimumSize(500, 300);
-    web->load(QUrl("http://localhost:7777"));
-    web->show();
+    static_cast<WebView *>(widget_)->debug();
 }
 
-bool WebView::event(QEvent *event)
+void WebControl::dump()
 {
-    if (event->type() == QEvent::TouchBegin
-            || event->type() == QEvent::TouchEnd
-            || event->type() == QEvent::TouchUpdate
-            || event->type() == QEvent::TouchCancel) {
-        if (!childWidget)
-            childWidget = findChildWidget("QtWebEngineCore::RenderWidgetHostViewQtDelegateWidget");
-        Q_ASSERT(childWidget);
-        qDebug() << "eventFilter: " << event->type();
-        QApplication::sendEvent(childWidget, event);
-        return true;
-    } else if (event->type() == QEvent::Wheel) {
-        QWebEngineView::event(event);
-        event->accept();
-        return true;
-    }
-    return QWebEngineView::event(event);
+    static_cast<WebView *>(widget_)->dump();
 }
+
+/* WebView */
 
 void WebView::sinit()
 {
@@ -251,15 +245,83 @@ void WebView::sinit()
                 " --register-pepper-plugins="
                 "./pepflashplayer64.dll;application/x-shockwave-flash";
         qputenv("QTWEBENGINE_CHROMIUM_FLAGS", flags);
-#ifdef QT_DEBUG
-        qputenv("QTWEBENGINE_REMOTE_DEBUGGING", "7777");
-#endif
         QWebEngineSettings::defaultSettings()->setAttribute(
                     QWebEngineSettings::PluginsEnabled, true);
         QWebEngineSettings::defaultSettings()->setAttribute(
                     QWebEngineSettings::ShowScrollBars, false);
         init = true;
     }
+}
+
+void WebView::scaleTo(qreal scale)
+{
+//    if (!childWidget_) {
+//        QWidget * widget = findChildWidget(
+//                    "QtWebEngineCore::RenderWidgetHostViewQtDelegateWidget");
+//        childWidget_ = qobject_cast<QQuickWidget*>(widget);
+//    }
+    if (!childWidget_)
+        return;
+    const QTouchDevice *dev = nullptr;
+    const QPointF localPos = page()->scrollPosition() + QPointF(width(), height()) / 2 / scale_;
+    const QPointF windowPos = QPointF(width(), height()) / 2;
+    const QPointF screenPos = mapToGlobal(windowPos.toPoint());
+    qreal value = scale / scale_ - 1.0;
+    qDebug() << "WebView::scale" << scale << value;
+    qDebug() << "WebView::scale" << localPos << windowPos << screenPos;
+    scale_ = scale;
+    ulong sequenceId = 0;
+    quint64 intArgument = 0;
+    QNativeGestureEvent event1(Qt::BeginNativeGesture, dev, localPos, windowPos, screenPos, value, sequenceId, intArgument);
+    QNativeGestureEvent event2(Qt::ZoomNativeGesture, dev, localPos, windowPos, screenPos, value, sequenceId, intArgument);
+    QNativeGestureEvent event3(Qt::EndNativeGesture, dev, localPos, windowPos, screenPos, value, sequenceId, intArgument);
+    QApplication::sendEvent(childWidget_, &event1);
+    QApplication::sendEvent(childWidget_, &event2);
+    QApplication::sendEvent(childWidget_, &event3);
+}
+
+void WebView::debug()
+{
+    QWebEngineView * web = new QWebEngineView();
+    web->setWindowFlags(Qt::WindowStaysOnTopHint | Qt::Window);
+    web->setMinimumSize(800, 450);
+    QWebEnginePage * devPage = new QWebEnginePage;
+    page()->setDevToolsPage(devPage);
+    web->setPage(devPage);
+    web->show();
+}
+
+void WebView::dump()
+{
+    if (!childWidget_) {
+        QWidget * widget = findChildWidget(
+                    "QtWebEngineCore::RenderWidgetHostViewQtDelegateWidget");
+        childWidget_ = qobject_cast<QQuickWidget*>(widget);
+    }
+    dumpObjectTree();
+}
+
+bool WebView::event(QEvent *event)
+{
+    if (event->type() == QEvent::TouchBegin
+            || event->type() == QEvent::TouchEnd
+            || event->type() == QEvent::TouchUpdate
+            || event->type() == QEvent::TouchCancel) {
+        if (!childWidget_) {
+            QWidget * widget = findChildWidget(
+                        "QtWebEngineCore::RenderWidgetHostViewQtDelegateWidget");
+            childWidget_ = qobject_cast<QQuickWidget*>(widget);
+        }
+        Q_ASSERT(childWidget_);
+        qDebug() << "eventFilter: " << event->type();
+        QApplication::sendEvent(childWidget_, event);
+        return true;
+    } else if (event->type() == QEvent::Wheel) {
+        QWebEngineView::event(event);
+        event->accept();
+        return true;
+    }
+    return QWebEngineView::event(event);
 }
 
 QWidget *WebView::findChildWidget(const QString &className) const
