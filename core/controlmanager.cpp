@@ -3,7 +3,7 @@
 #include "resourceview.h"
 #include "resource.h"
 #include "showboard.h"
-#include "unknowncontrol.h"
+#include "controls/unknowncontrol.h"
 
 #include "controls/controls.h"
 #include "tools/tools.h"

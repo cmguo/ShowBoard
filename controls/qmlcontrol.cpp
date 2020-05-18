@@ -16,15 +16,17 @@ QmlControl::QmlControl(ResourceView *res)
     setToolsString(toolstr);
 }
 
-QWidget *QmlControl::createWidget(ResourceView *res)
+QWidget *QmlControl::createWidget(ResourceView *)
 {
     QQuickWidget * widget = new QQuickWidget;
-    widget->setSource(res->url());
-    QObject::connect(widget->rootObject(), &QQuickItem::widthChanged,
-                     this, [this]() { sizeChanged(); }, Qt::QueuedConnection);
-    QObject::connect(widget->rootObject(), &QQuickItem::heightChanged,
-                     this, [this]() { sizeChanged(); }, Qt::QueuedConnection);
     return widget;
+}
+
+void QmlControl::attached()
+{
+    QQuickWidget * widget = qobject_cast<QQuickWidget*>(widget_);
+    widget->setSource(res_->url());
+    loadFinished(true);
 }
 
 void QmlControl::hide()

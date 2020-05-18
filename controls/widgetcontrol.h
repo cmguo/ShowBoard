@@ -3,7 +3,7 @@
 
 #include "ShowBoard_global.h"
 
-#include "control.h"
+#include "core/control.h"
 
 class SHOWBOARD_EXPORT WidgetControl : public Control
 {
@@ -22,6 +22,9 @@ protected:
     virtual void resize(QSizeF const & size) override;
 
     virtual void detached() override;
+
+protected:
+    virtual bool eventFilter(QObject * watched, QEvent * event) override;
 
 protected:
     QWidget * widget_;

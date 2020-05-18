@@ -2,7 +2,8 @@
 #define QMLCONTROL_H
 
 #include "ShowBoard_global.h"
-#include "core/widgetcontrol.h"
+
+#include "controls/widgetcontrol.h"
 
 class SHOWBOARD_EXPORT QmlControl : public WidgetControl
 {
@@ -12,6 +13,8 @@ public:
 
 protected:
     virtual QWidget * createWidget(ResourceView * res) override;
+
+    virtual void attached() override;
 
 private slots:
     void hide();

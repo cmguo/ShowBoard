@@ -1,7 +1,7 @@
 #ifndef STROKECONTROL_H
 #define STROKECONTROL_H
 
-#include "core/widgetcontrol.h"
+#include "widgetcontrol.h"
 
 class GLStrokeWidget;
 

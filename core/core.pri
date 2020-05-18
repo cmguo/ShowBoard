@@ -18,8 +18,6 @@ HEADERS += \
     $$PWD/svgcache.h \
     $$PWD/toolbutton.h \
     $$PWD/toolbuttonprovider.h \
-    $$PWD/unknowncontrol.h \
-    $$PWD/widgetcontrol.h \
     $$PWD/workthread.h
 
 SOURCES += \
@@ -42,6 +40,4 @@ SOURCES += \
     $$PWD/svgcache.cpp \
     $$PWD/toolbutton.cpp \
     $$PWD/toolbuttonprovider.cpp \
-    $$PWD/unknowncontrol.cpp \
-    $$PWD/widgetcontrol.cpp \
     $$PWD/workthread.cpp

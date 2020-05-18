@@ -1,7 +1,7 @@
 #ifndef UNKNOWNCONTROL_H
 #define UNKNOWNCONTROL_H
 
-#include "control.h"
+#include "core/control.h"
 
 class UnknownControl : public Control
 {

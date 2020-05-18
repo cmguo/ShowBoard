@@ -15,7 +15,7 @@ WidgetControl::WidgetControl(ResourceView *res, Flags flags, Flags clearFlags)
 WidgetControl::~WidgetControl()
 {
     if (widget_)
-        widget_->deleteLater();
+        delete widget_;
     widget_ = nullptr;
 }
 
@@ -36,14 +36,27 @@ void WidgetControl::attaching()
     if (!widget_) // restore from persist session
         widget_ = static_cast<QGraphicsProxyWidget*>(item_)->widget();
     itemObj_ = widget_;
+    widget_->installEventFilter(this);
 }
 
 void WidgetControl::detached()
 {
+    widget_->removeEventFilter(this);
     if (res_->flags().testFlag(ResourceView::PersistSession))
         widget_ = nullptr;
     else
         static_cast<QGraphicsProxyWidget*>(item_)->setWidget(nullptr);
+}
+
+bool WidgetControl::eventFilter(QObject *watched, QEvent *event)
+{
+    if (watched == widget_ && event->type() == QEvent::Resize) {
+        QtPromise::resolve().then([l = life(), this]() {
+            if (!l.isNull() && !flags_.testFlag(Adjusting))
+                sizeChanged();
+        });
+    }
+    return false;
 }
 
 void WidgetControl::resize(QSizeF const & size)
