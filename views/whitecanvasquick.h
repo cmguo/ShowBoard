@@ -13,6 +13,9 @@ class SHOWBOARD_EXPORT WhiteCanvasQuick : public QuickWidgetItem
 public:
     WhiteCanvasQuick(WhiteCanvasWidget* canvas, QQuickWidget* quickwidget);
 
+    virtual ~WhiteCanvasQuick() override;
+
+public:
     static constexpr char const * SETTINGS_SET_GEOMETRY_ON_MAIN_RESOURCE
             = "setGeometryOnMainResource";
 

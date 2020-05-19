@@ -10,6 +10,11 @@ WhiteCanvasQuick::WhiteCanvasQuick(WhiteCanvasWidget *canvas, QQuickWidget *quic
 {
 }
 
+WhiteCanvasQuick::~WhiteCanvasQuick()
+{
+    canvas_->package()->removeVirtualPage(mainUrl_);
+}
+
 void WhiteCanvasQuick::setUrl(const QUrl &url, QVariantMap settings)
 {
     if (mainUrl_ == url)
