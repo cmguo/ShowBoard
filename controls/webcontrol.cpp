@@ -128,7 +128,9 @@ void WebControl::loadSettings()
 
 void WebControl::attached()
 {
+    WebView * view = static_cast<WebView *>(widget_);
     if (flags_.testFlag(RestorePersisted)) {
+        // TODO: handle backup loadFinished
         loadFinished(true);
         return;
     }
@@ -142,7 +144,6 @@ void WebControl::attached()
         background->setFlag(QGraphicsItem::ItemStacksBehindParent);
     }
     item_->setFlag(QGraphicsItem::ItemIsFocusable);
-    WebView * view = static_cast<WebView *>(widget_);
     if (res_->flags().testFlag(ResourceView::LargeCanvas)) {
         Control * canvasControl = Control::fromItem(whiteCanvas());
 #if LARGE_CANVAS_LINKAGE
