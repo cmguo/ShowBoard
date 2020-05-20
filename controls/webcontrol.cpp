@@ -31,7 +31,7 @@ static char const * toolstr = ""
 class WebPage : public QWebEnginePage
 {
 public:
-    WebPage(QObject * parent) : QWebEnginePage(parent) {}
+    WebPage(QObject * parent, QObject *settings);
 protected:
     QWebEnginePage *createWindow(WebWindowType );
 };
@@ -41,13 +41,7 @@ class WebView : public QWebEngineView
 private:
     static void sinit();
 public:
-    WebView()
-    {
-        sinit();
-        // make sure that touch events are delivered at all
-        setAttribute(Qt::WA_AcceptTouchEvents);
-        setPage(new WebPage(this));
-    }
+    WebView(QObject * settings);
     void scaleTo(qreal scale);
     void debug();
     void synthesizedMouseEvents();
@@ -109,7 +103,7 @@ void WebControl::setBackground(const QColor &color)
 QWidget * WebControl::createWidget(ResourceView * res)
 {
     (void)res;
-    QWebEngineView * view = new WebView();
+    QWebEngineView * view = new WebView(res);
     view->resize(1024, 576);
     QObject::connect(view->page(), &QWebEnginePage::loadFinished,
                      this, &WebControl::loadFinished);
@@ -253,17 +247,60 @@ void WebView::sinit()
         QWebEngineSettings::defaultSettings()->setAttribute(
                     QWebEngineSettings::PluginsEnabled, true);
         QWebEngineSettings::defaultSettings()->setAttribute(
+                    QWebEngineSettings::ErrorPageEnabled, false);
+        QWebEngineSettings::defaultSettings()->setAttribute(
                     QWebEngineSettings::ShowScrollBars, false);
         init = true;
     }
 }
 
+static QVector<QByteArray> const AttributeNames = {
+    "AutoLoadImages",
+    "JavascriptEnabled",
+    "JavascriptCanOpenWindows",
+    "JavascriptCanAccessClipboard",
+    "LinksIncludedInFocusChain",
+    "LocalStorageEnabled",
+    "LocalContentCanAccessRemoteUrls",
+    "XSSAuditingEnabled",
+    "SpatialNavigationEnabled",
+    "LocalContentCanAccessFileUrls",
+    "HyperlinkAuditingEnabled",
+    "ScrollAnimatorEnabled",
+    "ErrorPageEnabled",
+    "PluginsEnabled",
+    "FullScreenSupportEnabled",
+    "ScreenCaptureEnabled",
+    "WebGLEnabled",
+    "Accelerated2dCanvasEnabled",
+    "AutoLoadIconsForPage",
+    "TouchIconsEnabled",
+    "FocusOnNavigationEnabled",
+    "PrintElementBackgrounds",
+    "AllowRunningInsecureContent",
+    "AllowGeolocationOnInsecureOrigins",
+    "AllowWindowActivationFromJavaScript",
+    "ShowScrollBars",
+    "PlaybackRequiresUserGesture",
+    "WebRTCPublicInterfacesOnly",
+    "JavascriptCanPaste",
+    "DnsPrefetchEnabled",
+};
+
+WebView::WebView(QObject *settings)
+{
+    sinit();
+    // make sure that touch events are delivered at all
+    setAttribute(Qt::WA_AcceptTouchEvents);
+    setPage(new WebPage(this, settings));
+}
+
 void WebView::scaleTo(qreal scale)
 {
-//    if (!childWidget_) {
-//        QWidget * widget = findChildWidget(
-//                    "QtWebEngineCore::RenderWidgetHostViewQtDelegateWidget");
-//        childWidget_ = qobject_cast<QQuickWidget*>(widget);
+    //    if (!childWidget_) {
+    //        QWidget * widget = findChildWidget(
+    //                    "QtWebEngineCore::RenderWidgetHostViewQtDelegateWidget");
+    //        childWidget_ = qobject_cast<QQuickWidget*>(widget);
 //    }
     if (!childWidget_)
         return;
@@ -368,8 +405,22 @@ QWidget *WebView::findChildWidget(const QString &className) const
 
 // https://forum.qt.io/topic/112858/qwebengineview-how-to-open-new-tab-link-in-same-tab/2
 
+WebPage::WebPage(QObject *parent, QObject *setting)
+    : QWebEnginePage(parent)
+{
+    if (setting) {
+        for (QByteArray const & key : setting->dynamicPropertyNames()) {
+            int i = AttributeNames.indexOf(key);
+            if (i >= 0)
+                settings()->setAttribute(
+                            static_cast<QWebEngineSettings::WebAttribute>(i),
+                            setting->property(key).toBool());
+        }
+    }
+}
+
 QWebEnginePage *WebPage::createWindow(QWebEnginePage::WebWindowType){
-    WebPage *page = new WebPage(this);
+    WebPage *page = new WebPage(this, nullptr);
     connect(page, &QWebEnginePage::urlChanged, this, [this](QUrl const & url) {
         if(QWebEnginePage *page = qobject_cast<QWebEnginePage *>(sender())){
             setUrl(url);
