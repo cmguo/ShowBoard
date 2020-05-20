@@ -7,10 +7,18 @@
 
 class SHOWBOARD_EXPORT WidgetControl : public Control
 {
+    Q_OBJECT
+
+    Q_PROPERTY(bool touchable READ touchable WRITE setTouchable)
 public:
     WidgetControl(ResourceView *res, Flags flags = None, Flags clearFlags = None);
 
     virtual ~WidgetControl() override;
+
+public:
+    bool touchable() const;
+
+    void setTouchable(bool b);
 
 protected:
     virtual QGraphicsItem * create(ResourceView * res) override;

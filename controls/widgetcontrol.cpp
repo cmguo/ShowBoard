@@ -19,12 +19,24 @@ WidgetControl::~WidgetControl()
     widget_ = nullptr;
 }
 
+bool WidgetControl::touchable() const
+{
+    return flags_.testFlag(Touchable);
+}
+
+void WidgetControl::setTouchable(bool b)
+{
+    flags_.setFlag(Touchable, b);
+    item_->setAcceptTouchEvents(b);
+}
+
 QGraphicsItem * WidgetControl::create(ResourceView *res)
 {
     res_ = res;
     widget_ = createWidget(res);
     QGraphicsProxyWidget * item = new QGraphicsProxyWidget();
-    item->setAcceptTouchEvents(true);
+    if (flags_.testFlag(Touchable))
+        item->setAcceptTouchEvents(true);
     item->setAutoFillBackground(false);
     item->setWidget(widget_);
     //resize(widget_->size());
