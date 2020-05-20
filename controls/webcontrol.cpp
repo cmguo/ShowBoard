@@ -14,6 +14,7 @@
 #include <QGraphicsScene>
 #include <QQuickWidget>
 #include <QQuickItem>
+#include <QWebEngineFullScreenRequest>
 
 #define LARGE_CANVAS_LINKAGE 1
 
@@ -247,6 +248,8 @@ void WebView::sinit()
         QWebEngineSettings::defaultSettings()->setAttribute(
                     QWebEngineSettings::PluginsEnabled, true);
         QWebEngineSettings::defaultSettings()->setAttribute(
+                    QWebEngineSettings::FullScreenSupportEnabled, true);
+        QWebEngineSettings::defaultSettings()->setAttribute(
                     QWebEngineSettings::ErrorPageEnabled, false);
         QWebEngineSettings::defaultSettings()->setAttribute(
                     QWebEngineSettings::ShowScrollBars, false);
@@ -293,6 +296,9 @@ WebView::WebView(QObject *settings)
     // make sure that touch events are delivered at all
     setAttribute(Qt::WA_AcceptTouchEvents);
     setPage(new WebPage(this, settings));
+    connect(page(), &WebPage::fullScreenRequested, this, [this](QWebEngineFullScreenRequest fullScreenRequest) {
+        fullScreenRequest.accept();
+    });
 }
 
 void WebView::scaleTo(qreal scale)
