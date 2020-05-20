@@ -50,9 +50,11 @@ public:
     }
     void scaleTo(qreal scale);
     void debug();
+    void synthesizedMouseEvents();
     void dump();
 protected:
     virtual bool event(QEvent * event) override;
+    virtual bool eventFilter(QObject * watched, QEvent * event) override;
 private:
     QWidget *findChildWidget(const QString &className) const;
 private:
@@ -63,7 +65,7 @@ private:
 // TODO: fix multiple touch crash
 
 WebControl::WebControl(ResourceView * res)
-    : WidgetControl(res, {WithSelectBar, ExpandScale, LayoutScale, Touchable, FixedOnCanvas}, {CanRotate})
+    : WidgetControl(res, {WithSelectBar, ExpandScale, LayoutScale, FixedOnCanvas}, {CanRotate})
     , fitToContent_(false)
     , hasBackground_(false)
 {
@@ -171,6 +173,8 @@ void WebControl::loadFinished(bool ok)
             WebControl * canvasControl = static_cast<WebControl*>(Control::fromItem(whiteCanvas()));
             canvasControl->resize(view->page()->contentsSize());
         }
+        WebView * view = static_cast<WebView *>(widget_);
+        view->synthesizedMouseEvents();
         Control::loadFinished(ok);
     } else {
         QWebEngineView * view = qobject_cast<QWebEngineView *>(widget_);
@@ -242,6 +246,7 @@ void WebView::sinit()
         char const * flags =
                 "--allow-running-insecure-content"
                 " --disable-web-security"
+                " --touch-events=disabled"
                 " --register-pepper-plugins="
                 "./pepflashplayer64.dll;application/x-shockwave-flash";
         qputenv("QTWEBENGINE_CHROMIUM_FLAGS", flags);
@@ -291,18 +296,24 @@ void WebView::debug()
     web->show();
 }
 
-void WebView::dump()
+void WebView::synthesizedMouseEvents()
 {
     if (!childWidget_) {
         QWidget * widget = findChildWidget(
                     "QtWebEngineCore::RenderWidgetHostViewQtDelegateWidget");
         childWidget_ = qobject_cast<QQuickWidget*>(widget);
     }
-    dumpObjectTree();
+    childWidget_->installEventFilter(this);
+}
+
+void WebView::dump()
+{
+//    dumpObjectTree();
 }
 
 bool WebView::event(QEvent *event)
 {
+    qDebug() << "WebView::event: " << event->type();
     if (event->type() == QEvent::TouchBegin
             || event->type() == QEvent::TouchEnd
             || event->type() == QEvent::TouchUpdate
@@ -313,7 +324,6 @@ bool WebView::event(QEvent *event)
             childWidget_ = qobject_cast<QQuickWidget*>(widget);
         }
         Q_ASSERT(childWidget_);
-        qDebug() << "eventFilter: " << event->type();
         QApplication::sendEvent(childWidget_, event);
         return true;
     } else if (event->type() == QEvent::Wheel) {
@@ -322,6 +332,30 @@ bool WebView::event(QEvent *event)
         return true;
     }
     return QWebEngineView::event(event);
+}
+
+class Q_GUI_EXPORT QMouseEvent2 : public QInputEvent
+{
+public:
+    QPointF l, w, s;
+    Qt::MouseButton b;
+    Qt::MouseButtons mouseState;
+    int caps;
+    QVector2D velocity;
+};
+
+bool WebView::eventFilter(QObject *watched, QEvent *event)
+{
+    (void) watched;
+    //if (event->type() != QEvent::Timer)
+    //    qDebug() << "WebView::eventFilter: " << event->type();
+    if (event->type() == QEvent::MouseButtonPress
+            || event->type() == QEvent::MouseMove
+            || event->type() == QEvent::MouseButtonRelease) {
+        //qDebug() << "WebView::eventFilter: " << static_cast<QMouseEvent*>(event)->source();
+        static_cast<QMouseEvent2*>(event)->caps = 0;
+    }
+    return false;
 }
 
 QWidget *WebView::findChildWidget(const QString &className) const
