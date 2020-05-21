@@ -12,6 +12,7 @@
 #include <QApplication>
 #include <QGraphicsItem>
 #include <QGraphicsScene>
+#include <QGraphicsProxyWidget>
 #include <QQuickWidget>
 #include <QQuickItem>
 #include <QWebEngineFullScreenRequest>
@@ -297,7 +298,7 @@ WebView::WebView(QObject *settings)
     // make sure that touch events are delivered at all
     setAttribute(Qt::WA_AcceptTouchEvents);
     setPage(new WebPage(this, settings));
-    connect(page(), &WebPage::fullScreenRequested, this, [this](QWebEngineFullScreenRequest fullScreenRequest) {
+    connect(page(), &WebPage::fullScreenRequested, this, [](QWebEngineFullScreenRequest fullScreenRequest) {
         fullScreenRequest.accept();
     });
 }
@@ -391,13 +392,15 @@ public:
 bool WebView::eventFilter(QObject *watched, QEvent *event)
 {
     (void) watched;
-    //if (event->type() != QEvent::Timer)
+    //if (event->type() != QEvent::Timer && event->type() != QEvent::MouseMove)
     //    qDebug() << "WebView::eventFilter: " << event->type();
     if (event->type() == QEvent::MouseButtonPress
             || event->type() == QEvent::MouseMove
             || event->type() == QEvent::MouseButtonRelease) {
         //qDebug() << "WebView::eventFilter: " << static_cast<QMouseEvent*>(event)->source();
         static_cast<QMouseEvent2*>(event)->caps = 0;
+    } else if (event->type() == QEvent::CursorChange) {
+        graphicsProxyWidget()->setCursor(childWidget_->cursor());
     }
     return false;
 }
