@@ -11,6 +11,7 @@
 #include <QGraphicsLayout>
 #include <QPainter>
 #include <QMetaMethod>
+#include <QLabel>
 
 static QssHelper QSS(":/showboard/qss/toolbar.qss");
 
@@ -22,6 +23,7 @@ ToolbarWidget::ToolbarWidget(QWidget *parent)
 ToolbarWidget::ToolbarWidget(bool horizontal, QWidget *parent)
     : QFrameEx(parent)
     , template_(nullptr)
+    , dragable_(false)
     , popupPosition_(BottomRight)
     , popUp_(nullptr)
     , provider_(nullptr)
@@ -58,6 +60,18 @@ void ToolbarWidget::setStyleSheet(const QssHelper &style)
 {
     QFrameEx::setStyleSheet(style);
     iconSize_ = style.value("QPushButton", "qproperty-iconSize").toSize();
+}
+
+void ToolbarWidget::setDragable()
+{
+    if (dragable_)
+        return;
+    dragable_ = true;
+    QLabel *dragger = new QLabel(this);
+    dragger->setObjectName("dragger");
+    dragger->setFrameShape(QFrame::StyledPanel);
+    dragger->setCursor(Qt::SizeAllCursor);
+    layout_->addWidget(dragger);
 }
 
 void ToolbarWidget::setPopupPosition(PopupPosition pos)
@@ -497,6 +511,32 @@ void ToolbarWidget::setVisible(bool visible) {
         else
             popUp_->hide();
     }
+}
+
+static QPointF lastPosition(-1, -1);
+
+void ToolbarWidget::mousePressEvent(QMouseEvent *event)
+{
+    lastPosition = event->screenPos();
+    event->setAccepted(dragable_);
+}
+
+void ToolbarWidget::mouseMoveEvent(QMouseEvent *event)
+{
+    if (dragable_ && lastPosition.x() >= 0) {
+        QPointF d = event->screenPos() - lastPosition;
+        lastPosition = event->screenPos();
+        if (graphicsProxyWidget())
+            graphicsProxyWidget()->moveBy(d.x(), d.y());
+        else
+            move(d.toPoint());
+    }
+}
+
+void ToolbarWidget::mouseReleaseEvent(QMouseEvent *event)
+{
+    (void)event;
+    lastPosition = QPointF(-1, -1);
 }
 
 QFrameEx::QFrameEx(QWidget *parent)

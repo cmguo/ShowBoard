@@ -24,6 +24,18 @@ QPushButton:unchecked:hover {
     background-color:#464A4E;
 }
 
+#splitter {
+    max-width: 1px;
+    border: none;
+    background-color: black;
+}
+
+#dragger {
+    width: 22px; /* [size] */
+    border: none;
+    background-color: black;
+}
+
 #canvastoolbar {
     background-color:#2B3034;
     border-radius:6px; /* [size] */

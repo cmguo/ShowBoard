@@ -56,6 +56,8 @@ public:
 
     void setStyleSheet(QssHelper const & style);
 
+    void setDragable();
+
     void setPopupPosition(PopupPosition pos);
 
     QWidget * createPopup(QList<ToolButton *> const & buttons);
@@ -99,6 +101,12 @@ protected:
 private:
     virtual void setVisible(bool visible) override;
 
+    virtual void mousePressEvent(QMouseEvent *event) override;
+
+    virtual void mouseMoveEvent(QMouseEvent *event) override;
+
+    virtual void mouseReleaseEvent(QMouseEvent *event) override;
+
     virtual void resizeEvent(QResizeEvent *event) override;
 
 private:
@@ -123,6 +131,7 @@ private:
 private:
     QMetaObject const * template_;
     QSize iconSize_;
+    bool dragable_;
     //
     QLayout * layout_;
     QMap<QWidget *, ToolButton *> buttons_;
