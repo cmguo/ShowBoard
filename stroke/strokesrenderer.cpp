@@ -55,7 +55,7 @@ void StrokesRenderer::startAsync()
 
 void StrokesRenderer::addPoint2(const StrokePoint &point)
 {
-    if (point[2]) {
+    if (!point.s) {
         addPoint(point);
         strokeStarted_ = true;
     } else if (strokeStarted_) {

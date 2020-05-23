@@ -4,8 +4,6 @@
 #include "glstroke.h"
 #include "stroke/strokepoint.h"
 
-typedef std::array<ushort, 3> StrokePoint;
-
 class GLStrokeRenderer;
 
 class GLInputStroke : public GLStroke

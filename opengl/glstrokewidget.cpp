@@ -9,7 +9,7 @@
 class MouseStroke : public GLInputStroke
 {
 private:
-    StrokePoint point = { 0, 0, 0 };
+    StrokePoint point = { 0, 0, 0, 0, 0 };
     QPointF lpt;
 
 public:
@@ -20,28 +20,30 @@ public:
 
     void setSize(QSize const & size)
     {
-        point[0] = static_cast<ushort>(size.width());
-        point[1] = static_cast<ushort>(size.height());
-        point[2] = 2;
+        point.x = static_cast<ushort>(size.width());
+        point.y = static_cast<ushort>(size.height());
+        point.s = 1;
+        point.p = 2;
         setMaximun(point);
+        point.s = 0;
     }
 
     void Start(QPoint const & pt)
     {
-        point[0] = static_cast<ushort>(pt.x());
-        point[1] = static_cast<ushort>(pt.y());
-        point[2] = 2;
+        point.x = static_cast<ushort>(pt.x());
+        point.y = static_cast<ushort>(pt.y());
+        point.p = 2;
         lpt = pt;
         addPoint(point);
     }
 
     void Push(QPoint const & pt)
     {
-        point[0] = static_cast<ushort>(pt.x());
-        point[1] = static_cast<ushort>(pt.y());
+        point.x = static_cast<ushort>(pt.x());
+        point.y = static_cast<ushort>(pt.y());
         auto d = pt - lpt;
         auto dd = d.x() * d.x() + d.y() * d.y();
-        point[2] = dd > 200 ? 1 : 2;
+        point.p = dd > 200 ? 1 : 2;
         lpt = pt;
         addPoint(point);
     }
