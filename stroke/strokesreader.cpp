@@ -51,9 +51,19 @@ bool StrokesReader::getMaximun(StrokePoint &point)
     return read(point);
 }
 
-bool StrokesReader::startAsyncRead(StrokesReader::AsyncHandler)
+bool StrokesReader::startAsyncRead(StrokesReader::AsyncHandler handler)
 {
-    return false;
+    if (stream_->atEnd())
+        return false;
+    connect(stream_, &QIODevice::readyRead, this, [this, handler] () {
+        StrokePoint point;
+        while (read(point))
+            handler(point);
+    });
+    connect(stream_, &QIODevice::readChannelFinished, this, [this] () {
+        emit asyncFinished();
+    });
+    return true;
 }
 
 void StrokesReader::close()

@@ -30,6 +30,9 @@ public:
 
     virtual ~StrokesReader() override;
 
+signals:
+    void asyncFinished();
+
 public:
     virtual bool getMaximun(StrokePoint & max);
 

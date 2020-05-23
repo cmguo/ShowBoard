@@ -15,7 +15,7 @@ public:
     explicit StrokesRenderer(StrokesReader* reader, QObject *parent = nullptr);
 
 public:
-    bool start();
+    bool start(int count = -1);
 
 protected:
     virtual void setMaximun(StrokePoint const & max) = 0;
@@ -27,6 +27,11 @@ protected:
     virtual void startDynamic() = 0;
 
     virtual void finish() = 0;
+
+private slots:
+    void start2(int count);
+
+    void startAsync();
 
 private:
     void addPoint2(StrokePoint const & point);

@@ -7,9 +7,16 @@
 QComponentContainer & ShowBoard::containter()
 {
     static QComponentContainer c;
-    static bool ok = QssHelper::applyToAllStylesheet();
-    (void) ok;
+    init();
     return c;
+}
+
+void ShowBoard::init()
+{
+    static bool done = false;
+    if (done) return;
+    done = true;
+    QssHelper::applyToAllStylesheet();
 }
 
 void ShowBoard::exit()
