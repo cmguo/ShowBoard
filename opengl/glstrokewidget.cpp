@@ -9,7 +9,7 @@
 class MouseStroke : public GLInputStroke
 {
 private:
-    StrokePoint point = { 0, 0, 0, 0, 0 };
+    StrokePoint point = StrokePoint::EndStorke;
     QPointF lpt;
 
 public:

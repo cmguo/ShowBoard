@@ -55,6 +55,16 @@ void StrokesRenderer::startAsync()
 
 void StrokesRenderer::addPoint2(const StrokePoint &point)
 {
+    if (maximun_.t) {
+        if (time_ > 0) {
+            time_ += point.t - lastTime_;
+            lastTime_ = point.t;
+        } else if (lastTime_ == 0) {
+            lastTime_ = point.t;
+        } else {
+            time_ = point.t - lastTime_;
+        }
+    }
     if (!point.s) {
         addPoint(point);
         strokeStarted_ = true;

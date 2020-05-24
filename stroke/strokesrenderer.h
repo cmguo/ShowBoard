@@ -17,6 +17,8 @@ public:
 public:
     bool start(int count = -1);
 
+    int time() const { return time_ * maximun_.t; }
+
 protected:
     virtual void setMaximun(StrokePoint const & max) = 0;
 
@@ -38,8 +40,13 @@ private:
 
 protected:
     StrokesReader* reader_;
+    StrokePoint maximun_;
     bool dynamicStarted_ = false;
     bool strokeStarted_ = false;
+
+private:
+    ushort lastTime_ = 0;
+    int time_ = 0;
 };
 
 #endif // STROKESRENDERER_H

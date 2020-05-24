@@ -1,22 +1,22 @@
 #ifndef STROKEPOINT_H
 #define STROKEPOINT_H
 
-#include <QtGlobal>
+#include "ShowBoard_global.h"
 
 #include <QPointF>
-#include <array>
 
 // for head (range)
 // x: x range
 // y: y range
 // s: 1
 // p: presure range ( < 17783)
-// t: time unit (in 10ns)
-//   100: 1ms unit, 65 seconds, 1 minute
-//   1000: 10ms unit, 655 seconds, 10 minutes
-//   10000: 100ms unit, 6553 seconds, 109 minutes
+// t: time units (in 1ms)
+//   0: no time
+//   1: 1ms unit, 65 seconds, 1 minute
+//   10: 10ms unit, 655 seconds, 10 minutes
+//   100: 100ms unit, 6553 seconds, 109 minutes
 
-class StrokePoint
+class SHOWBOARD_EXPORT StrokePoint
 {
 public:
     ushort t; // time
@@ -31,6 +31,7 @@ public:
     ushort y;
 
 public:
+    static StrokePoint EndStorke;
     operator QPoint() const { return {x, y}; }
     operator QPointF() const { return QPoint{x, y}; }
     char * data() { return reinterpret_cast<char *>(this); }
