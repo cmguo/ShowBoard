@@ -109,7 +109,7 @@ public:
         return currentSubPage_;
     }
 
-    void clearSubPages();
+    void clearSubPages(bool exceptCurrent = false);
 
 public:
     bool isIndependentPage() const;

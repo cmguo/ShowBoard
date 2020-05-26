@@ -233,14 +233,19 @@ void ResourcePage::switchSubPage(int nPage)
     switchSubPage(subPages_[nPage]);
 }
 
-void ResourcePage::clearSubPages()
+void ResourcePage::clearSubPages(bool exceptCurrent)
 {
-    if (currentSubPage_) {
+    if (!exceptCurrent && currentSubPage_) {
         switchSubPage(nullptr);
     }
+    int n = subPages_.indexOf(currentSubPage_);
+    if (n >= 0)
+        subPages_.replace(n, nullptr);
     for (ResourcePage * sp : subPages_)
         delete sp;
-    subPages_.clear();
+    if (n >= 0)
+        subPages_.replace(n, currentSubPage_);
+    subPages_.resize(n + 1);
 }
 
 bool ResourcePage::isIndependentPage() const
