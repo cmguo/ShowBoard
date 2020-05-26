@@ -143,6 +143,7 @@ protected:
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(ResourceView::Flags)
+Q_DECLARE_METATYPE(ResourceView::Flags)
 
 /*
  * register resource view class @ctype with resource type @type

@@ -304,6 +304,8 @@ void Control::sizeChanged()
                         item_->transform().map(center));
             move(offset);
         }
+        if (res_->flags().testFlag(ResourceView::LargeCanvas))
+            fromItem(whiteCanvas())->resize(rect.size());
     }
     item_->setTransform(QTransform::fromTranslate(-center.x(), -center.y()));
     if (realItem_ != item_)
@@ -473,10 +475,9 @@ void Control::initPosition()
     // in large canvas, use visible rect of canvas
     Control * canvasControl = fromItem(whiteCanvas());
     if (canvasControl) {
-        QPointF center = rect.center();
         rect = parent->mapFromScene(parent->scene()->sceneRect()).boundingRect();
         if (flags_.testFlag(FixedOnCanvas))
-            rect.moveCenter(center);
+            rect.moveCenter({0, 0}); // center at scene
         if (!(flags_ & AutoPosition))
             res_->transform().translate(rect.center());
     }
@@ -490,7 +491,7 @@ void Control::initPosition()
     }
     QPolygonF polygon;
     for (QGraphicsItem * c : parent->childItems()) {
-        if (c == realItem_ || Control::fromItem(c)->flags() & FullLayout)
+        if (c == realItem_ || fromItem(c)->flags() & FullLayout)
             continue;
         polygon = polygon.united(c->mapToParent(c->boundingRect()));
     }
@@ -706,7 +707,7 @@ void Control::setGeometry(const QRectF &geometry)
     QSizeF s = geometry.size() - boundRect().size();
     QPointF d(s.width(), s.height());
     scale(QRectF(0, 0, 1, 1), d);
-    res_->transform().translate(geometry.center());
+    res_->transform().translateTo(geometry.center());
 }
 
 QRectF Control::boundRect() const

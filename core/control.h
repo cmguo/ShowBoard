@@ -328,6 +328,7 @@ protected:
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(Control::Flags)
+Q_DECLARE_METATYPE(Control::Flags)
 
 /*
  * register control of @ctype with resource type @type

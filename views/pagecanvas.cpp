@@ -55,6 +55,8 @@ void PageCanvas::relayout()
         Control * ct = Control::fromItem(item);
         ct->relayout();
     }
+    if (subCanvas_)
+        subCanvas_->relayout();
 }
 
 ResourcePage *PageCanvas::subPage()

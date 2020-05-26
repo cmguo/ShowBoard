@@ -86,9 +86,10 @@ void WhiteCanvasControl::resize(const QSizeF &size)
 {
     qDebug() << "WhiteCanvasControl resize" << size;
     QRectF old = item_->boundingRect();
+    QRectF srect = item_->scene()->sceneRect();
     QRectF rect(QPointF(0, 0), size);
     rect.moveCenter(QPointF(0, 0));
-    rect |= old;
+    rect |= srect;
     static_cast<WhiteCanvas*>(item_)->setGeometry(rect);
     QSizeF ds = (rect.size() - old.size()) / 2;
     QPointF d{ds.width(), ds.height()};
