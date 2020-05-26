@@ -171,6 +171,7 @@ void ToolbarWidget::attachProvider(ToolButtonProvider *provider)
         updateProvider();
     } else {
         clear();
+        setVisible(false);
     }
 }
 
