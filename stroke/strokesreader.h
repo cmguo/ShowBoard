@@ -21,7 +21,7 @@ class SHOWBOARD_EXPORT StrokesReader : public QObject
 public:
     static constexpr char const * EXPORT_ATTR_TYPE = "stroke_render_type";
 
-    typedef std::function<void (StrokePoint const & point)> AsyncHandler;
+    typedef std::function<void (StrokePoint const & point, int bytePos)> AsyncHandler;
 
     static StrokesReader * createReader(QIODevice * stream, QByteArray const & format);
 
@@ -34,11 +34,18 @@ signals:
     void asyncFinished();
 
 public:
+    QIODevice * stream() const { return stream_; }
+
+public:
     virtual bool getMaximun(StrokePoint & max);
 
-    virtual bool read(StrokePoint & point) = 0;
+    virtual bool seek(int bytePos);
+
+    virtual bool read(StrokePoint & point, int & bytePos) = 0;
 
     virtual bool startAsyncRead(AsyncHandler handler);
+
+    virtual void stopAsyncRead();
 
     virtual void close();
 
