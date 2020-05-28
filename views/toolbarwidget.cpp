@@ -167,7 +167,8 @@ void ToolbarWidget::attachProvider(ToolButtonProvider *provider)
     }
     provider_ = provider;
     if (provider_) {
-        QObject::connect(provider_, &ToolButtonProvider::buttonsChanged, this, &ToolbarWidget::updateProvider);
+        QObject::connect(provider_, &ToolButtonProvider::buttonsChanged,
+                         this, &ToolbarWidget::updateProvider);
         updateProvider();
     } else {
         clear();
@@ -181,8 +182,15 @@ void ToolbarWidget::buttonClicked()
     buttonClicked(widget);
 }
 
+static ToolButton * lastButton = nullptr;
+
 void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWidget *, ToolButton *>& buttons)
 {
+    if (!button->isVisible())
+        return;
+    if (lastButton == button)
+        return;
+    lastButton = button;
     QWidget * parent = layout->parentWidget();
     QWidget * widget = nullptr;
     if (button == &ToolButton::SPLITTER) {
@@ -312,6 +320,7 @@ void ToolbarWidget::setButtons(QLayout *layout, const QList<ToolButton *> &butto
     for (ToolButton * b : buttons) {
         addToolButton(layout, b, map);
     }
+    lastButton = nullptr;
     QWidget * container = layout->parentWidget();
     layout->activate();
     QGraphicsProxyWidget * proxy = container->graphicsProxyWidget();

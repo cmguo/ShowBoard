@@ -76,6 +76,9 @@ protected:
 
     ToolButton* getStringButton(int index);
 
+    // can be called from handleToolButton
+    void raiseButtonsChanged();
+
     /*
      * stringlized definition of context menus
      *   menu strings is seperated with ';' and menu define parts with '|'

@@ -174,6 +174,14 @@ ToolButton* ToolButtonProvider::getStringButton(int index)
     return nullptr;
 }
 
+void ToolButtonProvider::raiseButtonsChanged()
+{
+    ToolButtonProvider* in = inHandle;
+    inHandle = nullptr;
+    emit buttonsChanged();
+    inHandle = in;
+}
+
 void ToolButtonProvider::getToolButtons(QList<ToolButton *> & buttons, QList<ToolButton *> const & parents)
 {
     if (subProviderBefore_)
