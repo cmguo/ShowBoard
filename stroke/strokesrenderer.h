@@ -22,6 +22,8 @@ public:
 public:
     bool start();
 
+    float rate() const { return realRate_; }
+
     void setRate(float rate); // 0 for fastest, 1.0 for normal
 
     int time() const;
@@ -101,6 +103,7 @@ private:
     int notifyTime_ = 0;
     bool maxInStroke_ = false;
     bool dynamicStarted_ = false;
+    float realRate_ = 0;
 
 private:
     QTimer *timer_ = nullptr;

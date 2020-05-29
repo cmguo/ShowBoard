@@ -53,24 +53,25 @@ bool StrokesRenderer::start()
 void StrokesRenderer::setRate(float rate)
 {
     int t = time();
-    rate_ = maximun_.t ? rate / maximun_.t : rate;
-    interval_ = INTERVAL < maximun_.t ? 1 : INTERVAL / maximun_.t;
+    int mt = maximun_.t ? maximun_.t : 1;
+    realRate_ = rate;
+    rate_ = rate / mt;
+    interval_ = INTERVAL < mt ? 1 : INTERVAL / mt;
     if (rate > 0)
         interval_ = interval_ < rate
                 ? interval_ : static_cast<int>(interval_ / rate);
     if (isPlaying()) {
-        if (rate_ > 0)
-            startTime_ = tickCount() - static_cast<int>(t / rate_);
+        if (rate > 0)
+            startTime_ = tickCount() - static_cast<int>(t / rate);
     }
 }
 
 int StrokesRenderer::time() const
 {
-    int t = maximun_.t ? maximun_.t : 1;
     if (rate_ > 0)
-        return static_cast<int>((tickCount() - startTime_) * t * rate_);
+        return static_cast<int>((tickCount() - startTime_) * realRate_);
     else
-        return time_ * t;
+        return maximun_.t ? time_ * maximun_.t : time_;
 }
 
 int StrokesRenderer::duration() const
