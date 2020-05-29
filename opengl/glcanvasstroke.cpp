@@ -23,6 +23,6 @@ void GLCanvasStroke::endStroke()
     GLInputStroke::endStroke();
 }
 
-void GLCanvasStroke::startDynamic()
+void GLCanvasStroke::leaveFastMode()
 {
 }

@@ -18,7 +18,7 @@ public:
 
     virtual void endStroke() override;
 
-    virtual void startDynamic() override;
+    virtual void leaveFastMode() override;
 
 private:
     GLStrokeRenderer * renderer_;

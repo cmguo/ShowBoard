@@ -41,6 +41,8 @@ public:
 
     virtual bool seek(int bytePos);
 
+    virtual int bytePos();
+
     virtual bool read(StrokePoint & point, int & bytePos) = 0;
 
     virtual bool startAsyncRead(AsyncHandler handler);

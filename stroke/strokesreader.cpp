@@ -57,6 +57,11 @@ bool StrokesReader::seek(int bytePos)
     return stream_->seek(bytePos);
 }
 
+int StrokesReader::bytePos()
+{
+    return static_cast<int>(stream_->pos());
+}
+
 bool StrokesReader::startAsyncRead(StrokesReader::AsyncHandler handler)
 {
     if (stream_->atEnd())
