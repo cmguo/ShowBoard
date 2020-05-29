@@ -1,4 +1,4 @@
-#include "control.h"
+﻿#include "control.h"
 #include "resource.h"
 #include "resourceview.h"
 #include "toolbutton.h"

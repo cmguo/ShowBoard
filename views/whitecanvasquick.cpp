@@ -1,6 +1,7 @@
-#include "whitecanvasquick.h"
+﻿#include "whitecanvasquick.h"
 #include "whitecanvaswidget.h"
 #include "whitecanvas.h"
+#include "whitecanvasquick.h"
 #include "core/resourcepackage.h"
 #include "core/control.h"
 
@@ -33,6 +34,7 @@ void WhiteCanvasQuick::onGeometryChanged(const QRect &newGeometry)
         QRectF rect = canvas_->mapToScene(newGeometry).boundingRect();
         rect = mainControl_->item()->parentItem()->mapFromScene(rect).boundingRect();
         mainControl_->setGeometry(rect);
+        mainControl_->setProperty("canvasSize",rect.size());
         return;
     }
     QuickWidgetItem::onGeometryChanged(newGeometry);
@@ -44,7 +46,7 @@ void WhiteCanvasQuick::onActiveChanged(bool active)
         return;
     if (active) {
         canvas_->package()->newVirtualPageOrBringTop(mainUrl_, urlSettings_);
-        if (urlSettings_.value(SETTINGS_SET_GEOMETRY_ON_MAIN_RESOURCE).toBool() == true)
+        if (urlSettings_.value(SETTINGS_SET_GEOMETRY_ON_MAIN_RESOURCE).isValid())
             mainControl_ = canvas_->canvas()->findControl(mainUrl_);
     } else {
         if (canvas_->package())

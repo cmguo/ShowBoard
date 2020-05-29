@@ -1,4 +1,4 @@
-#include "quickproxyitem.h"
+﻿#include "quickproxyitem.h"
 
 #include <QQuickWidget>
 
@@ -92,7 +92,8 @@ void QuickProxyItem::updateState()
 
 void QuickProxyItem::setGeometry(const QRect &newGeometry)
 {
-    onGeometryChanged(newGeometry);
+    if (active_)
+        onGeometryChanged(newGeometry);
 }
 
 void QuickProxyItem::setActive(bool active)
