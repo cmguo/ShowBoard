@@ -31,6 +31,7 @@ private:
     QUrl mainUrl_;
     QVariantMap urlSettings_;
     Control * mainControl_ = nullptr;
+    QByteArray mainGeometryProperty_;
 };
 
 #endif // WHITECANVASQUICK_H
