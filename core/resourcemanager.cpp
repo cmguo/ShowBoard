@@ -15,13 +15,13 @@ ResourceManager * ResourceManager::instance()
 {
     static ResourceManager * manager = nullptr;
     if (manager == nullptr)
-        manager = ShowBoard::containter().get_export_value<ResourceManager>();
+        manager = ShowBoard::containter().getExportValue<ResourceManager>();
     return manager;
 }
 
 static QExport<ResourceManager> export_(QPart::shared);
-static QImportMany<ResourceManager, ResourceView> import_resources("resourceTypes", QPart::nonshared, true);
-static QImportMany<ResourceManager, DataProvider> import_providers("providerTypes", QPart::nonshared, true);
+static QImportMany<ResourceManager, ResourceView> import_resources("resourceTypes", QPart::nonshared);
+static QImportMany<ResourceManager, DataProvider> import_providers("providerTypes", QPart::nonshared);
 
 static QMap<char const *, QPair<ResourceView::Flags, ResourceView::Flags>>& commonResourceTypes()
 {

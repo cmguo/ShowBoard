@@ -12,7 +12,7 @@ StrokesReader *StrokesReader::createReader(QIODevice *stream, const QByteArray &
     static QVector<QLazy> types;
     static QMap<QByteArray, QLazy*> readerTypes;
     if (readerTypes.empty()) {
-         types = ShowBoard::containter().get_exports<StrokesReader>(QPart::nonshared);
+         types = ShowBoard::containter().getExports<StrokesReader>(QPart::nonshared);
          for (auto & r : types) {
              QByteArray types = r.part()->attr(StrokesReader::EXPORT_ATTR_TYPE);
              if (types.isEmpty()) {

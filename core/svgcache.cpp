@@ -10,7 +10,7 @@ static QExport<SvgCache> export_(QPart::shared);
 
 SvgCache * SvgCache::instance()
 {
-    return ShowBoard::containter().get_export_value<SvgCache>();
+    return ShowBoard::containter().getExportValue<SvgCache>();
 }
 
 SvgCache::SvgCache(QObject *parent)

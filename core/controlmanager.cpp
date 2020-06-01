@@ -12,20 +12,19 @@
 #include <qlazy.hpp>
 
 static QExport<ControlManager> export_(QPart::shared);
-static QImportMany<ControlManager, Control> import_controls("control_types", QPart::nonshared, true);
+static QImportMany<ControlManager, Control> import_controls("control_types", QPart::nonshared);
 
 ControlManager * ControlManager::instance()
 {
     static ControlManager * manager = nullptr;
     if (manager == nullptr)
-        manager = ShowBoard::containter().get_export_value<ControlManager>();
+        manager = ShowBoard::containter().getExportValue<ControlManager>();
     return manager;
 }
 
 ControlManager::ControlManager(QObject *parent)
     : QObject(parent)
 {
-
 }
 
 void ControlManager::onComposition()

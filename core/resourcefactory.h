@@ -60,7 +60,7 @@ private:
         QPart::Attribute(ResourceView::EXPORT_ATTR_FACTORY, "true") \
     ); \
     static QImportMany<ftype, ctype> import_resource_factory_##ftype( \
-        "resource_types", QPart::nonshared, true);
+        "resource_types", QPart::nonshared);
 
 /*
  * register resource class @ctype under factory @ftype

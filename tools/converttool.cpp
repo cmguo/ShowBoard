@@ -68,7 +68,7 @@ void ConvertTool::timerEvent(QTimerEvent *)
 void ConvertTool::convert(const QUrl &url)
 {
     stateItem()->setLoading("正在打开");
-    QObject * converter = ShowBoard::containter().get_export_value("converter");
+    QObject * converter = ShowBoard::containter().getExportValue("converter");
     connect(converter, SIGNAL(sigConvertImage(QString,int,int)),
                               this, SLOT(onImage(QString,int,int)));
     connect(converter, SIGNAL(sigConvertFinished()),
@@ -110,7 +110,7 @@ void ConvertTool::onImage(const QString &path, int nPage, int total)
 
 void ConvertTool::onFinished()
 {
-    ShowBoard::containter().release_value(sender());
+    ShowBoard::containter().releaseValue(sender());
     WhiteCanvas * wc = whiteCanvas();
     int startPage = startPage_;
     res_->removeFromPage();
@@ -121,6 +121,6 @@ void ConvertTool::onFinished()
 void ConvertTool::onFailed(QString const & error)
 {
     loadFinished(false, error);
-    ShowBoard::containter().release_value(sender());
+    ShowBoard::containter().releaseValue(sender());
     startTimer(3000);
 }

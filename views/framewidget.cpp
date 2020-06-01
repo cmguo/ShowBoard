@@ -150,7 +150,7 @@ void FrameWidget::updateShape()
 QPainterPath FrameWidget::toRoundPolygon(const QPolygonF &polygon, QVector<qreal> const & radiuses)
 {
    QPainterPath path;
-   static QObject* geometryHelper = QComponentContainer::globalInstance().get_export_value("GeometryHelper");
+   static QObject* geometryHelper = QComponentContainer::globalInstance().getExportValue("GeometryHelper");
    if (geometryHelper) {
         bool ok = QMetaObject::invokeMethod(geometryHelper, "toRoundPolygon", Q_RETURN_ARG(QPainterPath,path),
                       Q_ARG(QPolygonF,polygon), Q_ARG(QVector<qreal>,radiuses));
