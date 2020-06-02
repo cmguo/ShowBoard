@@ -69,9 +69,14 @@ void ToolbarWidget::setDragable()
     dragable_ = true;
     QLabel *dragger = new QLabel(this);
     dragger->setObjectName("dragger");
-    dragger->setFrameShape(QFrame::StyledPanel);
-    dragger->setCursor(Qt::SizeAllCursor);
+    dragger->setScaledContents(true);
     layout_->addWidget(dragger);
+    QFrame *splitter = new QFrame(this);
+    splitter->setFrameShape(QFrame::VLine);
+    splitter->setFrameShadow(QFrame::Plain);
+    splitter->setLineWidth(0);
+    layout_->addWidget(splitter);
+
 }
 
 void ToolbarWidget::setPopupPosition(PopupPosition pos)

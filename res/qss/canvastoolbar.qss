@@ -31,9 +31,13 @@ QPushButton:unchecked:hover {
 }
 
 #dragger {
+    max-width: 22px; /* [size] */
+    max-height: 32px; /* [size] */
     width: 22px; /* [size] */
+    height: 32px; /* [size] */
     border: none;
     background-color: black;
+    qproperty-pixmap: url(":/showboard/icon/drag.png");
 }
 
 #canvastoolbar {

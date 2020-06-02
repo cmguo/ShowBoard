@@ -4,10 +4,12 @@
 #include <QPen>
 #include <QCursor>
 
-static constexpr qreal BORDER_OFFSET = 3;
-static constexpr qreal ROTATE_OFFSET = 30;
-static constexpr qreal BOX_RADIUS = 8;
-static constexpr qreal BOX_RADIUS2 = 20;
+static constexpr qreal BORDER_OFFSET = 9;
+static constexpr qreal ROTATE_OFFSET = 24;
+static constexpr qreal BOX_RADIUS = 6.25;
+static constexpr qreal BOX_RADIUS2 = 8;
+static constexpr qreal BOX_RADIUS_TEST = 20;
+static constexpr qreal LINE_WIDTH = 4;
 
 class BorderItem : public QGraphicsPathItem
 {
@@ -23,20 +25,21 @@ public:
     BorderItem(int, QGraphicsItem *parent = nullptr)
         : BorderItem(parent)
     {
-        setBrush(QBrush(QColor("#0091FF")));
+        setPath(circle(BOX_RADIUS2));
+        setBrush(QBrush(QColor("#B4B2FF")));
         // line
         QGraphicsPathItem * handle = new QGraphicsPathItem(this);
-        handle->setPen(QPen(QColor("#990091FF"), dp(3.0)));
+        handle->setPen(QPen(QColor("#CC8D8BE9"), dp(LINE_WIDTH)));
         QPainterPath shape;
         shape.moveTo(0, dp(BOX_RADIUS));
-        shape.lineTo(0, dp(ROTATE_OFFSET + BOX_RADIUS - 3.0));
+        shape.lineTo(0, dp(ROTATE_OFFSET - LINE_WIDTH));
         handle->setPath(shape);
         handle->setFlag(QGraphicsItem::ItemStacksBehindParent);
     }
 private:
     virtual QPainterPath shape() const override
     {
-        static QPainterPath boxShape2 = circle(dp(BOX_RADIUS2));
+        static QPainterPath boxShape2 = circle(dp(BOX_RADIUS_TEST));
         return boxShape2;
     }
 
@@ -84,7 +87,7 @@ SelectBox::SelectBox(QGraphicsItem * parent)
     leftBottom_ = new BorderItem(this);
     leftBottom_->setCursor(Qt::SizeBDiagCursor);
 
-    setPen(QPen(QColor("#990091FF"), dp(3.0)));
+    setPen(QPen(QColor("#CC7170E5"), dp(LINE_WIDTH)));
 }
 
 void SelectBox::setRect(QRectF const & rect)
@@ -93,7 +96,7 @@ void SelectBox::setRect(QRectF const & rect)
     QRectF rect2(rect.adjusted(-offset, -offset, offset, offset));
     QGraphicsRectItem::setRect(rect2);
     QPointF center = rect.center();
-    rotate_->setPos(center.x(), rect2.top() - dp(BOX_RADIUS + ROTATE_OFFSET));
+    rotate_->setPos(center.x(), rect2.top() - dp(ROTATE_OFFSET));
     leftTop_->setPos(rect2.left(), rect2.top());
     rightTop_->setPos(rect2.right(), rect2.top());
     rightBottom_->setPos(rect2.right(), rect2.bottom());
@@ -154,7 +157,7 @@ int SelectBox::hitTest(const QPointF &pos, QRectF &direction)
                            0, pos.y() < 0 ? -1 : 1);
     }
     off1 = off2 - off3;
-    if (QPointF::dotProduct(off1, off1) <= BOX_RADIUS2 * BOX_RADIUS2)
+    if (QPointF::dotProduct(off1, off1) <= BOX_RADIUS_TEST * BOX_RADIUS_TEST)
         return 2;
     if (contains(pos)) {
         return 1;
