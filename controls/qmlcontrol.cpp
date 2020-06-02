@@ -19,6 +19,8 @@ QmlControl::QmlControl(ResourceView *res)
 QWidget *QmlControl::createWidget(ResourceView *)
 {
     QQuickWidget * widget = new QQuickWidget;
+    widget->setAttribute(Qt::WA_TranslucentBackground);
+    widget->setClearColor(Qt::transparent);
     return widget;
 }
 
