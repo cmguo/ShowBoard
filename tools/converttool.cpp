@@ -1,5 +1,5 @@
 #include "converttool.h"
-#include "core/showboard.h"
+#include "showboard.h"
 #include "core/resource.h"
 #include "core/resourceview.h"
 #include "core/resourcepackage.h"
