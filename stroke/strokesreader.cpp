@@ -1,5 +1,5 @@
-#include "strokesreader.h"
-#include "core/showboard.h"
+﻿#include "strokesreader.h"
+#include "showboard.h"
 
 #include <qcomponentcontainer.h>
 #include <qlazy.hpp>

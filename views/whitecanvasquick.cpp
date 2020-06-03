@@ -1,4 +1,4 @@
-#include "whitecanvasquick.h"
+﻿#include "whitecanvasquick.h"
 #include "whitecanvaswidget.h"
 #include "whitecanvas.h"
 #include "whitecanvasquick.h"
@@ -62,5 +62,7 @@ void WhiteCanvasQuick::onActiveChanged(bool active)
     } else {
         if (canvas_->package())
             canvas_->package()->showVirtualPage(mainUrl_, false);
+        mainControl_ = nullptr;
+        emit changed();
     }
 }
