@@ -10,8 +10,13 @@ class Control;
 class SHOWBOARD_EXPORT WhiteCanvasQuick : public QuickWidgetItem
 {
     Q_OBJECT
+
+    Q_PROPERTY(Control* mainControl READ mainControl NOTIFY changed)
+
 public:
-    WhiteCanvasQuick(WhiteCanvasWidget* canvas, QQuickWidget* quickwidget);
+    WhiteCanvasQuick(QQuickItem * parent = nullptr);
+
+    WhiteCanvasQuick(WhiteCanvasWidget* canvas, QQuickWidget* quickwidget, QQuickItem * parent = nullptr);
 
     virtual ~WhiteCanvasQuick() override;
 
@@ -20,6 +25,11 @@ public:
             = "setGeometryOnMainResource";
 
     void setUrl(QUrl const & url, QVariantMap settings);
+
+    Control* mainControl() { return mainControl_; }
+
+signals:
+    void changed();
 
 protected:
     virtual void onGeometryChanged(const QRect &newGeometry) override;

@@ -1,13 +1,17 @@
 #include "showboard.h"
 #include "core/workthread.h"
+#include "core/resource.h"
+#include "core/resourceview.h"
+#include "core/control.h"
 #include "views/qsshelper.h"
+#include "views/whitecanvasquick.h"
+#include "views/quickwidgetitem.h"
 
 #include <qcomponentcontainer.h>
 
 QComponentContainer & ShowBoard::containter()
 {
     static QComponentContainer c;
-    init();
     return c;
 }
 
@@ -17,6 +21,12 @@ void ShowBoard::init()
     if (done) return;
     done = true;
     QssHelper::applyToAllStylesheet();
+    qRegisterMetaType<Resource*>();
+    qRegisterMetaType<ResourceView*>();
+    qRegisterMetaType<Control*>();
+    // qml types
+    qmlRegisterType<WhiteCanvasQuick>("ShowBoard", 1, 0, "WhiteCanvasQuick");
+    qmlRegisterType<QuickWidgetItem>("ShowBoard", 1, 0, "QuickWidgetItem");
 }
 
 void ShowBoard::exit()

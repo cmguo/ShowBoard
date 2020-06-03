@@ -1,9 +1,11 @@
-﻿#include "quickproxyitem.h"
+#include "quickproxyitem.h"
 
 #include <QQuickWidget>
+#include <QQuickWindow>
 
-QuickProxyItem::QuickProxyItem(QQuickWidget *quickwidget)
-    : quickwidget_(quickwidget)
+QuickProxyItem::QuickProxyItem(QQuickWidget *quickwidget, QQuickItem * parent)
+    : QQuickItem(parent)
+    , quickwidget_(quickwidget)
     , commonParent_(quickwidget_)
 {
 }
@@ -54,6 +56,11 @@ void QuickProxyItem::itemChange(QQuickItem::ItemChange change, const QQuickItem:
     //qDebug() << "QuickProxyItem" << objectName() << "itemChange" << changeNames[change];
     (void) value;
     if (change == ItemSceneChange) {
+        if (quickwidget_ == nullptr && window()) {
+            quickwidget_ = qobject_cast<QQuickWidget*>(window());
+            if (quickwidget_)
+                quickWidgetChanged(quickwidget_);
+        }
         updateState();
     } else if (change == ItemVisibleHasChanged) {
         updateState();

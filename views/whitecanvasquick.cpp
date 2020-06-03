@@ -5,9 +5,14 @@
 #include "core/resourcepackage.h"
 #include "core/control.h"
 
-WhiteCanvasQuick::WhiteCanvasQuick(WhiteCanvasWidget *canvas, QQuickWidget *quickwidget)
-    : QuickWidgetItem(canvas, quickwidget)
+WhiteCanvasQuick::WhiteCanvasQuick(WhiteCanvasWidget *canvas, QQuickWidget *quickwidget, QQuickItem * parent)
+    : QuickWidgetItem(canvas, quickwidget, parent)
     , canvas_(canvas)
+{
+}
+
+WhiteCanvasQuick::WhiteCanvasQuick(QQuickItem *parent)
+    : WhiteCanvasQuick(WhiteCanvasWidget::mainInstance(), nullptr, parent)
 {
 }
 
@@ -49,9 +54,10 @@ void WhiteCanvasQuick::onActiveChanged(bool active)
     if (active) {
         canvas_->package()->newVirtualPageOrBringTop(mainUrl_, urlSettings_);
         QVariant prop = urlSettings_.value(SETTINGS_SET_GEOMETRY_ON_MAIN_RESOURCE);
-        if (prop.isValid()) {
+        if (mainControl_ == nullptr && prop.isValid()) {
             mainControl_ = canvas_->canvas()->findControl(mainUrl_);
             mainGeometryProperty_ = prop.toByteArray();
+            emit changed();
         }
     } else {
         if (canvas_->package())

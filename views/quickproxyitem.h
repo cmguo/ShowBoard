@@ -12,7 +12,7 @@ class SHOWBOARD_EXPORT QuickProxyItem : public QQuickItem
 {
     Q_OBJECT
 public:
-    QuickProxyItem(QQuickWidget * quickWidget);
+    QuickProxyItem(QQuickWidget * quickWidget, QQuickItem * parent = nullptr);
 
     virtual ~QuickProxyItem() override;
 
@@ -23,6 +23,8 @@ protected:
     virtual void onGeometryChanged(QRect const & newGeometry);
 
     virtual void onActiveChanged(bool active);
+
+    virtual void quickWidgetChanged(QQuickWidget* quickwidget) { (void) quickwidget; }
 
     bool isActive() const { return active_; }
 

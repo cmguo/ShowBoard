@@ -15,9 +15,11 @@ class SHOWBOARD_EXPORT QuickWidgetItem : public QuickProxyItem
 {
     Q_OBJECT
 public:
-    QuickWidgetItem(QWidget* widget, QQuickWidget* quickwidget);
+    QuickWidgetItem(QQuickItem * parent = nullptr);
 
-    QuickWidgetItem(QList<QWidget*> widgets, QQuickWidget* quickwidget);
+    QuickWidgetItem(QWidget* widget, QQuickWidget* quickwidget, QQuickItem * parent = nullptr);
+
+    QuickWidgetItem(QList<QWidget*> widgets, QQuickWidget* quickwidget, QQuickItem * parent = nullptr);
 
     virtual ~QuickWidgetItem() override;
 
@@ -25,6 +27,8 @@ protected:
     virtual void onGeometryChanged(const QRect &newGeometry) override;
 
     virtual void onActiveChanged(bool active) override;
+
+    virtual void quickWidgetChanged(QQuickWidget *quickwidget) override;
 
     QList<QWidget*> const & widgets() { return widgets_; }
 

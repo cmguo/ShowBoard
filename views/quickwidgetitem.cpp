@@ -4,33 +4,22 @@
 #include <QQuickWidget>
 #include <QDebug>
 
-QuickWidgetItem::QuickWidgetItem(QWidget *widget, QQuickWidget* quickwidget)
-    : QuickWidgetItem(QList<QWidget*>{widget}, quickwidget)
+QuickWidgetItem::QuickWidgetItem(QQuickItem *parent)
+    : QuickWidgetItem({}, nullptr, parent)
 {
 }
 
-QuickWidgetItem::QuickWidgetItem(QList<QWidget*> widgets, QQuickWidget* quickwidget)
-    : QuickProxyItem(quickwidget)
+QuickWidgetItem::QuickWidgetItem(QWidget *widget, QQuickWidget* quickwidget, QQuickItem * parent)
+    : QuickWidgetItem(QList<QWidget*>{widget}, quickwidget, parent)
+{
+}
+
+QuickWidgetItem::QuickWidgetItem(QList<QWidget*> widgets, QQuickWidget* quickwidget, QQuickItem * parent)
+    : QuickProxyItem(quickwidget, parent)
     , widgets_(widgets)
 {
-    QWidget * commonParent = quickwidget->parentWidget();
-    for (QWidget* w : widgets_) {
-        QObject::connect(w, &QObject::destroyed, this, [this] () {
-            widgets_.removeOne(qobject_cast<QWidget*>(sender()));
-        });
-        QWidget * p = w->parentWidget();
-        while (commonParent) {
-            while (p && p != commonParent) {
-                p = p->parentWidget();
-            }
-            if (p) break;
-            commonParent = commonParent->parentWidget();
-            p = w->parentWidget();
-        }
-    }
-    if (!commonParent)
-        qDebug() << "QuickWidgetItem: not common parent widget";
-    setCommonParent(commonParent);
+    if (quickwidget)
+        quickWidgetChanged(quickwidget);
 }
 
 QuickWidgetItem::~QuickWidgetItem()
@@ -50,4 +39,26 @@ void QuickWidgetItem::onActiveChanged(bool active)
     for (QWidget* w : widgets_) {
         w->setVisible(active);
     }
+}
+
+void QuickWidgetItem::quickWidgetChanged(QQuickWidget *quickwidget)
+{
+    QWidget * commonParent = quickwidget->parentWidget();
+    for (QWidget* w : widgets_) {
+        QObject::connect(w, &QObject::destroyed, this, [this] () {
+            widgets_.removeOne(qobject_cast<QWidget*>(sender()));
+        });
+        QWidget * p = w->parentWidget();
+        while (commonParent) {
+            while (p && p != commonParent) {
+                p = p->parentWidget();
+            }
+            if (p) break;
+            commonParent = commonParent->parentWidget();
+            p = w->parentWidget();
+        }
+    }
+    if (!commonParent)
+        qDebug() << "QuickWidgetItem: not common parent widget";
+    setCommonParent(commonParent);
 }
