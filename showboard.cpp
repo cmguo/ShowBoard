@@ -6,6 +6,7 @@
 #include "views/qsshelper.h"
 #include "views/whitecanvasquick.h"
 #include "views/quickwidgetitem.h"
+#include "controls/webcontrol.h"
 
 #include <qcomponentcontainer.h>
 
@@ -24,6 +25,7 @@ void ShowBoard::init()
     qRegisterMetaType<Resource*>();
     qRegisterMetaType<ResourceView*>();
     qRegisterMetaType<Control*>();
+    qRegisterMetaType<WebControl::ObjectHash>();
     // qml types
     qmlRegisterType<WhiteCanvasQuick>("ShowBoard", 1, 0, "WhiteCanvasQuick");
     qmlRegisterType<QuickWidgetItem>("ShowBoard", 1, 0, "QuickWidgetItem");

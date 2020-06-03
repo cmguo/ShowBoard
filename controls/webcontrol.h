@@ -4,6 +4,7 @@
 #include "widgetcontrol.h"
 
 #include <QColor>
+#include <QHash>
 
 class WebControl : public WidgetControl
 {
@@ -11,8 +12,11 @@ class WebControl : public WidgetControl
 
     Q_PROPERTY(bool fitToContent READ fitToContent WRITE setFitToContent)
     Q_PROPERTY(QColor background READ background WRITE setBackground)
+    Q_PROPERTY(WebControl::ObjectHash webBridges READ webBridges WRITE setWebBridges)
 
 public:
+    typedef QHash<QString,QObject*> ObjectHash;
+
     Q_INVOKABLE WebControl(ResourceView *res);
 
 public:
@@ -23,6 +27,10 @@ public:
     QColor background() const;
 
     void setBackground(QColor const & color);
+
+    ObjectHash webBridges() const;
+
+    void setWebBridges(ObjectHash const& bridges);
 
 protected:
     virtual QWidget * createWidget(ResourceView * res) override;
@@ -55,5 +63,7 @@ private:
     bool hasBackground_;
     QColor background_;
 };
+
+Q_DECLARE_METATYPE(WebControl::ObjectHash)
 
 #endif // WEBCONTROL_H

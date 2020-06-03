@@ -16,6 +16,7 @@
 #include <QQuickWidget>
 #include <QQuickItem>
 #include <QWebEngineFullScreenRequest>
+#include <QWebChannel>
 
 #define LARGE_CANVAS_LINKAGE 1
 
@@ -100,6 +101,23 @@ void WebControl::setBackground(const QColor &color)
 {
     hasBackground_ = true;
     background_ = color;
+}
+
+WebControl::ObjectHash WebControl::webBridges() const
+{
+    WebView * view = static_cast<WebView *>(widget_);
+    QWebChannel * channel = view->page()->webChannel();
+    return channel ? channel->registeredObjects() : ObjectHash{};
+}
+
+void WebControl::setWebBridges(const WebControl::ObjectHash &bridges)
+{
+    WebView * view = static_cast<WebView *>(widget_);
+    QWebChannel * channel = view->page()->webChannel();
+    if (channel == nullptr)
+        channel = new QWebChannel(this);
+    channel->registerObjects(bridges);
+    view->page()->setWebChannel(channel);
 }
 
 QWidget * WebControl::createWidget(ResourceView * res)
