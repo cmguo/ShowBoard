@@ -1,5 +1,5 @@
 #include "showboard.h"
-#include "workthread.h"
+#include "core/workthread.h"
 #include "views/qsshelper.h"
 
 #include <qcomponentcontainer.h>

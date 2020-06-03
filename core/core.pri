@@ -14,7 +14,6 @@ HEADERS += \
     $$PWD/resourcepage.h \
     $$PWD/resourcetransform.h \
     $$PWD/resourceview.h \
-    $$PWD/showboard.h \
     $$PWD/svgcache.h \
     $$PWD/toolbutton.h \
     $$PWD/toolbuttonprovider.h \
@@ -36,7 +35,6 @@ SOURCES += \
     $$PWD/resourcepage.cpp \
     $$PWD/resourcetransform.cpp \
     $$PWD/resourceview.cpp \
-    $$PWD/showboard.cpp \
     $$PWD/svgcache.cpp \
     $$PWD/toolbutton.cpp \
     $$PWD/toolbuttonprovider.cpp \
