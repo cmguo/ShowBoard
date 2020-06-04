@@ -12,7 +12,7 @@ class SHOWBOARD_EXPORT WhiteCanvasQuick : public QuickWidgetItem
     Q_OBJECT
 
     Q_PROPERTY(Control* mainControl READ mainControl NOTIFY changed)
-
+    Q_PROPERTY(QString url WRITE setUrl)
 public:
     WhiteCanvasQuick(QQuickItem * parent = nullptr);
 
@@ -23,6 +23,8 @@ public:
 public:
     static constexpr char const * SETTINGS_SET_GEOMETRY_ON_MAIN_RESOURCE
             = "setGeometryOnMainResource";
+
+    void setUrl(QString const & url);
 
     void setUrl(QUrl const & url, QVariantMap settings);
 

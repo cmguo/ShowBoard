@@ -1,4 +1,4 @@
-﻿#include "whitecanvasquick.h"
+#include "whitecanvasquick.h"
 #include "whitecanvaswidget.h"
 #include "whitecanvas.h"
 #include "whitecanvasquick.h"
@@ -19,6 +19,11 @@ WhiteCanvasQuick::WhiteCanvasQuick(QQuickItem *parent)
 WhiteCanvasQuick::~WhiteCanvasQuick()
 {
     canvas_->package()->removeVirtualPage(mainUrl_);
+}
+
+void WhiteCanvasQuick::setUrl(const QString &url)
+{
+    setUrl(QUrl(url), urlSettings_);
 }
 
 void WhiteCanvasQuick::setUrl(const QUrl &url, QVariantMap settings)
