@@ -257,10 +257,12 @@ QIcon ToolButton::makeIcon(QString const & iconString, QSize const & size)
                 p = opacityPixmap(pixmap, alpha);
             } else if (!v.isEmpty()) {
                 int n1 = file.lastIndexOf('.');
-                if (v.startsWith('/'))
-                    file.replace(0, n1, v.mid(1));
-                else
+                if (v.startsWith('/')) {
+                    int n2 = file.lastIndexOf('/');
+                    file.replace(n2, n1 - n2, v);
+                } else {
                     file.replace(n1, 0, v);
+                }
                 pixmap = QIcon(file).pixmap(size);
                 p = pixmap;
             } else {
