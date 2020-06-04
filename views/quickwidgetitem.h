@@ -14,6 +14,8 @@ class QQuickWidget;
 class SHOWBOARD_EXPORT QuickWidgetItem : public QuickProxyItem
 {
     Q_OBJECT
+    Q_PROPERTY(QWidget* widget WRITE setWidget)
+    Q_PROPERTY(QList<QWidget*> widgets WRITE setWidgets)
 public:
     QuickWidgetItem(QQuickItem * parent = nullptr);
 
@@ -22,6 +24,11 @@ public:
     QuickWidgetItem(QList<QWidget*> widgets, QQuickWidget* quickwidget, QQuickItem * parent = nullptr);
 
     virtual ~QuickWidgetItem() override;
+
+public:
+    void setWidget(QWidget* widget);
+
+    void setWidgets(QList<QWidget*> widgets);
 
 protected:
     virtual void onGeometryChanged(const QRect &newGeometry) override;

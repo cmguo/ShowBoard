@@ -10,6 +10,8 @@
 
 #include <qcomponentcontainer.h>
 
+#include <QQuickWidget>
+
 QComponentContainer & ShowBoard::containter()
 {
     static QComponentContainer c;
@@ -23,6 +25,7 @@ void ShowBoard::init()
     done = true;
     QssHelper::applyToAllStylesheet();
     qRegisterMetaType<Resource*>();
+    qRegisterMetaType<QQuickWidget*>();
     qRegisterMetaType<ResourceView*>();
     qRegisterMetaType<Control*>();
     qRegisterMetaType<WebControl::ObjectHash>();

@@ -56,6 +56,7 @@ void WhiteCanvasQuick::onActiveChanged(bool active)
 {
     if (mainUrl_.isEmpty() || widgets().empty())
         return;
+    qDebug() << "WhiteCanvasQuick" << active << mainUrl_;
     if (active) {
         canvas_->package()->newVirtualPageOrBringTop(mainUrl_, urlSettings_);
         QVariant prop = urlSettings_.value(SETTINGS_SET_GEOMETRY_ON_MAIN_RESOURCE);

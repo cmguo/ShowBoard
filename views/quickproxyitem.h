@@ -11,10 +11,15 @@ class QWidget;
 class SHOWBOARD_EXPORT QuickProxyItem : public QQuickItem
 {
     Q_OBJECT
+
+    Q_PROPERTY(QQuickWidget* quickWidget WRITE setQuickWidget)
 public:
     QuickProxyItem(QQuickWidget * quickWidget, QQuickItem * parent = nullptr);
 
     virtual ~QuickProxyItem() override;
+
+public:
+    void setQuickWidget(QQuickWidget * quickWidget);
 
 public slots:
     void updateState();
@@ -44,8 +49,10 @@ private:
 
     static void addOverlayItemRegion(QRegion & region, QQuickItem* item);
 
+protected:
+    QQuickWidget* quickWidget_;
+
 private:
-    QQuickWidget* quickwidget_;
     QWidget* commonParent_;
     bool active_ = false;
 };

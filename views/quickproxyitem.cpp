@@ -5,14 +5,22 @@
 
 QuickProxyItem::QuickProxyItem(QQuickWidget *quickwidget, QQuickItem * parent)
     : QQuickItem(parent)
-    , quickwidget_(quickwidget)
-    , commonParent_(quickwidget_)
+    , quickWidget_(quickwidget)
+    , commonParent_(quickWidget_)
 {
 }
 
 QuickProxyItem::~QuickProxyItem()
 {
     qDebug() << "QuickProxyItem" << objectName() << "desctruct";
+}
+
+void QuickProxyItem::setQuickWidget(QQuickWidget *quickWidget)
+{
+    quickWidget_ = quickWidget;
+    if (commonParent_ == nullptr)
+        commonParent_ = quickWidget;
+    quickWidgetChanged(quickWidget);
 }
 
 void QuickProxyItem::onActiveChanged(bool)
@@ -56,10 +64,9 @@ void QuickProxyItem::itemChange(QQuickItem::ItemChange change, const QQuickItem:
     //qDebug() << "QuickProxyItem" << objectName() << "itemChange" << changeNames[change];
     (void) value;
     if (change == ItemSceneChange) {
-        if (quickwidget_ == nullptr && window()) {
-            quickwidget_ = qobject_cast<QQuickWidget*>(window());
-            if (quickwidget_)
-                quickWidgetChanged(quickwidget_);
+        if (quickWidget_ == nullptr && window()) {
+            QQuickWidget * quickwidget = qobject_cast<QQuickWidget*>(window());
+            setQuickWidget(quickwidget);
         }
         updateState();
     } else if (change == ItemVisibleHasChanged) {
@@ -69,7 +76,9 @@ void QuickProxyItem::itemChange(QQuickItem::ItemChange change, const QQuickItem:
 
 void QuickProxyItem::updateState()
 {
-    QRect rect = quickwidget_->rect();
+    if (quickWidget_ == nullptr)
+        return;
+    QRect rect = quickWidget_->rect();
     if (rect.isEmpty())
         return;
     QRegion mask(rect);
@@ -82,12 +91,12 @@ void QuickProxyItem::updateState()
         addOverlayItemRegion(mask);
         rect = rect3;
         active = true;
-        quickwidget_->property("activeWidgetItem");
+        quickWidget_->property("activeWidgetItem");
     } else if (!active_) {
         return;
     }
     //qDebug() << "QuickProxyItem" << objectName() << "setMask" << mask;
-    QWidget * overlay = quickwidget_;
+    QWidget * overlay = quickWidget_;
     while (overlay != commonParent_) {
         overlay->setMask(mask);
         overlay = overlay->parentWidget();
@@ -107,7 +116,7 @@ void QuickProxyItem::setActive(bool active)
 {
     if (active != active_) {
         qDebug() << "QuickProxyItem" << objectName() << "setActive" << active;
-        QVariant activeItem = quickwidget_->property("activeWidgetItem");
+        QVariant activeItem = quickWidget_->property("activeWidgetItem");
         if (!active_) {
             if (activeItem.isValid()) {
                 qvariant_cast<QuickProxyItem*>(activeItem)->setActive(false);
@@ -116,7 +125,7 @@ void QuickProxyItem::setActive(bool active)
         } else if (qvariant_cast<QuickProxyItem*>(activeItem) == this) {
             activeItem.clear();
         }
-        quickwidget_->setProperty("activeWidgetItem", activeItem);
+        quickWidget_->setProperty("activeWidgetItem", activeItem);
         active_ = active;
         onActiveChanged(active_);
     }

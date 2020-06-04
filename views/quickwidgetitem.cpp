@@ -16,15 +16,26 @@ QuickWidgetItem::QuickWidgetItem(QWidget *widget, QQuickWidget* quickwidget, QQu
 
 QuickWidgetItem::QuickWidgetItem(QList<QWidget*> widgets, QQuickWidget* quickwidget, QQuickItem * parent)
     : QuickProxyItem(quickwidget, parent)
-    , widgets_(widgets)
 {
-    if (quickwidget)
-        quickWidgetChanged(quickwidget);
+    setWidgets(widgets);
 }
 
 QuickWidgetItem::~QuickWidgetItem()
 {
     qDebug() << "QuickWidgetItem" << objectName() << "desctruct";
+}
+
+void QuickWidgetItem::setWidget(QWidget *widget)
+{
+    setWidgets({widget});
+}
+
+void QuickWidgetItem::setWidgets(QList<QWidget *> widgets)
+{
+    assert(widgets_.isEmpty());
+    widgets_ = widgets;
+    if (quickWidget_)
+        quickWidgetChanged(quickWidget_);
 }
 
 void QuickWidgetItem::onGeometryChanged(const QRect &newGeometry)
