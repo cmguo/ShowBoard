@@ -13,6 +13,8 @@ class SHOWBOARD_EXPORT WhiteCanvasQuick : public QuickWidgetItem
 
     Q_PROPERTY(Control* mainControl READ mainControl NOTIFY changed)
     Q_PROPERTY(QString url WRITE setUrl)
+    Q_PROPERTY(QVariantMap setting WRITE setSetting)
+
 public:
     WhiteCanvasQuick(QQuickItem * parent = nullptr);
 
@@ -27,6 +29,8 @@ public:
     void setUrl(QString const & url);
 
     void setUrl(QUrl const & url, QVariantMap settings);
+
+    void setSetting(QVariantMap settings);
 
     Control* mainControl() { return mainControl_; }
 

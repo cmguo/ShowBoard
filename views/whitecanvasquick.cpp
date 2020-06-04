@@ -38,6 +38,11 @@ void WhiteCanvasQuick::setUrl(const QUrl &url, QVariantMap settings)
         onActiveChanged(true);
 }
 
+void WhiteCanvasQuick::setSetting(QVariantMap settings)
+{
+    urlSettings_ = settings;
+}
+
 void WhiteCanvasQuick::onGeometryChanged(const QRect &newGeometry)
 {
     if (mainControl_) {
