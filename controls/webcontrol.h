@@ -12,7 +12,7 @@ class WebControl : public WidgetControl
 
     Q_PROPERTY(bool fitToContent READ fitToContent WRITE setFitToContent)
     Q_PROPERTY(QColor background READ background WRITE setBackground)
-    Q_PROPERTY(WebControl::ObjectHash webBridges READ webBridges WRITE setWebBridges)
+    Q_PROPERTY(WebControl::ObjectHash webBridges WRITE setWebBridges)
 
 public:
     typedef QHash<QString,QObject*> ObjectHash;
@@ -27,8 +27,6 @@ public:
     QColor background() const;
 
     void setBackground(QColor const & color);
-
-    ObjectHash webBridges() const;
 
     void setWebBridges(ObjectHash const& bridges);
 

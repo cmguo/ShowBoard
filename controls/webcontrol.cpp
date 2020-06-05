@@ -103,15 +103,10 @@ void WebControl::setBackground(const QColor &color)
     background_ = color;
 }
 
-WebControl::ObjectHash WebControl::webBridges() const
-{
-    WebView * view = static_cast<WebView *>(widget_);
-    QWebChannel * channel = view->page()->webChannel();
-    return channel ? channel->registeredObjects() : ObjectHash{};
-}
-
 void WebControl::setWebBridges(const WebControl::ObjectHash &bridges)
 {
+    if (flags_ & RestorePersisted)
+        return;
     WebView * view = static_cast<WebView *>(widget_);
     QWebChannel * channel = view->page()->webChannel();
     if (channel == nullptr)

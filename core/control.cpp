@@ -1,4 +1,4 @@
-﻿#include "control.h"
+#include "control.h"
 #include "resource.h"
 #include "resourceview.h"
 #include "toolbutton.h"
@@ -150,6 +150,8 @@ void Control::attachTo(QGraphicsItem * parent, QGraphicsItem * before)
         transforms.append(t);
         realItem_->setTransformations(transforms);
     }
+    if (fromPersist)
+        flags_.setFlag(RestorePersisted);
     attaching();
     realItem_->setParentItem(parent);
     if (before)
@@ -158,8 +160,6 @@ void Control::attachTo(QGraphicsItem * parent, QGraphicsItem * before)
     sizeChanged();
     initPosition();
     relayout();
-    if (fromPersist)
-        flags_.setFlag(RestorePersisted);
     flags_ |= Loading;
     whiteCanvas()->onControlLoad(true);
     attached();
@@ -272,7 +272,8 @@ void Control::saveSettings()
     for (int i = Control::staticMetaObject.propertyCount();
             i < metaObject()->propertyCount(); ++i) {
         QMetaProperty p = metaObject()->property(i);
-        res_->setProperty(p.name(), p.read(this));
+        if (p.isReadable())
+            res_->setProperty(p.name(), p.read(this));
     }
     // special one
     res_->setProperty("sizeHint", sizeHint());
@@ -286,7 +287,8 @@ void Control::saveSettings()
         for (int i = count;
                 i < itemObj_->metaObject()->propertyCount(); ++i) {
             QMetaProperty p = itemObj_->metaObject()->property(i);
-            res_->setProperty(p.name(), p.read(itemObj_));
+            if (p.isReadable())
+                res_->setProperty(p.name(), p.read(itemObj_));
         }
     }
     if (flags_ & LoadFinished)
