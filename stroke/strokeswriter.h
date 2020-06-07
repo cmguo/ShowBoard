@@ -5,8 +5,6 @@
 
 #include "strokepoint.h"
 
-#include <qpart.h>
-
 #include <QObject>
 
 class QIODevice;
@@ -14,9 +12,6 @@ class QIODevice;
 class SHOWBOARD_EXPORT StrokesWriter : public QObject
 {
     Q_OBJECT
-
-    QInheritedExport
-
 public:
     static StrokesWriter * createWriter(QIODevice * stream, QByteArray const & format);
 

@@ -5,8 +5,6 @@
 
 #include "strokepoint.h"
 
-#include <qpart.h>
-
 #include <QObject>
 #include <QSharedPointer>
 
@@ -17,9 +15,6 @@ class QIODevice;
 class SHOWBOARD_EXPORT StrokesReader : public QObject
 {
     Q_OBJECT
-
-    QInheritedExport
-
 public:
     typedef std::function<void (StrokePoint const & point, int bytePos)> AsyncHandler;
 
