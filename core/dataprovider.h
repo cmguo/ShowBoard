@@ -11,9 +11,6 @@ class SHOWBOARD_EXPORT DataProvider : public QObject
 {
     Q_OBJECT
 public:
-    static char const * const EXPORT_ATTR_TYPE;
-
-public:
     explicit DataProvider(QObject *parent = nullptr);
 
 public:
@@ -64,6 +61,6 @@ private:
  *  @type is a list of strings seperate with ','
  */
 #define REGISTER_DATA_RPOVIDER(ctype, types) \
-    static QExport<ctype, DataProvider> const export_provider_##ctype(QPart::Attribute(DataProvider::EXPORT_ATTR_TYPE, types));
+    static QExport<ctype, DataProvider> const export_provider_##ctype(QPart::MineTypeAttribute(types));
 
 #endif // DATAPROVIDER_H

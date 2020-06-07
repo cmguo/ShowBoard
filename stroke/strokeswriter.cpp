@@ -14,12 +14,7 @@ StrokesWriter *StrokesWriter::createWriter(QIODevice *stream, const QByteArray &
     if (WriterTypes.empty()) {
          types = ShowBoard::containter().getExports<StrokesWriter>(QPart::nonshared);
          for (auto & r : types) {
-             QByteArray types = r.part()->attr(StrokesWriter::EXPORT_ATTR_TYPE);
-             if (types.isEmpty()) {
-                 int index = r.part()->meta()->indexOfClassInfo(StrokesWriter::EXPORT_ATTR_TYPE);
-                 if (index >= 0)
-                     types = r.part()->meta()->classInfo(index).value();
-             }
+             QByteArray types = r.part()->attrMineType();
              for (auto t : types.split(',')) {
                  WriterTypes[t.trimmed()] = &r;
              }
@@ -29,7 +24,7 @@ StrokesWriter *StrokesWriter::createWriter(QIODevice *stream, const QByteArray &
     if (iter == WriterTypes.end())
         return nullptr;
     StrokesWriter * p = (*iter)->create<StrokesWriter>(Q_ARG(QIODevice*,stream));
-    p->setProperty(StrokesWriter::EXPORT_ATTR_TYPE, format);
+    p->setProperty(QPart::ATTR_MINE_TYPE, format);
     return p;
 }
 

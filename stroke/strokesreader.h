@@ -5,9 +5,11 @@
 
 #include "strokepoint.h"
 
-#include <QObject>
+#include <qpart.h>
 
+#include <QObject>
 #include <QSharedPointer>
+
 #include <functional>
 
 class QIODevice;
@@ -16,11 +18,9 @@ class SHOWBOARD_EXPORT StrokesReader : public QObject
 {
     Q_OBJECT
 
-    Q_CLASSINFO("InheritedExport", "true")
+    QInheritedExport
 
 public:
-    static constexpr char const * EXPORT_ATTR_TYPE = "stroke_render_type";
-
     typedef std::function<void (StrokePoint const & point, int bytePos)> AsyncHandler;
 
     static StrokesReader * createReader(QIODevice * stream, QByteArray const & format);
@@ -60,6 +60,6 @@ protected:
 };
 
 #define REGISTER_STROKE_READER(ctype, type) \
-    static QExport<ctype, StrokesReader> const export_strokes_reader_##ctype(QPart::Attribute(StrokesReader::EXPORT_ATTR_TYPE, type));
+    static QExport<ctype, StrokesReader> const export_strokes_reader_##ctype(QPart::MineTypeAttribute(type));
 
 #endif // STROKESREADER_H

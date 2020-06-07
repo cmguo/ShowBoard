@@ -73,8 +73,6 @@ public:
 
     Q_ENUM(SelectMode)
 
-    static char const * const EXPORT_ATTR_TYPE;
-
 protected:
     static constexpr int ITEM_KEY_CONTROL = 1000;
 
@@ -335,6 +333,6 @@ Q_DECLARE_METATYPE(Control::Flags)
  *  @type is a list of strings seperate with ','
  */
 #define REGISTER_CONTROL(ctype, type) \
-    static QExport<ctype, Control> const export_control_##ctype(QPart::Attribute(Control::EXPORT_ATTR_TYPE, type));
+    static QExport<ctype, Control> const export_control_##ctype(QPart::MineTypeAttribute(type));
 
 #endif // CONTROL_H

@@ -51,13 +51,13 @@ ResourceManager::ResourceManager(QObject *parent)
 void ResourceManager::onComposition()
 {
     for (auto & r : resourceTypes_) {
-        QByteArray types = r.part()->attr(ResourceView::EXPORT_ATTR_TYPE);
+        QByteArray types = r.part()->attrMineType();
         for (auto t : types.split(',')) {
             resources_[t.trimmed()] = &r;
         }
     }
     for (auto & r : providerTypes_) {
-        QByteArray types = r.part()->attr(DataProvider::EXPORT_ATTR_TYPE);
+        QByteArray types = r.part()->attrMineType();
         for (auto t : types.split(',')) {
             providers_[t.trimmed()] = &r;
         }

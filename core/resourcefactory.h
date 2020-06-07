@@ -56,7 +56,7 @@ private:
  */
 #define REGISTER_RESOURCE_VIEW_FACTORY(ftype, ctype, type) \
     static QExport<ftype, ResourceView> const export_resource_factory_##ftype( \
-        QPart::Attribute(ResourceView::EXPORT_ATTR_TYPE, type), \
+        QPart::MineTypeAttribute(type), \
         QPart::Attribute(ResourceView::EXPORT_ATTR_FACTORY, "true") \
     ); \
     static QImportMany<ftype, ctype> import_resource_factory_##ftype( \
@@ -68,6 +68,6 @@ private:
  */
 #define REGISTER_RESOURCE_VIEW_WITH_FACTORY(ftype, ctype, type) \
     static QExport<ctype, ftype> const export_resource_with_factory_##ctype( \
-        QPart::Attribute(ResourceView::EXPORT_ATTR_TYPE, type));
+        QPart::MineTypeAttribute(type));
 
 #endif // RESOURCEFACTORY_H

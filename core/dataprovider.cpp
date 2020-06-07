@@ -8,8 +8,6 @@
 
 using namespace QtPromise;
 
-char const * const DataProvider::EXPORT_ATTR_TYPE = "dptype";
-
 REGISTER_DATA_RPOVIDER(DataDataProvider,"data")
 REGISTER_DATA_RPOVIDER(FileDataProvider,"file,")
 REGISTER_DATA_RPOVIDER(HttpDataProvider,"http,https")

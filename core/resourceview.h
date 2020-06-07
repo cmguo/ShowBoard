@@ -26,7 +26,6 @@ class SHOWBOARD_EXPORT ResourceView : public ToolButtonProvider
     Q_PROPERTY(QByteArray sessionGroup READ sessionGroup WRITE setSessionGroup)
 
 public:
-    static char const * const EXPORT_ATTR_TYPE;
     static char const * const EXPORT_ATTR_FACTORY;
 
 public:
@@ -150,7 +149,7 @@ Q_DECLARE_METATYPE(ResourceView::Flags)
  *  @type is a list of strings seperate with ','
  */
 #define REGISTER_RESOURCE_VIEW(ctype, types) \
-    static QExport<ctype, ResourceView> const export_resource_##ctype(QPart::Attribute(ResourceView::EXPORT_ATTR_TYPE, types));
+    static QExport<ctype, ResourceView> const export_resource_##ctype(QPart::MineTypeAttribute(types));
 
 class SHOWBOARD_EXPORT CommonResourceTypes
 {

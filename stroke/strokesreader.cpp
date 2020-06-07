@@ -14,12 +14,7 @@ StrokesReader *StrokesReader::createReader(QIODevice *stream, const QByteArray &
     if (readerTypes.empty()) {
          types = ShowBoard::containter().getExports<StrokesReader>(QPart::nonshared);
          for (auto & r : types) {
-             QByteArray types = r.part()->attr(StrokesReader::EXPORT_ATTR_TYPE);
-             if (types.isEmpty()) {
-                 int index = r.part()->meta()->indexOfClassInfo(StrokesReader::EXPORT_ATTR_TYPE);
-                 if (index >= 0)
-                     types = r.part()->meta()->classInfo(index).value();
-             }
+             QByteArray types = r.part()->attrMineType();
              for (auto t : types.split(',')) {
                  readerTypes[t.trimmed()] = &r;
              }
@@ -29,7 +24,7 @@ StrokesReader *StrokesReader::createReader(QIODevice *stream, const QByteArray &
     if (iter == readerTypes.end())
         return nullptr;
     StrokesReader * p = (*iter)->create<StrokesReader>(Q_ARG(QIODevice*,stream));
-    p->setProperty(StrokesReader::EXPORT_ATTR_TYPE, format);
+    p->setProperty(QPart::ATTR_MINE_TYPE, format);
     return p;
 }
 

@@ -12,7 +12,7 @@ ResourceFactory::ResourceFactory(QObject *parent)
 void ResourceFactory::onComposition()
 {
     for (auto & r : resource_types_) {
-        QByteArray types = r.part()->attr(ResourceView::EXPORT_ATTR_TYPE);
+        QByteArray types = r.part()->attrMineType();
         for (auto t : types.split(',')) {
             resources_[t] = &r;
         }
