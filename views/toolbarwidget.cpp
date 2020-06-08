@@ -187,15 +187,8 @@ void ToolbarWidget::buttonClicked()
     buttonClicked(widget);
 }
 
-static ToolButton * lastButton = nullptr;
-
 void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWidget *, ToolButton *>& buttons)
 {
-    if (!button->isVisible())
-        return;
-    if (lastButton == button)
-        return;
-    lastButton = button;
     QWidget * parent = layout->parentWidget();
     QWidget * widget = nullptr;
     if (button == &ToolButton::SPLITTER) {
@@ -322,10 +315,24 @@ void ToolbarWidget::clear()
 void ToolbarWidget::setButtons(QLayout *layout, const QList<ToolButton *> &buttons, QMap<QWidget *, ToolButton *> & map)
 {
     clearButtons(layout, map);
+    ToolButton * lastButton = nullptr;
     for (ToolButton * b : buttons) {
+        if (b == lastButton)
+            continue;
+        if (!b->isVisible())
+            continue;
+        if (b == &ToolButton::SPLITTER) {
+            if (lastButton == nullptr)
+                continue;
+            lastButton = b;
+            continue;
+        }
+        if (lastButton == &ToolButton::SPLITTER) {
+            addToolButton(layout, &ToolButton::SPLITTER, map);
+        }
         addToolButton(layout, b, map);
+        lastButton = b;
     }
-    lastButton = nullptr;
     QWidget * container = layout->parentWidget();
     layout->activate();
     QGraphicsProxyWidget * proxy = container->graphicsProxyWidget();
