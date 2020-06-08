@@ -68,6 +68,7 @@ void WhiteCanvasQuick::onActiveChanged(bool active)
         if (mainControl_ == nullptr && prop.isValid()) {
             mainControl_ = canvas_->canvas()->findControl(mainUrl_);
             mainGeometryProperty_ = prop.toByteArray();
+            onGeometryChanged(mapRectToScene(boundingRect()).toRect());
             emit changed();
         }
     } else {
