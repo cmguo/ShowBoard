@@ -253,6 +253,13 @@ void WebView::sinit()
 {
     static bool init = false;
     if (!init) {
+        QMetaType::registerConverter<QVariantMap, WebControl::ObjectHash>([](QVariantMap from) {
+            WebControl::ObjectHash hash;
+            for (auto i = from.keyValueBegin(); i != from.keyValueEnd(); ++i) {
+                hash.insert((*i).first, (*i).second.value<QObject*>());
+            }
+            return hash;
+        });
         char const * flags =
                 "--allow-running-insecure-content"
                 " --disable-web-security"
