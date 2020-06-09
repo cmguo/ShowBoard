@@ -241,8 +241,10 @@ void ResourcePage::clearSubPages(bool exceptCurrent)
     int n = subPages_.indexOf(currentSubPage_);
     if (n >= 0)
         subPages_.replace(n, nullptr);
-    for (ResourcePage * sp : subPages_)
+    for (ResourcePage *& sp : subPages_) {
         delete sp;
+        sp = nullptr;
+    }
     if (n >= 0)
         subPages_.replace(n, currentSubPage_);
     subPages_.resize(n + 1);
