@@ -202,8 +202,6 @@ void PageCanvas::insertResource(int layer)
     if (ct == nullptr)
         return;
     ct->attachTo(this, layer < childItems().size() ? childItems()[layer] : nullptr);
-    if (ct->flags().testFlag(Control::CanSelect) && sender() == page_)
-        static_cast<WhiteCanvas*>(parentItem())->selector()->select(ct->item());
 }
 
 void PageCanvas::removeResource(int layer)

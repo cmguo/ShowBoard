@@ -151,7 +151,10 @@ void WhiteCanvas::updateThunmbnail()
 Control * WhiteCanvas::addResource(QUrl const & url, QVariantMap settings)
 {
     ResourceView * res = canvas_->page()->addResource(url, settings);
-    return canvas_->findControl(res);
+    Control * ct = canvas_->findControl(res);
+    if (ct && ct->flags().testFlag(Control::CanSelect))
+        selector_->select(ct->item());
+    return ct;
 }
 
 Control *WhiteCanvas::copyResource(Control *control)
