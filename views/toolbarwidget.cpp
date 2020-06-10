@@ -69,7 +69,7 @@ void ToolbarWidget::setDragable()
     dragable_ = true;
     QLabel *dragger = new QLabel(this);
     dragger->setObjectName("dragger");
-    dragger->setScaledContents(true);
+    //dragger->setScaledContents(true);
     layout_->addWidget(dragger);
     QFrame *splitter = new QFrame(this);
     splitter->setFrameShape(QFrame::VLine);

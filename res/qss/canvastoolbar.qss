@@ -36,8 +36,7 @@ QPushButton:unchecked:hover {
     width: 22px; /* [size] */
     height: 32px; /* [size] */
     border: none;
-    background-color: black;
-    qproperty-pixmap: url(":/showboard/icon/drag.png");
+    qproperty-pixmap: url(":/showboard/icon/drag.svg");
 }
 
 #canvastoolbar {

@@ -36,5 +36,6 @@
         <file>icon/zoom_out.svg</file>
         <file>icon/loading2.svg</file>
         <file>qss/canvastoolbar.qss</file>
+        <file>icon/drag.svg</file>
     </qresource>
 </RCC>
