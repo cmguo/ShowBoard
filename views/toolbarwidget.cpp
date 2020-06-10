@@ -18,6 +18,7 @@ static QssHelper QSS(":/showboard/qss/toolbar.qss");
 ToolbarWidget::ToolbarWidget(QWidget *parent)
     : ToolbarWidget(true, parent)
 {
+    setAttribute(Qt::WA_AcceptTouchEvents);
 }
 
 ToolbarWidget::ToolbarWidget(bool horizontal, QWidget *parent)
@@ -113,6 +114,7 @@ QWidget *ToolbarWidget::createPopup(const QList<ToolButton *> &buttons)
 QGraphicsItem *ToolbarWidget::toGraphicsProxy(QGraphicsItem * parent, bool centerPos)
 {
     QGraphicsProxyWidget * proxy = new QGraphicsProxyWidget(parent);
+    proxy->setAcceptTouchEvents(true);
     proxy->setWidget(this);
     if (centerPos) {
         QObject::connect(this, &ToolbarWidget::sizeChanged, proxy, [proxy](){
@@ -521,6 +523,15 @@ void ToolbarWidget::resizeEvent(QResizeEvent *event)
 {
     QFrame::resizeEvent(event);
     emit sizeChanged(event->size());
+}
+
+bool ToolbarWidget::event(QEvent *event)
+{
+    if (event->type() == QEvent::TouchBegin) {
+        event->accept();
+        return true;
+    }
+    return QFrameEx::event(event);
 }
 
 void ToolbarWidget::setVisible(bool visible) {

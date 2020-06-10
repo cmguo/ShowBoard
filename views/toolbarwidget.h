@@ -90,6 +90,9 @@ signals:
 public slots:
     void buttonClicked();
 
+public:
+    virtual bool event(QEvent * event) override;
+
 protected:
     virtual void getPopupButtons(QList<ToolButton *> & buttons,
                                 QList<ToolButton *> const & parents);
