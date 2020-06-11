@@ -111,6 +111,8 @@ public:
 
     void clearSubPages(bool exceptCurrent = false);
 
+    void removeFromPackage();
+
 public:
     bool isIndependentPage() const;
 

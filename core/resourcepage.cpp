@@ -250,6 +250,13 @@ void ResourcePage::clearSubPages(bool exceptCurrent)
     subPages_.resize(n + 1);
 }
 
+void ResourcePage::removeFromPackage()
+{
+    ResourcePackage * pkg = qobject_cast<ResourcePackage*>(parent());
+    if (pkg)
+        pkg->removeVirtualPage(this);
+}
+
 bool ResourcePage::isIndependentPage() const
 {
     return !resources_.isEmpty()
