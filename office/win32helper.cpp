@@ -104,12 +104,16 @@ void attachWindow(intptr_t hwnd, intptr_t hwndParent, int left, int top)
     ::SetFocus(hWndParent);
 }
 
-void moveChildWindow(intptr_t hwnd, int dx, int dy)
+void moveChildWindow(intptr_t hwndParent, intptr_t hwnd, int dx, int dy)
 {
+    HWND hWndParent = reinterpret_cast<HWND>(hwndParent);
     HWND hWnd = reinterpret_cast<HWND>(hwnd);
-    RECT rect;
+    RECT rectParent, rect;
+    ::GetWindowRect(hWndParent, &rectParent);
     ::GetWindowRect(hWnd, &rect);
-    ::SetWindowPos(hWnd, HWND_TOP, rect.left + dx, rect.top + dy,
+    ::SetWindowPos(hWnd, HWND_TOP,
+                   rect.left - rectParent.left + dx,
+                   rect.top - rectParent.top + dy,
                    0, 0, SWP_NOSIZE | SWP_NOZORDER);
 }
 

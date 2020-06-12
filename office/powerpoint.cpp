@@ -17,7 +17,7 @@ extern void showWindow(intptr_t hwnd);
 extern void hideWindow(intptr_t hwnd);
 extern void setWindowAtTop(intptr_t hwnd);
 extern void attachWindow(intptr_t hwndParent, intptr_t hwnd, int left, int top);
-extern void moveChildWindow(intptr_t hwnd, int dx, int dy);
+extern void moveChildWindow(intptr_t hwndParent, intptr_t hwnd, int dx, int dy);
 extern void setArrowCursor();
 extern void showCursor();
 int captureImage(intptr_t hwnd, char ** out, int * nout);
@@ -268,7 +268,7 @@ void PowerPoint::attachButton(intptr_t hwnd, const QPoint & pos)
 
 void PowerPoint::moveButton(intptr_t hwnd, const QPoint &diff)
 {
-    moveChildWindow(hwnd, diff.x(), diff.y());
+    moveChildWindow(hwnd_, hwnd, diff.x(), diff.y());
 }
 
 void PowerPoint::jump(int page)
