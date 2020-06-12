@@ -108,8 +108,7 @@ void QuickProxyItem::updateState()
 
 void QuickProxyItem::setGeometry(const QRect &newGeometry)
 {
-    if (active_)
-        onGeometryChanged(newGeometry);
+    onGeometryChanged(newGeometry);
 }
 
 void QuickProxyItem::setActive(bool active)
