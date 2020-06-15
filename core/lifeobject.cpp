@@ -19,6 +19,13 @@ static void nopdel(int *) {}
 
 QWeakPointer<int> LifeObject::life()
 {
+    if (lifeToken_.isNull())
+        lifeToken_.reset(reinterpret_cast<int*>(1), nopdel);
+    return lifeToken_;
+}
+
+QWeakPointer<int> LifeObject::uniqeLife()
+{
     lifeToken_.reset(reinterpret_cast<int*>(1), nopdel);
     return lifeToken_;
 }

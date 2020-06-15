@@ -17,6 +17,8 @@ protected:
 
     QWeakPointer<int> life();
 
+    QWeakPointer<int> uniqeLife();
+
 private:
     QSharedPointer<int> lifeToken_;
 };
