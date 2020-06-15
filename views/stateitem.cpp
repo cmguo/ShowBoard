@@ -325,7 +325,7 @@ void StateItem::timerEvent(QTimerEvent * event)
     ++animate_;
     QGraphicsSvgItem * svgIcon =
         static_cast<QGraphicsSvgItem*>(iconItem_->childItems()[0]);
-    svgIcon->setRotation(iconItem_->rotation() + animate_ * 45.0);
+    svgIcon->setRotation(animate_ * 45.0);
 }
 
 void StateItem::mousePressEvent(QGraphicsSceneMouseEvent * event)
@@ -373,13 +373,19 @@ bool StateItem::sceneEvent(QEvent *event)
             if (!hitItem->contains(hitItem->mapFromParent(pt.pos())))
                 return false;
             touchId_ = pt.id();
-            if (pressed_)
-                static_cast<QGraphicsSvgItem*>(iconItem_)->setSharedRenderer(pressed_);
+            if (pressed_) {
+                QGraphicsSvgItem * svgIcon =
+                    static_cast<QGraphicsSvgItem*>(iconItem_->childItems()[0]);
+                svgIcon->setSharedRenderer(pressed_);
+            }
             return true;
         }
     case QEvent::TouchEnd:
-        if (normal_)
-            static_cast<QGraphicsSvgItem*>(iconItem_)->setSharedRenderer(normal_);
+        if (normal_) {
+            QGraphicsSvgItem * svgIcon =
+                static_cast<QGraphicsSvgItem*>(iconItem_->childItems()[0]);
+            svgIcon->setSharedRenderer(normal_);
+        }
         if (touchId_)
             emit clicked();
         touchId_ = 0;
