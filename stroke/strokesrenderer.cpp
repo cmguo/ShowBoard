@@ -118,6 +118,7 @@ void StrokesRenderer::togglePlay()
 
 void StrokesRenderer::seek(int time, int time2, int byte, bool inStroke)
 {
+    qDebug() << "seek" << time << time2 << byte <<inStroke;
     if (byte >= 0) {
         stopAsync();
         // save max position
@@ -135,8 +136,9 @@ void StrokesRenderer::seek(int time, int time2, int byte, bool inStroke)
             byte = maxByte_;
             inStroke = maxInStroke_;
         }
-        //qDebug() << "seek" << byte;
+        qDebug() << "seek" << time << time2 << byte <<inStroke;
         reader_->seek(byte);
+        byte_ = byte;
         // after adjust, next point read will has 0 diff
         // also can be previous point time
         point_.t -= time_ - time2;
@@ -199,6 +201,7 @@ void StrokesRenderer::bump()
         emit positionChanged();
     }
     while (reader_->read(point, byte_)) {
+        qDebug() << "bump" << byte_ << point.t << point.x << point.y;
         if (maximun_.t) {
             if (time_ > 0) {
                 time_ += point.t - point_.t;
@@ -208,18 +211,22 @@ void StrokesRenderer::bump()
         } else {
             time_ += 10;
         }
+        point_ = point;
         //assert(time_ < 1000);
         //qDebug() << "bump" << time_;
-        point_ = point;
         if (time_ >= sleepTime_) {
             //qDebug() << "bump" << time_ << sleepTime_;
             if (paused_ && time_ >= seekTime_) {
                 emit positionChanged();
+                pending_ = true;
                 return;
             }
             if (nonFast) {
                 int d = static_cast<int>(time_ / rate_) + startTime_ - tickCount();
-                //qDebug() << "sleep" << d;
+                qDebug() << "sleep" << time_ << sleepTime_ << startTime_ << tickCount() << d;
+                if (d > 1000) {
+                    qDebug() << "sleep" << d;
+                }
                 timer_->start(d < 0 ? 0 : d);
             } else {
                 timer_->start(0); // restart when idle
@@ -241,9 +248,11 @@ void StrokesRenderer::bump()
 
 void StrokesRenderer::startAsync()
 {
+    qDebug() << "startAsync" << byte_;
     bool async = reader_->startAsyncRead([l = life(), this] (StrokePoint const & point, int bytePos) {
         if (!l.isNull()) {
             byte_ = bytePos;
+            qDebug() << "async" << byte_ << point.t << point.x << point.y;
             if (maximun_.t) {
                 if (time_ > 0) {
                     time_ += point.t - point_.t;

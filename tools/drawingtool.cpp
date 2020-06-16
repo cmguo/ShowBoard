@@ -15,6 +15,7 @@
 #include <QGraphicsView>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QDebug>
 
 static QssHelper QSS(":/showboard/qss/draw_finish.qss");
 
@@ -98,9 +99,13 @@ private:
                 }
             }
             control_ = nullptr;
+            finish_ = true;
             finishItem_->hide();
+            tool->finishControl(control);
+        } else if (!finish_) {
+            qDebug() << "DrawItem: draw canceled";
+            tool->finishControl(control);
         }
-        tool->finishControl(control);
     }
 
 protected:
@@ -152,9 +157,10 @@ protected:
     virtual bool sceneEvent(QEvent * event) override
     {
         if (event->type() == QEvent::FocusOut
-                || event->type() == QEvent::WindowDeactivate)
-            finish();
-        if (event->type() == QEvent::TouchBegin) {
+                || event->type() == QEvent::WindowDeactivate) {
+            if (!inSetFocus_)
+                finish();
+        } else if (event->type() == QEvent::TouchBegin) {
             event->accept();
             return true;
         }
@@ -164,14 +170,20 @@ protected:
     virtual QVariant itemChange(GraphicsItemChange change, const QVariant &variant) override
     {
         if (change == ItemVisibleHasChanged && variant.toBool()) {
+            qDebug() << "DrawItem: start draw";
+            inSetFocus_ = true;
             scene()->views().first()->setFocus();
+            inSetFocus_ = false;
             setFocus();
+            finish_ = false;
         }
         return CanvasItem::itemChange(change, variant);
     }
 
 private:
     Control * control_;
+    bool finish_ = false;
+    bool inSetFocus_ = false;
     QGraphicsItem * finishItem_;
 };
 
