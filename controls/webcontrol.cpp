@@ -110,7 +110,7 @@ void WebControl::setWebBridges(const WebControl::ObjectHash &bridges)
     WebView * view = static_cast<WebView *>(widget_);
     QWebChannel * channel = view->page()->webChannel();
     if (channel == nullptr)
-        channel = new QWebChannel(this);
+        channel = new QWebChannel(res_);
     channel->registerObjects(bridges);
     view->page()->setWebChannel(channel);
 }
