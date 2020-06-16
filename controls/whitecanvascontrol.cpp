@@ -61,6 +61,12 @@ WhiteCanvasControl::~WhiteCanvasControl()
     realItem_ = nullptr;
 }
 
+void WhiteCanvasControl::setToolBarStyles(const QString &stylesheet)
+{
+    qobject_cast<ToolbarWidget*>(static_cast<QGraphicsProxyWidget*>(toolBar_)->widget())
+            ->setStyleSheet(QssHelper(stylesheet));
+}
+
 void WhiteCanvasControl::setPosBarVisible(bool visible)
 {
     posBar_->setVisible(visible);

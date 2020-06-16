@@ -10,10 +10,15 @@ class WhiteCanvasControl : public Control
 {
     Q_OBJECT
 
+    Q_PROPERTY(QString toolBarStyles WRITE setToolBarStyles)
+
 public:
     WhiteCanvasControl(ResourceView * view, QGraphicsItem * canvas);
 
     virtual ~WhiteCanvasControl() override;
+
+public:
+    void setToolBarStyles(QString const & stylesheet);
 
 public slots:
     void setPosBarVisible(bool visible);
