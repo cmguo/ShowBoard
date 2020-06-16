@@ -4,8 +4,11 @@
 #include "whitecanvasquick.h"
 #include "core/resourcepackage.h"
 #include "core/control.h"
+#include "core/resourceview.h"
 
 #include <QQuickWidget>
+
+#include <core/resourcepage.h>
 
 WhiteCanvasQuick::WhiteCanvasQuick(WhiteCanvasWidget *canvas, QQuickWidget *quickwidget, QQuickItem * parent)
     : QuickWidgetItem(canvas, quickwidget, parent)
@@ -44,7 +47,10 @@ void WhiteCanvasQuick::setSetting(QVariantMap settings)
 {
     urlSettings_ = settings;
     QVariant prop = urlSettings_.value(SETTINGS_SET_GEOMETRY_ON_MAIN_RESOURCE);
-    mainGeometryProperty_ = prop.toByteArray();
+    if (prop.isNull())
+        mainGeometryProperty_ = "";
+    else
+        mainGeometryProperty_ = prop.toByteArray();
 }
 
 void WhiteCanvasQuick::onGeometryChanged(const QRect &newGeometry)
@@ -73,13 +79,24 @@ void WhiteCanvasQuick::onActiveChanged(bool active)
         canvas_->package()->newVirtualPageOrBringTop(mainUrl_, urlSettings_);
         if (mainControl_ == nullptr && !mainGeometryProperty_.isNull()) {
             mainControl_ = canvas_->canvas()->findControl(mainUrl_);
+            connect(mainControl_, &QObject::destroyed, this, [this] () {
+                if (mainControl_) {
+                    connect(canvas_->package(), &ResourcePackage::currentPageChanged,
+                            this, [this] (ResourcePage * page) {
+                        if (page->isVirtualPage() && page->mainResource()->url() == mainUrl_) {
+                            mainControl_ = canvas_->canvas()->findControl(mainUrl_);
+                            canvas_->package()->disconnect(this);
+                        }
+                    });
+                }
+            });
             onGeometryChanged(mapRectToScene(boundingRect()).toRect());
             emit changed();
         }
     } else {
+        mainControl_ = nullptr;
         if (canvas_->package())
             canvas_->package()->showVirtualPage(mainUrl_, false);
-        mainControl_ = nullptr;
         emit changed();
     }
 }
