@@ -37,7 +37,7 @@ protected:
 
     virtual void attached() override;
 
-private slots:
+public slots:
     void loadFinished(bool ok);
 
     void contentsSizeChanged(const QSizeF &size);
