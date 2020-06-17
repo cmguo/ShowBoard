@@ -79,17 +79,7 @@ void WhiteCanvasQuick::onActiveChanged(bool active)
         canvas_->package()->newVirtualPageOrBringTop(mainUrl_, urlSettings_);
         if (mainControl_ == nullptr && !mainGeometryProperty_.isNull()) {
             mainControl_ = canvas_->canvas()->findControl(mainUrl_);
-            connect(mainControl_, &QObject::destroyed, this, [this] () {
-                if (mainControl_) {
-                    connect(canvas_->package(), &ResourcePackage::currentPageChanged,
-                            this, [this] (ResourcePage * page) {
-                        if (page->isVirtualPage() && page->mainResource()->url() == mainUrl_) {
-                            mainControl_ = canvas_->canvas()->findControl(mainUrl_);
-                            canvas_->package()->disconnect(this);
-                        }
-                    });
-                }
-            });
+            detectPassiveSwitch();
             onGeometryChanged(mapRectToScene(boundingRect()).toRect());
             emit changed();
         }
@@ -99,4 +89,20 @@ void WhiteCanvasQuick::onActiveChanged(bool active)
             canvas_->package()->showVirtualPage(mainUrl_, false);
         emit changed();
     }
+}
+
+void WhiteCanvasQuick::detectPassiveSwitch()
+{
+    connect(mainControl_, &QObject::destroyed, this, [this] () {
+        if (mainControl_) {
+            connect(canvas_->package(), &ResourcePackage::currentPageChanged,
+                    this, [this] (ResourcePage * page) {
+                if (page->isVirtualPage() && page->mainResource()->url() == mainUrl_) {
+                    mainControl_ = canvas_->canvas()->findControl(mainUrl_);
+                    canvas_->package()->disconnect(this);
+                    detectPassiveSwitch();
+                }
+            });
+        }
+    });
 }

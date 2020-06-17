@@ -33,7 +33,7 @@ private:
     QSharedPointer<int> life_;
 };
 
-class ImageCache : public QObject
+class SHOWBOARD_EXPORT ImageCache : public QObject
 {
     Q_OBJECT
 public:
@@ -52,6 +52,7 @@ public:
 private:
     // use weak pointer, not keep image in memory
     QMap<QUrl, QWeakPointer<ImageData>> cachedImages_;
+    QMap<QUrl, QtPromise::QPromise<QSharedPointer<ImageData>>> pendings_;
 };
 
 #endif // IMAGECACHE_H

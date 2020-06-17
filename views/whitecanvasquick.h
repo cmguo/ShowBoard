@@ -43,6 +43,9 @@ protected:
     virtual void onActiveChanged(bool active) override;
 
 private:
+    void detectPassiveSwitch();
+
+private:
     WhiteCanvasWidget * canvas_;
     QUrl mainUrl_;
     QVariantMap urlSettings_;

@@ -38,14 +38,21 @@ QtPromise::QPromise<QSharedPointer<ImageData>> ImageCache::getOrCreate(const QUr
     QSharedPointer<ImageData> image = get(url);
     if (image)
         return QtPromise::resolve(image);
+    if (pendings_.contains(url)) {
+        return pendings_.find(url).value();
+    }
     Resource * res = new Resource(nullptr, url);
-    return res->getData().then([this, url, mipmap](QByteArray data) {
+    QtPromise::QPromise<QSharedPointer<ImageData>> p =
+            res->getData().then([this, url, mipmap](QByteArray data) {
         QPixmap pixmap;
         pixmap.loadFromData(data);
         return QtPromise::resolve(put(url, pixmap, mipmap));
-    }).finally([res] {
+    }).finally([this, url, res] {
         delete res;
+        pendings_.remove(url);
     });
+    pendings_.insert(url, p);
+    return p;
 }
 
 QSharedPointer<ImageData> ImageCache::put(const QUrl &url, const QPixmap &pixmap, qreal mipmap)
