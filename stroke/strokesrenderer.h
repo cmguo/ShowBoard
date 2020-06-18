@@ -26,6 +26,10 @@ public:
 
     void setRate(float rate); // 0 for fastest, 1.0 for normal
 
+    int maxGap() const { return maxGap_; }
+
+    void setMaxGap(int time); // adjust large gaps
+
     int time() const;
 
     int duration() const;
@@ -104,6 +108,7 @@ private:
     bool maxInStroke_ = false;
     bool dynamicStarted_ = false;
     float realRate_ = 0;
+    int maxGap_ = 0;
 
 private:
     QTimer *timer_ = nullptr;

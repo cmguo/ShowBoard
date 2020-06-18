@@ -63,7 +63,14 @@ void StrokesRenderer::setRate(float rate)
     if (isPlaying()) {
         if (rate > 0)
             startTime_ = tickCount() - static_cast<int>(t / rate);
+        pause();
+        resume();
     }
+}
+
+void StrokesRenderer::setMaxGap(int time)
+{
+    maxGap_ = time;
 }
 
 int StrokesRenderer::time() const
@@ -189,6 +196,17 @@ void StrokesRenderer::stop()
 void StrokesRenderer::bump()
 {
     if (pending_) {
+        if (time_ >= notifyTime_ && rate_ > 0 && time_ >= seekTime_) {
+            notifyTime_ += (maximun_.t ? 1000 / maximun_.t : 1000);
+            emit positionChanged();
+            int d = static_cast<int>(time_ / rate_) + startTime_ - tickCount();
+            if (d > 1000) {
+                qDebug() << "bump gap continue" << d;
+                d = 1000;
+            }
+            timer_->start(d < 0 ? 0 : d);
+            return;
+        }
         addPoint2(point_);
         pending_ = false;
     }
@@ -223,9 +241,15 @@ void StrokesRenderer::bump()
             }
             if (nonFast) {
                 int d = static_cast<int>(time_ / rate_) + startTime_ - tickCount();
+                if (maxGap_ && d > maxGap_) {
+                    qDebug() << "bump skip gap" << time_ << sleepTime_ << startTime_ << tickCount() << d;
+                    qDebug() << "bump skip gap" << d;
+                    startTime_ -= d - maxGap_;
+                    d = maxGap_;
+                }
                 if (d > 1000) {
-                    qDebug() << "sleep" << time_ << sleepTime_ << startTime_ << tickCount() << d;
-                    qDebug() << "sleep" << d;
+                    qDebug() << "bump gap" << d;
+                    d = 1000;
                 }
                 timer_->start(d < 0 ? 0 : d);
             } else {
@@ -272,13 +296,14 @@ void StrokesRenderer::startAsync()
         if (fastMode_) {
             fastMode_ = false;
             leaveFastMode();
-            emit positionChanged();
         }
+        emit positionChanged();
     } else {
         if (strokeStarted_) {
             endStroke();
             strokeStarted_ = false;
         }
+        emit positionChanged();
         finish();
     }
 }
