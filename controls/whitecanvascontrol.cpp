@@ -46,6 +46,7 @@ WhiteCanvasControl::WhiteCanvasControl(ResourceView * view, QGraphicsItem * canv
     qDebug() << "WhiteCanvasControl" << res_->transform().transform();
     item_->scene()->addItem(toolBar_);
     toolBar_->setPos(QPointF(0, item_->scene()->sceneRect().bottom() - 60));
+    flags_.setFlag(LoadFinished);
 }
 
 WhiteCanvasControl::~WhiteCanvasControl()
@@ -97,11 +98,14 @@ void WhiteCanvasControl::resize(const QSizeF &size)
     rect.moveCenter(QPointF(0, 0));
     rect |= srect;
     static_cast<WhiteCanvas*>(item_)->setGeometry(rect);
-    QSizeF ds = (rect.size() - old.size()) / 2;
-    QPointF d{ds.width(), ds.height()};
-    move(d);
+    if (flags_.testFlag(LoadFinished)) {
+        QSizeF ds = (rect.size() - old.size()) / 2;
+        QPointF d{ds.width(), ds.height()};
+        move(d);
+    }
 }
 
+// called when main resource attached
 void WhiteCanvasControl::attached()
 {
     if (flags_.testFlag(CanScale)) {
