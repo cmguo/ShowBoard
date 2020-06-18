@@ -76,6 +76,9 @@ void WhiteCanvasQuick::onActiveChanged(bool active)
         return;
     qDebug() << "WhiteCanvasQuick" << active << mainUrl_;
     if (active) {
+        if (passivePage_) {
+            return;
+        }
         canvas_->package()->newVirtualPageOrBringTop(mainUrl_, urlSettings_);
         if (mainControl_ == nullptr && !mainGeometryProperty_.isNull()) {
             mainControl_ = canvas_->canvas()->findControl(mainUrl_);
@@ -84,6 +87,9 @@ void WhiteCanvasQuick::onActiveChanged(bool active)
             emit changed();
         }
     } else {
+        if (passivePage_) {
+            return;
+        }
         mainControl_ = nullptr;
         if (canvas_->package())
             canvas_->package()->showVirtualPage(mainUrl_, false);
@@ -100,9 +106,12 @@ void WhiteCanvasQuick::detectPassiveSwitch()
                 if (page->isVirtualPage() && page->mainResource()->url() == mainUrl_) {
                     mainControl_ = canvas_->canvas()->findControl(mainUrl_);
                     canvas_->package()->disconnect(this);
+                    passivePage_ = nullptr;
                     detectPassiveSwitch();
                 }
             });
+            mainControl_ = nullptr;
+            passivePage_ = canvas_->package()->currentPage();
         }
     });
 }

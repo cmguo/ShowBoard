@@ -6,6 +6,7 @@
 class WhiteCanvasWidget;
 
 class Control;
+class ResourcePage;
 
 class SHOWBOARD_EXPORT WhiteCanvasQuick : public QuickWidgetItem
 {
@@ -50,6 +51,7 @@ private:
     QUrl mainUrl_;
     QVariantMap urlSettings_;
     Control * mainControl_ = nullptr;
+    ResourcePage* passivePage_ = nullptr;
     QByteArray mainGeometryProperty_;
 };
 
