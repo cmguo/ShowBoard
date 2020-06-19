@@ -65,8 +65,8 @@ void ItemSelector::select(QGraphicsItem *item)
         rect_ = selectControl_->boundRect();
         selBox_->setRect(rect_);
         selBoxTransform_->attachTo(selectControl_->transform());
-        QList<ToolButton *> buttons;
-        selectControl_->getToolButtons(buttons);
+        //QList<ToolButton *> buttons;
+        //selectControl_->getToolButtons(buttons);
         Control * canvasControl = Control::fromItem(parentItem());
         if (canvasControl) {
             if (selectControl_->flags().testFlag(Control::FixedOnCanvas))
@@ -75,7 +75,7 @@ void ItemSelector::select(QGraphicsItem *item)
             QObject::connect(&canvasControl->resource()->transform(), &ResourceTransform::changed, toolBar(),
                              [this]() { layoutToolbar(); });
         }
-        toolBar()->setToolButtons(buttons);
+        toolBar()->attachProvider(selectControl_);
         layoutToolbar();
         selBox_->setVisible(true,
                             selectControl_->flags() & Control::CanScale,
@@ -101,7 +101,7 @@ void ItemSelector::select(QGraphicsItem *item)
         }
         selBox_->setVisible(false);
         toolBar_->hide();
-        toolBar()->clear();
+        toolBar()->attachProvider(nullptr);
         fastClone_ = false;
         cloneControl_ = nullptr;
         type_ = None;
