@@ -58,8 +58,7 @@ void StrokesRenderer::setRate(float rate)
     rate_ = rate / mt;
     interval_ = INTERVAL < mt ? 1 : INTERVAL / mt;
     if (rate > 0)
-        interval_ = interval_ < rate
-                ? interval_ : static_cast<int>(interval_ / rate);
+        interval_ = static_cast<int>(interval_ * rate);
     if (isPlaying()) {
         if (rate > 0)
             startTime_ = tickCount() - static_cast<int>(t / rate);
@@ -222,9 +221,10 @@ void StrokesRenderer::bump()
         //qDebug() << "bump" << byte_ << point.t << point.x << point.y;
         if (maximun_.t) {
             if (time_ > 0) {
-                time_ += point.t - point_.t;
+                time_ += (point.t - point_.t) & 0xffff;
+                assert(time_ > 0);
             } else if (point_.t != 0) {
-                time_ = point.t - point_.t;
+                time_ = (point.t - point_.t) & 0xffff;
             }
         } else {
             time_ += 10;
