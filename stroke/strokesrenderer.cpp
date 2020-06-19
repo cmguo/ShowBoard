@@ -13,6 +13,7 @@ StrokesRenderer::StrokesRenderer(StrokesReader* reader, QObject *parent)
     , point_(StrokePoint::EndStorke)
 {
     reader->setParent(this);
+    connect(reader, &StrokesReader::asyncFinished, this, &StrokesRenderer::asyncFinished);
 }
 
 static QElapsedTimer startTick()
@@ -154,6 +155,7 @@ void StrokesRenderer::seek(int time, int time2, int byte, bool inStroke)
     }
     seekTime_ = time;
     notifyTime_ = time;
+    finished_ = false;
     if (paused_) {
         startTime_ = time_;
         if (time_ < seekTime_) {
@@ -177,7 +179,12 @@ void StrokesRenderer::stop()
     point_ = StrokePoint::EndStorke;
     time_ = 0;
     byte_ = 0;
+    strokeByte_ = 0;
+    strokeTime_ = 0;
+    strokeStarted_ = false;
     paused_ = false;
+    fastMode_ = false;
+    finished_ = false;
     startTime_ = 0;
     sleepTime_ = 0;
     seekTime_ = 0;
@@ -209,6 +216,8 @@ void StrokesRenderer::bump()
         addPoint2(point_);
         pending_ = false;
     }
+    if (finished_)
+        return;
     StrokePoint point;
     bool nonFast = rate_ > 0 && time_ >= seekTime_;
     sleepTime_ += interval_;
@@ -292,29 +301,49 @@ void StrokesRenderer::startAsync()
         }
     });
     if (async) {
-        dynamicStarted_ = true;
+        asyncStarted_ = true;
         if (fastMode_) {
             fastMode_ = false;
             leaveFastMode();
         }
         emit positionChanged();
     } else {
-        if (strokeStarted_) {
-            endStroke();
-            strokeStarted_ = false;
-        }
-        emit positionChanged();
         finish();
     }
 }
 
 void StrokesRenderer::stopAsync()
 {
-    if (dynamicStarted_) {
+    if (asyncStarted_) {
         // reader should keep position valid in async mode
         reader_->stopAsyncRead();
-        dynamicStarted_ = false;
+        asyncStarted_ = false;
     }
+}
+
+void StrokesRenderer::asyncFinished()
+{
+    if (asyncStarted_) {
+        stopAsync();
+        finish();
+    }
+}
+
+void StrokesRenderer::finish()
+{
+    if (strokeStarted_) {
+        endStroke();
+        strokeStarted_ = false;
+    }
+    emit positionChanged();
+    if (fastMode_) {
+        fastMode_ = false;
+        leaveFastMode();
+    }
+    finished_ = true;
+    qDebug() << "finish" << time_;
+    onFinish();
+    emit finished();
 }
 
 void StrokesRenderer::addPoint2(const StrokePoint &point)

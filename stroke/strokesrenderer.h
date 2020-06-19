@@ -42,14 +42,18 @@ public:
 
     bool isStarted() const { return timer_; }
 
-    bool isPlaying() const { return timer_ && !paused_; }
+    bool isPlaying() const { return timer_ && !paused_ && !finished_; }
 
     bool isPaused() const { return paused_; }
+
+    bool isFinished() const { return finished_; }
 
     void stop();
 
 signals:
     void positionChanged();
+
+    void finished();
 
 protected:
     virtual void setMaximun(StrokePoint const & max) = 0;
@@ -66,7 +70,7 @@ protected:
 
     virtual void leaveFastMode() {}
 
-    virtual void finish() {}
+    virtual void onFinish() {}
 
 protected:
     // time2 is adjust to the time of next point
@@ -83,6 +87,10 @@ private slots:
 
     void stopAsync();
 
+    void asyncFinished();
+
+    void finish();
+
 private:
     void addPoint2(StrokePoint const & point);
 
@@ -94,6 +102,7 @@ protected:
 protected:
     bool strokeStarted_ = false;
     bool fastMode_ = false;
+    bool finished_ = false;
     int strokeTime_ = 0; // stroke start time position
     int strokeByte_ = 0; // stroke start byte position
 
@@ -106,7 +115,7 @@ private:
     int maxByte_ = 0; // update when seek
     int notifyTime_ = 0;
     bool maxInStroke_ = false;
-    bool dynamicStarted_ = false;
+    bool asyncStarted_ = false;
     float realRate_ = 0;
     int maxGap_ = 0;
 
