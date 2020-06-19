@@ -164,7 +164,7 @@ void StrokesRenderer::seek(int time, int time2, int byte, bool inStroke)
     }
     pause();
     if (rate_ > 0)
-        startTime_ = time_;
+        startTime_ = time; // use real seek time
     resume();
 }
 
@@ -252,7 +252,7 @@ void StrokesRenderer::bump()
                     d = 1000;
                 }
                 timer_->start(d < 0 ? 0 : d);
-            } else {
+            } else { // rate_ == 0 || time_ < seekTime_, but new time_ may > seekTime_
                 timer_->start(0); // restart when idle
             }
             if (time_ >= notifyTime_) {
