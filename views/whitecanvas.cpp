@@ -37,10 +37,6 @@ WhiteCanvas::WhiteCanvas(QObject * parent)
     globalCanvas_ = new PageCanvas(this);
     tools_ = new ToolCanvas(this);
     selector_ = new ItemSelector(this);
-    void (ToolbarWidget::*sig)(QList<ToolButton *> const &) = &ToolbarWidget::buttonClicked;
-    QObject::connect(selector_->toolBar(), sig, this, &WhiteCanvas::toolButtonClicked);
-    QObject::connect(selector_->toolBar(), &ToolbarWidget::popupButtonsRequired,
-                     this, &WhiteCanvas::popupButtonsRequired);
 }
 
 WhiteCanvas::~WhiteCanvas()
@@ -365,33 +361,6 @@ void WhiteCanvas::setResourcePackage(ResourcePackage * pack)
     }
 }
 
-void WhiteCanvas::toolButtonClicked(QList<ToolButton *> const & buttons)
-{
-    Control * ct = Control::fromItem(selector_->selected());
-    ToolButton * btn = buttons.back();
-    if (btn->isHideSelector()) {
-        selector()->selectImplied(ct->item());
-    }
-    if (btn == &Control::btnTop) {
-        ct->resource()->moveTop();
-    } else if (btn == &Control::btnCopy) {
-        copyResource(ct);
-    } else if (btn == &Control::btnFastCopy) {
-        bool checked = !btn->isChecked();
-        selector_->enableFastClone(checked);
-        btn->setChecked(checked);
-    } else if (btn == &Control::btnDelete) {
-        canvas_->page()->removeResource(ct->resource());
-    } else {
-        ct->handleToolButton(buttons);
-    }
-}
-
-void WhiteCanvas::popupButtonsRequired(QList<ToolButton *> & buttons, QList<ToolButton *> const & parents)
-{
-    Control * ct = Control::fromItem(selector_->selected());
-    ct->getToolButtons(buttons, parents);
-}
 /*
 void WhiteCanvas::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {

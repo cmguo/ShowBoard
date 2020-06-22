@@ -5,6 +5,8 @@
 #include <QVariant>
 #include <QMetaMethod>
 
+static ToolButtonProvider * inHandle = nullptr;
+
 ToolButtonProvider::ToolButtonProvider(QObject * parent)
     : LifeObject(parent)
     , subProviderBefore_(nullptr)
@@ -19,7 +21,6 @@ ToolButtonProvider::ToolButtonProvider(const ToolButtonProvider &o)
     , subProviderAfter_(nullptr)
     , followTrigger_(o.followTrigger_)
 {
-
 }
 
 ToolButtonProvider::~ToolButtonProvider()
@@ -27,6 +28,8 @@ ToolButtonProvider::~ToolButtonProvider()
     for (ToolButton * btn : privateButtons_)
         delete btn;
     privateButtons_.clear();
+    if (inHandle == this)
+        inHandle = nullptr;
 }
 
 bool ToolButtonProvider::exec(QByteArray const & cmd, QGenericArgument arg0,
@@ -128,8 +131,6 @@ void ToolButtonProvider::attachSubProvider(ToolButtonProvider *provider, bool be
     emit buttonsChanged();
 }
 
-static ToolButtonProvider * inHandle = nullptr;
-
 static std::map<QMetaObject const *, std::map<QByteArray, OptionToolButtons*>> & optionButtons()
 {
     static std::map<QMetaObject const *, std::map<QByteArray, OptionToolButtons*>> smap;
@@ -221,6 +222,8 @@ bool ToolButtonProvider::handleToolButton(QList<ToolButton *> const & buttons)
     }
     inHandle = this;
     bool result = handleToolButton(button, args);
+    if (inHandle != this) // this maybe deleted
+        return result;
     if (result && button->needUpdate()) {
         updateToolButton(button);
         if (button->unionUpdate()) {

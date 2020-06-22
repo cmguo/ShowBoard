@@ -31,12 +31,12 @@ Control * Control::fromItem(QGraphicsItem const * item)
     return item->data(ITEM_KEY_CONTROL).value<Control *>();
 }
 
-ToolButton Control::btnTop = { "top", "置顶", ToolButton::Static, ":/showboard/icon/top.svg" };
-ToolButton Control::btnCopy = { "copy", "复制", ToolButton::Static, ":/showboard/icon/copy.svg" };
-ToolButton Control::btnFastCopy = { "copy", "快速复制",
+static ToolButton btnTop = { "top", "置顶", ToolButton::Static, ":/showboard/icon/top.svg" };
+static ToolButton btnCopy = { "copy", "复制", ToolButton::Static, ":/showboard/icon/copy.svg" };
+static ToolButton btnFastCopy = { "copy", "快速复制",
                                     ToolButton::Flags{ToolButton::Static, ToolButton::Checkable},
                                     ":/showboard/icon/copy.svg" };
-ToolButton Control::btnDelete = { "delete", "关闭", ToolButton::Static, ":/showboard/icon/close.svg" };
+static ToolButton btnDelete = { "delete", "关闭", ToolButton::Static, ":/showboard/icon/close.svg" };
 
 Control::Control(ResourceView *res, Flags flags, Flags clearFlags)
     : flags_((DefaultFlags | flags) & ~clearFlags)
@@ -847,6 +847,27 @@ void Control::getToolButtons(QList<ToolButton *> &buttons, ToolButton * parent)
         if (buttons.endsWith(&ToolButton::SPLITTER))
             buttons.pop_back();
     }
+}
+
+bool Control::handleToolButton(ToolButton *btn, const QStringList &args)
+{
+    if (btn->isHideSelector()) {
+        whiteCanvas()->selector()->selectImplied(realItem_);
+    }
+    if (btn == &btnTop) {
+        res_->moveTop();
+    } else if (btn == &btnCopy) {
+        whiteCanvas()->copyResource(this);
+    } else if (btn == &btnFastCopy) {
+        bool checked = !btn->isChecked();
+        whiteCanvas()->selector()->enableFastClone(checked);
+        btn->setChecked(checked);
+    } else if (btn == &btnDelete) {
+        res_->removeFromPage();
+    } else {
+        return ToolButtonProvider::handleToolButton(btn, args);
+    }
+    return true;
 }
 
 StateItem * Control::stateItem()

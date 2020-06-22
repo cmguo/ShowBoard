@@ -82,11 +82,6 @@ public:
      */
     static Control * fromItem(QGraphicsItem const * item);
 
-    static ToolButton btnTop;
-    static ToolButton btnCopy;
-    static ToolButton btnFastCopy;
-    static ToolButton btnDelete;
-
 public:
     /*
      * realFlags = (DefaultFlags | flags) & ~clearFlags
@@ -310,6 +305,8 @@ public:
 
 protected:
     virtual void getToolButtons(QList<ToolButton *> &buttons, ToolButton * parent) override;
+
+    virtual bool handleToolButton(ToolButton *button, const QStringList &args) override;
 
 private:
     Q_DISABLE_COPY(Control)
