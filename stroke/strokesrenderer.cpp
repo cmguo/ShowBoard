@@ -201,18 +201,18 @@ void StrokesRenderer::stop()
  */
 void StrokesRenderer::bump()
 {
-    if (pending_) {
-        if (time_ >= notifyTime_ && rate_ > 0 && time_ >= seekTime_) {
-            notifyTime_ += (maximun_.t ? 1000 / maximun_.t : 1000);
-            emit positionChanged();
-            int d = static_cast<int>(time_ / rate_) + startTime_ - tickCount();
-            if (d > 1000) {
-                qDebug() << "bump gap continue" << d;
-                d = 1000;
-            }
-            timer_->start(d < 0 ? 0 : d);
-            return;
+    if (time_ >= notifyTime_ && rate_ > 0 && time_ >= seekTime_) {
+        notifyTime_ += (maximun_.t ? 1000 / maximun_.t : 1000);
+        emit positionChanged();
+        int d = static_cast<int>(time_ / rate_) + startTime_ - tickCount();
+        if (d > 1000) {
+            qDebug() << "bump gap continue" << d;
+            d = 1000;
         }
+        timer_->start(d < 0 ? 0 : d);
+        return;
+    }
+    if (pending_) {
         addPoint2(point_);
         pending_ = false;
     }
@@ -288,14 +288,14 @@ void StrokesRenderer::startAsync()
             //qDebug() << "async" << byte_ << point.t << point.x << point.y;
             if (maximun_.t) {
                 if (time_ > 0) {
-                    time_ += point.t - point_.t;
+                    time_ += (point.t - point_.t) & 0xffff;
                 } else if (point_.t != 0) {
-                    time_ = point.t - point_.t;
+                    time_ = (point.t - point_.t) & 0xffff;
                 }
             } else {
                 time_ += 10;
             }
-            //qDebug() << "async" << time_;
+            //qDebug() << "async" << byte_ << time_;
             point_ = point;
             addPoint2(point);
         }
