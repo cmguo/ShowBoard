@@ -80,7 +80,7 @@ public:
     void saveActionState();
 
     // disable taskbar actions
-    void disableActions();
+    void disableActions(int flags = -1);
 
     // restore action state
     void restoreActionState();

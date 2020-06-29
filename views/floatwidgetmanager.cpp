@@ -220,9 +220,12 @@ void FloatWidgetManager::saveActionState()
     saveActionStates_.append(state);
 }
 
-void FloatWidgetManager::disableActions()
+void FloatWidgetManager::disableActions(int flags)
 {
-    int state = disableActions_;
+    if(flags < 0) {
+        flags = disableActions_;
+    }
+    int state = flags;
     int mask = 1;
     for (QAction * a : taskBar_->actions()) {
         if (a->isEnabled() && ((state & mask) != 0)) {
@@ -280,8 +283,13 @@ bool FloatWidgetManager::eventFilter(QObject *watched, QEvent *event)
             modifiedStates_.back() = 1 << widgets_.indexOf(widget);
         }
         if (flags.testFlag(DisableActionsOnShow)) {
+            QVariant variant = widget->property("disableBottomBarFlags");
+            int flags = disableActions_;
+            if(!variant.isNull()) {
+                flags = variant.value<int>();
+            }
             saveActionState();
-            disableActions();
+            disableActions(flags);
         }
     } else if (event->type() == QEvent::Hide) {
         if (watched == main_) {
