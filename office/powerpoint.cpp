@@ -160,6 +160,7 @@ void PowerPoint::thumb(int page)
             captureImage(hwnd_, &data, & size);
             QPixmap pixmap;
             pixmap.loadFromData(reinterpret_cast<uchar*>(data), static_cast<uint>(size));
+            delete [] data;
             if (size_ != pixmap.size()) {
                 QSize size2 = pixmap.size();
                 if (size_.width() * size2.height() > size_.height() * size2.width()) {
