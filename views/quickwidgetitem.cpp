@@ -22,7 +22,6 @@ QuickWidgetItem::QuickWidgetItem(QList<QWidget*> widgets, QQuickWidget* quickwid
 
 QuickWidgetItem::~QuickWidgetItem()
 {
-    qDebug() << "QuickWidgetItem" << objectName() << "desctruct";
 }
 
 void QuickWidgetItem::setWidget(QWidget *widget)

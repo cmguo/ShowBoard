@@ -12,7 +12,6 @@ QuickProxyItem::QuickProxyItem(QQuickWidget *quickwidget, QQuickItem * parent)
 
 QuickProxyItem::~QuickProxyItem()
 {
-    qDebug() << "QuickProxyItem" << objectName() << "desctruct";
 }
 
 void QuickProxyItem::setQuickWidget(QQuickWidget *quickWidget)

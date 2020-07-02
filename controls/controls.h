@@ -20,7 +20,7 @@ REGISTER_CONTROL(VideoControl, "mp4,wmv,ts,flv,m3u8,asf,avi,"
 REGISTER_CONTROL(StrokeControl, "glstroke")
 REGISTER_CONTROL(WebControl, "htm,html,http,https,chrome")
 REGISTER_CONTROL(QmlControl, "qml")
-REGISTER_CONTROL(TextControl, "txt,js,cpp,h")
+REGISTER_CONTROL(TextControl, "txt,js,cpp,h,qss,css")
 
 #ifdef WIN32
 REGISTER_CONTROL(PptxControl, "ppt,pptx")

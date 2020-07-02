@@ -9,7 +9,7 @@
 using namespace QtPromise;
 
 REGISTER_DATA_RPOVIDER(DataDataProvider,"data")
-REGISTER_DATA_RPOVIDER(FileDataProvider,"file,")
+REGISTER_DATA_RPOVIDER(FileDataProvider,"file,qrc,")
 REGISTER_DATA_RPOVIDER(HttpDataProvider,"http,https")
 
 DataProvider::DataProvider(QObject *parent)
@@ -41,7 +41,8 @@ FileDataProvider::FileDataProvider(QObject *parent)
 QtPromise::QPromise<QSharedPointer<QIODevice> > FileDataProvider::getStream(const QUrl &url, bool all)
 {
     (void) all;
-    QSharedPointer<QIODevice> file(new QFile(url.toLocalFile()));
+    QString path = url.scheme() == "qrc" ? ":" + url.path() : url.toLocalFile();
+    QSharedPointer<QIODevice> file(new QFile(path));
     if (file->open(QFile::ReadOnly | QFile::ExistingOnly)) {
         return QPromise<QSharedPointer<QIODevice>>::resolve(file);
     } else {
@@ -88,4 +89,3 @@ QtPromise::QPromise<QSharedPointer<QIODevice>> HttpDataProvider::getStream(const
         QObject::connect(reply.get(), p, error);
     });
 }
-
