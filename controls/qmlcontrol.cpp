@@ -4,6 +4,8 @@
 #include <QQuickWidget>
 #include <QQuickItem>
 #include <QGraphicsItem>
+#include <QQmlContext>
+#include <QQmlEngine>
 
 static char const * toolstr = ""
         "hide()|隐藏|Checkable|;"
@@ -14,6 +16,26 @@ QmlControl::QmlControl(ResourceView *res)
     : WidgetControl(res)
 {
     setToolsString(toolstr);
+}
+
+void QmlControl::setQmlProperties(const QVariantMap &properties)
+{
+    if (flags_ & RestorePersisted)
+        return;
+    QQuickWidget * widget = static_cast<QQuickWidget *>(widget_);
+    QVector<QQmlContext::PropertyPair> qmlProperties;
+    for (auto iter = properties.begin(); iter != properties.end(); ++iter)
+        qmlProperties.append({iter.key(), iter.value()});
+    widget->rootContext()->setContextProperties(qmlProperties);
+}
+
+void QmlControl::setImageProviders(const QVariantMap &providers)
+{
+    if (flags_ & RestorePersisted)
+        return;
+    QQuickWidget * widget = static_cast<QQuickWidget *>(widget_);
+    for (auto iter = providers.begin(); iter != providers.end(); ++iter)
+        widget->engine()->addImageProvider(iter.key(), iter.value().value<QQuickImageProvider*>());
 }
 
 QWidget *QmlControl::createWidget(ResourceView *)
