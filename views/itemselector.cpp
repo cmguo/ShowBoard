@@ -199,6 +199,7 @@ void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos, bool f
                 if (autoTop_) {
                     selectControl_->resource()->moveTop();
                 }
+                break;
             } else if (ct == selectControl_) {
                 // selectImplied, not handle
                 return;
