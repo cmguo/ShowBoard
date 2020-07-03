@@ -341,7 +341,7 @@ void StrokesRenderer::finish()
         leaveFastMode();
     }
     finished_ = true;
-    qDebug() << "finish" << time_;
+    qDebug() << "finish" << time_ << byte_;
     onFinish();
     emit finished();
 }

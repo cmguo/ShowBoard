@@ -550,8 +550,8 @@ static QPointF lastPosition(-1, -1);
 
 void ToolbarWidget::mousePressEvent(QMouseEvent *event)
 {
-    lastPosition = event->screenPos();
-    event->setAccepted(dragable_);
+    if (dragable_)
+        lastPosition = event->screenPos();
 }
 
 void ToolbarWidget::mouseMoveEvent(QMouseEvent *event)
