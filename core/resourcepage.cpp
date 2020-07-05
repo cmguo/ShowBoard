@@ -22,14 +22,17 @@ ResourcePage::ResourcePage(ResourceView* mainRes, QObject *parent)
 {
     if (parent)
         thumbnail_ = ResourcePackage::toolPage()->thumbnail();
-    bool largeCanvas = mainRes && (mainRes->flags().testFlag(ResourceView::LargeCanvas));
-    if (largeCanvas) {
+    if (mainRes == nullptr)
+        return;
+    bool largeCanvas = mainRes->flags().testFlag(ResourceView::LargeCanvas);
+    bool virtualPage = mainRes->flags().testFlag(ResourceView::VirtualPage);
+    if (largeCanvas || virtualPage) {
         canvasView_ = new ResourceView(new Resource("whitecanvas", QUrl("whitecanvas:///")),
-                                       ResourceView::BottomMost, ResourceView::DefaultFlags);
+                                       mainRes->pageMode() | ResourceView::BottomMost,
+                                       ResourceView::DefaultFlags);
         canvasView_->setParent(this);
     }
-    if (mainRes)
-        addResource(mainRes);
+    addResource(mainRes);
 }
 
 ResourceView * ResourcePage::addResource(QUrl const & url, QVariantMap const & settings)

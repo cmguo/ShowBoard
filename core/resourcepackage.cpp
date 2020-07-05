@@ -164,8 +164,8 @@ void ResourcePackage::hideAllVirtualPages()
 void ResourcePackage::removeVirtualPage(ResourcePage *page)
 {
     showVirtualPage(page, false);
-    hiddenPages_.removeOne(page);
-    delete page;
+    if (hiddenPages_.removeOne(page))
+        delete page;
 }
 
 void ResourcePackage::showVirtualPage(const QUrl &mainUrl, bool show)

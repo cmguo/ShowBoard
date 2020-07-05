@@ -28,6 +28,8 @@ public slots:
 
     void scaleDown();
 
+    void close();
+
 private:
     QGraphicsItem * create(ResourceView *res) override;
 
@@ -37,7 +39,9 @@ private:
 
     virtual void sizeChanged() override;
 
-    virtual void getToolButtons(QList<ToolButton *> &buttons, ToolButton *parent) override;
+    using Control::getToolButtons;
+
+    virtual void getToolButtons(QList<ToolButton *> &buttons, QList<ToolButton *> const & parents) override;
 
     virtual void updateToolButton(ToolButton *button) override;
 
@@ -47,8 +51,8 @@ private:
     void updateTransform();
 
 private:
-    PositionBar * posBar_;
-    QGraphicsItem* toolBar_;
+    PositionBar * posBar_ = nullptr;
+    QGraphicsItem* toolBar_ = nullptr;
 };
 
 #endif // WHITECANVASCONTROL_H

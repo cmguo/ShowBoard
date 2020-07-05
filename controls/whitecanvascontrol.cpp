@@ -12,12 +12,15 @@
 #include <QtMath>
 #include <QDebug>
 #include <QGraphicsProxyWidget>
+#include <QTimer>
 
 static QssHelper QSS(":/showboard/qss/canvastoolbar.qss");
 
 static constexpr char const * toolsStr =
         "scaleUp()||UnionUpdate|:/showboard/icon/zoom_in.svg,default;"
-        "scaleDown()||UnionUpdate|:/showboard/icon/zoom_out.svg,default;";
+        "scaleDown()||UnionUpdate|:/showboard/icon/zoom_out.svg,default;"
+        "|;"
+        "close()||NeedUpdate|:/showboard/icon/close.svg;";
 
 WhiteCanvasControl::WhiteCanvasControl(ResourceView * view, QGraphicsItem * canvas)
     : Control(view, {}, {CanSelect, CanScale, CanRotate})
@@ -27,13 +30,15 @@ WhiteCanvasControl::WhiteCanvasControl(ResourceView * view, QGraphicsItem * canv
     item_->setTransformations({transform_});
     item_->setData(ITEM_KEY_CONTROL, QVariant::fromValue(this));
     realItem_ = item_;
-    QObject::connect(&res_->transform(), &ResourceTransform::beforeChanged,
-                     this, &WhiteCanvasControl::updatingTransform);
-    QObject::connect(&res_->transform(), &ResourceTransform::changed,
-                     this, &WhiteCanvasControl::updateTransform);
-    PositionBar* posBar = new PositionBar(canvas);
-    posBar->setInCanvas();
-    posBar_ = posBar;
+    if (view->flags().testFlag(ResourceView::LargeCanvas)) {
+        QObject::connect(&res_->transform(), &ResourceTransform::beforeChanged,
+                         this, &WhiteCanvasControl::updatingTransform);
+        QObject::connect(&res_->transform(), &ResourceTransform::changed,
+                         this, &WhiteCanvasControl::updateTransform);
+        PositionBar* posBar = new PositionBar(canvas);
+        posBar->setInCanvas();
+        posBar_ = posBar;
+    }
     ToolbarWidget* toolbar = new ToolbarWidget;
     toolbar->setObjectName("canvastoolbar");
     toolbar->attachProvider(this);
@@ -83,6 +88,13 @@ void WhiteCanvasControl::scaleDown()
     res_->transform().scale({0.8, 0.8});
 }
 
+void WhiteCanvasControl::close()
+{
+    QTimer::singleShot(0, this, [this] () {
+        res_->page()->removeFromPackage();
+    });
+}
+
 QGraphicsItem *WhiteCanvasControl::create(ResourceView *res)
 {
     (void) res;
@@ -91,17 +103,19 @@ QGraphicsItem *WhiteCanvasControl::create(ResourceView *res)
 
 void WhiteCanvasControl::resize(const QSizeF &size)
 {
-    qDebug() << "WhiteCanvasControl resize" << size;
-    QRectF old = item_->boundingRect();
-    QRectF srect = item_->scene()->sceneRect();
-    QRectF rect(QPointF(0, 0), size);
-    rect.moveCenter(QPointF(0, 0));
-    rect |= srect;
-    static_cast<WhiteCanvas*>(item_)->setGeometry(rect);
-    if (flags_.testFlag(LoadFinished)) {
-        QSizeF ds = (rect.size() - old.size()) / 2;
-        QPointF d{ds.width(), ds.height()};
-        move(d);
+    if (res_->flags().testFlag(ResourceView::LargeCanvas)) {
+        qDebug() << "WhiteCanvasControl resize" << size;
+        QRectF old = item_->boundingRect();
+        QRectF srect = item_->scene()->sceneRect();
+        QRectF rect(QPointF(0, 0), size);
+        rect.moveCenter(QPointF(0, 0));
+        rect |= srect;
+        static_cast<WhiteCanvas*>(item_)->setGeometry(rect);
+        if (flags_.testFlag(LoadFinished)) {
+            QSizeF ds = (rect.size() - old.size()) / 2;
+            QPointF d{ds.width(), ds.height()};
+            move(d);
+        }
     }
 }
 
@@ -118,21 +132,27 @@ void WhiteCanvasControl::sizeChanged()
     // do nothing
 }
 
-void WhiteCanvasControl::getToolButtons(QList<ToolButton *> &buttons, ToolButton *parent)
+void WhiteCanvasControl::getToolButtons(QList<ToolButton *> &buttons, QList<ToolButton *> const & parents)
 {
-    if (parent == nullptr) {
-        if (!flags_.testFlag(CanScale))
-            return;
+    Control::getToolButtons(buttons, parents);
+    if (parents.isEmpty()) {
+        ToolButton * closeBtn = getStringButton("close()");
+        buttons.removeOne(closeBtn);
+        buttons.append(&ToolButton::SPLITTER);
+        buttons.append(closeBtn);
     }
-    return Control::getToolButtons(buttons, parent);
 }
 
 void WhiteCanvasControl::updateToolButton(ToolButton *button)
 {
     if (button->name() == "scaleUp()") {
         button->setEnabled(resource()->transform().scale().m11() < 10);
+        button->setVisible(flags_.testFlag(CanScale));
     } else if (button->name() == "scaleDown()") {
         button->setEnabled(resource()->transform().scale().m11() > 1.1);
+        button->setVisible(flags_.testFlag(CanScale));
+    } else if (button->name() == "close()") {
+        button->setVisible(res_->flags().testFlag(ResourceView::VirtualPage));
     } else {
         ToolButtonProvider::updateToolButton(button);
     }
