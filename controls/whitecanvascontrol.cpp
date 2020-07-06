@@ -152,7 +152,8 @@ void WhiteCanvasControl::updateToolButton(ToolButton *button)
         button->setEnabled(resource()->transform().scale().m11() > 1.1);
         button->setVisible(flags_.testFlag(CanScale));
     } else if (button->name() == "close()") {
-        button->setVisible(res_->flags().testFlag(ResourceView::VirtualPage));
+        button->setVisible(res_->flags().testFlag(ResourceView::VirtualPage)
+                           && res_->flags().testFlag(ResourceView::CanDelete));
     } else {
         ToolButtonProvider::updateToolButton(button);
     }
