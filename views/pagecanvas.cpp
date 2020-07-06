@@ -23,6 +23,7 @@ void PageCanvas::switchPage(ResourcePage * page)
 {
     if (page_ != nullptr) {
         page_->disconnect(this);
+        subPageChanged(nullptr);
         for (int i = page_->resources().size() - 1; i >= 0; --i) {
             removeResource(i);
         }
@@ -45,8 +46,8 @@ void PageCanvas::switchPage(ResourcePage * page)
                          this, &PageCanvas::resourceMoved);
         QObject::connect(page_, &ResourcePage::currentSubPageChanged,
                          this, &PageCanvas::subPageChanged);
+        subPageChanged(page_->currentSubPage());
     }
-    subPageChanged(page_ ? page_->currentSubPage() : nullptr);
 }
 
 void PageCanvas::relayout()
