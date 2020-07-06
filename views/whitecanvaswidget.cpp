@@ -1,4 +1,4 @@
-#include "whitecanvaswidget.h"
+﻿#include "whitecanvaswidget.h"
 #include "whitecanvas.h"
 #include "core/resourcepackage.h"
 #include "core/resourcepage.h"
@@ -105,7 +105,7 @@ void WhiteCanvasWidget::showEvent(QShowEvent *event)
 
 bool WhiteCanvasWidget::eventFilter(QObject *watched, QEvent *event)
 {
-    if (watched == window() && event->type() == QEvent::Close) {
+    if (watched == window() && event->type() == QEvent::Close && !event->spontaneous()) {
         qDebug() << "window closed";
         setResourcePackage(nullptr);
     }
