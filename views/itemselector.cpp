@@ -202,6 +202,7 @@ void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos, bool f
                 break;
             } else if (ct == selectControl_) {
                 // selectImplied, not handle
+                type_ = Implied;
                 return;
             }
             if (mode != Control::PassSelect && mode != Control::PassSelect2)
@@ -389,8 +390,11 @@ void ItemSelector::mousePressEvent(QGraphicsSceneMouseEvent *event)
     }
     //qDebug() << "mousePress";
 #endif
+    if (event->source() != Qt::MouseEventNotSynthesized
+            && type_ == Implied)
+        return;
     selectAt(event->pos(), event->scenePos(), false);
-    if (type_ == None) {
+    if (type_ == None || type_ == Implied) {
         CanvasItem::mousePressEvent(event);
     }
 }
@@ -432,7 +436,7 @@ void ItemSelector::touchBegin(QTouchEvent *event)
     //qDebug() << "touchBegin";
     QTouchEvent::TouchPoint const & point(event->touchPoints().first());
     selectAt(point.pos(), point.scenePos(), true);
-    if (type_ != None) {
+    if (type_ != None && type_ != Implied) {
         bool isCanvas = selectControl_->metaObject() == &WhiteCanvasControl::staticMetaObject
                 || (selectControl_->flags() & Control::FixedOnCanvas);
         for (QTouchEvent::TouchPoint const & point : event->touchPoints()) {

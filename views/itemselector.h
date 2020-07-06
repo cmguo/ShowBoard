@@ -55,6 +55,7 @@ private:
         AgainNoMove,
         AgainMoved,
         FastClone,
+        Implied,
     };
 
 private:
