@@ -2,7 +2,7 @@ QPushButton,.QLabel {
     color:#80ffffff;
     background-color:#00000000;
     border:none;
-    font-size: 16pt; /* [size] */
+    font-size: 14pt; /* [size] */
     font-family:'Microsoft YaHei';
 }
 
