@@ -29,6 +29,15 @@ ResourceView::ResourceView(QByteArray const & type, QUrl const & url)
 {
 }
 
+ResourceView::ResourceView(ResourceView *mainRes)
+    : res_(new Resource("whitecanvas", QUrl("whitecanvas:///")))
+    , flags_((mainRes->flags() & ResourceView::CanDelete)
+                                           | mainRes->pageMode() | ResourceView::BottomMost)
+    , transform_(new ResourceTransform(this))
+{
+    mainRes->flags_.setFlag(ResourceView::CanDelete, false);
+}
+
 ResourceView::~ResourceView()
 {
 }

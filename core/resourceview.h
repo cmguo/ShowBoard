@@ -68,6 +68,8 @@ public:
 
     ResourceView(QByteArray const & type, QUrl const & url);
 
+    ResourceView(ResourceView * mainRes);
+
     virtual ~ResourceView() override;
 
 public:

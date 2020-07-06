@@ -27,9 +27,7 @@ ResourcePage::ResourcePage(ResourceView* mainRes, QObject *parent)
     bool largeCanvas = mainRes->flags().testFlag(ResourceView::LargeCanvas);
     bool virtualPage = mainRes->flags().testFlag(ResourceView::VirtualPage);
     if (largeCanvas || virtualPage) {
-        canvasView_ = new ResourceView(new Resource("whitecanvas", QUrl("whitecanvas:///")),
-                                       mainRes->pageMode() | ResourceView::BottomMost,
-                                       ResourceView::DefaultFlags);
+        canvasView_ = new ResourceView(mainRes);
         canvasView_->setParent(this);
     }
     addResource(mainRes);
@@ -257,7 +255,7 @@ void ResourcePage::removeFromPackage()
 {
     ResourcePackage * pkg = qobject_cast<ResourcePackage*>(parent());
     if (pkg)
-        pkg->removeVirtualPage(this);
+        pkg->removePage(this);
 }
 
 bool ResourcePage::isIndependentPage() const

@@ -39,9 +39,9 @@ private:
 
     virtual void sizeChanged() override;
 
-    using Control::getToolButtons;
-
     virtual void getToolButtons(QList<ToolButton *> &buttons, QList<ToolButton *> const & parents) override;
+
+    virtual void getToolButtons(QList<ToolButton *> &buttons, ToolButton *parent) override;
 
     virtual void updateToolButton(ToolButton *button) override;
 

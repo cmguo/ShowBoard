@@ -44,6 +44,7 @@ public:
     /*
      * insert a newly create page,
      *  new page is inserted after current one and became current
+     *  if mainRes != null, create virtual page
      */
     ResourcePage * newPage(ResourceView * mainRes = nullptr);
 
@@ -54,6 +55,8 @@ public:
     ResourcePage * newPage(int index, ResourceView * mainRes = nullptr);
 
     ResourcePage * currentPage() const;
+
+    void removePage(ResourcePage * page);
 
     /*
      *  current page index, start from 0

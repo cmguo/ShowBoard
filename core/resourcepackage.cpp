@@ -51,6 +51,22 @@ ResourcePage * ResourcePackage::currentPage() const
                                  : visiblePages_.back();
 }
 
+void ResourcePackage::removePage(ResourcePage *page)
+{
+    int index = pages_.indexOf(page);
+    if (index >= 0) {
+        pages_.removeAt(index);
+        if (index == current_) {
+            if (index > 0)
+                --index;
+            current_ = -1;
+            switchPage(index);
+        }
+        return;
+    }
+    removeVirtualPage(page);
+}
+
 int ResourcePackage::currentNumber() const
 {
     return current_ + 1;

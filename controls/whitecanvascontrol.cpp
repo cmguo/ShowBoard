@@ -134,6 +134,7 @@ void WhiteCanvasControl::sizeChanged()
 
 void WhiteCanvasControl::getToolButtons(QList<ToolButton *> &buttons, QList<ToolButton *> const & parents)
 {
+    // not include default buttons of Control
     Control::getToolButtons(buttons, parents);
     if (parents.isEmpty()) {
         ToolButton * closeBtn = getStringButton("close()");
@@ -141,6 +142,12 @@ void WhiteCanvasControl::getToolButtons(QList<ToolButton *> &buttons, QList<Tool
         buttons.append(&ToolButton::SPLITTER);
         buttons.append(closeBtn);
     }
+}
+
+void WhiteCanvasControl::getToolButtons(QList<ToolButton *> &buttons, ToolButton *parent)
+{
+    // not include default buttons of Control
+    ToolButtonProvider::getToolButtons(buttons, parent);
 }
 
 void WhiteCanvasControl::updateToolButton(ToolButton *button)
@@ -152,8 +159,7 @@ void WhiteCanvasControl::updateToolButton(ToolButton *button)
         button->setEnabled(resource()->transform().scale().m11() > 1.1);
         button->setVisible(flags_.testFlag(CanScale));
     } else if (button->name() == "close()") {
-        button->setVisible(res_->flags().testFlag(ResourceView::VirtualPage)
-                           && res_->flags().testFlag(ResourceView::CanDelete));
+        button->setVisible(res_->flags().testFlag(ResourceView::CanDelete));
     } else {
         ToolButtonProvider::updateToolButton(button);
     }
