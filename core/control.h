@@ -27,6 +27,7 @@ class SHOWBOARD_EXPORT Control : public ToolButtonProvider
     Q_PROPERTY(bool layoutScale READ layoutScale WRITE setLayoutScale)
     Q_PROPERTY(bool expandScale READ expandScale WRITE setExpandScale)
     Q_PROPERTY(Flags scaleMode READ scaleMode WRITE setScaleMode)
+    Q_PROPERTY(Flags selectMode READ selectMode WRITE setSelectMode)
 
     Q_PROPERTY(QSizeF sizeHint READ sizeHint WRITE setSizeHint)
     Q_PROPERTY(QSizeF minSize READ minSize WRITE setMinSize)
@@ -115,6 +116,10 @@ public:
     Flags scaleMode() const;
 
     void setScaleMode(Flags mode);
+
+    Flags selectMode() const;
+
+    void setSelectMode(Flags mode);
 
     bool keepAspectRatio() const;
 

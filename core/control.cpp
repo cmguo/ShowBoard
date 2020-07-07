@@ -92,7 +92,7 @@ void Control::setWithSelectBar(bool b)
     flags_.setFlag(WithSelectBar, b);
 }
 
-static constexpr Control::Flags ScaleModeFlags = Control::CanScale
+static constexpr Control::Flags ScaleModeFlags = Control::CanScale | Control::FullLayout
         | Control::KeepAspectRatio | Control::LayoutScale | Control::ExpandScale;
 
 Control::Flags Control::scaleMode() const
@@ -103,6 +103,19 @@ Control::Flags Control::scaleMode() const
 void Control::setScaleMode(Flags mode)
 {
     flags_ = (flags_ & ~ScaleModeFlags) | (mode & ScaleModeFlags);
+}
+
+static constexpr Control::Flags SelectModeFlags = Control::CanSelect
+        | Control::FullSelect | Control::HalfSelect | Control::ShowSelectMask;
+
+Control::Flags Control::selectMode() const
+{
+    return flags_ & SelectModeFlags;
+}
+
+void Control::setSelectMode(Flags mode)
+{
+    flags_ = (flags_ & ~SelectModeFlags) | (mode & SelectModeFlags);
 }
 
 bool Control::keepAspectRatio() const
