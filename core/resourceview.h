@@ -21,6 +21,8 @@ class SHOWBOARD_EXPORT ResourceView : public ToolButtonProvider
     Q_PROPERTY(Flags const flags READ flags())
     Q_PROPERTY(QString name MEMBER name_)
 
+    Q_PROPERTY(bool deletable READ deletable WRITE setDeletable)
+    Q_PROPERTY(bool copyable READ copyable WRITE setCopyable)
     Q_PROPERTY(bool independent READ independent WRITE setIndependent)
     Q_PROPERTY(Flags pageMode READ pageMode WRITE setPageMode)
     Q_PROPERTY(QByteArray sessionGroup READ sessionGroup WRITE setSessionGroup)
@@ -73,6 +75,14 @@ public:
     virtual ~ResourceView() override;
 
 public:
+    bool deletable() const;
+
+    void setDeletable(bool v);
+
+    bool copyable() const;
+
+    void setCopyable(bool v);
+
     bool independent() const;
 
     void setIndependent(bool v);
