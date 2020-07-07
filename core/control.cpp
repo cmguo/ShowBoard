@@ -92,6 +92,19 @@ void Control::setWithSelectBar(bool b)
     flags_.setFlag(WithSelectBar, b);
 }
 
+static constexpr Control::Flags ScaleModeFlags = Control::CanScale
+        | Control::KeepAspectRatio | Control::LayoutScale | Control::ExpandScale;
+
+Control::Flags Control::scaleMode() const
+{
+    return flags_ & ScaleModeFlags;
+}
+
+void Control::setScaleMode(Flags mode)
+{
+    flags_ = (flags_ & ~ScaleModeFlags) | (mode & ScaleModeFlags);
+}
+
 bool Control::keepAspectRatio() const
 {
     return flags_.testFlag(KeepAspectRatio);
