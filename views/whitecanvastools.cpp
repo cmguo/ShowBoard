@@ -20,10 +20,10 @@
 #include <QQuickItem>
 
 static constexpr char const * toolstr =
-        "new|新建|:/uibase/drawable/navbar/uibase_nav_new.svg;"
-        "prev|上一页|:/uibase/drawable/navbar/uibase_nav_prev_page.svg;"
+        "new|新建|:/showboard/icon/page.new.svg;"
+        "prev|上一页|:/showboard/icon/page.prev.svg;"
         "list|当前页|;"
-        "next|下一页|:/uibase/drawable/navbar/uibase_nav_next_page.svg;"
+        "next|下一页|:/showboard/icon/page.next.svg;"
         ;
 
 WhiteCanvasTools::WhiteCanvasTools(QObject* parent, WhiteCanvas* whiteCanvas)
