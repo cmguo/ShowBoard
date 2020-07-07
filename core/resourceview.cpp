@@ -42,6 +42,26 @@ ResourceView::~ResourceView()
 {
 }
 
+bool ResourceView::deletable() const
+{
+    return flags_.testFlag(CanDelete);
+}
+
+void ResourceView::setDeletable(bool v)
+{
+    flags_.setFlag(CanDelete, v);
+}
+
+bool ResourceView::copyable() const
+{
+    return flags_.testFlag(CanCopy);
+}
+
+void ResourceView::setCopyable(bool v)
+{
+    flags_.setFlag(CanCopy, v);
+}
+
 bool ResourceView::independent() const
 {
     return flags_.testFlag(Independent);

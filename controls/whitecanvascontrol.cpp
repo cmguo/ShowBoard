@@ -41,10 +41,10 @@ WhiteCanvasControl::WhiteCanvasControl(ResourceView * view, QGraphicsItem * canv
     }
     ToolbarWidget* toolbar = new ToolbarWidget;
     toolbar->setObjectName("canvastoolbar");
-    toolbar->attachProvider(this);
     toolbar->setStyleSheet(QSS);
     toolbar->setDragable();
     toolBar_ = toolbar->toGraphicsProxy(nullptr, true);
+    toolbar->attachProvider(this);
     loadSettings();
     // adjust to scene, this is done before attaching transform
     res_->transform().translate(QPointF(0, 0));
