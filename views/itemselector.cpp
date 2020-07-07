@@ -76,8 +76,8 @@ void ItemSelector::select(QGraphicsItem *item)
                              [this]() { layoutToolbar(); });
         }
         toolBar()->attachProvider(selectControl_);
-        layoutToolbar();
         toolBar_->show();
+        layoutToolbar();
         selBox_->setVisible(true,
                             selectControl_->flags() & Control::CanScale,
                             !(selectControl_->flags() & Control::KeepAspectRatio),
