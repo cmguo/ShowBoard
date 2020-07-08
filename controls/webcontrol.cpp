@@ -152,6 +152,7 @@ void WebControl::loadSettings()
 void WebControl::attached()
 {
     WebView * view = static_cast<WebView *>(widget_);
+    widget_->setVisible(true);
     if (flags_.testFlag(RestorePersisted)) {
         // TODO: handle backup loadFinished
         loadFinished(true);
@@ -180,6 +181,12 @@ void WebControl::attached()
 #endif
     }
     view->load(res_->resource()->url());
+}
+
+void WebControl::detached()
+{
+    widget_->hide();
+    WidgetControl::detached();
 }
 
 void WebControl::loadFinished(bool ok)

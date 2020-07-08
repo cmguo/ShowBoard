@@ -36,6 +36,7 @@ protected:
     virtual void loadSettings() override;
 
     virtual void attached() override;
+    virtual void detached() override;
 
 public slots:
     void loadFinished(bool ok);
