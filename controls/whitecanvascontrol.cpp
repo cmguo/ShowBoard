@@ -42,7 +42,21 @@ WhiteCanvasControl::WhiteCanvasControl(ResourceView * view, QGraphicsItem * canv
     ToolbarWidget* toolbar = new ToolbarWidget;
     toolbar->setObjectName("canvastoolbar");
     toolbar->setStyleSheet(QSS);
-    toolbar->setDragable();
+
+    ResourcePage * parentView = qobject_cast<ResourcePage *>(view->parent());
+    bool toolbarFixed = true;
+    QString toolbarPosition = "";
+    if (parentView) {
+        ResourceView * originResourView = parentView->mainResource();
+        if (originResourView) {
+            toolbarFixed = originResourView->property("toolbarFixPosition").toBool();
+            toolbarPosition = originResourView->property("toolbarPosition").toString();
+        }
+    }
+    if (!toolbarFixed) {
+        toolbar->setDragable();
+    }
+
     toolBar_ = toolbar->toGraphicsProxy(nullptr, true);
     toolbar->attachProvider(this);
     loadSettings();
@@ -50,7 +64,15 @@ WhiteCanvasControl::WhiteCanvasControl(ResourceView * view, QGraphicsItem * canv
     res_->transform().translate(QPointF(0, 0));
     qDebug() << "WhiteCanvasControl" << res_->transform().transform();
     item_->scene()->addItem(toolBar_);
-    toolBar_->setPos(QPointF(0, item_->scene()->sceneRect().bottom() - 60));
+
+    if (toolbarPosition == "rightBottom") {
+        QPoint position(
+                    item_->scene()->sceneRect().right() - 48 - 60,
+                    item_->scene()->sceneRect().bottom() - 60);
+        toolBar_->setPos(position);
+    } else {
+        toolBar_->setPos(QPointF(0, item_->scene()->sceneRect().bottom() - 60));
+    }
     flags_.setFlag(LoadFinished);
 }
 
