@@ -66,12 +66,14 @@ WhiteCanvasControl::WhiteCanvasControl(ResourceView * view, QGraphicsItem * canv
     item_->scene()->addItem(toolBar_);
 
     if (toolbarPosition == "rightBottom") {
-        QPoint position(
-                    item_->scene()->sceneRect().right() - 48 - 60,
-                    item_->scene()->sceneRect().bottom() - 60);
+        QRectF rect = item_->scene()->sceneRect();
+
+        int right = item_->scene()->sceneRect().right() -
+                (item_->scene()->sceneRect().width() - item_->scene()->sceneRect().height() * 4 / 3) / 2;
+        QPoint position(right - 24, item_->scene()->sceneRect().bottom() - 24);
         toolBar_->setPos(position);
     } else {
-        toolBar_->setPos(QPointF(0, item_->scene()->sceneRect().bottom() - 60));
+        toolBar_->setPos(QPointF(0, item_->scene()->sceneRect().bottom() - 24));
     }
     flags_.setFlag(LoadFinished);
 }
