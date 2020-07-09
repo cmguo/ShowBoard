@@ -47,7 +47,7 @@ QtPromise::QPromise<QSharedPointer<QIODevice> > FileDataProvider::getStream(cons
         return QPromise<QSharedPointer<QIODevice>>::resolve(file);
     } else {
         qDebug() << "Resource file error" << file->errorString();
-        return QPromise<QSharedPointer<QIODevice>>::reject(std::invalid_argument("打开失败，请确认文件是否存在"));
+        return QPromise<QSharedPointer<QIODevice>>::reject(std::invalid_argument("打开失败，请重试"));
     }
 }
 
