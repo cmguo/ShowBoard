@@ -13,6 +13,8 @@
 #include <QDebug>
 #include <QGraphicsProxyWidget>
 #include <QTimer>
+#include <QGuiApplication>
+#include <QScreen>
 
 static QssHelper QSS(":/showboard/qss/canvastoolbar.qss");
 
@@ -65,15 +67,15 @@ WhiteCanvasControl::WhiteCanvasControl(ResourceView * view, QGraphicsItem * canv
     qDebug() << "WhiteCanvasControl" << res_->transform().transform();
     item_->scene()->addItem(toolBar_);
 
+    float destinyScale = QGuiApplication::primaryScreen()->size().height() / 1080.0f;
+    int offset = destinyScale * 60;
+    QRectF rect = item_->scene()->sceneRect();
     if (toolbarPosition == "rightBottom") {
-        QRectF rect = item_->scene()->sceneRect();
-
-        int right = item_->scene()->sceneRect().right() -
-                (item_->scene()->sceneRect().width() - item_->scene()->sceneRect().height() * 4 / 3) / 2;
-        QPoint position(right - 24, item_->scene()->sceneRect().bottom() - 24);
+        int right = rect.right() - (rect.width() - rect.height() * 4 / 3) / 2;
+        QPoint position(right - offset, rect.bottom() - offset);
         toolBar_->setPos(position);
     } else {
-        toolBar_->setPos(QPointF(0, item_->scene()->sceneRect().bottom() - 24));
+        toolBar_->setPos(QPointF(0, rect.bottom() - offset));
     }
     flags_.setFlag(LoadFinished);
 }
