@@ -54,7 +54,7 @@ QPromise<QUrl> Resource::getLocalUrl()
         if (QFile::exists(url_.toLocalFile()))
             return QPromise<QUrl>::resolve(url());
         else
-            return QPromise<QUrl>::reject(std::invalid_argument("打开失败，请确认文件是否存在"));
+            return QPromise<QUrl>::reject(std::invalid_argument("打开失败，请重试"));
     }
     QString file = cache_->getFile(url_);
     if (!file.isEmpty()) {

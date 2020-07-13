@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="40px" height="40px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: Sketch 62 (91390) - https://sketch.com -->
-    <title>icon/40px/bar/page_new</title>
-    <desc>Created with Sketch.</desc>
-    <g id="icon/40px/bar/page_new" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <path d="M22,6 C22.5522847,6 23,6.44771525 23,7 L23,16.999 L33,17 C33.5522847,17 34,17.4477153 34,18 L34,22 C34,22.5522847 33.5522847,23 33,23 L22.999,22.999 L23,33 C23,33.5522847 22.5522847,34 22,34 L18,34 C17.4477153,34 17,33.5522847 17,33 L16.999,22.999 L7,23 C6.44771525,23 6,22.5522847 6,22 L6,18 C6,17.4477153 6.44771525,17 7,17 L17,16.999 L17,7 C17,6.44771525 17.4477153,6 18,6 L22,6 Z" id="路径" fill="#FBFCFE"></path>
+    <title>01 通用/01 图标/40px/nav/new_page</title>
+    <g id="01-通用/01-图标/40px/nav/new_page" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <path d="M22,6 C22.5522847,6 23,6.44771525 23,7 L23,16.999 L33,17 C33.5522847,17 34,17.4477153 34,18 L34,22 C34,22.5522847 33.5522847,23 33,23 L22.999,22.999 L23,33 C23,33.5522847 22.5522847,34 22,34 L18,34 C17.4477153,34 17,33.5522847 17,33 L16.999,22.999 L7,23 C6.44771525,23 6,22.5522847 6,22 L6,18 C6,17.4477153 6.44771525,17 7,17 L17,16.999 L17,7 C17,6.44771525 17.4477153,6 18,6 L22,6 Z" id="路径" fill="#FFFFFF"></path>
     </g>
 </svg>
