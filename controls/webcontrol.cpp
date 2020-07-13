@@ -1,4 +1,4 @@
-#include "webcontrol.h"
+﻿#include "webcontrol.h"
 #include "core/resource.h"
 #include "core/resourceview.h"
 #include "core/resourcetransform.h"
@@ -391,6 +391,9 @@ void WebView::dump()
 //    dumpObjectTree();
 }
 
+static int WebViewSizeChangeIndex = 0;
+static int WebViewSizeChangeArra[4]{-1,2,-2,1};
+
 bool WebView::event(QEvent *event)
 {
     qDebug() << "WebView::event: " << event->type();
@@ -410,6 +413,10 @@ bool WebView::event(QEvent *event)
         QWebEngineView::event(event);
         event->accept();
         return true;
+    } else if(event->type() ==QEvent::Show||event->type() ==QEvent::Hide){
+        int diff = WebViewSizeChangeArra[WebViewSizeChangeIndex];
+        resize(size() + QSize(diff, diff));
+        WebViewSizeChangeIndex = (++WebViewSizeChangeIndex) % 4;
     }
     return QWebEngineView::event(event);
 }
