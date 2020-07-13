@@ -264,6 +264,8 @@ bool ToolButtonProvider::handleToolButton(ToolButton *button, QStringList const 
 {
     for (QList<ToolButton *> & btns : buttons_) {
         if (btns.contains(button)) {
+            if (button->name() == "close()" && subProviderAfter_ && subProviderAfter_->property("closeControlType").isValid())
+                return false;
             return exec(button->name(), args);
         }
     }

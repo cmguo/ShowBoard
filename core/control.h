@@ -32,8 +32,8 @@ class SHOWBOARD_EXPORT Control : public ToolButtonProvider
     Q_PROPERTY(QSizeF sizeHint READ sizeHint WRITE setSizeHint)
     Q_PROPERTY(QSizeF minSize READ minSize WRITE setMinSize)
     Q_PROPERTY(QSizeF maxSize READ maxSize WRITE setMaxSize)
-
 public:
+
     enum Flag {
         None = 0,
         CanSelect = 1,

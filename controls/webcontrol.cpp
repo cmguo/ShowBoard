@@ -17,6 +17,7 @@
 #include <QQuickItem>
 #include <QWebEngineFullScreenRequest>
 #include <QWebChannel>
+#include "core/resourcepage.h"
 
 #define LARGE_CANVAS_LINKAGE 1
 #define DISABLE_TOUCH 0
@@ -187,6 +188,21 @@ void WebControl::detached()
 {
     widget_->hide();
     WidgetControl::detached();
+}
+
+bool WebControl::handleToolButton(ToolButton *button, const QStringList &args)
+{
+    if (close_control_type_) {
+        bool bRes = close_control_type_(button, args);
+        if (!bRes) {
+            QTimer::singleShot(0, this, [this] () {
+                res_->page()->removeFromPackage();
+            });
+        }
+        return bRes;
+    } else {
+        return Control::handleToolButton(button, args);
+    }
 }
 
 void WebControl::loadFinished(bool ok)
