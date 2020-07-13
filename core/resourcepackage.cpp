@@ -1,4 +1,4 @@
-#include "resourcepackage.h"
+﻿#include "resourcepackage.h"
 #include "resourcepage.h"
 #include "qcomponentcontainer.h"
 #include "resourcemanager.h"
@@ -70,6 +70,7 @@ void ResourcePackage::removePage(ResourcePage *page)
             switchPage(index);
         }
         emit pageRemoved(page);
+        dataChanged(this->index(index + 1, 0), this->index(pages_.size() - 1, 0));
         delete page;
         return;
     }
