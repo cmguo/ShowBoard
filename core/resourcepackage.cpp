@@ -55,6 +55,10 @@ void ResourcePackage::removePage(ResourcePage *page)
 {
     int index = pages_.indexOf(page);
     if (index >= 0) {
+        bool cancel = false;
+        emit pageRemoving(page, &cancel);
+        if (cancel)
+            return;
         pages_.removeAt(index);
         if (index == current_) {
             if (index > 0)
@@ -62,6 +66,8 @@ void ResourcePackage::removePage(ResourcePage *page)
             current_ = -1;
             switchPage(index);
         }
+        emit pageRemoved(page);
+        delete page;
         return;
     }
     removeVirtualPage(page);
@@ -180,8 +186,15 @@ void ResourcePackage::hideAllVirtualPages()
 void ResourcePackage::removeVirtualPage(ResourcePage *page)
 {
     showVirtualPage(page, false);
-    if (hiddenPages_.removeOne(page))
-        delete page;
+    if (!hiddenPages_.contains(page))
+        return;
+    bool cancel = false;
+    emit pageRemoving(page, &cancel);
+    if (cancel)
+        return;
+    hiddenPages_.removeOne(page);
+    emit pageRemoved(page);
+    delete page;
 }
 
 void ResourcePackage::showVirtualPage(const QUrl &mainUrl, bool show)

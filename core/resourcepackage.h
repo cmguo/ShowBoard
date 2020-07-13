@@ -76,6 +76,10 @@ public:
 signals:
     void pageCreated(ResourcePage* page);
 
+    void pageRemoving(ResourcePage* page, bool * cancel);
+
+    void pageRemoved(ResourcePage* page);
+
     void currentPageChanged(ResourcePage* page);
 
     void pageCountChanged(int count);
