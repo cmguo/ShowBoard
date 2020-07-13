@@ -400,7 +400,7 @@ void WebView::dump()
 
 bool WebView::event(QEvent *event)
 {
-    qDebug() << "WebView::event: " << event->type();
+    //qDebug() << "WebView::event: " << event->type();
     if (event->type() == QEvent::TouchBegin
             || event->type() == QEvent::TouchEnd
             || event->type() == QEvent::TouchUpdate
