@@ -59,7 +59,10 @@ void ResourcePackage::removePage(ResourcePage *page)
         emit pageRemoving(page, &cancel);
         if (cancel)
             return;
+        beginRemoveRows(QModelIndex(), index, index);
         pages_.removeAt(index);
+        endRemoveRows();
+
         if (index == current_) {
             if (index > 0)
                 --index;
