@@ -63,6 +63,7 @@ private:
 private:
     QPointer<QQuickWidget> childWidget_;
     qreal scale_ = 1.0;
+    int webViewSizeChangeIndex_ = 0;
 };
 
 // TODO: fix multiple touch crash
@@ -413,8 +414,6 @@ void WebView::dump()
 {
 //    dumpObjectTree();
 }
-
-static int WebViewSizeChangeIndex = 0;
 static int WebViewSizeChangeArra[4]{-1,2,-2,1};
 
 bool WebView::event(QEvent *event)
@@ -437,9 +436,9 @@ bool WebView::event(QEvent *event)
         event->accept();
         return true;
     } else if(event->type() ==QEvent::Show){
-        int diff = WebViewSizeChangeArra[WebViewSizeChangeIndex];
+        int diff = WebViewSizeChangeArra[webViewSizeChangeIndex_];
         resize(size() + QSize(diff, diff));
-        WebViewSizeChangeIndex = (++WebViewSizeChangeIndex) % 4;
+        webViewSizeChangeIndex_ = (++webViewSizeChangeIndex_) % 4;
     }
     return QWebEngineView::event(event);
 }
