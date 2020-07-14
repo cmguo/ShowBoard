@@ -72,6 +72,7 @@ void ResourcePackage::removePage(ResourcePage *page)
         emit pageRemoved(page);
         if (index + 1 < pages_.size())
            dataChanged(this->index(index + 1, 0), this->index(pages_.size() - 1, 0));
+        emit pageCountChanged(pages_.size());
         delete page;
         return;
     }
