@@ -436,7 +436,7 @@ bool WebView::event(QEvent *event)
         QWebEngineView::event(event);
         event->accept();
         return true;
-    } else if(event->type() ==QEvent::Show||event->type() ==QEvent::Hide){
+    } else if(event->type() ==QEvent::Show){
         int diff = WebViewSizeChangeArra[WebViewSizeChangeIndex];
         resize(size() + QSize(diff, diff));
         WebViewSizeChangeIndex = (++WebViewSizeChangeIndex) % 4;
