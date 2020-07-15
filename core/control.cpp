@@ -60,9 +60,6 @@ Control::Control(ResourceView *res, Flags flags, Flags clearFlags)
     transform_ = new ControlTransform(res->transform());
     if (res_->flags() & ResourceView::SavedSession) {
         flags_ |= RestoreSession;
-        if (res_->flags().testFlag(ResourceView::LargeCanvas)) {
-            flags_.setFlag(DefaultFlags, false);
-        }
     }
     minMaxSize_[0] = {MIN_SIZE, MIN_SIZE};
     minMaxSize_[1] = {MAX_SIZE, MAX_SIZE};
@@ -582,11 +579,11 @@ void Control::initScale()
     QSizeF size = item_->boundingRect().size();
     if (res_->flags().testFlag(ResourceView::LargeCanvas)) {
         Control * canvasControl = fromItem(whiteCanvas());
+        canvasControl->flags_.setFlag(CanScale, flags_.testFlag(CanScale));
+        flags_.setFlag(DefaultFlags, 0);
         if (flags_ & RestoreSession) {
             return;
         }
-        canvasControl->flags_.setFlag(CanScale, flags_.testFlag(CanScale));
-        flags_.setFlag(DefaultFlags, 0);
         canvasControl->resize(size);
         canvasControl->attached();
         return;
