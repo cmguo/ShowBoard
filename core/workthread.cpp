@@ -1,4 +1,4 @@
-#include "workthread.h"
+﻿  #include "workthread.h"
 
 #include <QList>
 #include <QMutex>

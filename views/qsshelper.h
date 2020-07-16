@@ -1,4 +1,4 @@
-#ifndef QSSHELPER_H
+﻿#ifndef QSSHELPER_H
 #define QSSHELPER_H
 
 #include <ShowBoard_global.h>
@@ -6,6 +6,8 @@
 #include <QByteArray>
 #include <QMap>
 #include <QList>
+#include <QSize>
+#include <QVariant>
 
 class SHOWBOARD_EXPORT QssValue : public QVariant
 {
