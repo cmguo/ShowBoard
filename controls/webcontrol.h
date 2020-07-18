@@ -6,7 +6,7 @@
 #include <QColor>
 #include <QHash>
 
-class WebControl : public WidgetControl
+class SHOWBOARD_EXPORT WebControl : public WidgetControl
 {
     Q_OBJECT
 
@@ -48,6 +48,8 @@ protected:
     virtual void attached() override;
     virtual void detached() override;
     virtual bool handleToolButton(ToolButton * button, QStringList const & args) override;
+
+    virtual QUrl url() const;
 
 public slots:
     void loadFinished(bool ok);

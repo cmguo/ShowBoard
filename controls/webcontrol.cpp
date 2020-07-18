@@ -31,6 +31,7 @@ static char const * toolstr = ""
         "fitContent()|适合内容|;"
         "full()|全屏|Checkable|;"
         #endif
+        "feedback()|报错|;"
         ;
 
 class WebPage : public QWebEnginePage
@@ -186,7 +187,7 @@ void WebControl::attached()
         });
 #endif
     }
-    view->load(res_->resource()->url());
+    view->load(url());
 }
 
 void WebControl::detached()
@@ -208,6 +209,11 @@ bool WebControl::handleToolButton(ToolButton *button, const QStringList &args)
     } else {
         return Control::handleToolButton(button, args);
     }
+}
+
+QUrl WebControl::url() const
+{
+    return res_->resource()->url();
 }
 
 void WebControl::loadFinished(bool ok)
