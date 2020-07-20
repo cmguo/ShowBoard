@@ -206,18 +206,22 @@ void PowerPoint::show(int page)
     } else {
         slideNumber_ = page;
     }
+    int ntry = 0;
     if (view_) {
         showWindow(hwnd_);
-    } else {
+    } else while (ntry < 2) { // only retry once
         try {
             QAxObject * settings = presentation_->querySubObject("SlideShowSettings");
             if (settings) {
                 //settings->setProperty("ShowType", "ppShowTypeSpeaker");
                 settings->setProperty("ShowMediaControls", "true");
                 settings->setProperty("ShowPresenterView", "false");
-            } else {
+            } else  {
                 emit failed("Can't get SlideShowSettings!");
-                return;
+                // WPS failed if other show
+                ++ntry;
+                reopen();
+                continue;
             }
             //if (page) // will cause View be null
             //    settings->setProperty("StartingSlide", page);
@@ -245,6 +249,7 @@ void PowerPoint::show(int page)
                 return;
             }
             qDebug() << "Found play window" << reinterpret_cast<void *>(hwnd_);
+            break;
         } catch (...) {
         }
         if (page == 0) {
@@ -307,6 +312,7 @@ void PowerPoint::prev()
 
 void PowerPoint::hide()
 {
+    qDebug() << "hide";
     killTimer(timerId_);
     timerId_ = 0;
     thumb(0);
