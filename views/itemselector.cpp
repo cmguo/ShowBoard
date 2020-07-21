@@ -75,6 +75,11 @@ void ItemSelector::select(QGraphicsItem *item)
             QObject::connect(&canvasControl->resource()->transform(), &ResourceTransform::changed, toolBar(),
                              [this]() { layoutToolbar(); });
         }
+        QObject::connect(selectControl_, &Control::destroyed,
+                         selBoxTransform_, [this, item]() {
+            qWarning() << "delayed unselect!!";
+            unselect(item);
+        });
         toolBar()->attachProvider(selectControl_);
         toolBar_->show();
         layoutToolbar();
@@ -90,8 +95,10 @@ void ItemSelector::select(QGraphicsItem *item)
         //itemChange(ItemPositionHasChanged, pos());
     } else {
         select_ = nullptr;
-        if (selectControl_)
+        if (selectControl_) {
             selectControl_->select(false);
+            selectControl_->disconnect(selBoxTransform_);
+        }
         selBoxTransform_->attachTo(nullptr);
         selBoxCanvasTransform_->attachTo(nullptr);
         toolBarTransform_->attachTo(nullptr);
