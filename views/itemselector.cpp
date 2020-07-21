@@ -24,7 +24,6 @@ ItemSelector::ItemSelector(QGraphicsItem * parent)
     , hideMenu_(false)
     , fastClone_(false)
     , autoUnselect_(false)
-    , select_(nullptr)
     , selectControl_(nullptr)
     , selBoxTransform_(new ControlTransform(ControlTransform::SelectBox))
     , selBoxCanvasTransform_(new ControlTransform(ControlTransform::SelectBoxLargeCanvas))
@@ -53,95 +52,40 @@ ItemSelector::ItemSelector(QGraphicsItem * parent)
     });
 }
 
-void ItemSelector::select(QGraphicsItem *item)
+void ItemSelector::select(Control * control)
 {
-    if (item == select_) {
-        if (selBox_->isVisible())
-            return;
-    }
-    if (item) {
-        select_ = item;
-        selectControl_ = Control::fromItem(item);
-        rect_ = selectControl_->boundRect();
-        selBox_->setRect(rect_);
-        selBoxTransform_->attachTo(selectControl_->transform());
-        //QList<ToolButton *> buttons;
-        //selectControl_->getToolButtons(buttons);
-        Control * canvasControl = Control::fromItem(parentItem());
-        if (canvasControl) {
-            if (selectControl_->flags().testFlag(Control::FixedOnCanvas))
-                selBoxCanvasTransform_->attachTo(canvasControl->transform());
-            toolBarTransform_->attachTo(canvasControl->transform());
-            QObject::connect(&canvasControl->resource()->transform(), &ResourceTransform::changed, toolBar(),
-                             [this]() { layoutToolbar(); });
-        }
-        QObject::connect(selectControl_, &Control::destroyed,
-                         selBoxTransform_, [this, item]() {
-            qWarning() << "delayed unselect!!";
-            unselect(item);
-        });
-        toolBar()->attachProvider(selectControl_);
-        toolBar_->show();
-        layoutToolbar();
-        selBox_->setVisible(true,
-                            selectControl_->flags() & Control::CanScale,
-                            !(selectControl_->flags() & Control::KeepAspectRatio),
-                            selectControl_->flags() & Control::CanRotate,
-                            selectControl_->flags() & Control::ShowSelectMask);
-        if (autoTop_) {
-            selectControl_->resource()->moveTop();
-        }
-        selectControl_->select(true);
-        //itemChange(ItemPositionHasChanged, pos());
-    } else {
-        select_ = nullptr;
-        if (selectControl_) {
-            selectControl_->select(false);
-            selectControl_->disconnect(selBoxTransform_);
-        }
-        selBoxTransform_->attachTo(nullptr);
-        selBoxCanvasTransform_->attachTo(nullptr);
-        toolBarTransform_->attachTo(nullptr);
-        selectControl_ = nullptr;
-        Control * canvasControl = Control::fromItem(parentItem());
-        if (canvasControl) {
-            canvasControl->resource()->transform().disconnect(toolBar());
-        }
-        selBox_->setVisible(false);
-        toolBar_->hide();
-        toolBar()->attachProvider(nullptr);
-        fastClone_ = false;
-        cloneControl_ = nullptr;
-        type_ = None;
+    qInfo() << "select" << control->resource()->url();
+    select2(control);
+}
+
+void ItemSelector::unselect(Control * control)
+{
+    if (control == selectControl_) {
+        qInfo() << "unselect" << control->resource()->url();
+        select2(nullptr);
     }
 }
 
-void ItemSelector::unselect(QGraphicsItem *item)
+void ItemSelector::selectImplied(Control * control)
 {
-    if (item == select_)
-        select(nullptr);
-}
-
-void ItemSelector::selectImplied(QGraphicsItem *item)
-{
-    if (item != select_)
-        select(item);
+    if (control != selectControl_)
+        select2(control);
     selBox_->hide();
     toolBar_->hide();
 }
 
-void ItemSelector::updateSelect(QGraphicsItem *item)
+void ItemSelector::updateSelect(Control * control)
 {
-    if (item != select_)
+    if (control != selectControl_)
         return;
     rect_ = selectControl_->boundRect();
     selBox_->setRect(rect_);
     layoutToolbar();
 }
 
-bool ItemSelector::adjusting(QGraphicsItem *item)
+bool ItemSelector::adjusting(Control * control)
 {
-    if (item != select_)
+    if (control != selectControl_)
         return false;
     return type_ != None;
 }
@@ -154,7 +98,7 @@ void ItemSelector::enableFastClone(bool enable)
 void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos, bool fromTouch)
 {
     type_ = None;
-    if (select_ && selBox_->isVisible()) {
+    if (selectControl_ && selBox_->isVisible()) {
         type_ = static_cast<SelectType>(
                     selBox_->hitTest(selBox_->mapFromParent(pos), direction_));
         if (fastClone_ && type_ == Translate)
@@ -195,9 +139,8 @@ void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos, bool f
             //qDebug() << force << ct->resource()->name() << mode;
             if (force || mode == Control::Select) {
                 if (ct != selectControl_) {
-                    select(nullptr);
+                    select2(nullptr);
                     type_ = TempNoMove;
-                    select_ = ct->item();
                     selectControl_ = ct;
                     selectControl_->select(true);
                 } else {
@@ -217,9 +160,9 @@ void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos, bool f
         }
     }
     if (type_ == None) {
-        if (select_ && !fromTouch) { // will receive mouse event later
-            select(nullptr);
-            qInfo() << "select null";
+        if (selectControl_ && !fromTouch) { // will receive mouse event later
+            select2(nullptr);
+            qInfo() << "selectAt null";
         }
         //if (force_) {
         //    type_ = Canvas;
@@ -229,7 +172,7 @@ void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos, bool f
         if (selectControl_->metaObject() == &WhiteCanvasControl::staticMetaObject
                 || (selectControl_->flags() & Control::FixedOnCanvas))
             start_ = scenePos;
-        qInfo() << "select" << type_ << selectControl_->resource()->url();
+        qInfo() << "selectAt" << type_ << selectControl_->resource()->url();
         selectControl_->adjusting(true);
     }
 }
@@ -302,21 +245,21 @@ void ItemSelector::selectRelease()
     selectControl_->adjusting(false);
     switch (type_) {
     case AgainNoMove:
-        select(select_);
+        select2(selectControl_);
         break;
     case TempNoMove:
         if (selectControl_->flags() & Control::CanSelect) {
-            QGraphicsItem * item = select_;
+            Control * control = selectControl_;
             selectControl_->select(false);
-            select_ = nullptr;
-            select(item);
+            selectControl_ = nullptr;
+            select2(control);
             break;
         }
         Q_FALLTHROUGH();
     case AgainMoved:
     case TempMoved:
         qInfo() << "select cancel";
-        select(nullptr);
+        select2(nullptr);
         break;
     case FastClone:
         cloneControl_ = nullptr;
@@ -359,6 +302,67 @@ ToolbarWidget * ItemSelector::toolBar()
 {
     return static_cast<ToolbarWidget*>(
                 static_cast<QGraphicsProxyWidget*>(toolBar_)->widget());
+}
+
+void ItemSelector::select2(Control *control)
+{
+    if (control == selectControl_) {
+        if (selBox_->isVisible())
+            return;
+    }
+    if (control) {
+        selectControl_ = control;
+        rect_ = selectControl_->boundRect();
+        selBox_->setRect(rect_);
+        selBoxTransform_->attachTo(selectControl_->transform());
+        //QList<ToolButton *> buttons;
+        //selectControl_->getToolButtons(buttons);
+        Control * canvasControl = Control::fromItem(parentItem());
+        if (canvasControl) {
+            if (selectControl_->flags().testFlag(Control::FixedOnCanvas))
+                selBoxCanvasTransform_->attachTo(canvasControl->transform());
+            toolBarTransform_->attachTo(canvasControl->transform());
+            QObject::connect(&canvasControl->resource()->transform(), &ResourceTransform::changed, toolBar(),
+                             [this]() { layoutToolbar(); });
+        }
+        QObject::connect(selectControl_, &Control::destroyed,
+                         selBoxTransform_, [this, control]() {
+            qWarning() << "delayed unselect!!";
+            unselect(control);
+        });
+        toolBar()->attachProvider(selectControl_);
+        toolBar_->show();
+        layoutToolbar();
+        selBox_->setVisible(true,
+                            selectControl_->flags() & Control::CanScale,
+                            !(selectControl_->flags() & Control::KeepAspectRatio),
+                            selectControl_->flags() & Control::CanRotate,
+                            selectControl_->flags() & Control::ShowSelectMask);
+        if (autoTop_) {
+            selectControl_->resource()->moveTop();
+        }
+        selectControl_->select(true);
+        //itemChange(ItemPositionHasChanged, pos());
+    } else {
+        if (selectControl_) {
+            selectControl_->select(false);
+            selectControl_->disconnect(selBoxTransform_);
+        }
+        selBoxTransform_->attachTo(nullptr);
+        selBoxCanvasTransform_->attachTo(nullptr);
+        toolBarTransform_->attachTo(nullptr);
+        selectControl_ = nullptr;
+        Control * canvasControl = Control::fromItem(parentItem());
+        if (canvasControl) {
+            canvasControl->resource()->transform().disconnect(toolBar());
+        }
+        selBox_->setVisible(false);
+        toolBar_->hide();
+        toolBar()->attachProvider(nullptr);
+        fastClone_ = false;
+        cloneControl_ = nullptr;
+        type_ = None;
+    }
 }
 
 void ItemSelector::autoMoveSelectionTop(bool enable)
@@ -540,7 +544,7 @@ bool ItemSelector::sceneEvent(QEvent *event)
         break;
     case QEvent::WindowDeactivate:
         if (autoUnselect_)
-            select(nullptr);
+            select2(nullptr);
         break;
     default:
         return CanvasItem::sceneEvent(event);

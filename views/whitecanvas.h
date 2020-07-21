@@ -140,9 +140,9 @@ private:
     virtual bool sceneEvent(QEvent *event) override;
 
 private:
-    QGraphicsItem * selectableNext(QGraphicsItem * item);
+    Control * selectableNext(Control * control);
 
-    QGraphicsItem * selectablePrev(QGraphicsItem * item);
+    Control * selectablePrev(Control * control);
 
 private:
     ResourcePackage * package_;

@@ -18,15 +18,15 @@ public:
     ItemSelector(QGraphicsItem * parent = nullptr);
 
 public:
-    void select(QGraphicsItem * item);
+    void select(Control * control);
 
-    void unselect(QGraphicsItem * item);
+    void unselect(Control * control);
 
-    void selectImplied(QGraphicsItem * item);
+    void selectImplied(Control * control);
 
-    void updateSelect(QGraphicsItem * item);
+    void updateSelect(Control * control);
 
-    bool adjusting(QGraphicsItem * item);
+    bool adjusting(Control * control);
 
     void enableFastClone(bool enable = true);
 
@@ -38,10 +38,7 @@ public:
 
     ToolbarWidget * toolBar();
 
-    QGraphicsItem * selected()
-    {
-        return select_;
-    }
+    Control * selected() const { return selectControl_; }
 
 private:
     enum SelectType
@@ -59,6 +56,8 @@ private:
     };
 
 private:
+    void select2(Control * control);
+
     void selectAt(QPointF const & pos, QPointF const & scenePos, bool fromTouch);
 
     void selectMove(QPointF const & pos, QPointF const & scenePos);
@@ -98,7 +97,6 @@ private:
     bool autoUnselect_;
 
 private:
-    QGraphicsItem * select_;
     Control * selectControl_;
     ControlTransform* selBoxTransform_;
     ControlTransform* selBoxCanvasTransform_;

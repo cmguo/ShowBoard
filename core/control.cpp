@@ -202,7 +202,7 @@ void Control::detachFrom(QGraphicsItem *parent, QGraphicsItem *)
         saveSettings();
     (void) parent;
     if (flags_ & Selected)
-        whiteCanvas()->selector()->unselect(realItem_);
+        whiteCanvas()->selector()->unselect(this);
     realItem_->scene()->removeItem(realItem_);
     QList<QGraphicsTransform*> transforms = realItem_->transformations();
     if (transforms.size() > 1) {
@@ -337,7 +337,7 @@ void Control::sizeChanged()
         stateItem_->updateTransform();
     }
     ItemSelector * selector = whiteCanvas()->selector();
-    selector->updateSelect(realItem_);
+    selector->updateSelect(this);
 }
 
 QSizeF Control::sizeHint()
@@ -685,7 +685,7 @@ bool Control::scale(const QRectF &direction, QPointF &delta)
     adjusting(true);
     scale(rect, direction, delta);
     adjusting(false);
-    whiteCanvas()->selector()->updateSelect(realItem_);
+    whiteCanvas()->selector()->updateSelect(this);
     return true;
 }
 
@@ -875,7 +875,7 @@ void Control::getToolButtons(QList<ToolButton *> &buttons, ToolButton * parent)
 bool Control::handleToolButton(ToolButton *btn, const QStringList &args)
 {
     if (btn->isHideSelector()) {
-        whiteCanvas()->selector()->selectImplied(realItem_);
+        whiteCanvas()->selector()->selectImplied(this);
     }
     if (btn == &btnTop) {
         res_->moveTop();

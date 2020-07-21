@@ -149,7 +149,7 @@ Control * WhiteCanvas::addResource(QUrl const & url, QVariantMap settings)
     ResourceView * res = canvas_->page()->addResource(url, settings);
     Control * ct = canvas_->findControl(res);
     if (ct && ct->flags().testFlag(Control::CanSelect))
-        selector_->select(ct->item());
+        selector_->select(ct);
     return ct;
 }
 
@@ -159,7 +159,7 @@ Control *WhiteCanvas::copyResource(Control *control)
     ResourceView * res = canvas_->page()->copyResource(control->resource());
     Control* copy = canvas_->findControl(res);
     control->afterClone(copy);
-    if (control->item() == selector_->selected() && !(control->flags() & Control::Adjusting)) {
+    if (control == selector_->selected() && !(control->flags() & Control::Adjusting)) {
         selector_->select(nullptr);
         copy->resource()->transform().translate({60, 60});
     }
@@ -188,116 +188,123 @@ Control * WhiteCanvas::topControl()
 
 void WhiteCanvas::select(Control *control)
 {
-    selector()->select(control ? control->item() : nullptr);
+    selector()->select(control);
 }
 
 Control *WhiteCanvas::selected()
 {
-    QGraphicsItem * t = selector_->selected();
-    return t ? Control::fromItem(t) : nullptr;
+    return selector_->selected();
 }
 
 Control * WhiteCanvas::selectFirst()
 {
-    QGraphicsItem * t = selectableNext(nullptr);
+    Control * t = selectableNext(nullptr);
     if (t) {
         selector_->select(t);
-        return Control::fromItem(t);
+        return t;
     }
     return nullptr;
 }
 
 Control * WhiteCanvas::selectNext()
 {
-    QGraphicsItem * t = selector_->selected();
+    Control * t = selector_->selected();
     t = selectableNext(t);
     if (t) {
         selector_->select(t);
-        return Control::fromItem(t);
+        return t;
     }
     return nullptr;
 }
 
 Control * WhiteCanvas::selectPrev()
 {
-    QGraphicsItem * t = selector_->selected();
+    Control * t = selector_->selected();
     t = selectablePrev(t);
     if (t) {
         selector_->select(t);
-        return Control::fromItem(t);
+        return t;
     }
     return nullptr;
 }
 
 Control * WhiteCanvas::selectLast()
 {
-    QGraphicsItem * t = selectablePrev(nullptr);
+    Control * t = selectablePrev(nullptr);
     if (t) {
         selector_->select(t);
-        return Control::fromItem(t);
+        return t;
     }
     return nullptr;
 }
 
-QGraphicsItem *WhiteCanvas::selectableNext(QGraphicsItem *item)
+Control *WhiteCanvas::selectableNext(Control * control)
 {
     PageCanvas * pc = canvas_;
     int i = -1;
+    QGraphicsItem * item = control ? control->item() : nullptr;
     if (item) {
          pc = static_cast<PageCanvas*>(item->parentItem());
          i = pc->childItems().indexOf(item);
     }
     while (++i < pc->childItems().size()) {
         QGraphicsItem * t = pc->childItems().at(i);
-        if (Control::fromItem(t)->flags() & Control::CanSelect)
-            return t;
+        control = Control::fromItem(t);
+        if (control->flags() & Control::CanSelect)
+            return control;
     }
     pc = pc == canvas_ ? globalCanvas_ : canvas_;
     i = -1;
     while (++i < pc->childItems().size()) {
         QGraphicsItem * t = pc->childItems().at(i);
-        if (Control::fromItem(t)->flags() & Control::CanSelect)
-            return t;
+        control = Control::fromItem(t);
+        if (control->flags() & Control::CanSelect)
+            return control;
     }
     if (item) {
         pc = static_cast<PageCanvas*>(item->parentItem());
         i = -1;
         while (++i < pc->childItems().size()) {
             QGraphicsItem * t = pc->childItems().at(i);
-            if (Control::fromItem(t)->flags() & Control::CanSelect)
-                return t;
+            control = Control::fromItem(t);
+            if (control->flags() & Control::CanSelect)
+                return control;
         }
     }
     return nullptr;
 }
 
-QGraphicsItem *WhiteCanvas::selectablePrev(QGraphicsItem *item)
+Control *WhiteCanvas::selectablePrev(Control * control)
 {
     PageCanvas * pc = globalCanvas_;
     int i = pc->childItems().size();
+    QGraphicsItem * item = control ? control->item() : nullptr;
     if (item) {
          pc = static_cast<PageCanvas*>(item->parentItem());
          i = pc->childItems().indexOf(item);
     }
     while (i > 0) {
         QGraphicsItem * t = pc->childItems().at(--i);
-        if (Control::fromItem(t)->flags() & Control::CanSelect)
-            return t;
+        control = Control::fromItem(t);
+        if (control->flags() & Control::CanSelect)
+            return control;
     }
     pc = pc == canvas_ ? globalCanvas_ : canvas_;
     i = pc->childItems().size();
     while (i > 0) {
         QGraphicsItem * t = pc->childItems().at(--i);
-        if (Control::fromItem(t)->flags() & Control::CanSelect)
-            return t;
+        control = Control::fromItem(t);
+        if (control->flags() & Control::CanSelect)
+            return control;
     }
     if (item) {
         pc = static_cast<PageCanvas*>(item->parentItem());
         i = pc->childItems().size();
         while (i > 0) {
             QGraphicsItem * t = pc->childItems().at(--i);
-            if (Control::fromItem(t)->flags() & Control::CanSelect)
-                return t;
+            control = Control::fromItem(t);
+            if (control->flags() & Control::CanSelect)
+                return control;
         }
     }
     return nullptr;
