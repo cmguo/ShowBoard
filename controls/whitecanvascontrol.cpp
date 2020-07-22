@@ -3,6 +3,7 @@
 #include "views/positionbar.h"
 #include "views/toolbarwidget.h"
 #include "views/qsshelper.h"
+#include "views/itemselector.h"
 #include "core/resourceview.h"
 #include "core/resourcetransform.h"
 #include "core/resourcepage.h"
@@ -87,6 +88,8 @@ WhiteCanvasControl::~WhiteCanvasControl()
     qDebug() << "~WhiteCanvasControl" << res_->transform().transform();
     saveSettings();
     delete posBar_;
+    if (flags_ & Selected)
+        static_cast<WhiteCanvas*>(item_)->selector()->unselect(this);
     item_->setData(ITEM_KEY_CONTROL, QVariant());
     item_->setTransformations({});
     item_ = nullptr;
