@@ -25,6 +25,7 @@ ItemSelector::ItemSelector(QGraphicsItem * parent)
     , fastClone_(false)
     , autoUnselect_(false)
     , selectControl_(nullptr)
+    , tempControl_(nullptr)
     , selBoxTransform_(new ControlTransform(ControlTransform::SelectBox))
     , selBoxCanvasTransform_(new ControlTransform(ControlTransform::SelectBoxLargeCanvas))
     , toolBarTransform_(new ControlTransform(ControlTransform::LargeCanvasTooBar))
@@ -141,13 +142,13 @@ void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos, bool f
                 if (ct != selectControl_) {
                     select2(nullptr);
                     type_ = TempNoMove;
-                    selectControl_ = ct;
-                    selectControl_->select(true);
+                    //ct->select(true);
                 } else {
                     type_ = selBox_->isVisible() ? Translate : AgainNoMove;
                 }
+                tempControl_ = ct;
                 if (autoTop_) {
-                    selectControl_->resource()->moveTop();
+                    tempControl_->resource()->moveTop();
                 }
                 break;
             } else if (ct == selectControl_) {
@@ -158,6 +159,8 @@ void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos, bool f
             if (mode != Control::PassSelect && mode != Control::PassSelect2)
                 break;
         }
+    } else {
+        tempControl_ = selectControl_;
     }
     if (type_ == None) {
         if (selectControl_ && !fromTouch) { // will receive mouse event later
@@ -169,31 +172,31 @@ void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos, bool f
         //}
     } else {
         start_ = pos;
-        if (selectControl_->metaObject() == &WhiteCanvasControl::staticMetaObject
-                || (selectControl_->flags() & Control::FixedOnCanvas))
+        if (tempControl_->metaObject() == &WhiteCanvasControl::staticMetaObject
+                || (tempControl_->flags() & Control::FixedOnCanvas))
             start_ = scenePos;
-        qInfo() << "selectAt" << type_ << selectControl_->resource()->url();
-        selectControl_->adjusting(true);
+        qInfo() << "selectAt" << type_ << tempControl_->resource()->url();
+        tempControl_->adjusting(true);
     }
 }
 
 void ItemSelector::selectMove(QPointF const & pos, QPointF const & scenePos)
 {
     QPointF pt = pos;
-    if (selectControl_->metaObject() == &WhiteCanvasControl::staticMetaObject
-            || (selectControl_->flags() & Control::FixedOnCanvas))
+    if (tempControl_->metaObject() == &WhiteCanvasControl::staticMetaObject
+            || (tempControl_->flags() & Control::FixedOnCanvas))
         pt = scenePos;
     if (!scene()->sceneRect().contains(scenePos))
         return;
     QPointF d = pt - start_;
     switch (type_) {
     case Translate:
-        if (selectControl_->flags() & Control::CanMove) {
-            selectControl_->move(d);
+        if (tempControl_->flags() & Control::CanMove) {
+            tempControl_->move(d);
         }
         break;
     case Scale: {
-        if (!selectControl_->scale(rect_, direction_, d)) {
+        if (!tempControl_->scale(rect_, direction_, d)) {
             pt = start_;
             break;
         }
@@ -201,11 +204,11 @@ void ItemSelector::selectMove(QPointF const & pos, QPointF const & scenePos)
         selBox_->setRect(rect_);
         } break;
     case Rotate:
-        selectControl_->rotate(start_, pt);
+        tempControl_->rotate(start_, pt);
         break;
     case TempNoMove:
     case AgainNoMove:
-        if ((selectControl_->flags() & Control::CanMove) == 0) {
+        if ((tempControl_->flags() & Control::CanMove) == 0) {
             break;
         }
         if (qAbs(d.x()) + qAbs(d.y()) < 10) {
@@ -216,7 +219,7 @@ void ItemSelector::selectMove(QPointF const & pos, QPointF const & scenePos)
         Q_FALLTHROUGH();
     case TempMoved:
     case AgainMoved:
-        selectControl_->move(d);
+        tempControl_->move(d);
         break;
     case FastClone:
         if (cloneControl_) {
@@ -225,7 +228,7 @@ void ItemSelector::selectMove(QPointF const & pos, QPointF const & scenePos)
             pt = start_;
         } else {
             cloneControl_ = static_cast<WhiteCanvas*>(
-                        parentItem())->copyResource(selectControl_);
+                        parentItem())->copyResource(tempControl_);
         }
         break;
     default:
@@ -242,21 +245,20 @@ void ItemSelector::selectRelease()
 {
     if (type_ == None)
         return;
-    selectControl_->adjusting(false);
+    tempControl_->adjusting(false);
     switch (type_) {
     case AgainNoMove:
-        select2(selectControl_);
+        select2(tempControl_); // leave Implied Select
         break;
     case TempNoMove:
-        if (selectControl_->flags() & Control::CanSelect) {
-            Control * control = selectControl_;
-            selectControl_->select(false);
-            selectControl_ = nullptr;
-            select2(control);
+        if (tempControl_->flags() & Control::CanSelect) {
+            //selectControl_->select(false);
+            select2(tempControl_);
             break;
         }
         Q_FALLTHROUGH();
     case AgainMoved:
+        break;
     case TempMoved:
         qInfo() << "select cancel";
         select2(nullptr);
@@ -268,6 +270,7 @@ void ItemSelector::selectRelease()
         break;
     }
     type_ = None;
+    tempControl_ = nullptr;
     if (hideMenu_) {
         //if (toolBar()->buttons_())
         toolBar_->setVisible(selBox_->isVisible());
@@ -307,11 +310,39 @@ ToolbarWidget * ItemSelector::toolBar()
 void ItemSelector::select2(Control *control)
 {
     if (control == selectControl_) {
-        if (selBox_->isVisible())
-            return;
+        if (control && !selBox_->isVisible()) {
+            toolBar_->show();
+            layoutToolbar();
+            selBox_->setVisible(true,
+                                control->flags() & Control::CanScale,
+                                !(control->flags() & Control::KeepAspectRatio),
+                                control->flags() & Control::CanRotate,
+                                control->flags() & Control::ShowSelectMask);
+            // call for geometry control
+            control->select(true);
+        }
+        return;
     }
-    if (control) {
-        selectControl_ = control;
+    if (selectControl_) {
+        selectControl_->select(false);
+        selectControl_->disconnect(selBoxTransform_);
+        selBoxTransform_->attachTo(nullptr);
+        selBoxCanvasTransform_->attachTo(nullptr);
+        toolBarTransform_->attachTo(nullptr);
+        selectControl_ = nullptr;
+        Control * canvasControl = Control::fromItem(parentItem());
+        if (canvasControl) {
+            canvasControl->resource()->transform().disconnect(toolBar());
+        }
+        selBox_->setVisible(false);
+        toolBar_->hide();
+        toolBar()->attachProvider(nullptr);
+        fastClone_ = false;
+        cloneControl_ = nullptr;
+        type_ = None;
+    }
+    selectControl_ = control;
+    if (selectControl_) {
         rect_ = selectControl_->boundRect();
         selBox_->setRect(rect_);
         selBoxTransform_->attachTo(selectControl_->transform());
@@ -343,25 +374,6 @@ void ItemSelector::select2(Control *control)
         }
         selectControl_->select(true);
         //itemChange(ItemPositionHasChanged, pos());
-    } else {
-        if (selectControl_) {
-            selectControl_->select(false);
-            selectControl_->disconnect(selBoxTransform_);
-        }
-        selBoxTransform_->attachTo(nullptr);
-        selBoxCanvasTransform_->attachTo(nullptr);
-        toolBarTransform_->attachTo(nullptr);
-        selectControl_ = nullptr;
-        Control * canvasControl = Control::fromItem(parentItem());
-        if (canvasControl) {
-            canvasControl->resource()->transform().disconnect(toolBar());
-        }
-        selBox_->setVisible(false);
-        toolBar_->hide();
-        toolBar()->attachProvider(nullptr);
-        fastClone_ = false;
-        cloneControl_ = nullptr;
-        type_ = None;
     }
 }
 

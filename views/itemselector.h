@@ -98,6 +98,7 @@ private:
 
 private:
     Control * selectControl_;
+    Control * tempControl_;
     ControlTransform* selBoxTransform_;
     ControlTransform* selBoxCanvasTransform_;
     ControlTransform* toolBarTransform_;

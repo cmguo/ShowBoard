@@ -94,6 +94,7 @@ private:
                 QEvent event(QEvent::User);
                 control_->event(&event);
                 if (!(control_->resource()->flags() & ResourceView::DrawFinised)) {
+                    qDebug() << "DrawItem: draw dropped";
                     tool->removeControl(control_);
                     control = nullptr;
                 }
@@ -104,6 +105,7 @@ private:
             tool->finishControl(control);
         } else if (!finish_) {
             qDebug() << "DrawItem: draw canceled";
+            finish_ = true;
             tool->finishControl(control);
         }
     }

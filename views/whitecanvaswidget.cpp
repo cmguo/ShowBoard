@@ -1,4 +1,4 @@
-﻿#include "whitecanvaswidget.h"
+#include "whitecanvaswidget.h"
 #include "whitecanvas.h"
 #include "core/resourcepackage.h"
 #include "core/resourcepage.h"
@@ -42,6 +42,7 @@ WhiteCanvasWidget::WhiteCanvasWidget(QWidget *parent)
     //setTransformationAnchor(AnchorUnderMouse);
     //setDragMode(QGraphicsView::ScrollHandDrag);
 
+#ifdef QT_DEBUG
     QObject::connect(new QShortcut(QKeySequence::Delete, this), &QShortcut::activated,
                      this, &WhiteCanvasWidget::deleteSelection);
     QObject::connect(new QShortcut(QKeySequence::Cancel, this), &QShortcut::activated,
@@ -64,6 +65,7 @@ WhiteCanvasWidget::WhiteCanvasWidget(QWidget *parent)
     }
     QObject::connect(new QShortcut(QKeySequence(Qt::Key_Tab | Qt::ShiftModifier), this), &QShortcut::activated,
                      this, [this]() { canvas_->selectPrev(); });
+#endif
     mainInstance_ = this;
 }
 
