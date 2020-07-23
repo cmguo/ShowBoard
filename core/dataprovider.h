@@ -41,7 +41,7 @@ public:
 
 class QNetworkAccessManager;
 
-class HttpDataProvider : public DataProvider
+class SHOWBOARD_EXPORT HttpDataProvider : public DataProvider
 {
     Q_OBJECT
 public:
