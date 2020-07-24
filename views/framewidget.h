@@ -1,8 +1,9 @@
-#ifndef FRAMEWIDGET_H
+﻿#ifndef FRAMEWIDGET_H
 #define FRAMEWIDGET_H
 
 #include "ShowBoard_global.h"
 
+#include <QPainterPath>
 #include <QWidget>
 
 class ResourceView;
