@@ -55,7 +55,7 @@ ItemSelector::ItemSelector(QGraphicsItem * parent)
 
 void ItemSelector::select(Control * control)
 {
-    qInfo() << "select" << control->resource()->url();
+    qInfo() << "select" << (control ? control->resource()->url().toEncoded() : "null");
     select2(control);
 }
 
