@@ -460,8 +460,8 @@ void ItemSelector::touchBegin(QTouchEvent *event)
     QTouchEvent::TouchPoint const & point(event->touchPoints().first());
     selectAt(point.pos(), point.scenePos(), true);
     if (type_ != None && type_ != Implied) {
-        bool isCanvas = selectControl_->metaObject() == &WhiteCanvasControl::staticMetaObject
-                || (selectControl_->flags() & Control::FixedOnCanvas);
+        bool isCanvas = tempControl_->metaObject() == &WhiteCanvasControl::staticMetaObject
+                || (tempControl_->flags() & Control::FixedOnCanvas);
         for (QTouchEvent::TouchPoint const & point : event->touchPoints()) {
             lastPositions_[point.id()] = isCanvas ? point.scenePos() : point.pos();
         }
@@ -473,12 +473,12 @@ void ItemSelector::touchBegin(QTouchEvent *event)
 
 void ItemSelector::touchUpdate(QTouchEvent *event)
 {
-    if (selectControl_ == nullptr)
+    if (tempControl_ == nullptr)
         return;
     //qDebug() << "touchUpdate";
     QMap<int, QPointF> positions;
-    bool isCanvas = selectControl_->metaObject() == &WhiteCanvasControl::staticMetaObject
-            || (selectControl_->flags() & Control::FixedOnCanvas);
+    bool isCanvas = tempControl_->metaObject() == &WhiteCanvasControl::staticMetaObject
+            || (tempControl_->flags() & Control::FixedOnCanvas);
     for (QTouchEvent::TouchPoint const & point : event->touchPoints()) {
         positions[point.id()] = isCanvas ? point.scenePos() : point.pos();
     }
@@ -519,9 +519,9 @@ void ItemSelector::touchUpdate(QTouchEvent *event)
                 // qDebug() << lastPositions_[point1.id()] << lastPositions_[point2.id()] << "<->"
                 //        << positions[point1.id()] << positions[point2.id()];
             }
-            selectControl_->gesture(lastPositions_[point1.id()], lastPositions_[point2.id()],
+            tempControl_->gesture(lastPositions_[point1.id()], lastPositions_[point2.id()],
                     positions[point1.id()], positions[point2.id()]);
-            rect_ = selectControl_->boundRect();
+            rect_ = tempControl_->boundRect();
             selBox_->setRect(rect_);
             if (type_ == TempNoMove || type_ == AgainNoMove)
                 type_ = static_cast<SelectType>(type_ + 1);
