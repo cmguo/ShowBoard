@@ -31,7 +31,6 @@ static char const * toolstr = ""
         "fitContent()|适合内容|;"
         "full()|全屏|Checkable|;"
         #endif
-        "feedback()|报错|;"
         ;
 
 class WebPage : public QWebEnginePage
