@@ -414,8 +414,10 @@ void ItemSelector::mousePressEvent(QGraphicsSceneMouseEvent *event)
     //qDebug() << "mousePress";
 #endif
     if (event->source() != Qt::MouseEventNotSynthesized
-            && type_ == Implied)
+            && type_ == Implied) {
+        CanvasItem::mousePressEvent(event);
         return;
+    }
     selectAt(event->pos(), event->scenePos(), false);
     if (type_ == None || type_ == Implied) {
         CanvasItem::mousePressEvent(event);
@@ -430,7 +432,7 @@ void ItemSelector::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         return;
     }
 #endif
-    if (type_ == None) {
+    if (type_ == None || type_ == Implied) {
         CanvasItem::mouseMoveEvent(event);
         return;
     }
@@ -446,7 +448,7 @@ void ItemSelector::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
         return;
     }
 #endif
-    if (type_ == None) {
+    if (type_ == None || type_ == Implied) {
         CanvasItem::mouseReleaseEvent(event);
         return;
     }
