@@ -86,7 +86,7 @@ void PowerPoint::open(QString const & file)
 {
     if (application_ == nullptr) {
         std::unique_ptr<PptObject> application(new PptObject);
-        if (!application->setControl("PowerPoint.Application")) {
+        if (!application->setControl("PowerPoint.Application1")) {
             if (application->foundControl().startsWith("{")) {
                 emit failed("software|打开失败，请关闭其他演讲文稿后重试");
                 return;

@@ -7,7 +7,6 @@
 
 #include <QPixmap>
 #include <QGraphicsPixmapItem>
-#include <QCursor>
 
 ImageControl::ImageControl(ResourceView * res, Flags flags, Flags clearFlags)
     : Control(res, flags | Flags{KeepAspectRatio, FullSelect, FixedOnCanvas}, clearFlags)
@@ -27,7 +26,6 @@ QGraphicsItem * ImageControl::create(ResourceView * res)
     QGraphicsPixmapItem * item = new QGraphicsPixmapItem();
     item->setShapeMode(QGraphicsPixmapItem::BoundingRectShape);
     item->setTransformationMode(Qt::SmoothTransformation);
-    item->setCursor(Qt::SizeAllCursor);
     return item;
 }
 
@@ -89,7 +87,7 @@ QPixmap ImageControl::pixmap() const
 void ImageControl::setMipMapPixmap(const QPixmap &pixmap, QSizeF const & sizeHint)
 {
     QGraphicsPixmapItem * item = static_cast<QGraphicsPixmapItem*>(item_);
-    if (pixmap == item->pixmap())
+    if (pixmap.cacheKey() == item->pixmap().cacheKey())
         return;
     qDebug() << "setMipMapPixmap" << sizeHint << pixmap.size();
     item->setPixmap(pixmap);

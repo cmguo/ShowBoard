@@ -150,10 +150,13 @@ void Control::attachTo(QGraphicsItem * parent, QGraphicsItem * before)
     bool fromPersist = false;
     if (res_->flags().testFlag(ResourceView::PersistSession))
         item_ = res_->loadSession();
-    if (item_ == nullptr)
+    if (item_ == nullptr) {
         item_ = create(res_);
-    else
+        if (flags_.testFlag(FullSelect) || flags_.testFlag(HalfSelect))
+            item_->setCursor(Qt::SizeAllCursor);
+    } else {
         fromPersist = true;
+    }
     itemObj_ = item_->toGraphicsObject();
     if (transform_)
         item_->setTransformations({transform_});
