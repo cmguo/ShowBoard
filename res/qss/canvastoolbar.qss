@@ -25,9 +25,11 @@ QPushButton:unchecked:hover {
 }
 
 #splitter {
+    height: 32px; /* [size] */
+    max-height: 32px; /* [size] */
     max-width: 1px;
     border: none;
-    background-color: black;
+    background-color: #333B3B;
 }
 
 #dragger {

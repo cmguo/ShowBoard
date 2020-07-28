@@ -195,8 +195,8 @@ void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWi
     QWidget * widget = nullptr;
     if (button == &ToolButton::SPLITTER) {
         QFrame *splitter = new QFrame(parent);
-//        splitter->setFrameShape(QFrame::VLine); // WARNNING: fix bug of 3906, adding this later when bug fixed
-//        splitter->setFrameShadow(QFrame::Plain);
+        splitter->setFrameShape(QFrame::VLine); // WARNNING: fix bug of 3906, adding this later when bug fixed
+        splitter->setFrameShadow(QFrame::Plain);
         splitter->setLineWidth(0);
         widget = splitter;
     } else if (button == &ToolButton::LINE_BREAK) {
