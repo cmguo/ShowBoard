@@ -10,38 +10,45 @@ FileLRUCache::FileLRUCache(const QDir &dir, quint64 capacity)
     , dir_(dir)
 {
     dir.mkpath(dir.path());
-    for (QString const & f : dir.entryList(QDir::NoFilter, QDir::Time)) {
-        if (f.length() == 32 || f.indexOf('.') == 32) {
-            base::put(f.left(32), dir.filePath(f));
+    for (QFileInfo const & f : dir.entryInfoList(QDir::NoFilter, QDir::Time)) {
+        if (f.fileName().length() == 32 || f.fileName().lastIndexOf('.') == 32) {
+            base::put(f.fileName().toUtf8().left(32), {
+                          f.filePath(), static_cast<quint64>(f.size())});
         } else {
-            QFile::remove(dir.filePath(f));
+            QFile::remove(f.filePath());
         }
     }
 }
 
 QString FileLRUCache::put(const QUrl &url, QByteArray data)
 {
-    QString md5 = urlMd5(url);
-    QString path = base::get(md5);
-    if (!path.isEmpty()) {
-        int n = path.lastIndexOf('.');
-        if ((n > 0 && !url.path().endsWith(path.mid(n))) || !QFile::exists(path)) {
-            remove(md5);
-            path.clear();
+    QByteArray md5 = urlMd5(url);
+    FileLRUResource f = base::get(md5);
+    if (!f.path.isEmpty()) {
+        int n = f.path.lastIndexOf('.');
+        if ((n > 0 && !url.path().endsWith(f.path.mid(n))) || !QFile::exists(f.path)) {
+            base::remove(md5);
+            f.path.clear();
         } else {
-            return path;
+            return f.path;
         }
     }
-    path = url.path();
-    int n = path.lastIndexOf('.');
-    path = n > 0 ? md5 + path.mid(n) : md5;
-    path = dir_.filePath(path);
-    QFile file(path);
-    file.open(QFile::WriteOnly);
-    file.write(data);
+    f.path = url.path();
+    f.size = static_cast<quint64>(data.size());
+    int n = f.path.lastIndexOf('.');
+    f.path = n > 0 ? md5 + f.path.mid(n) : md5;
+    f.path = dir_.filePath(f.path);
+    QFile file(f.path + ".temp");
+    bool ok = file.open(QFile::WriteOnly);
+    ok = ok && (file.write(data) == data.size());
     file.close();
-    base::put(md5, path);
-    return path;
+    ok = ok && QFile::rename(f.path + ".temp", f.path);
+    if (!ok) {
+        file.remove();
+        return nullptr;
+    }
+    base::put(md5, f);
+    return f.path;
 }
 
 QByteArray FileLRUCache::get(const QUrl &url)
@@ -51,7 +58,7 @@ QByteArray FileLRUCache::get(const QUrl &url)
         return QByteArray();
     QFile file(path);
     if (!file.open(QFile::ReadOnly)) {
-        remove(urlMd5(url)); // rarely happen
+        base::remove(urlMd5(url)); // rarely happen
         return QByteArray();
     }
     QByteArray data = file.readAll();
@@ -66,12 +73,12 @@ bool FileLRUCache::contains(const QUrl &url)
 
 bool FileLRUCache::remove(const QUrl &url)
 {
-    QString md5 = urlMd5(url);
-    QString path = base::get(md5);
-    if (path.isEmpty())
+    QByteArray md5 = urlMd5(url);
+    FileLRUResource f = base::get(md5);
+    if (f.path.isEmpty())
         return false;
-    int n = path.lastIndexOf('.');
-    if (n > 0 && !url.path().endsWith(path.mid(n)))
+    int n = f.path.lastIndexOf('.');
+    if (n > 0 && !url.path().endsWith(f.path.mid(n)))
         return false; // can't restore order
     LRUCache::remove(md5);
     return true;
@@ -79,34 +86,33 @@ bool FileLRUCache::remove(const QUrl &url)
 
 QString FileLRUCache::getFile(const QUrl &url)
 {
-    QString md5 = urlMd5(url);
-    QString path = base::get(md5);
-    if (path.isEmpty())
+    QByteArray md5 = urlMd5(url);
+    FileLRUResource f = base::get(md5);
+    if (f.path.isEmpty())
         return nullptr;
-    int n = path.lastIndexOf('.');
-    if (n > 0 && !url.path().endsWith(path.mid(n)))
+    int n = f.path.lastIndexOf('.');
+    if (n > 0 && !url.path().endsWith(f.path.mid(n)))
         return nullptr;
-    if (!QFile::exists(path)) {
+    if (!QFile::exists(f.path)) {
         LRUCache::remove(md5);
         return nullptr;
     }
-    QFile(path).setFileTime(QDateTime::currentDateTime(), QFile::FileModificationTime);
-    return path;
+    QFile(f.path).setFileTime(QDateTime::currentDateTime(), QFile::FileModificationTime);
+    return f.path;
 }
 
-quint64 FileLRUCache::sizeOf(const QString &v)
+quint64 FileLRUCache::sizeOf(const FileLRUResource &v)
 {
-    qint64 s = QFile(v).size();
-    return s < 0 ? 0 : static_cast<quint64>(s);
+    return v.size;
 }
 
-void FileLRUCache::destroy(const QString &k, const QString &v)
+void FileLRUCache::destroy(const QByteArray &k, const FileLRUResource &v)
 {
     (void) k;
-    QFile::remove(v);
+    QFile::remove(v.path);
 }
 
-QString FileLRUCache::urlMd5(const QUrl &url)
+QByteArray FileLRUCache::urlMd5(const QUrl &url)
 {
     return QCryptographicHash::hash(url.toString().toUtf8(), QCryptographicHash::Md5).toHex();
 }

@@ -80,9 +80,15 @@ private:
 #include <QFile>
 #include <QDir>
 
-class FileLRUCache : public LRUCache<QString, QString>
+struct FileLRUResource
 {
-    typedef LRUCache<QString, QString> base;
+    QString path;
+    quint64 size;
+};
+
+class FileLRUCache : public LRUCache<QByteArray, FileLRUResource>
+{
+    typedef LRUCache<QByteArray, FileLRUResource> base;
 
 public:
     FileLRUCache(QDir const & dir, quint64 capacity);
@@ -99,12 +105,12 @@ public:
     QString getFile(QUrl const & url);
 
 protected:
-    virtual quint64 sizeOf(const QString &v) override;
+    virtual quint64 sizeOf(const FileLRUResource &v) override;
 
-    virtual void destroy(const QString &k, const QString &v) override;
+    virtual void destroy(const QByteArray &k, const FileLRUResource &v) override;
 
 private:
-    static QString urlMd5(QUrl const & url);
+    static QByteArray urlMd5(QUrl const & url);
 
 private:
     QDir dir_;
