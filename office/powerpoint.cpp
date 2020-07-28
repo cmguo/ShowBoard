@@ -121,8 +121,8 @@ void PowerPoint::open(QString const & file)
         return;
     }
     file_ = file;
-    QObject::connect(presentations_, SIGNAL(exception(int,QString,QString,QString)),
-                     this, SLOT(onException(int,QString,QString,QString)));
+    //QObject::connect(presentations_, SIGNAL(exception(int,QString,QString,QString)),
+    //                 this, SLOT(onException(int,QString,QString,QString)));
     QString file2 = file;
     if (titleParts[0])
         file2 = QString("\"%1\"").arg(file);
@@ -130,8 +130,8 @@ void PowerPoint::open(QString const & file)
                 "Open(const QString&, bool, bool, bool)",
                 file2, true, false, false);
     if (presentation) {
-        QObject::connect(presentation, SIGNAL(exception(int,QString,QString,QString)),
-                         this, SLOT(onException(int,QString,QString,QString)));
+        //QObject::connect(presentation, SIGNAL(exception(int,QString,QString,QString)),
+        //                 this, SLOT(onException(int,QString,QString,QString)));
         presentation_ = presentation;
         total_ = presentation_->querySubObject("Slides")->property("Count").toInt();
         emit opened(total_);
@@ -221,6 +221,8 @@ void PowerPoint::show(int page)
                 // WPS failed if other show
                 ++ntry;
                 reopen();
+                if (!presentation_)
+                    return;
                 continue;
             }
             //if (page) // will cause View be null
@@ -230,8 +232,8 @@ void PowerPoint::show(int page)
                 view_ = window->querySubObject("View");
             }
             if (view_) {
-                QObject::connect(view_, SIGNAL(exception(int,QString,QString,QString)),
-                                 this, SLOT(onException(int,QString,QString,QString)));
+                //QObject::connect(view_, SIGNAL(exception(int,QString,QString,QString)),
+                //                 this, SLOT(onException(int,QString,QString,QString)));
                 QFileInfo fi(file_);
                 QByteArray name = fi.baseName().left(8).toLocal8Bit();
                 if (titleParts[0]) {
