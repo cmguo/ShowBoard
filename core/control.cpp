@@ -287,6 +287,7 @@ void Control::loadSettings()
             setProperty(k, res_->property(k));
         }
     }
+    setOverrideToolString(res_->overrideToolString());
 }
 
 void Control::saveSettings()

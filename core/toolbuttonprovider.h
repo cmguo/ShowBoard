@@ -13,6 +13,7 @@ class OptionToolButtons;
 class SHOWBOARD_EXPORT ToolButtonProvider : public LifeObject
 {
     Q_OBJECT
+    Q_PROPERTY(QString overrideToolString READ overrideToolString WRITE setOverrideToolString)
 public:
     ToolButtonProvider(QObject * parent = nullptr);
 
@@ -37,6 +38,12 @@ public:
      *  copy, delete are handled by canvas and should not go here
      */
     virtual bool handleToolButton(QList<ToolButton *> const & buttons);
+
+    QString overrideToolString() {
+        return overrideToolString_;
+    }
+
+    void setOverrideToolString(const QString&);
 
 public:
     /*
@@ -97,6 +104,7 @@ private:
     ToolButtonProvider * subProviderBefore_;
     ToolButtonProvider * subProviderAfter_;
     bool followTrigger_;
+    QString overrideToolString_;
 };
 
 class SHOWBOARD_EXPORT RegisterOptionsButtons

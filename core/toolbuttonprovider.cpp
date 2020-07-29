@@ -4,6 +4,7 @@
 
 #include <QVariant>
 #include <QMetaMethod>
+#include <algorithm>
 
 static ToolButtonProvider * inHandle = nullptr;
 
@@ -260,12 +261,40 @@ bool ToolButtonProvider::handleToolButton(QList<ToolButton *> const & buttons)
     return result;
 }
 
+void ToolButtonProvider::setOverrideToolString(const QString & toolString)
+{
+    overrideToolString_ = toolString;
+    if (!overrideToolString_.isEmpty()) {
+        QList<ToolButton*> delToolBtns;
+        auto ilst = buttons_.find(nullptr);
+        if (ilst != buttons_.end()) {
+            QStringList listOverrideTools = overrideToolString_.split(";", QString::SkipEmptyParts);
+            QList<ToolButton*>& btns = ilst.value();
+            for (const auto& tool : listOverrideTools) {
+                std::for_each(btns.begin(), ilst.value().end(), [&tool, this, &delToolBtns](auto& btn ) {
+                    if (tool.indexOf(btn->name()) >= 0) {
+                        ToolButton* temp = btn;
+                        btn = ToolButton::makeButton(tool);
+                        std::replace(privateButtons_.begin(), privateButtons_.end(), temp, btn);
+                        delToolBtns.push_back(temp);
+                    }
+                });
+            }
+        }
+        emit buttonsChanged();
+        if (delToolBtns.size() > 0) {
+            for (ToolButton* index : delToolBtns) {
+                delete index;
+            }
+            delToolBtns.clear();
+        }
+    }
+}
+
 bool ToolButtonProvider::handleToolButton(ToolButton *button, QStringList const & args)
 {
     for (QList<ToolButton *> & btns : buttons_) {
         if (btns.contains(button)) {
-            if (button->name() == "close()" && subProviderAfter_ && subProviderAfter_->property("closeControlType").isValid())
-                return false;
             return exec(button->name(), args);
         }
     }
@@ -381,6 +410,10 @@ QList<ToolButton *> ToolButtonProvider::tools(ToolButton * parent)
         followTrigger(btns, parent);
     }
     buttons_.insert(name, btns);
+    // override tool string
+    if (name.isEmpty()) {
+        setOverrideToolString(overrideToolString_);
+    }
     return btns;
 }
 

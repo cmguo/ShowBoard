@@ -36,6 +36,7 @@ ResourceView::ResourceView(ResourceView *mainRes)
     , transform_(new ResourceTransform(this))
 {
     mainRes->flags_.setFlag(ResourceView::CanDelete, false);
+    setOverrideToolString(mainRes->overrideToolString());
 }
 
 ResourceView::~ResourceView()
