@@ -235,8 +235,8 @@ QIcon ToolButton::makeIcon(QString const & iconString, QSize const & size)
         int n = sep.indexOf('=');
         if (n < 0) {
             if (sep == "default") {
-                // normal=70%,disabled=30%,+normal=
-                icon.addPixmap(opacityPixmap(pixmap, 70), QIcon::Normal, QIcon::Off);
+                // normal=,disabled=30%,+normal=
+                icon.addPixmap(pixmap, QIcon::Normal, QIcon::Off);
                 icon.addPixmap(opacityPixmap(pixmap, 30), QIcon::Disabled, QIcon::Off);
                 icon.addPixmap(pixmap, QIcon::Normal, QIcon::On);
                 continue;

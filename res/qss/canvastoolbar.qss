@@ -8,16 +8,16 @@ QPushButton,.QLabel {
 
 QPushButton {
     qproperty-iconSize:32px 32px; /* [size] */
-    padding:6px; /* [size] */
+    padding:4px; /* [size] */
     border-radius:8px; /* [size] */
 }
 
 QPushButton:checked {
-    background-color:#008FFF;
+    background-color:#4A515A;
 }
 
 QPushButton:pressed {
-    background-color:#1C61B0;
+    background-color:#4A515A;
 }
 
 QPushButton:unchecked:hover {
