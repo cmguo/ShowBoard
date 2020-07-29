@@ -67,24 +67,34 @@ QtPromise::QPromise<QSharedPointer<QIODevice>> HttpDataProvider::getStream(const
     return QPromise<QSharedPointer<QIODevice>>([reply, all](
                                      const QPromiseResolve<QSharedPointer<QIODevice>>& resolve,
                                      const QPromiseReject<QSharedPointer<QIODevice>>& reject) {
-        auto readyRead = [reply, resolve]() {
-            resolve(reply);
-        };
         auto error = [reply, reject](QNetworkReply::NetworkError e) {
             qDebug() << "Resource NetworkError " << e << reply->errorString();
             reject(std::invalid_argument("network|打开失败，请检查网络再试"));
         };
-        auto finished = [reply, resolve, error]() {
-            if (reply->error()) {
-                error(reply->error());
-            } else {
-                resolve(reply);
+        if (all) {
+            auto finished = [reply, resolve, error]() {
+                if (reply->error()) {
+                    error(reply->error());
+                } else {
+                    resolve(reply);
+                }
+            };
+            if (reply->isFinished()) {
+                finished();
+                return;
             }
-        };
-        if (all)
             QObject::connect(reply.get(), &QNetworkReply::finished, finished);
-        else
+        } else {
+            auto readyRead = [reply, resolve]() {
+                resolve(reply);
+            };
+            char c;
+            if (reply->peek(&c, 1) > 0) {
+                readyRead();
+                return;
+            }
             QObject::connect(reply.get(), &QNetworkReply::readyRead, readyRead);
+        }
         void (QNetworkReply::*p)(QNetworkReply::NetworkError) = &QNetworkReply::error;
         QObject::connect(reply.get(), p, error);
     });

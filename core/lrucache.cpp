@@ -5,6 +5,7 @@
 #include <QCryptographicHash>
 #include <QDateTime>
 #include <QBuffer>
+#include <QNetWorkReply>
 
 using namespace QtPromise;
 
@@ -40,7 +41,7 @@ QPromise<QString> FileLRUCache::putStream(const QUrl &url, QSharedPointer<QIODev
                              const QPromiseResolve<qint64>& resolve,
                              const QPromiseReject<qint64>& reject) {
         QSharedPointer<qint64> size(new qint64(0));
-        QObject::connect(stream.get(), &QIODevice::readyRead, [=] () {
+        auto read = [=] () {
             QByteArray data = stream->readAll();
             if (data.isEmpty()) {
                 *size = -1;
@@ -55,13 +56,23 @@ QPromise<QString> FileLRUCache::putStream(const QUrl &url, QSharedPointer<QIODev
                 return;
             }
             *size += static_cast<quint64>(data.size());
-        });
-        QObject::connect(stream.get(), &QIODevice::readChannelFinished, [=] () {
+        };
+        char c;
+        if (stream->peek(&c, 1) > 0)
+            read();
+        QObject::connect(stream.get(), &QIODevice::readyRead, read);
+        auto finished = [=] () {
             if (*size >= 0) {
                 file->close();
                 resolve(*size);
             }
-        });
+        };
+        QNetworkReply * reply = qobject_cast<QNetworkReply*>(stream.get());
+        if (reply && reply->isFinished()) {
+            finished();
+            return;
+        }
+        QObject::connect(stream.get(), &QIODevice::readChannelFinished, finished);
     }).then([this, f, file] (qint64 size) {
         if (!QFile::rename(f.path + ".temp", f.path)) {
             QFile::remove(f.path + ".temp");
