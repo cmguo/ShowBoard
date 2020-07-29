@@ -48,59 +48,80 @@ Resource::Resource(Resource const & o)
 {
 }
 
-QPromise<QUrl> Resource::getLocalUrl()
+QtPromise::QPromise<QUrl> Resource::getLocalUrl()
 {
-    if (url_.scheme() == "file") {
-        if (QFile::exists(url_.toLocalFile()))
-            return QPromise<QUrl>::resolve(url());
+    return getLocalUrl(url_);
+}
+
+QtPromise::QPromise<QSharedPointer<QIODevice> > Resource::getStream(bool all)
+{
+    return getStream(url_, all);
+}
+
+QtPromise::QPromise<QByteArray> Resource::getData()
+{
+    return getData(url_);
+}
+
+QtPromise::QPromise<QString> Resource::getText()
+{
+    return getText(url_);
+}
+
+QPromise<QUrl> Resource::getLocalUrl(QUrl const & url)
+{
+    if (url.scheme() == "file") {
+        if (QFile::exists(url.toLocalFile()))
+            return QPromise<QUrl>::resolve(url);
         else
             return QPromise<QUrl>::reject(std::invalid_argument("打开失败，请重试"));
     }
-    QString file = cache_->getFile(url_);
+    QString file = cache_->getFile(url);
     if (!file.isEmpty()) {
         return QPromise<QUrl>::resolve(QUrl::fromLocalFile(file));
     }
-    return getData().then([this, l = life()] (QByteArray data) {
-        if (l.isNull())
-            return QUrl();
-        return QUrl::fromLocalFile(cache_->put(url_, data));
+    return getStream(url).then([url] (QSharedPointer<QIODevice> io) {
+        return cache_->putStream(url, io).then([] (QString const & file) {
+            return QUrl::fromLocalFile(file);
+        });
     });
 }
 
-QPromise<QSharedPointer<QIODevice>> Resource::getStream(bool all)
+QPromise<QSharedPointer<QIODevice>> Resource::getStream(QUrl const & url, bool all)
 {
-    DataProvider * provider = ResourceManager::instance()->getProvider(url_.scheme().toUtf8());
+    DataProvider * provider = ResourceManager::instance()->getProvider(url.scheme().toUtf8());
     if (provider == nullptr) {
         return QPromise<QSharedPointer<QIODevice>>::reject(std::invalid_argument("打开失败，未知数据协议"));
     }
+    // We not cache stream, but may use already cached file
     if (provider->needCache()) {
-        QString path = cache_->getFile(url_);
+        QString path = cache_->getFile(url);
         if (!path.isEmpty()) {
             QSharedPointer<QIODevice> file(new QFile(path));
             file->open(QFile::ReadOnly | QFile::ExistingOnly);
             return QPromise<QSharedPointer<QIODevice>>::resolve(file);
         }
     }
-    return provider->getStream(url_, all);
+    return provider->getStream(url, all);
 }
 
-QPromise<QByteArray> Resource::getData()
+QPromise<QByteArray> Resource::getData(QUrl const & url)
 {
-    return getStream(true).then([url = url_](QSharedPointer<QIODevice> io) {
+    return getStream(url, true).then([url](QSharedPointer<QIODevice> io) {
         QByteArray data = io->readAll();
         io->close();
         DataProvider * provider = ResourceManager::instance()->getProvider(url.scheme().toUtf8());
         if (provider->needCache())
-            cache_->put(url, data);
+            cache_->putData(url, data);
         return data;
     });
 }
 
 static QString fromMulticode(QByteArray bytes);
 
-QPromise<QString> Resource::getText()
+QPromise<QString> Resource::getText(QUrl const & url)
 {
-    return getData().then([](QByteArray data) {
+    return getData(url).then([](QByteArray data) {
         return fromMulticode(data);
     });
 }

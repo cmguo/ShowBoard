@@ -81,7 +81,7 @@ static QUrl getThumbUrl(QUrl url, int slide)
 void PptxControl::open(QUrl const & url)
 {
     QUrl thumbUrl = getThumbUrl(url, powerpoint_->slideNumber());
-    QByteArray data = Resource::getCache().get(thumbUrl);
+    QByteArray data = Resource::getCache().getData(thumbUrl);
     if (!data.isEmpty()) {
         QPixmap pixmap;
         pixmap.loadFromData(data);
@@ -240,7 +240,7 @@ void PptxControl::close()
             QUrl thumbUrl = getThumbUrl(res_->property("localUrl").toUrl(), powerpoint_->thumbNumber());
             buf.seek(0);
             Resource::getCache().remove(thumbUrl);
-            Resource::getCache().put(thumbUrl, buf.data());
+            Resource::getCache().putData(thumbUrl, buf.data());
             buf.close();
         }
     }

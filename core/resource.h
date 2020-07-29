@@ -34,6 +34,29 @@ public:
 
     static FileLRUCache & getCache();
 
+    /*
+     * get local url
+     *  sometime, a local file is needed by control,
+     *  if original url is remote, it's downloaded and translate to local url
+     *  original url is not changed
+     */
+    static QtPromise::QPromise<QUrl> getLocalUrl(QUrl const & url);
+
+    /*
+     * get read stream
+     */
+    static QtPromise::QPromise<QSharedPointer<QIODevice>> getStream(QUrl const & url, bool all = false);
+
+    /*
+     * get resource raw data
+     */
+    static QtPromise::QPromise<QByteArray> getData(QUrl const & url);
+
+    /*
+     * get resource as text, decode by utf8
+     */
+    static QtPromise::QPromise<QString> getText(QUrl const & url);
+
 public:
     /*
      * new resource with type @type and url @url
@@ -57,12 +80,6 @@ public:
     }
 
 public:
-    /*
-     * get local url
-     *  sometime, a local file is needed by control,
-     *  if original url is remote, it's downloaded and translate to local url
-     *  original url is not changed
-     */
     QtPromise::QPromise<QUrl> getLocalUrl();
 
     /*

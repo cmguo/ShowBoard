@@ -79,11 +79,12 @@ private:
 
 #include <QFile>
 #include <QDir>
+#include <QtPromise>
 
 struct FileLRUResource
 {
     QString path;
-    quint64 size;
+    qint64 size;
 };
 
 class FileLRUCache : public LRUCache<QByteArray, FileLRUResource>
@@ -94,15 +95,21 @@ public:
     FileLRUCache(QDir const & dir, quint64 capacity);
 
 public:
-    QString put(QUrl const & url, QByteArray data);
+    QtPromise::QPromise<QString> putStream(QUrl const & url, QSharedPointer<QIODevice> stream);
 
-    QByteArray get(QUrl const & url);
+    QSharedPointer<QIODevice> getStream(QUrl const & url);
+
+    QString putData(QUrl const & url, QByteArray data);
+
+    QByteArray getData(QUrl const & url);
+
+    QString getFile(QUrl const & url);
 
     bool contains(QUrl const & url);
 
     bool remove(QUrl const & url);
 
-    QString getFile(QUrl const & url);
+    FileLRUResource get(QUrl const & url, bool put = false);
 
 protected:
     virtual quint64 sizeOf(const FileLRUResource &v) override;
@@ -114,6 +121,7 @@ private:
 
 private:
     QDir dir_;
+    QMap<QUrl, QtPromise::QPromise<QString>> asyncPuts_;
 };
 
 #endif // LRUCACHE_H
