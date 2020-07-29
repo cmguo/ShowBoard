@@ -25,11 +25,21 @@ QPushButton:unchecked:hover {
 }
 
 #splitter {
-    height: 32px; /* [size] */
-    max-height: 32px; /* [size] */
+    width: 1px;
     max-width: 1px;
+    height: 22px; /* [size] */
+    max-height: 22px; /* [size] */
     border: none;
-    background-color: #333B3B;
+    background-color: #424C59;
+}
+
+#draggerSplitter {
+    width: 1px;
+    max-width: 1px;
+    height: 48px; /* [size] */
+    max-height: 48px; /* [size] */
+    border: none;
+    background-color: #424C59;
 }
 
 #dragger {

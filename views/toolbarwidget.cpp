@@ -73,9 +73,10 @@ void ToolbarWidget::setDragable()
     //dragger->setScaledContents(true);
     layout_->addWidget(dragger);
     QFrame *splitter = new QFrame(this);
+    splitter->setObjectName("draggerSplitter");
     splitter->setFrameShape(QFrame::VLine);
     splitter->setFrameShadow(QFrame::Plain);
-    splitter->setLineWidth(0);
+    splitter->setLineWidth(2);
     layout_->addWidget(splitter);
 
 }
@@ -197,7 +198,7 @@ void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWi
         QFrame *splitter = new QFrame(parent);
         splitter->setFrameShape(QFrame::VLine); // WARNNING: fix bug of 3906, adding this later when bug fixed
         splitter->setFrameShadow(QFrame::Plain);
-        splitter->setLineWidth(0);
+        splitter->setLineWidth(2);
         widget = splitter;
     } else if (button == &ToolButton::LINE_BREAK) {
         ++row; col = 0;
@@ -257,8 +258,6 @@ void ToolbarWidget::addToolButton(QLayout* layout, ToolButton * button, QMap<QWi
     } else {
         layout->addWidget(widget);
     }
-    //refresh style
-    widget->setStyleSheet(QSS);
     widget->show(); // let size valid
     if (button) {
         buttons.insert(widget, button);
