@@ -37,6 +37,8 @@ public:
 public:
     void setTaskBar(QWidget * bar, int disableActions = 0);
 
+    void setDisableFlags(Flags flags);
+
 private:
     FloatWidgetManager(QWidget * main);
 
@@ -105,6 +107,7 @@ private:
     QWidget * main_;
     QWidget * taskBar_;
     QWidget * widgetOn_;
+    Flags disableFlags_;
     QList<QWidget*> widgets_;
     QMap<QWidget*, Flags> widgetFlags_;
     QMap<QWidget*, ToolButton*> widgetButtons_;

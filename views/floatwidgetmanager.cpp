@@ -32,6 +32,7 @@ FloatWidgetManager::FloatWidgetManager(QWidget *main)
     : QObject(main)
     , main_(main)
     , taskBar_(nullptr)
+    , widgetOn_(nullptr)
     , restoring_(false)
     , mainHidden_(false)
     , disableActions_(0)
@@ -48,6 +49,11 @@ void FloatWidgetManager::setTaskBar(QWidget *bar, int disableActions)
 {
     taskBar_ = bar;
     disableActions_ = disableActions;
+}
+
+void FloatWidgetManager::setDisableFlags(Flags flags)
+{
+    disableFlags_ = flags;
 }
 
 void FloatWidgetManager::addWidget(QWidget *widget, Flags flags)
@@ -312,6 +318,7 @@ bool FloatWidgetManager::eventFilter(QObject *watched, QEvent *event)
 
 void FloatWidgetManager::setWidgetFlags2(QWidget *widget, Flags flags)
 {
+    flags &= ~disableFlags_;
     relayout(widget, flags);
     if (flags.testFlag(RaiseOnShow) || flags.testFlag(LowerOnShow)
             || flags.testFlag(HideOnLostFocus)
