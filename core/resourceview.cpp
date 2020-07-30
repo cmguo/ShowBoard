@@ -3,6 +3,7 @@
 #include "resourcetransform.h"
 #include "resourcepage.h"
 
+#include <QApplication>
 #include <QGraphicsItem>
 #include <QMetaMethod>
 
@@ -111,8 +112,20 @@ public:
     void clear()
     {
         if (view_)
-            view_->saveSession(nullptr);
+            view_->clearSession();
         // here this is detroyed
+    }
+    void postClear()
+    {
+        ResourceView * view = view_;
+        if (view == nullptr)
+            return;
+        if (QThread::currentThread() == view_->thread()) {
+            clear();
+            return;
+        }
+        QEvent event(ResourceView::EVENT_CLEAR_SESSION);
+        QApplication::sendEvent(view, &event);
     }
     QGraphicsItem* detach()
     {
@@ -129,27 +142,48 @@ private:
 Q_DECLARE_METATYPE(QSharedPointer<ResourceSession>)
 
 static QMap<QByteArray, QWeakPointer<ResourceSession>> groupSessions;
+static QVector<QWeakPointer<ResourceSession>> allSessions;
+static QMutex sessionMutex;
+
+static bool dropOneSession()
+{
+    if (!sessionMutex.tryLock())
+        return false;
+    if (allSessions.isEmpty())
+        return false;
+    QWeakPointer<ResourceSession> groupSession = allSessions.first();
+    sessionMutex.unlock();
+    QSharedPointer<ResourceSession> groupSession2 = groupSession.toStrongRef();
+    if (groupSession2) {
+        groupSession2->postClear();
+    }
+    return true;
+}
 
 QGraphicsItem *ResourceView::loadSession()
 {
     QSharedPointer<ResourceSession> session =
             res_->property(SESSION).value<QSharedPointer<ResourceSession>>();
+    res_->setProperty(SESSION, QVariant());
     QGraphicsItem * item = session ? session->detach() : nullptr;
     QByteArray group = sessionGroup();
-    if (!group.isEmpty()) {
+    if (item && !group.isEmpty()) {
         QWeakPointer<ResourceSession> groupSession = groupSessions.take(group);
         QSharedPointer<ResourceSession> groupSession2 = groupSession.toStrongRef();
         if (groupSession2)
             groupSession2->clear();
     }
+    QMutexLocker lock(&sessionMutex);
+    allSessions.removeOne(session);
     return item;
 }
 
 void ResourceView::saveSession(QGraphicsItem *item)
 {
-    if (item == nullptr) {
-        res_->setProperty(SESSION, QVariant());
-        return;
+    static bool initOom = false;
+    if (!initOom) {
+        Resource::registerOutOfMemoryHandler(0, dropOneSession);
+        initOom = true;
     }
     QSharedPointer<ResourceSession> session(new ResourceSession(this, item));
     res_->setProperty(SESSION, QVariant::fromValue(session));
@@ -157,10 +191,21 @@ void ResourceView::saveSession(QGraphicsItem *item)
     if (!group.isEmpty()) {
         QWeakPointer<ResourceSession> groupSession = groupSessions.take(group);
         QSharedPointer<ResourceSession> groupSession2 = groupSession.toStrongRef();
-        if (groupSession2)
+        if (groupSession2) {
             groupSession2->clear();
+        }
         groupSessions.insert(group, session);
+        QMutexLocker lock(&sessionMutex);
+        allSessions.removeOne(groupSession);
     }
+    QMutexLocker lock(&sessionMutex);
+    allSessions.append(session);
+}
+
+void ResourceView::clearSession()
+{
+    qWarning() << "ResourceView: clear session" << url();
+    delete loadSession();
 }
 
 ResourceView::ResourceView(ResourceView const & o)
@@ -211,6 +256,15 @@ void ResourceView::removeFromPage()
 ResourcePage *ResourceView::page()
 {
     return qobject_cast<ResourcePage*>(parent());
+}
+
+bool ResourceView::event(QEvent *event)
+{
+    if (event->type() == EVENT_CLEAR_SESSION) {
+        clearSession();
+        return true;
+    }
+    return LifeObject::event(event);
 }
 
 void ResourceView::setSaved()

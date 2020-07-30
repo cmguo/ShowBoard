@@ -34,6 +34,8 @@ public:
 
     static FileLRUCache & getCache();
 
+    static void registerOutOfMemoryHandler(int level, std::function<bool(void)> handler);
+
     /*
      * get local url
      *  sometime, a local file is needed by control,

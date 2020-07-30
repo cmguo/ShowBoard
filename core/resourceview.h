@@ -7,6 +7,7 @@
 #include <qexport.h>
 
 #include <QTransform>
+#include <QEvent>
 
 class Resource;
 class ResourceTransform;
@@ -29,6 +30,8 @@ class SHOWBOARD_EXPORT ResourceView : public ToolButtonProvider
 
 public:
     static char const * const EXPORT_ATTR_FACTORY;
+
+    static constexpr QEvent::Type EVENT_CLEAR_SESSION = QEvent::User;
 
 public:
     enum Flag {
@@ -99,8 +102,10 @@ public:
 
     void saveSession(QGraphicsItem* item);
 
+    void clearSession();
+
 public:
-    virtual ResourceView * clone() const ;
+    virtual ResourceView * clone() const;
 
 protected:
     ResourceView(ResourceView const & res);
@@ -145,6 +150,9 @@ public:
     void removeFromPage();
 
     ResourcePage* page();
+
+protected:
+    virtual bool event(QEvent * event) override;
 
 protected:
     Resource * res_;

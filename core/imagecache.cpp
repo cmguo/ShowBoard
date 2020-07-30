@@ -30,6 +30,8 @@ ImageCache::ImageCache(QObject *parent)
 QSharedPointer<ImageData> ImageCache::get(const QUrl &url)
 {
     QWeakPointer<ImageData> data(cachedImages_.value(url));
+    if (data.isNull())
+        cachedImages_.remove(url);
     return data.toStrongRef();
 }
 
@@ -41,14 +43,12 @@ QtPromise::QPromise<QSharedPointer<ImageData>> ImageCache::getOrCreate(const QUr
     if (pendings_.contains(url)) {
         return pendings_.find(url).value();
     }
-    Resource * res = new Resource(nullptr, url);
     QtPromise::QPromise<QSharedPointer<ImageData>> p =
-            res->getData().then([this, url, mipmap](QByteArray data) {
+            Resource::getData(url).then([this, url, mipmap](QByteArray data) {
         QPixmap pixmap;
         pixmap.loadFromData(data);
         return QtPromise::resolve(put(url, pixmap, mipmap));
-    }).finally([this, url, res] {
-        delete res;
+    }).finally([this, url] {
         pendings_.remove(url);
     });
     pendings_.insert(url, p);
