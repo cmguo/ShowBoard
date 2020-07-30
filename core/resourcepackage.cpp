@@ -1,4 +1,4 @@
-﻿#include "resourcepackage.h"
+#include "resourcepackage.h"
 #include "resourcepage.h"
 #include "qcomponentcontainer.h"
 #include "resourcemanager.h"
@@ -54,29 +54,27 @@ ResourcePage * ResourcePackage::currentPage() const
 void ResourcePackage::removePage(ResourcePage *page)
 {
     int index = pages_.indexOf(page);
-    if (index >= 0) {
-        bool cancel = false;
-        emit pageRemoving(page, &cancel);
-        if (cancel)
-            return;
-        beginRemoveRows(QModelIndex(), index, index);
-        pages_.removeAt(index);
-        endRemoveRows();
-
-        if (index == current_) {
-            if (index > 0)
-                --index;
-            current_ = -1;
-            switchPage(index);
-        }
-        emit pageRemoved(page);
-        if (index + 1 < pages_.size())
-           dataChanged(this->index(index + 1, 0), this->index(pages_.size() - 1, 0));
-        emit pageCountChanged(pages_.size());
-        delete page;
+    if (index < 0)
+        return removeVirtualPage(page);
+    bool cancel = false;
+    emit pageRemoving(page, &cancel);
+    if (cancel)
         return;
+    if (index == current_) {
+        int newIndex = index;
+        if (newIndex > 0)
+            --newIndex;
+        else
+            current_ = -1;
+        switchPage(newIndex);
     }
-    removeVirtualPage(page);
+    beginRemoveRows(QModelIndex(), index, index);
+    pages_.removeAt(index);
+    endRemoveRows();
+    emit pageRemoved(page);
+    emit pageCountChanged(pages_.size());
+    delete page;
+    return;
 }
 
 int ResourcePackage::currentNumber() const
@@ -245,9 +243,6 @@ void ResourcePackage::switchPage(int page)
     if (page == current_)
         return;
     std::swap(current_, page);
-    if (page >= 0)
-        dataChanged(index(page, 0), index(page, 0));
-    dataChanged(index(current_, 0), index(current_, 0));
     if (visiblePages_.empty())
         emit currentPageChanged(pages_[current_]);
 }
@@ -265,8 +260,6 @@ void ResourcePackage::addPage(int index, ResourcePage * page)
     beginInsertRows(QModelIndex(), index, index);
     pages_.insert(index, page);
     endInsertRows();
-    if (index + 1 < pages_.size())
-        dataChanged(this->index(index + 1, 0), this->index(pages_.size() - 1, 0));
     emit pageCountChanged(pages_.size());
 }
 
@@ -278,22 +271,18 @@ void ResourcePackage::pageChanged(ResourcePage *page)
 }
 
 enum PageRole {
-    IndexRole = Qt::UserRole + 1,
-    ThumbRole
+    ThumbRole = Qt::UserRole + 1,
 };
 
 QHash<int, QByteArray> ResourcePackage::roleNames() const
 {
     QHash<int, QByteArray> roles;
-    roles[IndexRole] = "index";
     roles[ThumbRole] = "thumb";
     return roles;
 }
 
 QVariant ResourcePackage::data(const QModelIndex &index, int role) const
 {
-    if (role == IndexRole)
-        return index.row();
     if (role == ThumbRole)
         return QString("%1.%2").arg(index.row()).arg(pages_[index.row()]->thumbnailVersion());
     return QVariant();

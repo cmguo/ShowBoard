@@ -24,6 +24,9 @@ static constexpr char const * toolstr =
         "prev|上一页|:/showboard/icon/page.prev.svg;"
         "list|当前页|;"
         "next|下一页|:/showboard/icon/page.next.svg;"
+        #ifdef QT_DEBUG
+        "del|删除|:/showboard/icon/close.svg;"
+        #endif
         ;
 
 WhiteCanvasTools::WhiteCanvasTools(QObject* parent, WhiteCanvas* whiteCanvas)
@@ -94,6 +97,12 @@ void WhiteCanvasTools::gotoPage(int n)
     canvas_->package()->switchPage(n);
 }
 
+void WhiteCanvasTools::delPage()
+{
+    if (canvas_->package()->pageCount() > 1)
+        canvas_->package()->removePage(canvas_->package()->currentPage());
+}
+
 bool WhiteCanvasTools::setOption(const QByteArray &key, QVariant value)
 {
     bool result = true;
@@ -102,6 +111,8 @@ bool WhiteCanvasTools::setOption(const QByteArray &key, QVariant value)
 #endif
     if (key == "new")
         newPage();
+    else if (key == "del")
+        delPage();
     else if (key == "prev")
         prevPage();
     else if (key == "list")
@@ -130,6 +141,9 @@ void WhiteCanvasTools::update()
     buttons[1]->setEnabled(isEnabled && index > 0);
     buttons[2]->setIconText(QString("%1/%2").arg(index + 1).arg(total));
     buttons[3]->setEnabled(isEnabled && index + 1 < total);
+#ifdef QT_DEBUG
+    buttons[4]->setEnabled(total > 1);
+#endif
 }
 
 class ResourceImageProvider : public QQuickImageProvider
