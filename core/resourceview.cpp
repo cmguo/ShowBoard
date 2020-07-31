@@ -11,6 +11,7 @@ char const * const ResourceView::EXPORT_ATTR_FACTORY = "rfactory";
 
 static constexpr char const * SESSION_GROUP = "SESSION_GROUP";
 static constexpr char const * SESSION = "SESSION";
+static constexpr int MAX_SESSION = 10;
 
 ResourceView::ResourceView(Resource * res, Flags flags, Flags clearFlags)
     : res_(res)
@@ -181,6 +182,9 @@ void ResourceView::saveSession(QGraphicsItem *item)
         allSessions.removeOne(groupSession);
     }
     allSessions.append(session);
+    if (allSessions.size() > MAX_SESSION) {
+        dropOneSession();
+    }
 }
 
 void ResourceView::clearSession()
