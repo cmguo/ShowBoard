@@ -2,6 +2,7 @@
 #include "lrucache.h"
 #include "resourcemanager.h"
 #include "dataprovider.h"
+#include "oomhandler.h"
 
 #include <QFile>
 #include <QNetworkAccessManager>
@@ -21,19 +22,6 @@ void Resource::initCache(const QString &path, quint64 capacity)
     cache_ = new FileLRUCache(QDir(path), capacity);
 }
 
-static QList<std::function<bool(void)>> oom_handlers[6];
-
-static void oom_handler()
-{
-    for (int i = 0; i < 6; ++i) {
-        for (auto & h : oom_handlers[i]) {
-            if (h())
-                return;
-        }
-    }
-    throw std::bad_alloc();
-}
-
 FileLRUCache &Resource::getCache()
 {
     if (cache_ == nullptr) {
@@ -43,16 +31,13 @@ FileLRUCache &Resource::getCache()
                 #else
                         QDir(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)).filePath("rescache"), 1000 * 1024 * 1024); // 1G
                 #endif
-        std::set_new_handler(&oom_handler);
     }
     return *cache_;
 }
 
 void Resource::registerOutOfMemoryHandler(int level, std::function<bool(void)> handler)
 {
-    if (level < 0) level = 0;
-    if (level > 5) level = 5;
-    oom_handlers[level].append(handler);
+    oomHandler.addHandler(level, handler);
 }
 
 Resource::Resource(QByteArray const & type, QUrl const & url)

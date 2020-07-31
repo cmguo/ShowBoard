@@ -6,6 +6,7 @@ HEADERS += \
     $$PWD/imagecache.h \
     $$PWD/lifeobject.h \
     $$PWD/lrucache.h \
+    $$PWD/oomhandler.h \
     $$PWD/optiontoolbuttons.h \
     $$PWD/resource.h \
     $$PWD/resourcefactory.h \
@@ -27,6 +28,7 @@ SOURCES += \
     $$PWD/imagecache.cpp \
     $$PWD/lifeobject.cpp \
     $$PWD/lrucache.cpp \
+    $$PWD/oomhandler.cpp \
     $$PWD/optiontoolbuttons.cpp \
     $$PWD/resource.cpp \
     $$PWD/resourcefactory.cpp \

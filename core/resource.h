@@ -7,7 +7,6 @@
 #include <QtPromise>
 
 #include <QUrl>
-#include <QSharedPointer>
 
 class QNetworkAccessManager;
 class FileLRUCache;
