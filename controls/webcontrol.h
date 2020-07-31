@@ -1,4 +1,4 @@
-﻿#ifndef WEBCONTROL_H
+#ifndef WEBCONTROL_H
 #define WEBCONTROL_H
 
 #include "widgetcontrol.h"
@@ -72,7 +72,6 @@ public slots:
 
 private:
     bool fitToContent_;
-    bool hasBackground_;
     QColor background_;
     int webViewSizeChangeIndex_ = 0;
     close_control_type close_control_type_ {nullptr};

@@ -74,7 +74,7 @@ WebControl::WebControl(ResourceView * res)
     : WidgetControl(res, {WithSelectBar, ExpandScale, LayoutScale, Touchable, FixedOnCanvas}, {CanRotate})
 #endif
     , fitToContent_(false)
-    , hasBackground_(false)
+    , background_(Qt::transparent)
 {
     setToolsString(toolstr);
     setMinSize({0.1, 0.1});
@@ -109,7 +109,6 @@ QColor WebControl::background() const
 
 void WebControl::setBackground(const QColor &color)
 {
-    hasBackground_ = true;
     background_ = color;
 }
 
@@ -164,7 +163,7 @@ void WebControl::attached()
         webViewSizeChangeIndex_ = (++webViewSizeChangeIndex_) % 4;
         return;
     }
-    if (hasBackground_) {
+    if (background_ != Qt::transparent) {
         QGraphicsRectItem * background = new QGraphicsRectItem(item_);
         background->setPen(QPen(Qt::NoPen));
         background->setBrush(QBrush(background_));
