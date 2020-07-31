@@ -86,7 +86,7 @@ void PowerPoint::open(QString const & file)
 {
     if (application_ == nullptr) {
         std::unique_ptr<PptObject> application(new PptObject);
-        if (!application->setControl("PowerPoint.Application1")) {
+        if (!application->setControl("PowerPoint.Application")) {
             if (application->foundControl().startsWith("{")) {
                 emit failed("software|打开失败，请关闭其他演讲文稿后重试");
                 return;
@@ -133,7 +133,9 @@ void PowerPoint::open(QString const & file)
         //QObject::connect(presentation, SIGNAL(exception(int,QString,QString,QString)),
         //                 this, SLOT(onException(int,QString,QString,QString)));
         presentation_ = presentation;
-        total_ = presentation_->querySubObject("Slides")->property("Count").toInt();
+        QAxObject* slides = presentation_->querySubObject("Slides");
+        if (slides)
+            total_ = slides->property("Count").toInt();
         emit opened(total_);
         if (thumbNumber_ != slideNumber_)
             thumb(slideNumber_);
@@ -251,11 +253,11 @@ void PowerPoint::show(int page)
                 return;
             }
             qDebug() << "Found play window" << reinterpret_cast<void *>(hwnd_);
+            if (page == 0) {
+                page = slideNumber_;
+            }
             break;
         } catch (...) {
-        }
-        if (page == 0) {
-            page = slideNumber_;
         }
     }
     if (page)
