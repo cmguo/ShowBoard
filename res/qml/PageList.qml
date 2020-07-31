@@ -1,4 +1,4 @@
-import QtQuick 2.3
+﻿import QtQuick 2.3
 import QtQuick.Controls 2.5
 
 Rectangle {
@@ -71,6 +71,10 @@ Rectangle {
         Behavior on y {
              PropertyAnimation {
                  easing.type: Easing.InOutQuad
+                 onRunningChanged: {
+                     if(!running)
+                         list.positionViewAtIndex(packageModel.currentIndex, ListView.Center)
+                 }
              }
         }
 
