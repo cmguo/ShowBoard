@@ -40,6 +40,8 @@ static QMap<QByteArray, QMap<QByteArray, QssHelper::StyleFunc>> gStyleFunctions 
     {"font-size", {{"size", &sizeScale}}},
     {"width", {{"size", &sizeScale}}},
     {"height", {{"size", &sizeScale}}},
+    {"max-width", {{"size", &sizeScale}}},
+    {"max-height", {{"size", &sizeScale}}},
     {"margin", {{"size", &sizeScale}}},
     {"padding", {{"size", &sizeScale}}},
     {"border-radius", {{"size", &sizeScale}}},
