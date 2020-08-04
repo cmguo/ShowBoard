@@ -1,4 +1,5 @@
 #include "imagecache.h"
+#include "oomhandler.h"
 #include "resource.h"
 #include "workthread.h"
 
@@ -25,6 +26,7 @@ ImageCache &ImageCache::instance()
 ImageCache::ImageCache(QObject *parent)
     : QObject(parent)
 {
+    oomHandler.addHandler(0, std::bind(&ImageCache::dropOneImage, this));
 }
 
 QSharedPointer<ImageData> ImageCache::get(const QUrl &url)
@@ -45,9 +47,17 @@ QtPromise::QPromise<QSharedPointer<ImageData>> ImageCache::getOrCreate(const QUr
     }
     QtPromise::QPromise<QSharedPointer<ImageData>> p =
             Resource::getData(url).then([this, url, mipmap](QByteArray data) {
-        QPixmap pixmap;
-        pixmap.loadFromData(data);
-        return QtPromise::resolve(put(url, pixmap, mipmap));
+        if (data.size() < 500 * 1024) {
+            QPixmap pixmap;
+            if (pixmap.loadFromData(data))
+                return QtPromise::resolve(put(url, pixmap, mipmap));
+            else
+                throw std::runtime_error("图片加载失败");
+        } else {
+            return load(data).then([this, url, mipmap] (QPixmap pixmap) {
+                return QtPromise::resolve(put(url, pixmap, mipmap));
+            });
+        }
     }).finally([this, url] {
         pendings_.remove(url);
     });
@@ -60,6 +70,33 @@ QSharedPointer<ImageData> ImageCache::put(const QUrl &url, const QPixmap &pixmap
     QSharedPointer<ImageData> data(new ImageData(pixmap, mipmap));
     cachedImages_.insert(url, data.toWeakRef());
     return data;
+}
+
+QtPromise::QPromise<QPixmap> ImageCache::load(QByteArray data)
+{
+    return QPromise<QPixmap>([data](
+                             const QPromiseResolve<QPixmap>& resolve,
+                             const QPromiseReject<QPixmap>& reject) {
+        ::thread().postWork([=] {
+            QPixmap pixmap;
+            if (pixmap.loadFromData(data))
+                resolve(pixmap);
+            else
+                reject(std::runtime_error("图片加载失败"));
+        });
+    });
+}
+
+bool ImageCache::dropOneImage()
+{
+    if (cachedImages_.isEmpty())
+        return false;
+    QSharedPointer<ImageData> image = cachedImages_.take(
+                cachedImages_.firstKey()).toStrongRef();
+    if (image == nullptr)
+        return false;
+    image->clear();
+    return true;
 }
 
 static void nopdel(int *) {}
@@ -79,6 +116,8 @@ ImageData::~ImageData()
 
 QPromise<QPixmap> ImageData::load(const QSizeF &sizeHint)
 {
+    if (pixmap_.isNull())
+        return QPromise<QPixmap>::reject(std::runtime_error("图片已经释放"));
     if (qIsNull(mipmap_)) {
         return QPromise<QPixmap>::resolve(pixmap_);
     }
@@ -116,3 +155,10 @@ QPromise<QPixmap> ImageData::load(const QSizeF &sizeHint)
     }
     return QPromise<QPixmap>::resolve(pixmap);
 }
+
+void ImageData::clear()
+{
+    pixmap_ = QPixmap();
+    mipmaps_.clear();
+}
+

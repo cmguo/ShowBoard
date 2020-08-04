@@ -5,7 +5,7 @@
 #include <QCryptographicHash>
 #include <QDateTime>
 #include <QBuffer>
-#include <QNetWorkReply>
+#include <QNetworkReply>
 
 using namespace QtPromise;
 

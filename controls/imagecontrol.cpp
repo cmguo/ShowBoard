@@ -116,5 +116,9 @@ void ImageControl::adjustMipmap2(const QSizeF &sizeHint)
     data_->load(sizeHint).then([this, sizeHint, l = life()] (QPixmap const &pixmap) {
         if (!l.isNull())
             setMipMapPixmap(pixmap, sizeHint);
+    }, [this, l = life()](std::exception & e) {
+        if (!l.isNull())
+            data_.reset();
+        (void) e;
     });
 }

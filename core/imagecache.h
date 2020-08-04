@@ -24,6 +24,8 @@ public:
 
     QtPromise::QPromise<QPixmap> load(QSizeF const & sizeHint);
 
+    void clear();
+
 private:
     Q_DISABLE_COPY(ImageData)
 
@@ -39,7 +41,7 @@ class SHOWBOARD_EXPORT ImageCache : public QObject
 public:
     static ImageCache & instance();
 
-public:
+private:
     explicit ImageCache(QObject *parent = nullptr);
 
 public:
@@ -48,6 +50,11 @@ public:
     QtPromise::QPromise<QSharedPointer<ImageData>> getOrCreate(QUrl const & url, qreal mipmap = 0.0);
 
     QSharedPointer<ImageData> put(QUrl const & url, QPixmap const & pixmap, qreal mipmap = 0.0);
+
+private:
+    static QtPromise::QPromise<QPixmap> load(QByteArray data);
+
+    bool dropOneImage();
 
 private:
     // use weak pointer, not keep image in memory
