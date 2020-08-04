@@ -33,60 +33,30 @@ QPromise<QString> FileLRUCache::putStream(const QUrl &url, QSharedPointer<QIODev
     auto iter = asyncPuts_.find(url);
     if (iter != asyncPuts_.end())
         return iter.value();
-    QSharedPointer<QIODevice> file(new QFile(f.path + ".temp"));
-    if (!file->open(QFile::WriteOnly)) {
-        return QPromise<QString>::reject(std::runtime_error("文件打开失败"));
-    }
-    QPromise<QString> asyncPut = QPromise<qint64>([file, stream](
-                             const QPromiseResolve<qint64>& resolve,
-                             const QPromiseReject<qint64>& reject) {
-        QSharedPointer<qint64> size(new qint64(0));
-        auto read = [=] () {
-            QByteArray data = stream->readAll();
-            if (data.isEmpty()) {
-                *size = -1;
-                file->close();
-                reject(std::runtime_error("文件下载失败"));
-                return;
-            }
-            if (file->write(data) != data.size()) {
-                file->close();
-                *size = -1;
-                reject(std::runtime_error("文件写入失败"));
-                return;
-            }
-            *size += static_cast<quint64>(data.size());
-        };
-        char c;
-        if (stream->peek(&c, 1) > 0)
-            read();
-        QObject::connect(stream.get(), &QIODevice::readyRead, read);
-        auto finished = [=] () {
-            if (*size >= 0) {
-                file->close();
-                resolve(*size);
-            }
-        };
-        QNetworkReply * reply = qobject_cast<QNetworkReply*>(stream.get());
-        if (reply && reply->isFinished()) {
-            finished();
-            return;
-        }
-        QObject::connect(stream.get(), &QIODevice::readChannelFinished, finished);
-    }).then([this, f, file] (qint64 size) {
-        if (!QFile::rename(f.path + ".temp", f.path)) {
-            QFile::remove(f.path + ".temp");
-            throw std::runtime_error("文件写入失败");
-        }
-        FileLRUResource f2 = f;
-        f2.size = size;
-        base::put(f.path.mid(f.path.lastIndexOf('/') + 1).left(32).toUtf8(), f2);
-        return f.path;
-    }, [f] (std::exception &) -> QString {
-        QFile::remove(f.path + ".temp");
-        throw;
-    }).finally([this, url] () {
+    QPromise<QString> asyncPut = saveStream(f.path, stream)
+            .then([f] () { return f.path; })
+            .finally([this, url] () {
         asyncPuts_.remove(url);
+    });
+    asyncPuts_.insert(url, asyncPut);
+    return asyncPut;
+}
+
+QtPromise::QPromise<QString> FileLRUCache::putStream(const QUrl &url, std::function<QtPromise::QPromise<QSharedPointer<QIODevice>> (void)> openStream)
+{
+    FileLRUResource f = get(url, true);
+    if (f.size >= 0) {
+        return QPromise<QString>::resolve(f.path);
+    }
+    auto iter = asyncPuts_.find(url);
+    if (iter != asyncPuts_.end())
+        return iter.value();
+    QPromise<QString> asyncPut = openStream().then([f, this, url] (QSharedPointer<QIODevice> stream) {
+        return saveStream(f.path, stream)
+                .then([f] () { return f.path; })
+                .finally([this, url] () {
+            asyncPuts_.remove(url);
+        });
     });
     asyncPuts_.insert(url, asyncPut);
     return asyncPut;
@@ -138,6 +108,18 @@ QByteArray FileLRUCache::getData(const QUrl &url)
 QString FileLRUCache::getFile(const QUrl &url)
 {
     return get(url).path;
+}
+
+QtPromise::QPromise<QString> FileLRUCache::getFileAsync(const QUrl &url)
+{
+    FileLRUResource f = get(url, true);
+    if (f.size >= 0) { // not replace old
+        return QPromise<QString>::resolve(f.path);
+    }
+    auto iter = asyncPuts_.find(url);
+    if (iter != asyncPuts_.end())
+        return iter.value();
+    return QPromise<QString>::reject(nullptr);
 }
 
 bool FileLRUCache::contains(const QUrl &url)
@@ -201,6 +183,61 @@ void FileLRUCache::destroy(const QByteArray &k, const FileLRUResource &v)
 {
     (void) k;
     QFile::remove(v.path);
+}
+
+QtPromise::QPromise<void> FileLRUCache::saveStream(const QString &path, QSharedPointer<QIODevice> stream)
+{
+    QSharedPointer<QIODevice> file(new QFile(path + ".temp"));
+    if (!file->open(QFile::WriteOnly)) {
+        return QPromise<void>::reject(std::runtime_error("文件打开失败"));
+    }
+    return QPromise<qint64>([file, stream](
+                             const QPromiseResolve<qint64>& resolve,
+                             const QPromiseReject<qint64>& reject) {
+        QSharedPointer<qint64> size(new qint64(0));
+        auto read = [=] () {
+            QByteArray data = stream->readAll();
+            if (data.isEmpty()) {
+                *size = -1;
+                file->close();
+                reject(std::runtime_error("文件下载失败"));
+                return;
+            }
+            if (file->write(data) != data.size()) {
+                file->close();
+                *size = -1;
+                reject(std::runtime_error("文件写入失败"));
+                return;
+            }
+            *size += static_cast<quint64>(data.size());
+        };
+        char c;
+        if (stream->peek(&c, 1) > 0)
+            read();
+        QObject::connect(stream.get(), &QIODevice::readyRead, read);
+        auto finished = [=] () {
+            if (*size >= 0) {
+                file->close();
+                resolve(*size);
+            }
+        };
+        QNetworkReply * reply = qobject_cast<QNetworkReply*>(stream.get());
+        if (reply && reply->isFinished()) {
+            finished();
+            return;
+        }
+        QObject::connect(stream.get(), &QIODevice::readChannelFinished, finished);
+    }).then([this, path, file] (qint64 size) {
+        if (!QFile::rename(path + ".temp", path)) {
+            QFile::remove(path + ".temp");
+            throw std::runtime_error("文件写入失败");
+        }
+        base::put(path.mid(path.lastIndexOf('/') + 1).left(32).toUtf8(), FileLRUResource{ path, size });
+        return;
+    }, [path] (std::exception &) {
+        QFile::remove(path + ".temp");
+        throw;
+    });
 }
 
 QByteArray FileLRUCache::urlMd5(const QUrl &url)

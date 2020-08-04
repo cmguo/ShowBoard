@@ -82,14 +82,8 @@ QPromise<QUrl> Resource::getLocalUrl(QUrl const & url)
         else
             return QPromise<QUrl>::reject(std::invalid_argument("打开失败，请重试"));
     }
-    QString file = cache_->getFile(url);
-    if (!file.isEmpty()) {
-        return QPromise<QUrl>::resolve(QUrl::fromLocalFile(file));
-    }
-    return getStream(url).then([url] (QSharedPointer<QIODevice> io) {
-        return cache_->putStream(url, io).then([] (QString const & file) {
-            return QUrl::fromLocalFile(file);
-        });
+    return cache_->putStream(url, [url] () { return getStream(url); }).then([] (QString const & file) {
+        return QUrl::fromLocalFile(file);
     });
 }
 

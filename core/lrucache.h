@@ -97,6 +97,8 @@ public:
 public:
     QtPromise::QPromise<QString> putStream(QUrl const & url, QSharedPointer<QIODevice> stream);
 
+    QtPromise::QPromise<QString> putStream(QUrl const & url, std::function<QtPromise::QPromise<QSharedPointer<QIODevice>> (void)> openStream);
+
     QSharedPointer<QIODevice> getStream(QUrl const & url);
 
     QString putData(QUrl const & url, QByteArray data);
@@ -104,6 +106,8 @@ public:
     QByteArray getData(QUrl const & url);
 
     QString getFile(QUrl const & url);
+
+    QtPromise::QPromise<QString> getFileAsync(QUrl const & url);
 
     bool contains(QUrl const & url);
 
@@ -115,6 +119,8 @@ protected:
     virtual quint64 sizeOf(const FileLRUResource &v) override;
 
     virtual void destroy(const QByteArray &k, const FileLRUResource &v) override;
+
+    QtPromise::QPromise<void> saveStream(QString const & path, QSharedPointer<QIODevice> stream);
 
 private:
     static QByteArray urlMd5(QUrl const & url);
