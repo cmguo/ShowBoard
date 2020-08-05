@@ -63,39 +63,116 @@ HttpDataProvider::HttpDataProvider(QObject *parent)
 QtPromise::QPromise<QSharedPointer<QIODevice>> HttpDataProvider::getStream(const QUrl &url, bool all)
 {
     QNetworkRequest request(url);
-    QSharedPointer<QNetworkReply> reply(network_->get(request));
+    QSharedPointer<HttpStream> reply(new HttpStream(network_->get(request)));
     return QPromise<QSharedPointer<QIODevice>>([reply, all](
                                      const QPromiseResolve<QSharedPointer<QIODevice>>& resolve,
                                      const QPromiseReject<QSharedPointer<QIODevice>>& reject) {
+
         auto error = [reply, reject](QNetworkReply::NetworkError e) {
             qDebug() << "Resource NetworkError " << e << reply->errorString();
             reject(std::invalid_argument("network|打开失败，请检查网络再试"));
         };
         if (all) {
             auto finished = [reply, resolve, error]() {
-                if (reply->error()) {
-                    error(reply->error());
+                if (reply->reply()->error()) {
+                    error(reply->reply()->error());
                 } else {
                     resolve(reply);
                 }
             };
-            if (reply->isFinished()) {
-                finished();
-                return;
-            }
-            QObject::connect(reply.get(), &QNetworkReply::finished, finished);
+            QObject::connect(reply.get(), &HttpStream::finished, finished);
         } else {
             auto readyRead = [reply, resolve]() {
                 resolve(reply);
             };
-            char c;
-            if (reply->peek(&c, 1) > 0) {
-                readyRead();
-                return;
-            }
-            QObject::connect(reply.get(), &QNetworkReply::readyRead, readyRead);
+            QObject::connect(reply.get(), &HttpStream::readyRead, readyRead);
         }
-        void (QNetworkReply::*p)(QNetworkReply::NetworkError) = &QNetworkReply::error;
-        QObject::connect(reply.get(), p, error);
+        QObject::connect(reply.get(), &HttpStream::error, error);
     });
+}
+
+HttpStream::HttpStream(QNetworkReply *reply)
+    : reply_(reply)
+{
+    open(ReadOnly);
+    reopen();
+}
+
+HttpStream::~HttpStream()
+{
+    delete reply_;
+}
+
+void HttpStream::onError(QNetworkReply::NetworkError e)
+{
+    if (e <= QNetworkReply::UnknownNetworkError
+            || e >= QNetworkReply::ProtocolUnknownError
+            /*|| e == QNetworkReply::OperationCanceledError*/) {
+        data_.append(reply_->readAll());
+        qint64 size = pos() + data_.size();
+        QNetworkRequest request = reply_->request();
+        qDebug() << "HttpStream retry" << size;
+        if (size > 0)
+            request.setRawHeader("Range", "bytes=" + QByteArray::number(size) + "-");
+        QNetworkReply * reply = reply_->manager()->get(request);
+        std::swap(reply, reply_);
+        //delete reply;
+        reopen();
+        return;
+    }
+    emit error(e);
+}
+
+void HttpStream::onFinished()
+{
+    if (sender() == reply_) {
+        emit readChannelFinished();
+        emit finished();
+    } else {
+        sender()->deleteLater();
+    }
+}
+
+void HttpStream::reopen()
+{
+    QObject::connect(reply_, &QNetworkReply::finished, this, &HttpStream::onFinished);
+    QObject::connect(reply_, &QNetworkReply::readyRead, this, &HttpStream::readyRead);
+    void (QNetworkReply::*p)(QNetworkReply::NetworkError) = &QNetworkReply::error;
+    QObject::connect(reply_, p, this, &HttpStream::onError);
+    //pos_ = 0;
+}
+
+qint64 HttpStream::readData(char *data, qint64 maxlen)
+{
+    if (!data_.isEmpty()) {
+        if (maxlen > data_.size())
+            maxlen = data_.size();
+        memcpy(data, data_, static_cast<size_t>(maxlen));
+        data_.remove(0, static_cast<int>(maxlen));
+        return maxlen;
+    }
+    if (!reply_->isOpen())
+        return 0;
+    qint64 result = reply_->read(data, maxlen);
+    /*
+    if (result) {
+        if (pos_ == 0) {
+            QByteArray msg;
+            for (auto h : reply_->rawHeaderPairs())
+                msg.append(h.first + ':' + h.second + '\n');
+            qDebug() << msg;
+        }
+        pos_ += result;
+        if (pos_ > 10000000) {
+            QTimer::singleShot(0, reply_, &QNetworkReply::abort);
+        }
+    }
+    */
+    return result;
+}
+
+qint64 HttpStream::writeData(const char *, qint64)
+{
+    assert(false);
+    return 0;
 }

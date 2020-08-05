@@ -6,6 +6,7 @@
 #include <QtPromise>
 
 #include <QObject>
+#include <QNetworkReply>
 
 class SHOWBOARD_EXPORT DataProvider : public QObject
 {
@@ -39,7 +40,37 @@ public:
     virtual QtPromise::QPromise<QSharedPointer<QIODevice>> getStream(QUrl const & url, bool all) override;
 };
 
-class QNetworkAccessManager;
+class HttpStream : public QIODevice
+{
+    Q_OBJECT
+public:
+    HttpStream(QNetworkReply * reply);
+
+    virtual ~HttpStream() override;
+
+    QNetworkReply * reply() { return reply_; }
+
+signals:
+    void finished();
+
+    void error(QNetworkReply::NetworkError);
+
+private:
+    void onError(QNetworkReply::NetworkError);
+
+    void onFinished();
+
+    void reopen();
+
+protected:
+    virtual qint64 readData(char *data, qint64 maxlen) override;
+    virtual qint64 writeData(const char *data, qint64 len) override;
+
+private:
+    QNetworkReply * reply_;
+    QByteArray data_;
+    //int pos_ = 0;
+};
 
 class SHOWBOARD_EXPORT HttpDataProvider : public DataProvider
 {
