@@ -141,6 +141,7 @@ static bool dropOneSession()
     QSharedPointer<ResourceSession> groupSession2 = groupSession.toStrongRef();
     if (groupSession2) {
         groupSession2->clear();
+        qDebug() << "ResourceView dropOneSession" << allSessions.size();
     }
     return true;
 }
@@ -182,6 +183,7 @@ void ResourceView::saveSession(QGraphicsItem *item)
         allSessions.removeOne(groupSession);
     }
     allSessions.append(session);
+    qDebug() << "ResourceView saveSession" << allSessions.size();
     if (allSessions.size() > MAX_SESSION) {
         dropOneSession();
     }

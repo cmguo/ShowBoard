@@ -33,6 +33,8 @@ static char const * toolstr = ""
         #endif
         ;
 
+static constexpr int MAX_WEB = 10;
+
 class WebPage : public QWebEnginePage
 {
 public:
@@ -40,6 +42,8 @@ public:
 protected:
     QWebEnginePage *createWindow(WebWindowType );
 };
+
+static int totalFront = 0;
 
 class WebView : public QWebEngineView
 {
@@ -80,10 +84,12 @@ WebControl::WebControl(ResourceView * res)
     setMinSize({0.1, 0.1});
     if (!res_->flags().testFlag(ResourceView::PersistSession))
         res_->setSessionGroup(nullptr); // force persist session
+    if (res_->flags().testFlag(ResourceView::Independent)) {
+        flags_.setFlag(WithSelectBar, false);
+    }
     if (res_->flags().testFlag(ResourceView::LargeCanvas)) {
         flags_.setFlag(DefaultFlags, false);
         flags_.setFlag(CanScale, true);
-        flags_.setFlag(WithSelectBar, false);
 #if LARGE_CANVAS_LINKAGE
         flags_.setFlag(FixedOnCanvas, true);
 #else
@@ -153,6 +159,10 @@ static int WebViewSizeChangeArra[4]{-1,2,-2,1};
 
 void WebControl::attached()
 {
+    if (++totalFront > MAX_WEB) {
+        Control::loadFinished(false, "打开失败，内存不足");
+        return;
+    }
     WebView * view = static_cast<WebView *>(widget_);
     widget_->setVisible(true);
     if (flags_.testFlag(RestorePersisted)) {
@@ -192,21 +202,7 @@ void WebControl::detached()
 {
     widget_->hide();
     WidgetControl::detached();
-}
-
-bool WebControl::handleToolButton(ToolButton *button, const QStringList &args)
-{
-    if (close_control_type_) {
-        bool bRes = close_control_type_(button, args);
-        if (!bRes) {
-            QTimer::singleShot(0, this, [this] () {
-                res_->page()->removeFromPackage();
-            });
-        }
-        return bRes;
-    } else {
-        return Control::handleToolButton(button, args);
-    }
+    --totalFront;
 }
 
 QUrl WebControl::url() const
