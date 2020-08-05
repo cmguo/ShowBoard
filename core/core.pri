@@ -9,6 +9,7 @@ HEADERS += \
     $$PWD/oomhandler.h \
     $$PWD/optiontoolbuttons.h \
     $$PWD/resource.h \
+    $$PWD/resourcecache.h \
     $$PWD/resourcefactory.h \
     $$PWD/resourcemanager.h \
     $$PWD/resourcepackage.h \
@@ -31,6 +32,7 @@ SOURCES += \
     $$PWD/oomhandler.cpp \
     $$PWD/optiontoolbuttons.cpp \
     $$PWD/resource.cpp \
+    $$PWD/resourcecache.cpp \
     $$PWD/resourcefactory.cpp \
     $$PWD/resourcemanager.cpp \
     $$PWD/resourcepackage.cpp \
