@@ -165,8 +165,11 @@ void WebControl::attached()
         return;
     }
     WebView * view = static_cast<WebView *>(widget_);
-    widget_->setVisible(true);
     if (flags_.testFlag(RestorePersisted)) {
+        widget_->setVisible(true);
+#if QT_VERSION >= 0x050E00
+        qobject_cast<QWebEngineView *>(widget_)->page()->setLifecycleState(QWebEnginePage::LifecycleState::Active);
+#endif
         // TODO: handle backup loadFinished
         loadFinished(true);
         int diff = WebViewSizeChangeArra[webViewSizeChangeIndex_];
@@ -202,6 +205,9 @@ void WebControl::attached()
 void WebControl::detached()
 {
     widget_->hide();
+#if QT_VERSION >= 0x050E00
+    qobject_cast<QWebEngineView *>(widget_)->page()->setLifecycleState(QWebEnginePage::LifecycleState::Discarded);
+#endif
     WidgetControl::detached();
     --totalFront;
 }

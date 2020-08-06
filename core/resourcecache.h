@@ -4,6 +4,7 @@
 #include "ShowBoard_global.h"
 
 #include <QList>
+#include <QUrl>
 
 class SHOWBOARD_EXPORT ResourceCache
 {

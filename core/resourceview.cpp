@@ -11,7 +11,11 @@ char const * const ResourceView::EXPORT_ATTR_FACTORY = "rfactory";
 
 static constexpr char const * SESSION_GROUP = "SESSION_GROUP";
 static constexpr char const * SESSION = "SESSION";
-static constexpr int MAX_SESSION = 10;
+#if QT_VERSION >= 0x050E00
+static constexpr int MAX_SESSION = 30;
+#else
+static constexpr int MAX_SESSION = 20;
+#endif
 
 ResourceView::ResourceView(Resource * res, Flags flags, Flags clearFlags)
     : res_(res)
