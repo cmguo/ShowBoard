@@ -32,10 +32,9 @@ ResourceView::ResourceView(QByteArray const & type, QUrl const & url)
 }
 
 ResourceView::ResourceView(ResourceView *mainRes)
-    : res_(new Resource("whitecanvas", QUrl("whitecanvas:///")))
-    , flags_((mainRes->flags() & ResourceView::CanDelete) | ResourceView::BottomMost
-             | mainRes->pageMode())
-    , transform_(new ResourceTransform(this))
+    : ResourceView(new Resource("whitecanvas", QUrl("whitecanvas:///")),
+                   (mainRes->flags() & CanDelete) | BottomMost | mainRes->pageMode(),
+                   Flags(DefaultFlags) & ~CanDelete)
 {
     mainRes->flags_.setFlag(ResourceView::CanDelete, false);
     setOverrideToolString(mainRes->overrideToolString());

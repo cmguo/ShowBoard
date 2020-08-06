@@ -5,6 +5,7 @@
 
 #include <QUrl>
 #include <QVariantMap>
+#include <QColor>
 
 class DrawingTool : public Control
 {
@@ -13,9 +14,20 @@ class DrawingTool : public Control
     Q_PROPERTY(QUrl newUrl MEMBER newUrl_)
     Q_PROPERTY(QVariantMap newSettings MEMBER newSettings_)
     Q_PROPERTY(bool translucent READ translucent WRITE setTranslucent)
+    Q_PROPERTY(QColor color READ color WRITE setColor)
+    Q_PROPERTY(qreal width READ width WRITE setWidth)
 
 public:
     Q_INVOKABLE DrawingTool(ResourceView *res);
+
+public:
+    QColor color() const;
+
+    void setColor(QColor color);
+
+    qreal width() const;
+
+    void setWidth(qreal width);
 
 public:
     Control * newControl();

@@ -24,6 +24,26 @@ DrawingTool::DrawingTool(ResourceView *res)
 {
 }
 
+QColor DrawingTool::color() const
+{
+    return newSettings_.value("color", "write").value<QColor>();
+}
+
+void DrawingTool::setColor(QColor color)
+{
+    newSettings_.insert("color", color);
+}
+
+qreal DrawingTool::width() const
+{
+    return newSettings_.value("width", "1.0").toReal();
+}
+
+void DrawingTool::setWidth(qreal width)
+{
+    newSettings_.insert("width", width);
+}
+
 Control * DrawingTool::newControl()
 {
     Control * control = whiteCanvas()->addResource(newUrl_, newSettings_);
