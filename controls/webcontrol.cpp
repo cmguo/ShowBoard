@@ -4,6 +4,7 @@
 #include "core/resourcetransform.h"
 #include "views/stateitem.h"
 #include "views/whitecanvas.h"
+#include "core/resourcepage.h"
 
 #include <qproperty.h>
 
@@ -17,7 +18,7 @@
 #include <QQuickItem>
 #include <QWebEngineFullScreenRequest>
 #include <QWebChannel>
-#include "core/resourcepage.h"
+#include <QWebEngineProfile>
 
 #define LARGE_CANVAS_LINKAGE 1
 #define DISABLE_TOUCH 0
@@ -316,6 +317,9 @@ void WebView::sinit()
                     QWebEngineSettings::ErrorPageEnabled, false);
         QWebEngineSettings::defaultSettings()->setAttribute(
                     QWebEngineSettings::ShowScrollBars, false);
+
+//        QWebEngineProfile::defaultProfile()->setHttpCacheMaximumSize(
+//                    1024 * 1024 * 1024); // 1G
         init = true;
     }
 }
@@ -417,6 +421,9 @@ void WebView::synthesizedMouseEvents()
 void WebView::dump()
 {
 //    dumpObjectTree();
+    qDebug() << page()->profile()->httpCacheType();
+    qDebug() << page()->profile()->cachePath();
+    qDebug() << page()->profile()->httpCacheMaximumSize();
 }
 
 bool WebView::event(QEvent *event)

@@ -7,7 +7,7 @@
 static constexpr qreal BORDER_OFFSET = 9;
 static constexpr qreal ROTATE_OFFSET = 24;
 static constexpr qreal BOX_RADIUS = 6.25;
-static constexpr qreal BOX_RADIUS2 = 8;
+static constexpr qreal BOX_RADIUS2 = 6.25;
 static constexpr qreal BOX_RADIUS_TEST = 20;
 static constexpr qreal LINE_WIDTH = 4;
 
@@ -25,7 +25,7 @@ public:
     BorderItem(int, QGraphicsItem *parent = nullptr)
         : BorderItem(parent)
     {
-        setPath(circle(BOX_RADIUS2));
+        setPath(circle(dp(BOX_RADIUS2)));
         setBrush(QBrush(QColor("#B4B2FF")));
         // line
         QGraphicsPathItem * handle = new QGraphicsPathItem(this);

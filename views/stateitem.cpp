@@ -213,7 +213,8 @@ void StateItem::setText(const QString &msg)
             + ";font-size:" + textSize1_ + "pt;'>" + msg + "</font>";
     QString title = "<font style='color:" + QVariant(textColor2_).toByteArray()
             + ";font-size:" + textSize2_ + "pt;'>" + title_ + "</font>";
-    QString text =  "<center><nobr>" + messg + "</nobr><br/>" + title + "</center>";
+    QString text =  "<center>" + title + "<br/><nobr><b>"
+            + messg + "</b></nobr></center>";
     textItem->setTextWidth(MAX_TEXT_WIDTH);
     if (text.startsWith("<") && text.endsWith(">"))
         textItem->setHtml(text);
