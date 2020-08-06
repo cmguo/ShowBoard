@@ -218,11 +218,12 @@ void Control::detachFrom(QGraphicsItem *parent, QGraphicsItem *)
         item_->setData(ITEM_KEY_CONTROL, QVariant());
     }
     detached();
-    if (res_->flags().testFlag(ResourceView::PersistSession)) {
-        if (flags_.testFlag(Loading) && stateItem_) {
-            flags_.setFlag(LoadFinished);
-            loadFinished(true); // will delete stateItem_
-        }
+    if (res_->flags().testFlag(ResourceView::PersistSession)
+            && flags_.testFlag(LoadFinished)) {
+//        if (flags_.testFlag(Loading) && stateItem_) {
+//            flags_.setFlag(LoadFinished);
+//            loadFinished(true); // will delete stateItem_
+//        }
         res_->saveSession(item_);
         if (item_ == realItem_)
             realItem_ = nullptr;
