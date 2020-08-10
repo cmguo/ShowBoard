@@ -135,7 +135,7 @@ QVariant ColorToolButtons::buttonIcon(const QVariant &value)
 QGraphicsItem *ColorToolButtons::colorIcon(QColor color)
 {
     QGraphicsRectItem * item = new QGraphicsRectItem;
-    item->setRect({1, 1, 30, 30});
+    item->setRect({3, 3, 26, 26});
     item->setPen(QPen(QColor(color.red() / 2 + 128, // mix with white
                         color.green() / 2 + 128, color.blue() / 2 + 128), 2.0));
     item->setBrush(color);
@@ -196,7 +196,7 @@ QVariant WidthToolButtons::buttonIcon(const QVariant &value)
 QGraphicsItem *WidthToolButtons::widthIcon(qreal width)
 {
     QPainterPath ph;
-    ph.addEllipse(QRectF(0, 0, 32, 32));
+    ph.addEllipse(QRectF(3, 3, 26, 26));
     QGraphicsPathItem * border = new QGraphicsPathItem(ph);
     border->setPen(Qt::NoPen);
     border->setBrush(QColor("#343434"));
