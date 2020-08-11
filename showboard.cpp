@@ -28,7 +28,7 @@ void ShowBoard::init()
     qRegisterMetaType<QQuickWidget*>();
     qRegisterMetaType<ResourceView*>();
     qRegisterMetaType<Control*>();
-    qRegisterMetaType<WebControl::ObjectHash>();
+    qRegisterMetaType<QHash<QString, QObject*>>();
     // qml types
     qmlRegisterType<WhiteCanvasQuick>("ShowBoard", 1, 0, "WhiteCanvasQuick");
     qmlRegisterType<QuickWidgetItem>("ShowBoard", 1, 0, "QuickWidgetItem");

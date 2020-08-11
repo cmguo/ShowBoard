@@ -12,11 +12,11 @@ class SHOWBOARD_EXPORT WebControl : public WidgetControl
 
     Q_PROPERTY(bool fitToContent READ fitToContent WRITE setFitToContent)
     Q_PROPERTY(QColor background READ background WRITE setBackground)
-    Q_PROPERTY(WebControl::ObjectHash webBridges WRITE setWebBridges)
+#ifdef Q_MOC_RUN // fix QCreator error
+    Q_PROPERTY(QHash<QString, QObject*> webBridges WRITE setWebBridges)
+#endif
 
 public:
-    typedef QHash<QString,QObject*> ObjectHash;
-
     Q_INVOKABLE WebControl(ResourceView *res);
 
 public:
@@ -28,7 +28,7 @@ public:
 
     void setBackground(QColor const & color);
 
-    void setWebBridges(ObjectHash const& bridges);
+    void setWebBridges(QHash<QString, QObject*> const& bridges);
 
 protected:
     virtual QWidget * createWidget(ResourceView * res) override;
@@ -65,7 +65,5 @@ private:
     QColor background_;
     int webViewSizeChangeIndex_ = 0;
 };
-
-Q_DECLARE_METATYPE(WebControl::ObjectHash)
 
 #endif // WEBCONTROL_H

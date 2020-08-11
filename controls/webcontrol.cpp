@@ -119,7 +119,7 @@ void WebControl::setBackground(const QColor &color)
     background_ = color;
 }
 
-void WebControl::setWebBridges(const WebControl::ObjectHash &bridges)
+void WebControl::setWebBridges(const QHash<QString, QObject*> &bridges)
 {
     if (flags_ & RestorePersisted)
         return;
@@ -299,8 +299,8 @@ void WebView::sinit()
 {
     static bool init = false;
     if (!init) {
-        QMetaType::registerConverter<QVariantMap, WebControl::ObjectHash>([](QVariantMap from) {
-            WebControl::ObjectHash hash;
+        QMetaType::registerConverter<QVariantMap, QHash<QString, QObject*>>([](QVariantMap from) {
+            QHash<QString, QObject*> hash;
             for (auto i = from.keyValueBegin(); i != from.keyValueEnd(); ++i) {
                 hash.insert((*i).first, (*i).second.value<QObject*>());
             }
