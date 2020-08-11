@@ -46,9 +46,12 @@ void WhiteCanvasQuick::setUrl(const QUrl &url, QVariantMap settings)
 void WhiteCanvasQuick::setSetting(QVariantMap settings)
 {
     urlSettings_ = settings;
-    QVariant prop = urlSettings_.value(SETTINGS_SET_GEOMETRY_ON_MAIN_RESOURCE);
-    if (!prop.isNull())
-        mainGeometryProperty_ = prop.toByteArray();
+    auto iter = urlSettings_.find(SETTINGS_SET_GEOMETRY_ON_MAIN_RESOURCE);
+    if (iter != urlSettings_.end()) {
+        mainGeometryProperty_ = iter->toByteArray();
+        if (mainGeometryProperty_.isNull())
+            mainGeometryProperty_ = "";
+    }
 }
 
 void WhiteCanvasQuick::onGeometryChanged(const QRect &newGeometry)
