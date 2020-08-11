@@ -41,6 +41,7 @@ WhiteCanvas::WhiteCanvas(QObject * parent)
 
 WhiteCanvas::~WhiteCanvas()
 {
+    tools_->switchPage(nullptr);
     switchPage(nullptr);
 }
 
@@ -76,11 +77,17 @@ Control * WhiteCanvas::getToolControl(const QString &typeOrUrl)
 
 QVariant WhiteCanvas::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value)
 {
-    if (change == ItemSceneHasChanged) {
-        QRectF rect = value.value<QGraphicsScene *>()->sceneRect();
-        rect.moveCenter({0, 0});
-        setGeometry(rect);
-        tools_->switchPage(ResourcePackage::toolPage());
+    if (change == ItemSceneChange) {
+        if (value.isNull()) {
+            tools_->switchPage(nullptr);
+        }
+    } else if (change == ItemSceneHasChanged) {
+        if (!value.isNull()) {
+            QRectF rect = value.value<QGraphicsScene *>()->sceneRect();
+            rect.moveCenter({0, 0});
+            setGeometry(rect);
+            tools_->switchPage(ResourcePackage::toolPage());
+        }
     }
     return value;
 }
