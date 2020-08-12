@@ -1,4 +1,4 @@
-#include "webcontrol.h"
+﻿#include "webcontrol.h"
 #include "core/resource.h"
 #include "core/resourceview.h"
 #include "core/resourcetransform.h"
@@ -156,7 +156,7 @@ void WebControl::loadSettings()
     WidgetControl::loadSettings();
 }
 
-static int WebViewSizeChangeArra[4]{-1,2,-2,1};
+static int WebViewSizeChangeArra[4]{1,-1,1,-1};
 
 void WebControl::attached()
 {
