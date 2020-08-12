@@ -23,6 +23,12 @@ ItemFrame::ItemFrame(QGraphicsItem * item, QGraphicsItem * parent)
 void ItemFrame::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     QRectF rect(boundingRect());
+
+    float radius = 8;
+    QPainterPath clipPath;
+    clipPath.addRoundedRect(rect, radius, radius);
+    painter->setClipPath(clipPath);
+
     if (hasTopBar_) {
 //        painter->save();
 //        painter->setBrush(brush());
@@ -50,6 +56,9 @@ void ItemFrame::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
             painter->restore();
         }
     }
+    QRectF r(boundingRect());
+    painter->setPen(QColor("#FFE2E3E4"));
+    painter->drawRoundedRect(r.x(), r.y(), r.width(), r.height(), radius, radius);
 }
 
 void ItemFrame::drawTopBar(QPainter *painter, QRectF const & rect, ItemFrame *)
