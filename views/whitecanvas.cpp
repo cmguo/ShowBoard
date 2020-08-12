@@ -29,6 +29,7 @@ WhiteCanvas::WhiteCanvas(QObject * parent)
     static int THUMBNAIL_HEIGHT2 = dp(THUMBNAIL_HEIGHT);
     THUMBNAIL_HEIGHT = THUMBNAIL_HEIGHT2;
 
+    setObjectName("WhiteCanvas");
     setAcceptedMouseButtons(Qt::LeftButton);
     //setFlags(ItemIsMovable);
     //setBrush(QBrush(Qt::green));

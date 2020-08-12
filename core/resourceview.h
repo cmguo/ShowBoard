@@ -20,6 +20,7 @@ class SHOWBOARD_EXPORT ResourceView : public ToolButtonProvider
     Q_PROPERTY(Resource * resource READ resource())
     Q_PROPERTY(Flags const flags READ flags())
     Q_PROPERTY(QString name MEMBER name_)
+    Q_PROPERTY(ResourceTransform* transform READ transform2)
 
     Q_PROPERTY(bool deletable READ deletable WRITE setDeletable)
     Q_PROPERTY(bool copyable READ copyable WRITE setCopyable)
@@ -132,6 +133,11 @@ public:
     ResourceTransform& transform()
     {
         return *transform_;
+    }
+
+    ResourceTransform* transform2()
+    {
+        return transform_;
     }
 
 public:

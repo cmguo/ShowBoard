@@ -41,7 +41,11 @@ signals:
     // include sub page
     void currentPageChanged(ResourcePage* page);
 
+#ifdef PROD_TEST
+public slots:
+#else
 public:
+#endif
     ResourcePackage * package()
     {
         return package_;
@@ -55,7 +59,11 @@ public:
 
     void updateThunmbnail();
 
+#ifdef PROD_TEST
+public slots:
+#else
 public:
+#endif
     /*
      * add resource to attached resource page
      * use ResourcePage instead
@@ -74,7 +82,11 @@ public:
      */
     void removeResource(Control * control);
 
+#ifdef PROD_TEST
+public slots:
+#else
 public:
+#endif
     /*
      * show tool control of type @type
      *  these controls are not backed by resource and is single instance
@@ -90,7 +102,11 @@ public:
 
     Control * getToolControl(QString const & typeOrUrl);
 
+#ifdef PROD_TEST
+public slots:
+#else
 public:
+#endif
     /*
      * find control assosiate with resource @res
      */
@@ -107,6 +123,11 @@ public:
      */
     Control * topControl();
 
+#ifdef PROD_TEST
+public slots:
+#else
+public:
+#endif
     void select(Control * control);
 
     Control * selected();

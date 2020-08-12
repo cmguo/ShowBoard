@@ -185,6 +185,9 @@ void Control::attachTo(QGraphicsItem * parent, QGraphicsItem * before)
     initPosition();
     relayout();
     flags_ |= Loading;
+#ifdef PROD_TEST
+    setParent(whiteCanvas()); // for testbed
+#endif
     whiteCanvas()->onControlLoad(true);
     attached();
     if (res_->flags().testFlag(ResourceView::LargeCanvas))

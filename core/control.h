@@ -5,6 +5,7 @@
 #include "toolbuttonprovider.h"
 
 #include <QSizeF>
+#include <QRectF>
 
 class QGraphicsItem;
 class ResourceView;
@@ -20,7 +21,9 @@ class SHOWBOARD_EXPORT Control : public ToolButtonProvider
     Q_OBJECT
 
     Q_PROPERTY(Flags flags READ flags())
-    Q_PROPERTY(ResourceView * resource READ resource())
+    Q_PROPERTY(ResourceView * resource READ resource)
+    Q_PROPERTY(QRectF boundRect READ boundRect)
+    Q_PROPERTY(QObject* itemObj READ itemObj)
 
     Q_PROPERTY(bool withSelectBar READ withSelectBar WRITE setWithSelectBar)
     Q_PROPERTY(bool keepAspectRatio READ keepAspectRatio WRITE setKeepAspectRatio)
@@ -106,6 +109,11 @@ public:
     QGraphicsItem * item() const
     {
         return realItem_;
+    }
+
+    QObject * itemObj() const
+    {
+        return itemObj_;
     }
 
 public:

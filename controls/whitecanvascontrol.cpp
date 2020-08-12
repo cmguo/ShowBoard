@@ -33,6 +33,11 @@ WhiteCanvasControl::WhiteCanvasControl(ResourceView * view, QGraphicsItem * canv
     item_->setTransformations({transform_});
     item_->setData(ITEM_KEY_CONTROL, QVariant::fromValue(this));
     realItem_ = item_;
+
+#ifdef PROD_TEST
+    setParent(static_cast<WhiteCanvas*>(item_)); // for testbed
+#endif
+
     if (view->flags().testFlag(ResourceView::LargeCanvas)) {
         QObject::connect(&res_->transform(), &ResourceTransform::beforeChanged,
                          this, &WhiteCanvasControl::updatingTransform);
