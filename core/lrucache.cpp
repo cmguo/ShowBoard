@@ -87,6 +87,8 @@ QString FileLRUCache::putData(const QUrl &url, QByteArray data)
         file.remove();
         return nullptr;
     }
+    f.size = data.size();
+    base::put(f.path.mid(f.path.lastIndexOf('/') + 1).left(32).toUtf8(), f);
     return f.path;
 }
 
