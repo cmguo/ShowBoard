@@ -109,13 +109,13 @@ private:
     {
         DrawingTool * tool = static_cast<DrawingTool *>(Control::fromItem(this));
         Control* control = control_;
-        if (control_) {
-            if (!(control_->resource()->flags() & ResourceView::DrawFinised)) {
+        if (control) {
+            if (!(control->resource()->flags() & ResourceView::DrawFinised)) {
                 QEvent event(QEvent::User);
-                control_->event(&event);
-                if (!(control_->resource()->flags() & ResourceView::DrawFinised)) {
+                control->event(&event);
+                if (!(control->resource()->flags() & ResourceView::DrawFinised)) {
                     qDebug() << "DrawItem: draw dropped";
-                    tool->removeControl(control_);
+                    tool->removeControl(control);
                     control = nullptr;
                 }
             }
@@ -160,7 +160,9 @@ protected:
     virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override
     {
         if (control_) {
+            inSetFocus_ = true; // avoid finish by lost focus
             control_->event(event);
+            inSetFocus_ = false;
             if (control_->resource()->flags() & ResourceView::DrawFinised) {
                 finish();
             } else if (event->flags() & 256) {
