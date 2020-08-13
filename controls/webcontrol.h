@@ -11,10 +11,15 @@ class SHOWBOARD_EXPORT WebControl : public WidgetControl
     Q_OBJECT
 
     Q_PROPERTY(bool fitToContent READ fitToContent WRITE setFitToContent)
+    Q_PROPERTY(bool debugable READ debugable WRITE setDebugable)
     Q_PROPERTY(QColor background READ background WRITE setBackground)
 #ifdef Q_MOC_RUN // fix QCreator error
     Q_PROPERTY(QHash<QString, QObject*> webBridges WRITE setWebBridges)
 #endif
+
+public:
+    static constexpr Flag FitToContent = static_cast<Flag>(1 << 16);
+    static constexpr Flag Debugable = static_cast<Flag>(1 << 17);
 
 public:
     Q_INVOKABLE WebControl(ResourceView *res);
@@ -23,6 +28,10 @@ public:
     bool fitToContent() const;
 
     void setFitToContent(bool b);
+
+    bool debugable() const;
+
+    void setDebugable(bool b);
 
     QColor background() const;
 
@@ -61,7 +70,6 @@ public slots:
     void dump();
 
 private:
-    bool fitToContent_;
     QColor background_;
     int webViewSizeChangeIndex_ = 0;
 };

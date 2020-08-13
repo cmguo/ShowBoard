@@ -1,4 +1,4 @@
-﻿#include "webcontrol.h"
+#include "webcontrol.h"
 #include "core/resource.h"
 #include "core/resourceview.h"
 #include "core/resourcetransform.h"
@@ -23,15 +23,13 @@
 #define LARGE_CANVAS_LINKAGE 1
 #define DISABLE_TOUCH 0
 
-static char const * toolstr = ""
-        #ifdef QT_DEBUG
+static char const * toolstr =
         "reload()|刷新|;"
         "debug()|调试|;"
         "dump()|输出|;"
         "hide()|隐藏|Checkable|;"
         "fitContent()|适合内容|;"
         "full()|全屏|Checkable|;"
-        #endif
         ;
 
 static constexpr int MAX_WEB = 10;
@@ -78,10 +76,11 @@ WebControl::WebControl(ResourceView * res)
 #else
     : WidgetControl(res, {WithSelectBar, ExpandScale, LayoutScale, Touchable, FixedOnCanvas}, {CanRotate})
 #endif
-    , fitToContent_(false)
     , background_(Qt::transparent)
 {
+#ifdef QT_DEBUG
     setToolsString(toolstr);
+#endif
     setMinSize({0.1, 0.1});
     if (!res_->flags().testFlag(ResourceView::PersistSession))
         res_->setSessionGroup(nullptr); // force persist session
@@ -101,12 +100,22 @@ WebControl::WebControl(ResourceView * res)
 
 bool WebControl::fitToContent() const
 {
-    return fitToContent_;
+    return flags_.testFlag(FitToContent);
 }
 
 void WebControl::setFitToContent(bool b)
 {
-    fitToContent_ = b;
+    flags_.setFlag(FitToContent, b);
+}
+
+bool WebControl::debugable() const
+{
+    return flags_.testFlag(Debugable);
+}
+
+void WebControl::setDebugable(bool b)
+{
+    flags_.setFlag(Debugable, b);
 }
 
 QColor WebControl::background() const
@@ -154,6 +163,11 @@ void WebControl::loadSettings()
         resize(item_->scene()->sceneRect().size().toSize());
     }
     WidgetControl::loadSettings();
+#ifndef QT_DEBUG
+    if (debugable()) {
+        setToolsString(toolstr);
+    }
+#endif
 }
 
 static int WebViewSizeChangeArra[4]{1,-1,1,-1};
@@ -242,7 +256,7 @@ void WebControl::loadFinished(bool ok)
 void WebControl::contentsSizeChanged(const QSizeF &size)
 {
     QSizeF d = size - QSizeF(widget_->size());
-    if (!fitToContent_ || (d.width() + d.height()) < 10
+    if (!fitToContent() || (d.width() + d.height()) < 10
             || size.height() > whiteCanvas()->rect().height())
         return;
     qDebug() << "contentsSizeChanged: " << size;
@@ -280,7 +294,7 @@ void WebControl::full()
 
 void WebControl::fitContent()
 {
-    fitToContent_ = !fitToContent_;
+    setFitToContent(!fitToContent());
 }
 
 void WebControl::debug()
