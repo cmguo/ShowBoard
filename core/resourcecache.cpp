@@ -1,17 +1,23 @@
 #include "resource.h"
 #include "resourcecache.h"
 
-ResourceCache* ResourceCache::cache_ = nullptr;
-QList<ResourceCache*> ResourceCache::caches_;
+static QList<ResourceCache*> caches;
+// current cache & url
+static ResourceCache* workCache = nullptr;
+static QUrl workUrl;
+// reset lifeToken_ to cancel current task
+static QSharedPointer<QObject> lifeToken;
+static bool paused = false;
 
 ResourceCache::ResourceCache()
 {
-    caches_.prepend(this);
+    caches.prepend(this);
 }
 
 ResourceCache::~ResourceCache()
 {
-    caches_.removeOne(this);
+    clear();
+    caches.removeOne(this);
 }
 
 void ResourceCache::add(const QUrl &url)
@@ -23,38 +29,68 @@ void ResourceCache::add(const QUrl &url)
 void ResourceCache::remove(const QUrl &url)
 {
     tasks_.removeOne(url);
+    if (workCache == this && url == workUrl)
+        lifeToken.reset();
+}
+
+void ResourceCache::reset(const QList<QUrl> &tasks)
+{
+    tasks_ = tasks;
+    if (workCache == this) {
+        if (!tasks_.removeOne(workUrl))
+            lifeToken.reset();
+    }
+    loadNext();
 }
 
 void ResourceCache::clear()
 {
     tasks_.clear();
+    if (workCache == this)
+        lifeToken.reset();
 }
 
 void ResourceCache::moveFront()
 {
-    int i = caches_.indexOf(this);
+    int i = caches.indexOf(this);
     if (i > 0)
-        caches_.prepend(caches_.takeAt(i));
+        caches.prepend(caches.takeAt(i));
 }
 
 void ResourceCache::moveBackground()
 {
-    int i = caches_.indexOf(this);
+    int i = caches.indexOf(this);
     if (i > 0)
-        caches_.append(caches_.takeAt(i));
+        caches.append(caches.takeAt(i));
+}
+
+void ResourceCache::pause()
+{
+    paused = true;
+    lifeToken.reset();
+}
+
+void ResourceCache::resume()
+{
+    if (paused) {
+        paused = false;
+        loadNext();
+    }
 }
 
 void ResourceCache::loadNext()
 {
-    if (cache_)
+    if (paused || workCache)
         return;
-    for (ResourceCache * c : caches_) {
+    for (ResourceCache * c : caches) {
         if (!c->tasks_.isEmpty()) {
-            cache_ = c;
-            QUrl url = cache_->tasks_.takeFirst();
-            qDebug() << "ResourceCache load" << url;
-            Resource::getLocalUrl(url).finally([] () {
-                cache_ = nullptr;
+            workCache = c;
+            workUrl = workCache->tasks_.takeFirst();
+            qDebug() << "ResourceCache load" << workUrl;
+            if (!lifeToken)
+                lifeToken.reset(new QObject);
+            Resource::getLocalUrl(lifeToken.get(), workUrl).finally([] () {
+                workCache = nullptr;
                 loadNext();
             });
             return;

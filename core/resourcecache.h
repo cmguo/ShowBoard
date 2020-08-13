@@ -18,6 +18,8 @@ public:
 
     void remove(QUrl const & url);
 
+    void reset(QList<QUrl> const & tasks);
+
     void clear();
 
     void moveFront();
@@ -30,12 +32,13 @@ private:
     bool background_ = false;
     QList<QUrl> tasks_;
 
-private:
-    static void loadNext();
+public:
+    static void pause();
+
+    static void resume();
 
 private:
-    static ResourceCache* cache_;
-    static QList<ResourceCache*> caches_;
+    static void loadNext();
 };
 
 Q_DECLARE_METATYPE(ResourceCache*)
