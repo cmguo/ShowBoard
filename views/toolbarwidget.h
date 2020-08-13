@@ -8,6 +8,7 @@
 #include <QFrame>
 #include <QMap>
 #include <QList>
+#include <QPen>
 
 class QLayout;
 class ToolButtonProvider;
@@ -29,6 +30,7 @@ private:
 
 private:
     int borderRadius_;
+    QPen borderPen_;
 };
 
 class SHOWBOARD_EXPORT ToolbarWidget : public QFrameEx

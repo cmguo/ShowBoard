@@ -1,4 +1,4 @@
-﻿#ifndef QSSHELPER_H
+#ifndef QSSHELPER_H
 #define QSSHELPER_H
 
 #include <ShowBoard_global.h>
@@ -18,6 +18,8 @@ public:
     QSize toSize() const;
 
     int toInt() const;
+
+    QPen toPen() const;
 };
 
 class SHOWBOARD_EXPORT QssHelper

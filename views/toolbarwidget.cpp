@@ -39,7 +39,7 @@ ToolbarWidget::ToolbarWidget(bool horizontal, QWidget *parent)
     if (horizontal) {
         int margins = dp(6);
         layout_->setContentsMargins(margins, margins, margins, margins);
-        layout_->setSpacing(dp(8));
+        layout_->setSpacing(dp(20));
     }
     setLayout(layout_);
     hide();
@@ -583,20 +583,18 @@ void QFrameEx::setStyleSheet(const QssHelper &style)
     QFrame::setStyleSheet(style);
     QByteArray objname = "#" + objectName().toUtf8();
     borderRadius_ = style.value(objname, "border-radius").toInt();
+    borderPen_ = style.value(objname, "border").toPen();
 }
 
 void QFrameEx::paintEvent(QPaintEvent * event)
 {
     if (graphicsProxyWidget()) {
-        QRect r(0, 0, width(), height());
+        QRect r(1, 1, width() - 2, height() - 2);
         QPainter p(this);
-        QPen pn = p.pen();
-        QBrush br = p.brush();
-        p.setPen(Qt::NoPen);
+        p.setRenderHints(QPainter::HighQualityAntialiasing);
+        p.setPen(borderPen_);
         p.setBrush(palette().brush(QPalette::Window));
         p.drawRoundedRect(r, borderRadius_, borderRadius_);
-        p.setBrush(br);
-        p.setPen(pn);
     }
     QFrame::paintEvent(event);
 }

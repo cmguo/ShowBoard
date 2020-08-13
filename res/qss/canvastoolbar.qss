@@ -54,5 +54,6 @@ QPushButton:unchecked:hover {
 #canvastoolbar {
     background-color:#2B3034;
     border-radius:6px; /* [size] */
+    border: 1px solid rgba(67,77,89,1);
 }
 

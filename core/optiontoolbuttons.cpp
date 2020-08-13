@@ -199,14 +199,14 @@ QGraphicsItem *WidthToolButtons::widthIcon(qreal width)
     ph.addEllipse(QRectF(3, 3, 26, 26));
     QGraphicsPathItem * border = new QGraphicsPathItem(ph);
     border->setPen(Qt::NoPen);
-    border->setBrush(QColor("#343434"));
+    border->setBrush(QColor("#D4D4D4"));
     QPainterPath ph2;
     QRectF rect(0, 0, width, width);
     rect.moveCenter(QPointF(16, 16));
     ph2.addEllipse(rect);
     QGraphicsPathItem * item = new QGraphicsPathItem(ph2, border);
     item->setPen(Qt::NoPen);
-    item->setBrush(Qt::white);
+    item->setBrush(Qt::blue);
     return border;
 }
 

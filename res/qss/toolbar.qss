@@ -1,5 +1,5 @@
 QPushButton,.QLabel {
-    color:#80ffffff;
+    color:#ffffff;
     background-color:#00000000;
     border:none;
     font-size: 14pt; /* [size] */
@@ -7,6 +7,7 @@ QPushButton,.QLabel {
 }
 
 QPushButton {
+    background-color:red;
     qproperty-iconSize: 32px 32px; /* [size] */
 }
 
@@ -15,9 +16,12 @@ QPushButton:checked {
 }
 
 #splitter {
+    width: 1px;
     max-width: 1px;
+    height: 22px; /* [size] */
+    max-height: 22px; /* [size] */
     border: none;
-    background-color: #333B3B;
+    background-color: #424C59;
 }
 
 #lineSplitter {
@@ -27,11 +31,14 @@ QPushButton:checked {
 }
 
 #toolbarwidget {
-    background-color:black;
+    background-color:#2B3034;
     border-radius:6px; /* [size] */
+    border: 1px solid rgba(67,77,89,1);
+    padding-left: 12px; /* [size] */
+    padding-right: 12px; /* [size] */
 }
 
 #popupwidget {
-    background-color:black;
+    background-color:#2B3034;
     border-radius:6px; /* [size] */
 }

@@ -5,6 +5,7 @@
 #include <QTextStream>
 #include <QApplication>
 #include <QScreen>
+#include <QPen>
 
 static QList<QssHelper*>& allHelpers()
 {
@@ -18,6 +19,16 @@ static int strToInt(QString const & size, QString & unit)
     int n = size.indexOf(re);
     unit = size.mid(n);
     return size.left(n).toInt();
+}
+
+static QColor strToColorRgba(QString const & color)
+{
+    QStringList rgba = color.split(',');
+    ushort colors[4];
+    for (int i = 0; i < rgba.size() && i < 4; ++i) {
+        colors[i] = rgba[i].trimmed().toUShort();
+    }
+    return QColor(colors[0], colors[1], colors[2], colors[3] * 255);
 }
 
 static QString sizeScale(QString const & size)
@@ -44,6 +55,8 @@ static QMap<QByteArray, QMap<QByteArray, QssHelper::StyleFunc>> gStyleFunctions 
     {"max-height", {{"size", &sizeScale}}},
     {"margin", {{"size", &sizeScale}}},
     {"padding", {{"size", &sizeScale}}},
+    {"padding-left", {{"size", &sizeScale}}},
+    {"padding-right", {{"size", &sizeScale}}},
     {"border-radius", {{"size", &sizeScale}}},
     {"qproperty-iconSize", {{"size", &sizeScale2}}}
 };
@@ -296,4 +309,19 @@ int QssValue::toInt() const
 {
     QString unit;
     return strToInt(toString(), unit);
+}
+
+QPen QssValue::toPen() const
+{
+    QStringList segs = toString().split(' ', QString::SkipEmptyParts);
+    QPen pen;
+    for (QString & s : segs) {
+        if (s.endsWith("px")) {
+            QString unit;
+            pen.setWidth(strToInt(s, unit));
+        } else if (s.startsWith("rgba(")) {
+            pen.setColor(strToColorRgba(s.mid(5, s.length() - 6)));
+        }
+    }
+    return pen;
 }
