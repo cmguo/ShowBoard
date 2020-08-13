@@ -36,7 +36,7 @@ static ToolButton btnCopy = { "copy", "复制", ToolButton::Static, ":/showboard
 static ToolButton btnFastCopy = { "copy", "快速复制",
                                     ToolButton::Flags{ToolButton::Static, ToolButton::Checkable},
                                     ":/showboard/icon/copy.svg" };
-static ToolButton btnDelete = { "delete", "删除", ToolButton::Static, ":/showboard/icon/delete.dark.svg" };
+static ToolButton btnDelete = { "delete", "删除", ToolButton::Static, ":/showboard/icon/delete.svg" };
 
 Control::Control(ResourceView *res, Flags flags, Flags clearFlags)
     : flags_((DefaultFlags | flags) & ~clearFlags)
