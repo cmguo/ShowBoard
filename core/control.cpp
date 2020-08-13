@@ -6,6 +6,7 @@
 #include "views/stateitem.h"
 #include "views/itemframe.h"
 #include "views/itemselector.h"
+#include "views/qsshelper.h"
 #include "resourcetransform.h"
 #include "controltransform.h"
 
@@ -24,7 +25,7 @@
 #include <math.h>
 
 static qreal MIN_SIZE = 120.0;
-static qreal MAX_SIZE = 4096.0;
+static qreal MAX_SIZE = 4320.0;
 
 Control * Control::fromItem(QGraphicsItem const * item)
 {
@@ -61,8 +62,8 @@ Control::Control(ResourceView *res, Flags flags, Flags clearFlags)
     if (res_->flags() & ResourceView::SavedSession) {
         flags_ |= RestoreSession;
     }
-    minMaxSize_[0] = {MIN_SIZE, MIN_SIZE};
-    minMaxSize_[1] = {MAX_SIZE, MAX_SIZE};
+    minMaxSize_[0] = {dp(MIN_SIZE), dp(MIN_SIZE)};
+    minMaxSize_[1] = {dp(MAX_SIZE), dp(MAX_SIZE)};
     attachSubProvider(res_, true);
 }
 
