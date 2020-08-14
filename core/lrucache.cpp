@@ -52,11 +52,9 @@ QtPromise::QPromise<QString> FileLRUCache::putStream(QObject *context, const QUr
     if (iter != asyncPuts_.end())
         return iter.value();
     QPromise<QString> asyncPut = openStream(context).then([f, this, url] (QSharedPointer<QIODevice> stream) {
-        return saveStream(f.path, stream)
-                .then([f] () { return f.path; })
-                .finally([this, url] () {
-            asyncPuts_.remove(url);
-        });
+        return saveStream(f.path, stream).then([f] () { return f.path; });
+    }).finally([this, url] () {
+        asyncPuts_.remove(url);
     });
     asyncPuts_.insert(url, asyncPut);
     return asyncPut;
