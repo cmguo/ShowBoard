@@ -1,3 +1,4 @@
+#include "dataprovider.h"
 #include "lrucache.h"
 
 #include <QDir>
@@ -221,10 +222,17 @@ QtPromise::QPromise<void> FileLRUCache::saveStream(const QString &path, QSharedP
                 resolve(*size);
             }
         };
-        QNetworkReply * reply = qobject_cast<QNetworkReply*>(stream.get());
-        if (reply && reply->isFinished()) {
-            finished();
-            return;
+        if (QNetworkReply * reply = qobject_cast<QNetworkReply*>(stream.get())) {
+            if (reply->isFinished()) {
+                finished();
+                return;
+            }
+        }
+        if (HttpStream * reply = qobject_cast<HttpStream*>(stream.get())) {
+            if (reply->reply()->isFinished()) {
+                finished();
+                return;
+            }
         }
         QObject::connect(stream.get(), &QIODevice::readChannelFinished, finished);
     }).then([this, path, file] (qint64 size) {
