@@ -1,7 +1,9 @@
-﻿  #include "workthread.h"
+  #include "workthread.h"
 
+#include <QApplication>
 #include <QList>
 #include <QMutex>
+#include <QWaitCondition>
 
 static QMutex& mutex()
 {
@@ -40,5 +42,32 @@ void WorkThread::quitAll()
     for (WorkThread * t : threads()) {
         t->quit();
         t->wait();
+    }
+}
+
+void WorkThread::sendWork2(QObject* context, WorkEventBase *e)
+{
+    QWaitCondition c;
+    e->c_ = &c;
+    QMutexLocker l(&mutex());
+    QApplication::postEvent(context, e);
+    c.wait(&mutex());
+}
+
+void WorkThread::postWork2(QObject *context, WorkEventBase *e)
+{
+    QApplication::postEvent(context, e);
+}
+
+WorkEventBase::WorkEventBase(QWaitCondition *c)
+    : QEvent(User), c_(c)
+{
+}
+
+WorkEventBase::~WorkEventBase()
+{
+    if (c_) {
+        QMutexLocker l(&mutex());
+        c_->wakeOne();
     }
 }
