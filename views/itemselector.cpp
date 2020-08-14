@@ -65,6 +65,10 @@ void ItemSelector::unselect(Control * control)
         qInfo() << "unselect" << control->resource()->url();
         select2(nullptr);
     }
+    if (control == tempControl_) {
+        type_ = None;
+        tempControl_ = nullptr;
+    }
 }
 
 void ItemSelector::selectImplied(Control * control)
@@ -358,7 +362,7 @@ void ItemSelector::select2(Control *control)
         }
         QObject::connect(selectControl_, &Control::destroyed,
                          selBoxTransform_, [this, control]() {
-            qWarning() << "delayed unselect!!";
+            qWarning() << "destroyed without unselect!!";
             unselect(control);
         });
         toolBar()->attachProvider(selectControl_);
