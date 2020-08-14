@@ -97,7 +97,7 @@ public:
 public:
     QtPromise::QPromise<QString> putStream(QUrl const & url, QSharedPointer<QIODevice> stream);
 
-    QtPromise::QPromise<QString> putStream(QUrl const & url, std::function<QtPromise::QPromise<QSharedPointer<QIODevice>> (void)> openStream);
+    QtPromise::QPromise<QString> putStream(QObject *context, QUrl const & url, std::function<QtPromise::QPromise<QSharedPointer<QIODevice>> (QObject *)> openStream);
 
     QSharedPointer<QIODevice> getStream(QUrl const & url);
 

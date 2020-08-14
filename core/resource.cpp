@@ -56,25 +56,25 @@ Resource::Resource(Resource const & o)
 
 QtPromise::QPromise<QUrl> Resource::getLocalUrl()
 {
-    return getLocalUrl(url_);
+    return getLocalUrl(this, url_);
 }
 
 QtPromise::QPromise<QSharedPointer<QIODevice> > Resource::getStream(bool all)
 {
-    return getStream(url_, all);
+    return getStream(this, url_, all);
 }
 
 QtPromise::QPromise<QByteArray> Resource::getData()
 {
-    return getData(url_);
+    return getData(this, url_);
 }
 
 QtPromise::QPromise<QString> Resource::getText()
 {
-    return getText(url_);
+    return getText(this, url_);
 }
 
-QPromise<QUrl> Resource::getLocalUrl(QUrl const & url)
+QPromise<QUrl> Resource::getLocalUrl(QObject *context, QUrl const & url)
 {
     if (url.scheme() == "file") {
         if (QFile::exists(url.toLocalFile()))
@@ -82,12 +82,19 @@ QPromise<QUrl> Resource::getLocalUrl(QUrl const & url)
         else
             return QPromise<QUrl>::reject(std::invalid_argument("打开失败，请重试"));
     }
-    return cache_->putStream(url, [url] () { return getStream(url); }).then([] (QString const & file) {
+    return cache_->putStream(context, url, [url] (QObject *c) {
+        return getStream(c, url);
+    }).then([] (QString const & file) {
         return QUrl::fromLocalFile(file);
     });
 }
 
-QPromise<QSharedPointer<QIODevice>> Resource::getStream(QUrl const & url, bool all)
+QtPromise::QPromise<QUrl> Resource::getLocalUrl(const QUrl &url)
+{
+    return getLocalUrl(nullptr, url);
+}
+
+QPromise<QSharedPointer<QIODevice>> Resource::getStream(QObject *context, QUrl const & url, bool all)
 {
     DataProvider * provider = ResourceManager::instance()->getProvider(url.scheme().toUtf8());
     if (provider == nullptr) {
@@ -102,12 +109,17 @@ QPromise<QSharedPointer<QIODevice>> Resource::getStream(QUrl const & url, bool a
             return QPromise<QSharedPointer<QIODevice>>::resolve(file);
         }
     }
-    return provider->getStream(url, all);
+    return provider->getStream(context, url, all);
 }
 
-QPromise<QByteArray> Resource::getData(QUrl const & url)
+QtPromise::QPromise<QSharedPointer<QIODevice> > Resource::getStream(const QUrl &url, bool all)
 {
-    return getStream(url, true).then([url](QSharedPointer<QIODevice> io) {
+    return getStream(nullptr, url, all);
+}
+
+QtPromise::QPromise<QByteArray> Resource::getData(QObject *context, const QUrl &url)
+{
+    return getStream(context, url, true).then([url](QSharedPointer<QIODevice> io) {
         QByteArray data = io->readAll();
         io->close();
         DataProvider * provider = ResourceManager::instance()->getProvider(url.scheme().toUtf8());
@@ -117,13 +129,23 @@ QPromise<QByteArray> Resource::getData(QUrl const & url)
     });
 }
 
+QPromise<QByteArray> Resource::getData(QUrl const & url)
+{
+    return getData(nullptr, url);
+}
+
 static QString fromMulticode(QByteArray bytes);
+
+QtPromise::QPromise<QString> Resource::getText(QObject *context, const QUrl &url)
+{
+    return getData(context, url).then([](QByteArray data) {
+        return fromMulticode(data);
+    });
+}
 
 QPromise<QString> Resource::getText(QUrl const & url)
 {
-    return getData(url).then([](QByteArray data) {
-        return fromMulticode(data);
-    });
+    return getText(nullptr, url);
 }
 
 static QString fromMulticode(QByteArray bytes)

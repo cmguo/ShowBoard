@@ -17,7 +17,7 @@ public:
 public:
     virtual bool needCache() { return false; }
 
-    virtual QtPromise::QPromise<QSharedPointer<QIODevice>> getStream(QUrl const & url, bool all) = 0;
+    virtual QtPromise::QPromise<QSharedPointer<QIODevice>> getStream(QObject * context, QUrl const & url, bool all) = 0;
 };
 
 class DataDataProvider : public DataProvider
@@ -27,7 +27,7 @@ public:
     Q_INVOKABLE explicit DataDataProvider(QObject *parent = nullptr);
 
 public:
-    virtual QtPromise::QPromise<QSharedPointer<QIODevice>> getStream(QUrl const & url, bool all) override;
+    virtual QtPromise::QPromise<QSharedPointer<QIODevice>> getStream(QObject * context, QUrl const & url, bool all) override;
 };
 
 class FileDataProvider : public DataProvider
@@ -37,14 +37,14 @@ public:
     Q_INVOKABLE explicit FileDataProvider(QObject *parent = nullptr);
 
 public:
-    virtual QtPromise::QPromise<QSharedPointer<QIODevice>> getStream(QUrl const & url, bool all) override;
+    virtual QtPromise::QPromise<QSharedPointer<QIODevice>> getStream(QObject * context, QUrl const & url, bool all) override;
 };
 
 class HttpStream : public QIODevice
 {
     Q_OBJECT
 public:
-    HttpStream(QNetworkReply * reply);
+    HttpStream(QObject * context, QNetworkReply * reply);
 
     virtual ~HttpStream() override;
 
@@ -69,6 +69,7 @@ protected:
 private:
     QNetworkReply * reply_;
     QByteArray data_;
+    bool aborted_;
     //int pos_ = 0;
 };
 
@@ -81,7 +82,7 @@ public:
 public:
     virtual bool needCache() override { return true; }
 
-    virtual QtPromise::QPromise<QSharedPointer<QIODevice>> getStream(QUrl const & url, bool all) override;
+    virtual QtPromise::QPromise<QSharedPointer<QIODevice>> getStream(QObject * context, QUrl const & url, bool all) override;
 
 private:
     QNetworkAccessManager * network_ = nullptr;

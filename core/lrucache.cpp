@@ -42,7 +42,7 @@ QPromise<QString> FileLRUCache::putStream(const QUrl &url, QSharedPointer<QIODev
     return asyncPut;
 }
 
-QtPromise::QPromise<QString> FileLRUCache::putStream(const QUrl &url, std::function<QtPromise::QPromise<QSharedPointer<QIODevice>> (void)> openStream)
+QtPromise::QPromise<QString> FileLRUCache::putStream(QObject *context, const QUrl &url, std::function<QtPromise::QPromise<QSharedPointer<QIODevice>> (QObject *)> openStream)
 {
     FileLRUResource f = get(url, true);
     if (f.size >= 0) {
@@ -51,7 +51,7 @@ QtPromise::QPromise<QString> FileLRUCache::putStream(const QUrl &url, std::funct
     auto iter = asyncPuts_.find(url);
     if (iter != asyncPuts_.end())
         return iter.value();
-    QPromise<QString> asyncPut = openStream().then([f, this, url] (QSharedPointer<QIODevice> stream) {
+    QPromise<QString> asyncPut = openStream(context).then([f, this, url] (QSharedPointer<QIODevice> stream) {
         return saveStream(f.path, stream)
                 .then([f] () { return f.path; })
                 .finally([this, url] () {

@@ -24,7 +24,7 @@ DataDataProvider::DataDataProvider(QObject *parent)
 {
 }
 
-QtPromise::QPromise<QSharedPointer<QIODevice> > DataDataProvider::getStream(const QUrl &url, bool all)
+QtPromise::QPromise<QSharedPointer<QIODevice> > DataDataProvider::getStream(QObject *, const QUrl &url, bool all)
 {
     (void) url;
     (void) all;
@@ -38,7 +38,7 @@ FileDataProvider::FileDataProvider(QObject *parent)
 {
 }
 
-QtPromise::QPromise<QSharedPointer<QIODevice> > FileDataProvider::getStream(const QUrl &url, bool all)
+QtPromise::QPromise<QSharedPointer<QIODevice> > FileDataProvider::getStream(QObject *, const QUrl &url, bool all)
 {
     (void) all;
     QString path = url.scheme() == "qrc" ? ":" + url.path() : url.toLocalFile();
@@ -46,7 +46,7 @@ QtPromise::QPromise<QSharedPointer<QIODevice> > FileDataProvider::getStream(cons
     if (file->open(QFile::ReadOnly | QFile::ExistingOnly)) {
         return QPromise<QSharedPointer<QIODevice>>::resolve(file);
     } else {
-        qDebug() << "Resource file error" << file->errorString();
+        qDebug() << "FileDataProvider:" << file->errorString();
         return QPromise<QSharedPointer<QIODevice>>::reject(std::invalid_argument("打开失败，请重试"));
     }
 }
@@ -60,16 +60,16 @@ HttpDataProvider::HttpDataProvider(QObject *parent)
     network_->setRedirectPolicy(QNetworkRequest::NoLessSafeRedirectPolicy);
 }
 
-QtPromise::QPromise<QSharedPointer<QIODevice>> HttpDataProvider::getStream(const QUrl &url, bool all)
+QtPromise::QPromise<QSharedPointer<QIODevice>> HttpDataProvider::getStream(QObject * context, const QUrl &url, bool all)
 {
     QNetworkRequest request(url);
-    QSharedPointer<HttpStream> reply(new HttpStream(network_->get(request)));
+    QSharedPointer<HttpStream> reply(new HttpStream(context, network_->get(request)));
     return QPromise<QSharedPointer<QIODevice>>([reply, all](
                                      const QPromiseResolve<QSharedPointer<QIODevice>>& resolve,
                                      const QPromiseReject<QSharedPointer<QIODevice>>& reject) {
 
         auto error = [reply, reject](QNetworkReply::NetworkError e) {
-            qDebug() << "Resource NetworkError " << e << reply->errorString();
+            qDebug() << "HttpDataProvider:" << e << reply->errorString();
             reject(std::invalid_argument("network|打开失败，请检查网络再试"));
         };
         if (all) {
@@ -91,10 +91,17 @@ QtPromise::QPromise<QSharedPointer<QIODevice>> HttpDataProvider::getStream(const
     });
 }
 
-HttpStream::HttpStream(QNetworkReply *reply)
+HttpStream::HttpStream(QObject * context, QNetworkReply *reply)
     : reply_(reply)
+    , aborted_(false)
 {
     open(ReadOnly);
+    if (context) {
+        connect(context, &QObject::destroyed, this, [this]() {
+            aborted_ = true;
+            reply_->abort();
+        });
+    }
     reopen();
 }
 
@@ -105,9 +112,9 @@ HttpStream::~HttpStream()
 
 void HttpStream::onError(QNetworkReply::NetworkError e)
 {
-    if (e <= QNetworkReply::UnknownNetworkError
+    if (!aborted_ && (e <= QNetworkReply::UnknownNetworkError
             || e >= QNetworkReply::ProtocolUnknownError
-            /*|| e == QNetworkReply::OperationCanceledError*/) {
+            /*|| e == QNetworkReply::OperationCanceledError*/)) {
         data_.append(reply_->readAll());
         qint64 size = pos() + data_.size();
         QNetworkRequest request = reply_->request();
