@@ -24,12 +24,8 @@ ResourcePage::ResourcePage(ResourceView* mainRes, QObject *parent)
         thumbnail_ = ResourcePackage::toolPage()->thumbnail();
     if (mainRes == nullptr)
         return;
-    bool largeCanvas = mainRes->flags().testFlag(ResourceView::LargeCanvas);
-    bool virtualPage = mainRes->flags().testFlag(ResourceView::VirtualPage);
-    if (largeCanvas || virtualPage) {
-        canvasView_ = new ResourceView(mainRes);
-        canvasView_->setParent(this);
-    }
+    canvasView_ = new ResourceView(mainRes);
+    canvasView_->setParent(this);
     addResource(mainRes);
 }
 

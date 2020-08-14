@@ -109,7 +109,8 @@ void WhiteCanvasControl::setToolBarStyles(const QString &stylesheet)
 
 void WhiteCanvasControl::setPosBarVisible(bool visible)
 {
-    posBar_->setVisible(visible);
+    if (posBar_)
+        posBar_->setVisible(visible);
 }
 
 void WhiteCanvasControl::scaleUp()
