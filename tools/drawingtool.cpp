@@ -166,7 +166,14 @@ protected:
             if (control_->resource()->flags() & ResourceView::DrawFinised) {
                 finish();
             } else if (event->flags() & 256) {
-                finishItem_->setPos(event->pos() + QPointF(20, 20));
+                QPointF pos = event->pos() + QPointF(20, 20);
+                if (pos.x() + finishItem_->boundingRect().width() > boundingRect().right()) {
+                    pos.setX(boundingRect().right() - finishItem_->boundingRect().width());
+                }
+                if (pos.y() + finishItem_->boundingRect().height() > boundingRect().bottom()) {
+                    pos.setY(boundingRect().bottom() - finishItem_->boundingRect().height());
+                }
+                finishItem_->setPos(pos);
                 finishItem_->show();
             }
         }
