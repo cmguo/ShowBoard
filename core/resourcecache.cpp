@@ -46,13 +46,15 @@ void ResourceCache::moveBackground()
 
 void ResourceCache::loadNext()
 {
-    cache_ = nullptr;
+    if (cache_)
+        return;
     for (ResourceCache * c : caches_) {
         if (!c->tasks_.isEmpty()) {
             cache_ = c;
             QUrl url = cache_->tasks_.takeFirst();
             qDebug() << "ResourceCache load" << url;
-            Resource::getLocalUrl(url).then([] (QUrl const &) {
+            Resource::getLocalUrl(url).finally([] () {
+                cache_ = nullptr;
                 loadNext();
             });
             return;
