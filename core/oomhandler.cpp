@@ -2,7 +2,9 @@
 
 #include <QApplication>
 #include <QEvent>
+#include <QMutex>
 #include <QThread>
+#include <QWaitCondition>
 
 static constexpr QEvent::Type EVENT_POST_HANDLE = QEvent::User;
 
@@ -12,6 +14,8 @@ static void oom_handler()
 {
     oomHandler.handle();
 }
+
+static QMutex mutex;
 
 OomHandler::OomHandler(QObject *parent) : QObject(parent)
 {
@@ -28,8 +32,11 @@ void OomHandler::addHandler(int level, std::function<bool ()> handler)
 void OomHandler::handle()
 {
     if (QThread::currentThread() != thread()) {
-        QEvent event(EVENT_POST_HANDLE);
-        QApplication::sendEvent(this, &event);
+        QWaitCondition c;
+        QChildEvent event(EVENT_POST_HANDLE, reinterpret_cast<QObject*>(&c));
+        QMutexLocker l(&mutex);
+        QApplication::postEvent(this, &event);
+        c.wait(&mutex);
         if (event.isAccepted())
             return;
     } else if (handle2()) {
@@ -42,6 +49,9 @@ bool OomHandler::event(QEvent *event)
 {
     if (event->type() == EVENT_POST_HANDLE) {
         event->setAccepted(handle2());
+        QMutexLocker l(&mutex);
+        reinterpret_cast<QWaitCondition*>(
+                    (static_cast<QChildEvent*>(event)->child()))->wakeOne();
     }
     return QObject::event(event);
 }
