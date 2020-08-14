@@ -70,10 +70,13 @@ QtPromise::QPromise<QSharedPointer<QIODevice>> HttpDataProvider::getStream(QObje
 
         auto error = [reply, reject](QNetworkReply::NetworkError e) {
             qDebug() << "HttpDataProvider:" << e << reply->errorString();
+            reply->disconnect();
             reject(std::invalid_argument("network|打开失败，请检查网络再试"));
         };
+        QObject::connect(reply.get(), &HttpStream::error, error);
         if (all) {
             auto finished = [reply, resolve, error]() {
+                reply->disconnect();
                 if (reply->reply()->error()) {
                     error(reply->reply()->error());
                 } else {
@@ -83,11 +86,11 @@ QtPromise::QPromise<QSharedPointer<QIODevice>> HttpDataProvider::getStream(QObje
             QObject::connect(reply.get(), &HttpStream::finished, finished);
         } else {
             auto readyRead = [reply, resolve]() {
+                reply->disconnect();
                 resolve(reply);
             };
             QObject::connect(reply.get(), &HttpStream::readyRead, readyRead);
         }
-        QObject::connect(reply.get(), &HttpStream::error, error);
     });
 }
 
@@ -107,7 +110,7 @@ HttpStream::HttpStream(QObject * context, QNetworkReply *reply)
 
 HttpStream::~HttpStream()
 {
-    delete reply_;
+    reply_->deleteLater();
 }
 
 void HttpStream::onError(QNetworkReply::NetworkError e)
