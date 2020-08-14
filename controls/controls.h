@@ -18,7 +18,7 @@ REGISTER_CONTROL(VideoControl, "mp4,wmv,ts,flv,m3u8,asf,avi,"
                                "mp3,wma,wav,"
                                "rtsp,rtmp,rtp")
 REGISTER_CONTROL(StrokeControl, "glstroke")
-REGISTER_CONTROL(WebControl, "htm,html,http,https,chrome")
+REGISTER_CONTROL(WebControl, "htm,html,http,https,chrome,swf")
 REGISTER_CONTROL(QmlControl, "qml")
 REGISTER_CONTROL(TextControl, "txt,js,cpp,h,qss,css")
 

@@ -1,4 +1,4 @@
-﻿#include "webcontrol.h"
+#include "webcontrol.h"
 #include "core/resource.h"
 #include "core/resourceview.h"
 #include "core/resourcetransform.h"
@@ -46,7 +46,7 @@ static int totalFront = 0;
 
 class WebView : public QWebEngineView
 {
-private:
+public:
     static void sinit();
 public:
     WebView(QObject * settings);
@@ -69,6 +69,11 @@ private:
 };
 
 // TODO: fix multiple touch crash
+
+void WebControl::init()
+{
+    WebView::sinit();
+}
 
 WebControl::WebControl(ResourceView * res)
 #if DISABLE_TOUCH
@@ -533,3 +538,4 @@ QWebEnginePage *WebPage::createWindow(QWebEnginePage::WebWindowType){
     });
     return page;
 }
+

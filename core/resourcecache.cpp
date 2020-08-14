@@ -89,7 +89,10 @@ void ResourceCache::loadNext()
             qDebug() << "ResourceCache load" << workUrl;
             if (!lifeToken)
                 lifeToken.reset(new QObject);
-            Resource::getLocalUrl(lifeToken.get(), workUrl).finally([] () {
+            Resource::getLocalUrl(lifeToken.get(), workUrl)
+                    .tapFail([](std::exception & e) {
+                qWarning() << "ResourceCache error:" << e.what();
+            }).finally([] () {
                 workCache = nullptr;
                 loadNext();
             });
