@@ -1,7 +1,7 @@
 #include "imagecache.h"
-#include "oomhandler.h"
-#include "resource.h"
-#include "workthread.h"
+#include "core/oomhandler.h"
+#include "core/resource.h"
+#include "core/workthread.h"
 
 using namespace QtPromise;
 

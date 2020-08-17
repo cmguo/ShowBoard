@@ -1,7 +1,7 @@
 #include "resource.h"
-#include "lrucache.h"
+#include "data/lrucache.h"
 #include "resourcemanager.h"
-#include "dataprovider.h"
+#include "data/dataprovider.h"
 #include "oomhandler.h"
 
 #include <QFile>

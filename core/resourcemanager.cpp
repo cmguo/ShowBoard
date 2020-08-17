@@ -4,7 +4,7 @@
 #include "resourceview.h"
 #include "qlazy.hpp"
 #include "qcomponentcontainer.h"
-#include "dataprovider.h"
+#include "data/dataprovider.h"
 
 #include "resources/resources.h"
 #include "showboard.h"

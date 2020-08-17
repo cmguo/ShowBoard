@@ -2,7 +2,7 @@
 #include "core/resourceview.h"
 #include "core/resource.h"
 #include "core/resourcetransform.h"
-#include "core/imagecache.h"
+#include "data/imagecache.h"
 #include "views/whitecanvas.h"
 
 #include <QPixmap>

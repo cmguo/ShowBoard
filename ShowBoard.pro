@@ -38,6 +38,7 @@ include(opengl/opengl.pri)
 include(tools/tools.pri)
 include(stroke/stroke.pri)
 include(views/views.pri)
+include(data/data.pri)
 
 win32 {
     include(office/office.pri)

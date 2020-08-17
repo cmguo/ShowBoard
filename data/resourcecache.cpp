@@ -1,5 +1,5 @@
-#include "resource.h"
 #include "resourcecache.h"
+#include "core/resource.h"
 
 static QList<ResourceCache*> caches;
 // current cache & url

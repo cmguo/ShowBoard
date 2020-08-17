@@ -1,6 +1,6 @@
 #include "qsshelper.h"
 #include "stateitem.h"
-#include "core/svgcache.h"
+#include "data/svgcache.h"
 #include "core/control.h"
 #include "core/resourceview.h"
 #include "core/resource.h"
