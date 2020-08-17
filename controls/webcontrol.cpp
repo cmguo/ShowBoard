@@ -1,4 +1,4 @@
-#include "webcontrol.h"
+﻿#include "webcontrol.h"
 #include "core/resource.h"
 #include "core/resourceview.h"
 #include "core/resourcetransform.h"
@@ -382,10 +382,10 @@ WebView::WebView(QObject *settings)
     sinit();
     // make sure that touch events are delivered at all
     setAttribute(Qt::WA_AcceptTouchEvents);
-    setPage(new WebPage(this, settings));
-    connect(page(), &WebPage::fullScreenRequested, this, [](QWebEngineFullScreenRequest fullScreenRequest) {
-        fullScreenRequest.accept();
-    });
+    //    setPage(new WebPage(this, settings));
+    //    connect(page(), &WebPage::fullScreenRequested, this, [](QWebEngineFullScreenRequest fullScreenRequest) {
+    //        fullScreenRequest.accept();
+    //    });
 }
 
 void WebView::scaleTo(qreal scale)
