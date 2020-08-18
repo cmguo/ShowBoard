@@ -21,7 +21,7 @@
 #include <QWebEngineProfile>
 
 #define LARGE_CANVAS_LINKAGE 1
-#define DISABLE_TOUCH 0
+#define DISABLE_TOUCH 1
 
 static char const * toolstr =
         "reload()|刷新|;"
