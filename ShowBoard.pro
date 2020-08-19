@@ -1,4 +1,5 @@
-QT += widgets network multimediawidgets webenginewidgets svg quick quickwidgets qml
+QT += widgets network multimediawidgets webenginewidgets \
+    svg quick quickwidgets qml concurrent
 
 win32 { QT += axcontainer }
 
@@ -88,6 +89,13 @@ win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../qualib/lib/r -lquaz
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../qualib/lib/d -lquazipd
 
 INCLUDEPATH += $$OUT_PWD/../qualib/inc
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../qthttpserver/lib -lQt5HttpServer
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../qthttpserver/lib -lQt5HttpServerd
+else:unix: LIBS += -L$$OUT_PWD/../qthttpserver/lib -lQt5HttpServer
+
+INCLUDEPATH += $$OUT_PWD/../qthttpserver/include
+DEPENDPATH += $$PWD/../qthttpserver/src/httpserver
 
 win32:CONFIG(debug, debug|release): {
     LIBS += -lGdiplus

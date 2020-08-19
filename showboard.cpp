@@ -12,6 +12,8 @@
 
 #include <QQuickWidget>
 
+#include <data/localhttpserver.h>
+
 QComponentContainer & ShowBoard::containter()
 {
     static QComponentContainer c;
@@ -32,10 +34,13 @@ void ShowBoard::init()
     // qml types
     qmlRegisterType<WhiteCanvasQuick>("ShowBoard", 1, 0, "WhiteCanvasQuick");
     qmlRegisterType<QuickWidgetItem>("ShowBoard", 1, 0, "QuickWidgetItem");
+
+    LocalHttpServer::instance()->start();
 }
 
 void ShowBoard::exit()
 {
+    LocalHttpServer::instance()->stop();
     WorkThread::quitAll();
 }
 
