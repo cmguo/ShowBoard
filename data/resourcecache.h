@@ -5,13 +5,30 @@
 
 #include <QList>
 #include <QUrl>
+#include <QtPromise>
 
-class SHOWBOARD_EXPORT ResourceCache
+class SHOWBOARD_EXPORT ResourceCacheBase
+{
+public:
+    ResourceCacheBase();
+
+    virtual ~ResourceCacheBase();
+
+public:
+    virtual bool empty() = 0;
+
+    virtual QtPromise::QPromise<void> cacheNext(QObject * context) = 0;
+
+private:
+    Q_DISABLE_COPY(ResourceCacheBase)
+};
+
+class SHOWBOARD_EXPORT ResourceCache : public ResourceCacheBase
 {
 public:
     ResourceCache();
 
-    ~ResourceCache();
+    virtual ~ResourceCache() override;
 
 public:
     void add(QUrl const & url);
@@ -25,6 +42,11 @@ public:
     void moveFront();
 
     void moveBackground();
+
+public:
+    virtual bool empty() override { return tasks_.isEmpty(); }
+
+    virtual QtPromise::QPromise<void> cacheNext(QObject * context) override;
 
 private:
     Q_DISABLE_COPY(ResourceCache)
