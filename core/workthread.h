@@ -1,9 +1,12 @@
 #ifndef WORKTHREAD_H
 #define WORKTHREAD_H
 
+#include <QtPromise>
+
 #include <QEvent>
 #include <QThread>
 #include <QWaitCondition>
+#include <type_traits>
 
 class QWaitCondition;
 
@@ -27,6 +30,28 @@ private:
     T t_;
 };
 
+template <typename T, typename R>
+class AsyncEvent : public WorkEventBase
+{
+public:
+    AsyncEvent(T const & f, QtPromise::QPromiseResolve<R> r) : t_(f), r_(r) {}
+    virtual ~AsyncEvent() { r_(t_()); }
+private:
+    T t_;
+    QtPromise::QPromiseResolve<R> r_;
+};
+
+template <typename T>
+class AsyncEvent<T, void> : public WorkEventBase
+{
+public:
+    AsyncEvent(T const & f, QtPromise::QPromiseResolve<void> r) : t_(f), r_(r) {}
+    virtual ~AsyncEvent() { t_(); r_(); }
+private:
+    T t_;
+    QtPromise::QPromiseResolve<void> r_;
+};
+
 class WorkThread : public QThread
 {
 public:
@@ -45,6 +70,18 @@ public:
         postWork(context_, func);
     }
 
+    template <typename Func>
+    struct PromiseFunctor
+    {
+        using ResultType = typename std::result_of<Func(void)>::type;
+        using PromiseType = QtPromise::QPromise<ResultType>;
+    };
+
+    template <typename Func>
+    inline typename PromiseFunctor<Func>::PromiseType asyncWork(Func const & func) {
+        return asyncWork(context_, func);
+    }
+
 public:
     // send and wait
     template <typename Func>
@@ -57,6 +94,15 @@ public:
     inline static void postWork(QObject* context, Func const & func)
     {
         postWork2(context, new WorkEvent<Func>(func));
+    }
+
+    template <typename Func>
+    inline static typename PromiseFunctor<Func>::PromiseType asyncWork(QObject* context, Func const & func)
+    {
+        typedef typename std::result_of<Func(void)>::type Result;
+        return QtPromise::QPromise<Result>([&] (QtPromise::QPromiseResolve<Result> resolve) {
+            postWork2(context, new AsyncEvent<Func, Result>(func, resolve));
+        });
     }
 
     static void quitAll();
