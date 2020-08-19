@@ -85,10 +85,10 @@ INCLUDEPATH += $$PWD/../QtPromise/src
 INCLUDEPATH += $$PWD/../qtpromise/src/qtpromise $$PWD/../qtpromise/include
 #DEPENDPATH += $$PWD/../qtpromise/src/qtpromise
 
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../qualib/lib/r -lquazip
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../qualib/lib/d -lquazipd
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../quazip/lib -lquazip
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../quazip/lib -lquazipd
 
-INCLUDEPATH += $$OUT_PWD/../qualib/inc
+INCLUDEPATH += $$OUT_PWD/../quazip/include
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../qthttpserver/lib -lQt5HttpServer
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../qthttpserver/lib -lQt5HttpServerd
