@@ -21,7 +21,6 @@ ResourceManager * ResourceManager::instance()
 
 static QExport<ResourceManager> export_(QPart::shared);
 static QImportMany<ResourceManager, ResourceView> import_resources("resourceTypes", QPart::nonshared);
-static QImportMany<ResourceManager, DataProvider> import_providers("providerTypes", QPart::nonshared);
 
 static QMap<char const *, QPair<ResourceView::Flags, ResourceView::Flags>>& commonResourceTypes()
 {
@@ -171,12 +170,4 @@ ResourceFactory * ResourceManager::getFactory(QByteArray const & type) const
     } else {
         return nullptr;
     }
-}
-
-DataProvider *ResourceManager::getProvider(const QByteArray &type) const
-{
-    std::map<QByteArray, QLazy*>::const_iterator iter = providers_.find(type);
-    if (iter == providers_.end())
-        return nullptr;
-    return iter->second->get<DataProvider>();
 }

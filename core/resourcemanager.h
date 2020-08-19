@@ -11,7 +11,6 @@
 
 class ResourceView;
 class ResourceFactory;
-class DataProvider;
 
 class SHOWBOARD_EXPORT ResourceManager : public QObject
 {
@@ -36,8 +35,6 @@ public:
     ResourceView * createResource(QByteArray const & mine, QByteArray const & data) const;
 
     ResourceFactory * getFactory(QByteArray const & type) const;
-
-    DataProvider * getProvider(QByteArray const & type) const;
 
 public slots:
     void onComposition();

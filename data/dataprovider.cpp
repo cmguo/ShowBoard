@@ -1,6 +1,9 @@
 #include "dataprovider.h"
+#include <showboard.h>
 
 #include <qexport.h>
+#include <qlazy.h>
+#include <qcomponentcontainer.h>
 
 #include <QFile>
 #include <QNetworkReply>
@@ -11,6 +14,25 @@ using namespace QtPromise;
 REGISTER_DATA_RPOVIDER(DataDataProvider,"data")
 REGISTER_DATA_RPOVIDER(FileDataProvider,"file,qrc,")
 REGISTER_DATA_RPOVIDER(HttpDataProvider,"http,https")
+
+DataProvider *DataProvider::getInstance(const QByteArray &scheme)
+{
+    static QVector<QLazy> types;
+    static QMap<QByteArray, QLazy*> readerTypes;
+    if (readerTypes.empty()) {
+         types = ShowBoard::containter().getExports<DataProvider>(QPart::nonshared);
+         for (auto & r : types) {
+             QByteArray types = r.part()->attrMineType();
+             for (auto t : types.split(',')) {
+                 readerTypes[t.trimmed()] = &r;
+             }
+         }
+    }
+    auto iter = readerTypes.find(scheme);
+    if (iter == readerTypes.end())
+        return nullptr;
+    return iter.value()->get<DataProvider>();
+}
 
 DataProvider::DataProvider(QObject *parent)
     : QObject(parent)

@@ -1,6 +1,5 @@
 #include "resource.h"
-#include "data/lrucache.h"
-#include "resourcemanager.h"
+#include "data/urlfilecache.h"
 #include "data/dataprovider.h"
 #include "oomhandler.h"
 
@@ -13,19 +12,19 @@
 #include <QTextCodec>
 
 QNetworkAccessManager * Resource::network_ = nullptr;
-FileLRUCache * Resource::cache_ = nullptr;
+UrlFileCache * Resource::cache_ = nullptr;
 
 using namespace QtPromise;
 
 void Resource::initCache(const QString &path, quint64 capacity)
 {
-    cache_ = new FileLRUCache(QDir(path), capacity);
+    cache_ = new UrlFileCache(QDir(path), capacity);
 }
 
-FileLRUCache &Resource::getCache()
+UrlFileCache &Resource::getCache()
 {
     if (cache_ == nullptr) {
-        cache_ = new FileLRUCache(
+        cache_ = new UrlFileCache(
                 #ifdef QT_DEBUG
                         QDir::current().filePath("rescache"), 100 * 1024 * 1024); // 100M
                 #else
@@ -96,16 +95,14 @@ QtPromise::QPromise<QUrl> Resource::getLocalUrl(const QUrl &url)
 
 QPromise<QSharedPointer<QIODevice>> Resource::getStream(QObject *context, QUrl const & url, bool all)
 {
-    DataProvider * provider = ResourceManager::instance()->getProvider(url.scheme().toUtf8());
+    DataProvider * provider = DataProvider::getInstance(url.scheme().toUtf8());
     if (provider == nullptr) {
         return QPromise<QSharedPointer<QIODevice>>::reject(std::invalid_argument("打开失败，未知数据协议"));
     }
     // We not cache stream, but may use already cached file
     if (provider->needCache()) {
-        QString path = cache_->getFile(url);
-        if (!path.isEmpty()) {
-            QSharedPointer<QIODevice> file(new QFile(path));
-            file->open(QFile::ReadOnly | QFile::ExistingOnly);
+        QSharedPointer<QIODevice> file = cache_->getStream(url);
+        if (file) {
             return QPromise<QSharedPointer<QIODevice>>::resolve(file);
         }
     }
@@ -122,7 +119,7 @@ QtPromise::QPromise<QByteArray> Resource::getData(QObject *context, const QUrl &
     return getStream(context, url, true).then([url](QSharedPointer<QIODevice> io) {
         QByteArray data = io->readAll();
         io->close();
-        DataProvider * provider = ResourceManager::instance()->getProvider(url.scheme().toUtf8());
+        DataProvider * provider = DataProvider::getInstance(url.scheme().toUtf8());
         if (provider->needCache())
             cache_->putData(url, data);
         return data;

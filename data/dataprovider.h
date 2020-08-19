@@ -12,6 +12,9 @@ class SHOWBOARD_EXPORT DataProvider : public QObject
 {
     Q_OBJECT
 public:
+    static DataProvider * getInstance(QByteArray const & scheme);
+
+public:
     explicit DataProvider(QObject *parent = nullptr);
 
 public:

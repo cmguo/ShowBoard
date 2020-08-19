@@ -9,7 +9,7 @@
 #include <QUrl>
 
 class QNetworkAccessManager;
-class FileLRUCache;
+class UrlFileCache;
 
 /*
  * Resource is pure data, while ResourceView is struct data
@@ -31,7 +31,7 @@ public:
 
     static void initCache(QString const & path, quint64 capacity);
 
-    static FileLRUCache & getCache();
+    static UrlFileCache & getCache();
 
     static void registerOutOfMemoryHandler(int level, std::function<bool(void)> handler);
 
@@ -108,7 +108,7 @@ public:
 
 private:
     static QNetworkAccessManager * network_;
-    static FileLRUCache * cache_;
+    static UrlFileCache * cache_;
 
 private:
     QUrl const url_;

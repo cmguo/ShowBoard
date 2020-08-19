@@ -5,7 +5,7 @@
 //#include "views/itemframe.h"
 #include "office/powerpoint.h"
 #include "core/workthread.h"
-#include "data/lrucache.h"
+#include "data/urlfilecache.h"
 
 #include <QUrl>
 #include <QDir>

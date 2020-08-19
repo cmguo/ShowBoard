@@ -84,6 +84,11 @@ INCLUDEPATH += $$PWD/../QtPromise/src
 INCLUDEPATH += $$PWD/../qtpromise/src/qtpromise $$PWD/../qtpromise/include
 #DEPENDPATH += $$PWD/../qtpromise/src/qtpromise
 
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../qualib/lib/r -lquazip
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../qualib/lib/d -lquazipd
+
+INCLUDEPATH += $$OUT_PWD/../qualib/inc
+
 win32:CONFIG(debug, debug|release): {
     LIBS += -lGdiplus
 }
