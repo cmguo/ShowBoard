@@ -14,6 +14,12 @@ public:
     virtual QSharedPointer<QIODevice> getStream(QString const & path) override;
 
     virtual QByteArray getData(QString const & path) override;
+
+protected:
+    void setZipWithRootName(bool b = true);
+
+private:
+    bool zipWithRootName_;
 };
 
 #endif // ZIPFILECACHE_H
