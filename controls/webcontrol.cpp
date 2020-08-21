@@ -21,6 +21,7 @@
 #include <QWebEngineProfile>
 
 #define LARGE_CANVAS_LINKAGE 1
+#define LARGE_CANVAS_LINKAGE_SCALE 0
 #define DISABLE_TOUCH 1
 
 static char const * toolstr =
@@ -33,15 +34,6 @@ static char const * toolstr =
         ;
 
 static constexpr int MAX_WEB = 10;
-
-class WebPage : public QWebEnginePage
-{
-public:
-    WebPage(QObject * parent, QObject *settings);
-protected:
-    QWebEnginePage *createWindow(WebWindowType );
-};
-
 static int totalFront = 0;
 
 class WebView : public QWebEngineView
@@ -61,6 +53,7 @@ protected:
 #if DISABLE_TOUCH
     virtual bool eventFilter(QObject * watched, QEvent * event) override;
 #endif
+    virtual QWebEngineView * createWindow(QWebEnginePage::WebWindowType type) override;
 private:
     QWidget *findChildWidget(const QString &className) const;
 private:
@@ -94,7 +87,9 @@ WebControl::WebControl(ResourceView * res)
     }
     if (res_->flags().testFlag(ResourceView::LargeCanvas)) {
         flags_.setFlag(DefaultFlags, false);
+#if LARGE_CANVAS_LINKAGE_SCALE
         flags_.setFlag(CanScale, true);
+#endif
 #if LARGE_CANVAS_LINKAGE
         flags_.setFlag(FixedOnCanvas, true);
 #else
@@ -148,15 +143,15 @@ void WebControl::setWebBridges(const QHash<QString, QObject*> &bridges)
 QWidget * WebControl::createWidget(ResourceView * res)
 {
     (void)res;
-    QWebEngineView * view = new WebView(res);
+    WebView * view = new WebView(res);
     view->resize(1024, 576);
     QObject::connect(view->page(), &QWebEnginePage::loadFinished,
-                     this, &WebControl::loadFinished);
+                     this, &WebControl::loadFinished, Qt::QueuedConnection);
     QObject::connect(view->page(), &QWebEnginePage::contentsSizeChanged,
-                     this, &WebControl::contentsSizeChanged);
+                     this, &WebControl::contentsSizeChanged, Qt::QueuedConnection);
     if (res_->flags().testFlag(ResourceView::LargeCanvas)) {
         QObject::connect(view->page(), &QWebEnginePage::scrollPositionChanged,
-                         this, &WebControl::scrollPositionChanged);
+                         this, &WebControl::scrollPositionChanged, Qt::QueuedConnection);
     }
     return view;
 }
@@ -206,9 +201,9 @@ void WebControl::attached()
         background->setFlag(QGraphicsItem::ItemStacksBehindParent);
     }
     item_->setFlag(QGraphicsItem::ItemIsFocusable);
+#if LARGE_CANVAS_LINKAGE_SCALE
     if (res_->flags().testFlag(ResourceView::LargeCanvas)) {
         Control * canvasControl = Control::fromItem(whiteCanvas());
-#if LARGE_CANVAS_LINKAGE
         connect(&canvasControl->resource()->transform(), &ResourceTransform::changed,
                 this, [this, view]() {
             if (flags_.testFlag(Loading))
@@ -216,8 +211,8 @@ void WebControl::attached()
             qreal scale = qobject_cast<ResourceTransform*>(sender())->scale().m11();
             view->scaleTo(scale);
         });
-#endif
     }
+#endif
     view->load(url());
 }
 
@@ -241,16 +236,17 @@ void WebControl::loadFinished(bool ok)
     if (!flags_.testFlag(Loading))
         return;
     if (ok) {
-        if (res_->flags().testFlag(ResourceView::LargeCanvas)) {
-            QWebEngineView * view = qobject_cast<QWebEngineView *>(widget_);
-            WebControl * canvasControl = static_cast<WebControl*>(Control::fromItem(whiteCanvas()));
-            canvasControl->resize(view->page()->contentsSize());
-        }
 #if DISABLE_TOUCH
         WebView * view = static_cast<WebView *>(widget_);
         view->synthesizedMouseEvents();
 #endif
         Control::loadFinished(ok);
+        if (res_->flags().testFlag(ResourceView::LargeCanvas)) {
+            QWebEngineView * view = qobject_cast<QWebEngineView *>(widget_);
+            WebControl * canvasControl = static_cast<WebControl*>(Control::fromItem(whiteCanvas()));
+            canvasControl->resize(view->page()->contentsSize());
+            scrollPositionChanged(view->page()->scrollPosition());
+        }
     } else {
         QWebEngineView * view = qobject_cast<QWebEngineView *>(widget_);
         view->setContent("");
@@ -349,37 +345,22 @@ void WebView::sinit()
     }
 }
 
-static QVector<QByteArray> const AttributeNames = {
-    "AutoLoadImages",
-    "JavascriptEnabled",
-    "JavascriptCanOpenWindows",
-    "JavascriptCanAccessClipboard",
-    "LinksIncludedInFocusChain",
-    "LocalStorageEnabled",
-    "LocalContentCanAccessRemoteUrls",
-    "XSSAuditingEnabled",
-    "SpatialNavigationEnabled",
-    "LocalContentCanAccessFileUrls",
-    "HyperlinkAuditingEnabled",
-    "ScrollAnimatorEnabled",
-    "ErrorPageEnabled",
-    "PluginsEnabled",
-    "FullScreenSupportEnabled",
-    "ScreenCaptureEnabled",
-    "WebGLEnabled",
-    "Accelerated2dCanvasEnabled",
-    "AutoLoadIconsForPage",
-    "TouchIconsEnabled",
-    "FocusOnNavigationEnabled",
-    "PrintElementBackgrounds",
-    "AllowRunningInsecureContent",
-    "AllowGeolocationOnInsecureOrigins",
-    "AllowWindowActivationFromJavaScript",
-    "ShowScrollBars",
-    "PlaybackRequiresUserGesture",
-    "WebRTCPublicInterfacesOnly",
-    "JavascriptCanPaste",
-    "DnsPrefetchEnabled",
+class WebPage : public QWebEnginePage
+{
+public:
+    enum NewPageMode
+    {
+        Disable,
+        InCurrent,
+        NewView
+    };
+public:
+    WebPage(QObject * parent, QObject *settings);
+protected:
+    QWebEnginePage *createWindow(WebWindowType);
+
+private:
+    NewPageMode mode_;
 };
 
 WebView::WebView(QObject *settings)
@@ -387,10 +368,10 @@ WebView::WebView(QObject *settings)
     sinit();
     // make sure that touch events are delivered at all
     setAttribute(Qt::WA_AcceptTouchEvents);
-    //    setPage(new WebPage(this, settings));
-    //    connect(page(), &WebPage::fullScreenRequested, this, [](QWebEngineFullScreenRequest fullScreenRequest) {
-    //        fullScreenRequest.accept();
-    //    });
+    setPage(new WebPage(this, settings));
+    connect(page(), &WebPage::fullScreenRequested, this, [](QWebEngineFullScreenRequest fullScreenRequest) {
+        fullScreenRequest.accept();
+    });
 }
 
 void WebView::scaleTo(qreal scale)
@@ -438,6 +419,10 @@ void WebView::synthesizedMouseEvents()
         QWidget * widget = findChildWidget(
                     "QtWebEngineCore::RenderWidgetHostViewQtDelegateWidget");
         childWidget_ = qobject_cast<QQuickWidget*>(widget);
+        QObject::connect(childWidget_, &QObject::destroyed, this, [this]() {
+            reload();
+            synthesizedMouseEvents();
+        }, Qt::QueuedConnection);
     }
     childWidget_->installEventFilter(this);
 }
@@ -494,7 +479,7 @@ bool WebView::eventFilter(QObject *watched, QEvent *event)
     if (event->type() == QEvent::MouseButtonPress
             || event->type() == QEvent::MouseMove
             || event->type() == QEvent::MouseButtonRelease) {
-        //qDebug() << "WebView::eventFilter: " << static_cast<QMouseEvent*>(event)->source();
+        //qDebug() << "WebView::eventFilter: " << static_cast<QMouseEvent*>(event);
         static_cast<QMouseEvent2*>(event)->caps = 0;
     } else if (event->type() == QEvent::CursorChange) {
         graphicsProxyWidget()->setCursor(childWidget_->cursor());
@@ -503,6 +488,15 @@ bool WebView::eventFilter(QObject *watched, QEvent *event)
 }
 
 #endif
+
+QWebEngineView *WebView::createWindow(QWebEnginePage::WebWindowType)
+{
+    WhiteCanvas * canvas = static_cast<WhiteCanvas*>(
+                graphicsProxyWidget()->parentItem()->parentItem());
+    WebControl * control = qobject_cast<WebControl*>(
+                canvas->addResource(QUrl(), {{"resourceType", "html"}}));
+    return static_cast<WebView*>(control->widget());
+}
 
 QWidget *WebView::findChildWidget(const QString &className) const
 {
@@ -513,6 +507,41 @@ QWidget *WebView::findChildWidget(const QString &className) const
 }
 
 // https://forum.qt.io/topic/112858/qwebengineview-how-to-open-new-tab-link-in-same-tab/2
+
+static QVector<QByteArray> const AttributeNames = {
+    "AutoLoadImages",
+    "JavascriptEnabled",
+    "JavascriptCanOpenWindows",
+    "JavascriptCanAccessClipboard",
+    "LinksIncludedInFocusChain",
+    "LocalStorageEnabled",
+    "LocalContentCanAccessRemoteUrls",
+    "XSSAuditingEnabled",
+    "SpatialNavigationEnabled",
+    "LocalContentCanAccessFileUrls",
+    "HyperlinkAuditingEnabled",
+    "ScrollAnimatorEnabled",
+    "ErrorPageEnabled",
+    "PluginsEnabled",
+    "FullScreenSupportEnabled",
+    "ScreenCaptureEnabled",
+    "WebGLEnabled",
+    "Accelerated2dCanvasEnabled",
+    "AutoLoadIconsForPage",
+    "TouchIconsEnabled",
+    "FocusOnNavigationEnabled",
+    "PrintElementBackgrounds",
+    "AllowRunningInsecureContent",
+    "AllowGeolocationOnInsecureOrigins",
+    "AllowWindowActivationFromJavaScript",
+    "ShowScrollBars",
+    "PlaybackRequiresUserGesture",
+    "WebRTCPublicInterfacesOnly",
+    "JavascriptCanPaste",
+    "DnsPrefetchEnabled",
+};
+
+Q_DECLARE_METATYPE(WebPage::NewPageMode)
 
 WebPage::WebPage(QObject *parent, QObject *setting)
     : QWebEnginePage(parent)
@@ -525,17 +554,27 @@ WebPage::WebPage(QObject *parent, QObject *setting)
                             static_cast<QWebEngineSettings::WebAttribute>(i),
                             setting->property(key).toBool());
         }
+        mode_ = setting->property("newPageMode").value<NewPageMode>();
     }
 }
 
-QWebEnginePage *WebPage::createWindow(QWebEnginePage::WebWindowType){
-    WebPage *page = new WebPage(this, nullptr);
-    connect(page, &QWebEnginePage::urlChanged, this, [this](QUrl const & url) {
-        if(QWebEnginePage *page = qobject_cast<QWebEnginePage *>(sender())){
-            setUrl(url);
-            page->deleteLater();
-        }
-    });
-    return page;
+QWebEnginePage *WebPage::createWindow(QWebEnginePage::WebWindowType type) {
+    if (mode_ == Disable) {
+        return nullptr;
+    }
+    if (mode_ == InCurrent) {
+        WebPage *page = new WebPage(this, nullptr);
+        connect(page, &QWebEnginePage::urlChanged, this, [this](QUrl const & url) {
+            if(QWebEnginePage *page = qobject_cast<QWebEnginePage *>(sender())){
+                setUrl(url);
+                page->deleteLater();
+            }
+        });
+        return page;
+    }
+    if (mode_ == NewView) {
+        return QWebEnginePage::createWindow(type);
+    }
+    return nullptr;
 }
 

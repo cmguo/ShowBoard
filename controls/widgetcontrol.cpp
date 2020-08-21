@@ -30,6 +30,11 @@ void WidgetControl::setTouchable(bool b)
     item_->setAcceptTouchEvents(b);
 }
 
+QWidget *WidgetControl::widget()
+{
+    return widget_;
+}
+
 QGraphicsItem * WidgetControl::create(ResourceView *res)
 {
     res_ = res;

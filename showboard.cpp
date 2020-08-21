@@ -35,6 +35,8 @@ void ShowBoard::init()
     qmlRegisterType<WhiteCanvasQuick>("ShowBoard", 1, 0, "WhiteCanvasQuick");
     qmlRegisterType<QuickWidgetItem>("ShowBoard", 1, 0, "QuickWidgetItem");
 
+    WebControl::init();
+
     LocalHttpServer::instance()->start();
 }
 

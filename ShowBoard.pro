@@ -90,11 +90,11 @@ else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../quazip/lib -lqua
 
 INCLUDEPATH += $$OUT_PWD/../quazip/include
 
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../qthttpserver/lib -lQt5HttpServer
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../qthttpserver/lib -lQt5HttpServerd
-else:unix: LIBS += -L$$OUT_PWD/../qthttpserver/lib -lQt5HttpServer
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../QtHttpServer/lib -lQt5HttpServer
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../QtHttpServer/lib -lQt5HttpServerd
+else:unix: LIBS += -L$$OUT_PWD/../QtHttpServer/lib -lQt5HttpServer
 
-INCLUDEPATH += $$OUT_PWD/../qthttpserver/include
+INCLUDEPATH += $$OUT_PWD/../QtHttpServer/include
 DEPENDPATH += $$PWD/../qthttpserver/src/httpserver
 
 win32:CONFIG(debug, debug|release): {

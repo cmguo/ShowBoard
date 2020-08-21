@@ -20,6 +20,8 @@ public:
 
     void setTouchable(bool b);
 
+    QWidget * widget();
+
 protected:
     virtual QGraphicsItem * create(ResourceView * res) override;
 
