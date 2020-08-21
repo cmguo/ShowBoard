@@ -39,18 +39,21 @@ public:
 
     virtual bool contains(QString const & path);
 
-    virtual FileResource get(QString const & path, QByteArray const & hash = nullptr);
+    virtual FileResource get(QString const & path, QByteArray const & hash = nullptr, bool touch = true);
 
 protected:
     virtual quint64 sizeOf(const FileResource &v) override;
 
-    virtual void destroy(const QString &k, const FileResource &v) override;
+    virtual bool destroy(const QString &k, const FileResource &v) override;
 
     virtual void loaded() {}
 
 protected:
     void load(std::function<bool (QString const & name)> filter);
 
+    void check(QString const & path, QByteArray const & hash);
+
+private:
     static QtPromise::QPromise<qint64> saveStream(QString const & path, QSharedPointer<QIODevice> stream);
 
 protected:

@@ -135,7 +135,7 @@ bool FileCache::contains(QString const & path)
     return get(path).size >= 0;
 }
 
-FileResource FileCache::get(QString const & path, QByteArray const & hash)
+FileResource FileCache::get(QString const & path, QByteArray const & hash, bool touch)
 {
     FileResource f = base::get(path);
     if (f.size < 0) {
@@ -152,7 +152,8 @@ FileResource FileCache::get(QString const & path, QByteArray const & hash)
         f.size = -1;
         return f;
     }
-    QFile(fullPath).setFileTime(
+    if (touch)
+        QFile(fullPath).setFileTime(
                 QDateTime::currentDateTime(), QFile::FileModificationTime);
     return f;
 }
@@ -162,35 +163,45 @@ quint64 FileCache::sizeOf(const FileResource &v)
     return static_cast<quint64>(v.size);
 }
 
-void FileCache::destroy(const QString &k, const FileResource &v)
+bool FileCache::destroy(const QString &k, const FileResource &v)
 {
     (void) v;
-    QFile::remove(dir_.filePath(k));
+    if (!QFile::remove(dir_.filePath(k)))
+        return false;
+    int n = 0;
+    QString p = k;
+    while ((n = p.lastIndexOf('/')) > 0) {
+        p = p.left(n);
+        if (!dir_.rmdir(p)) {
+            break;
+        }
+    }
+    return true;
 }
 
 void FileCache::load(std::function<bool (QString const & name)> filter)
 {
     QFileInfoList files;
     QList<QDir> dirs = {dir_};
+    int n = dir_.path().length() + 1;
     while (!dirs.isEmpty()) {
         QDir dir = dirs.takeFirst();
         for (QFileInfo const & f : dir.entryInfoList()) {
             if (f.isDir()) {
-                if (!f.fileName().endsWith("."))
+                if (!f.fileName().endsWith(".") && !dir.rmdir(f.fileName()))
                     dirs.append(f.filePath());
                 continue;
             }
             if (filter(f.fileName())) {
                 files.append(f);
             } else {
-                QFile::remove(f.filePath());
+                destroy(f.filePath().mid(n), {});
             }
         }
     }
     std::sort(files.begin(), files.end(), [] (QFileInfo const & l, QFileInfo const & r) {
         return l.lastModified() < r.lastModified();
     });
-    int n = dir_.path().length() + 1;
     if (algorithm_.isEmpty()) {
         for (QFileInfo & f : files) {
             base::put(f.filePath().mid(n), FileResource{f.size(), nullptr});
@@ -216,8 +227,14 @@ void FileCache::load(std::function<bool (QString const & name)> filter)
     }
 }
 
+void FileCache::check(const QString &path, const QByteArray &hash)
+{
+    get(path, hash, false);
+}
+
 QtPromise::QPromise<qint64> FileCache::saveStream(const QString &path, QSharedPointer<QIODevice> stream)
 {
+    QDir().mkdir(path.left(path.lastIndexOf('/')));
     QSharedPointer<QIODevice> file(new QFile(path + ".temp"));
     if (!file->open(QFile::WriteOnly)) {
         return QPromise<qint64>::reject(std::runtime_error("文件打开失败"));
