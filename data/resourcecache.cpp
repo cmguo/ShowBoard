@@ -78,13 +78,13 @@ QtPromise::QPromise<void> ResourceCache::cacheNext(QObject * context)
     return Resource::getLocalUrl(context, workUrl).then([](){});
 }
 
-void ResourceCache::pause()
+void ResourceCacheBase::pause()
 {
     paused = true;
     lifeToken.reset();
 }
 
-void ResourceCache::resume()
+void ResourceCacheBase::resume()
 {
     if (paused) {
         paused = false;
@@ -92,7 +92,7 @@ void ResourceCache::resume()
     }
 }
 
-void ResourceCache::loadNext()
+void ResourceCacheBase::loadNext()
 {
     if (paused || workCache)
         return;
@@ -112,5 +112,10 @@ void ResourceCache::loadNext()
             return;
         }
     }
+}
+
+void ResourceCacheBase::setWorkUrl(const QUrl &url)
+{
+    workUrl = url;
 }
 

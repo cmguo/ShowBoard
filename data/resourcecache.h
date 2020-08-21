@@ -19,6 +19,16 @@ public:
 
     virtual QtPromise::QPromise<void> cacheNext(QObject * context) = 0;
 
+public:
+    static void pause();
+
+    static void resume();
+
+protected:
+    static void loadNext();
+
+    static void setWorkUrl(QUrl const & url);
+
 private:
     Q_DISABLE_COPY(ResourceCacheBase)
 };
@@ -53,14 +63,6 @@ private:
 
     bool background_ = false;
     QList<QUrl> tasks_;
-
-public:
-    static void pause();
-
-    static void resume();
-
-private:
-    static void loadNext();
 };
 
 Q_DECLARE_METATYPE(ResourceCache*)
