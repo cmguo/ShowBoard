@@ -6,8 +6,8 @@ static QList<ResourceCacheBase*> caches;
 static ResourceCacheBase* workCache = nullptr;
 static QUrl workUrl;
 // reset lifeToken_ to cancel current task
-static QSharedPointer<QObject> lifeToken;
-static bool paused = false;
+static QSharedPointer<ResourceCacheLife> lifeToken;
+static QList<void*> pauseContexts;
 
 ResourceCacheBase::ResourceCacheBase()
 {
@@ -78,34 +78,38 @@ QtPromise::QPromise<void> ResourceCache::cacheNext(QObject * context)
     return Resource::getLocalUrl(context, workUrl).then([](){});
 }
 
-void ResourceCacheBase::pause()
+void ResourceCacheBase::pause(void * context)
 {
-    paused = true;
-    lifeToken.reset();
+    if (!pauseContexts.contains(context))
+        pauseContexts.append(context);
+    if (lifeToken)
+        lifeToken->pause();
 }
 
-void ResourceCacheBase::resume()
+void ResourceCacheBase::resume(void * context)
 {
-    if (paused) {
-        paused = false;
+    if (pauseContexts.removeOne(context) && pauseContexts.isEmpty()) {
+        if (lifeToken)
+            lifeToken->resume();
         loadNext();
     }
 }
 
 void ResourceCacheBase::stop()
 {
-    pause();
+    pauseContexts.append(&pauseContexts);
+    lifeToken.reset();
 }
 
 void ResourceCacheBase::loadNext()
 {
-    if (paused || workCache)
+    if (!pauseContexts.isEmpty() || workCache)
         return;
     for (ResourceCacheBase * c : caches) {
         if (!c->empty()) {
             workCache = c;
             if (!lifeToken)
-                lifeToken.reset(new QObject);
+                lifeToken.reset(new ResourceCacheLife);
             c->cacheNext(lifeToken.get())
                     .tapFail([](std::exception & e) {
                 qWarning() << "ResourceCache error:" << e.what();

@@ -1,4 +1,5 @@
 #include "dataprovider.h"
+#include "resourcecache.h"
 #include <showboard.h>
 
 #include <qexport.h>
@@ -8,6 +9,9 @@
 #include <QFile>
 #include <QNetworkReply>
 #include <QNetworkRequest>
+#include <qeventbus.h>
+
+#include <core/resource.h>
 
 using namespace QtPromise;
 
@@ -113,7 +117,11 @@ QtPromise::QPromise<QSharedPointer<QIODevice>> HttpDataProvider::getStream(QObje
 
 HttpStream::HttpStream(QObject * context, QNetworkReply *reply)
     : reply_(reply)
+    , paused_(nullptr)
     , aborted_(false)
+    , lastPos_(0)
+    , speed_(0)
+    , elapsed_(0)
 {
     open(ReadOnly);
     if (context) {
@@ -121,13 +129,33 @@ HttpStream::HttpStream(QObject * context, QNetworkReply *reply)
             aborted_ = true;
             reply_->abort();
         });
+        if (ResourceCacheLife * life = qobject_cast<ResourceCacheLife*>(context)) {
+            QObject:: connect(life, &ResourceCacheLife::pause, this, [this]() {
+                qDebug() << "HttpStream pause";
+                if (paused_)
+                    return;
+                std::swap(paused_, reply_);
+                paused_->abort();
+            });
+            QObject:: connect(life, &ResourceCacheLife::resume, this, [this]() {
+                qDebug() << "HttpStream resume";
+                if (!paused_)
+                    return;
+                std::swap(paused_, reply_);
+                onError(reply_->error());
+            });
+        }
     }
     reopen();
+    if (qobject_cast<Resource*>(context))
+        startTimer(1000);
 }
 
 HttpStream::~HttpStream()
 {
+    qDebug() << "HttpStream destroyed";
     reply_->deleteLater();
+    ResourceCache::resume(this);
 }
 
 bool HttpStream::connect(QIODevice * stream, std::function<void ()> finished,
@@ -162,11 +190,12 @@ bool HttpStream::connect(QIODevice * stream, std::function<void ()> finished,
 
 void HttpStream::onError(QNetworkReply::NetworkError e)
 {
+    qDebug() << "HttpStream onError" << e << paused_;
+    if (paused_)
+        return;
     if (!aborted_ && (e <= QNetworkReply::UnknownNetworkError
-            || e >= QNetworkReply::ProtocolUnknownError
-            /*|| e == QNetworkReply::OperationCanceledError*/)) {
-        data_.append(reply_->readAll());
-        qint64 size = pos() + data_.size();
+            || e >= QNetworkReply::ProtocolUnknownError)) {
+        qint64 size = pos();
         QNetworkRequest request = reply_->request();
         qDebug() << "HttpStream retry" << e << size;
         if (size > 0)
@@ -187,6 +216,7 @@ void HttpStream::onFinished()
     if (sender() == reply_) {
         emit readChannelFinished();
         emit finished();
+    } else if (sender() == paused_) {
     } else {
         // we are retrying
         sender()->deleteLater();
@@ -204,13 +234,6 @@ void HttpStream::reopen()
 
 qint64 HttpStream::readData(char *data, qint64 maxlen)
 {
-    if (!data_.isEmpty()) {
-        if (maxlen > data_.size())
-            maxlen = data_.size();
-        memcpy(data, data_, static_cast<size_t>(maxlen));
-        data_.remove(0, static_cast<int>(maxlen));
-        return maxlen;
-    }
     if (!reply_->isOpen())
         return 0;
     qint64 result = reply_->read(data, maxlen);
@@ -235,4 +258,33 @@ qint64 HttpStream::writeData(const char *, qint64)
 {
     assert(false);
     return 0;
+}
+
+void HttpStream::timerEvent(QTimerEvent *)
+{
+    qint64 pos = this->pos();
+    qint64 diff = pos - lastPos_;
+    speed_ = speed_ /2 + diff;
+    lastPos_ = pos;
+    ++elapsed_;
+    if (speed_ < 100) {
+        if (elapsed_ == 1)
+            ResourceCache::pause(this);
+        else if (elapsed_ == 10) {
+            paused_ = reply_;
+            reply_->abort();
+            paused_ = nullptr;
+            onError(QNetworkReply::TimeoutError);
+        }
+    } else if (speed_ < 10000) {
+        if (elapsed_ == 5) {
+            ResourceCache::pause(this);
+            QEventBus::globalInstance().publish("warning", "当前网络慢，请耐心等待");
+        } else if (elapsed_ == 60) {
+            paused_ = reply_;
+            reply_->abort();
+            paused_ = nullptr;
+            onError(QNetworkReply::TimeoutError);
+        }
+    }
 }

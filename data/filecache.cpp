@@ -243,12 +243,12 @@ QtPromise::QPromise<qint64> FileCache::saveStream(const QString &path, QSharedPo
                              const QPromiseResolve<qint64>& resolve,
                              const QPromiseReject<qint64>& reject) {
         QSharedPointer<qint64> size(new qint64(0));
-        auto error = [=](std::exception && e) {
+        auto error = [file, size, reject](std::exception && e) {
             *size = -1;
             file->close();
             reject(e);
         };
-        auto finished = [=] () {
+        auto finished = [file, size, resolve] () {
             if (*size >= 0) {
                 file->close();
                 resolve(*size);
@@ -257,18 +257,14 @@ QtPromise::QPromise<qint64> FileCache::saveStream(const QString &path, QSharedPo
         if (HttpStream::connect(stream.get(), finished, error)) {
             return;
         }
-        auto read = [=] () {
+        auto read = [file, size, stream, error] () {
             QByteArray data = stream->readAll();
             if (data.isEmpty()) {
-                *size = -1;
-                file->close();
-                reject(std::runtime_error("文件下载失败"));
+                error(std::runtime_error("文件下载失败"));
                 return;
             }
             if (file->write(data) != data.size()) {
-                file->close();
-                *size = -1;
-                reject(std::runtime_error("文件写入失败"));
+                error(std::runtime_error("文件写入失败"));
                 return;
             }
             *size += static_cast<quint64>(data.size());
@@ -287,5 +283,7 @@ QtPromise::QPromise<qint64> FileCache::saveStream(const QString &path, QSharedPo
     }, [path] (std::exception &) -> qint64 {
         QFile::remove(path + ".temp");
         throw;
+    }).finally([stream]() {
+        stream->disconnect();
     });
 }

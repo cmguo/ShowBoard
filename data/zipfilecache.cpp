@@ -63,12 +63,14 @@ QSharedPointer<QIODevice> ZipFileCache::getStream(QString const & path)
         }
     }
     if (!entryName.isEmpty()) {
+        qDebug() << "ZipFileCache " << zipFile << entryName;
         QuaZipFile * file = new QuaZipFile(dir_.filePath(zipFile), entryName);
         if (file->open(QIODevice::ReadOnly)) {
             return QSharedPointer<QIODevice>(file);
         }
         delete file;
     }
+    qWarning() << "ZipFileCache not found" << path;
     return nullptr;
 }
 

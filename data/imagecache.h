@@ -47,6 +47,8 @@ private:
 public:
     QSharedPointer<ImageData> get(QUrl const & url);
 
+    QtPromise::QPromise<QSharedPointer<ImageData>> getOrCreate(QObject * context, QUrl const & url, qreal mipmap = 0.0);
+
     QtPromise::QPromise<QSharedPointer<ImageData>> getOrCreate(QUrl const & url, qreal mipmap = 0.0);
 
     QSharedPointer<ImageData> put(QUrl const & url, QPixmap const & pixmap, qreal mipmap = 0.0);

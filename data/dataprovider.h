@@ -73,12 +73,14 @@ private:
 protected:
     virtual qint64 readData(char *data, qint64 maxlen) override;
     virtual qint64 writeData(const char *data, qint64 len) override;
-
+    virtual void timerEvent(QTimerEvent * event) override;
 private:
     QNetworkReply * reply_;
-    QByteArray data_;
+    QNetworkReply * paused_;
     bool aborted_;
-    //int pos_ = 0;
+    qint64 lastPos_;
+    qint64 speed_;
+    int elapsed_; // in seconds
 };
 
 class SHOWBOARD_EXPORT HttpDataProvider : public DataProvider

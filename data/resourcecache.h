@@ -20,9 +20,9 @@ public:
     virtual QtPromise::QPromise<void> cacheNext(QObject * context) = 0;
 
 public:
-    static void pause();
+    static void pause(void * context = nullptr);
 
-    static void resume();
+    static void resume(void * context = nullptr);
 
     static void stop();
 
@@ -68,5 +68,13 @@ private:
 };
 
 Q_DECLARE_METATYPE(ResourceCache*)
+
+class ResourceCacheLife : public QObject
+{
+    Q_OBJECT
+signals:
+    void pause();
+    void resume();
+};
 
 #endif // RESOURCECACHE_H

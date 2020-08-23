@@ -37,7 +37,7 @@ QSharedPointer<ImageData> ImageCache::get(const QUrl &url)
     return data.toStrongRef();
 }
 
-QtPromise::QPromise<QSharedPointer<ImageData>> ImageCache::getOrCreate(const QUrl &url, qreal mipmap)
+QtPromise::QPromise<QSharedPointer<ImageData>> ImageCache::getOrCreate(QObject * context, const QUrl &url, qreal mipmap)
 {
     QSharedPointer<ImageData> image = get(url);
     if (image)
@@ -46,7 +46,7 @@ QtPromise::QPromise<QSharedPointer<ImageData>> ImageCache::getOrCreate(const QUr
         return pendings_.find(url).value();
     }
     QtPromise::QPromise<QSharedPointer<ImageData>> p =
-            Resource::getData(url).then([this, url, mipmap](QByteArray data) {
+            Resource::getData(context, url).then([this, url, mipmap](QByteArray data) {
         if (data.size() < 500 * 1024) {
             QPixmap pixmap;
             if (pixmap.loadFromData(data))
@@ -63,6 +63,11 @@ QtPromise::QPromise<QSharedPointer<ImageData>> ImageCache::getOrCreate(const QUr
     });
     pendings_.insert(url, p);
     return p;
+}
+
+QtPromise::QPromise<QSharedPointer<ImageData> > ImageCache::getOrCreate(const QUrl &url, qreal mipmap)
+{
+    return getOrCreate(nullptr, url, mipmap);
 }
 
 QSharedPointer<ImageData> ImageCache::put(const QUrl &url, const QPixmap &pixmap, qreal mipmap)
