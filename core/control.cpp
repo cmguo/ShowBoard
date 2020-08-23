@@ -191,7 +191,7 @@ void Control::attachTo(QGraphicsItem * parent, QGraphicsItem * before)
 #endif
     whiteCanvas()->onControlLoad(true);
     attached();
-    if (res_->flags().testFlag(ResourceView::LargeCanvas))
+    if (res_->flags().testFlag(ResourceView::Independent))
         canvasControl->attachSubProvider(this);
     if (flags_ & Loading) {
         stateItem()->setLoading();
@@ -200,7 +200,7 @@ void Control::attachTo(QGraphicsItem * parent, QGraphicsItem * before)
 
 void Control::detachFrom(QGraphicsItem *parent, QGraphicsItem *)
 {
-    if (res_->flags().testFlag(ResourceView::LargeCanvas))
+    if (res_->flags().testFlag(ResourceView::Independent))
         fromItem(whiteCanvas())->attachSubProvider(nullptr);
     detaching();
     if (flags_ & Loading)
@@ -458,7 +458,7 @@ Control::SelectMode Control::selectTest(QGraphicsItem * child, QGraphicsItem * i
             return NotSelect;
         return stateItem()->hitTest(child, point) ? Select : NotSelect;
     }
-    if (res_->flags().testFlag(ResourceView::LargeCanvas))
+    if (res_->flags().testFlag(ResourceView::Independent))
         return PassSelect;
     if (onlyAssist) {
         SelectMode mode = item_ == realItem_ ? selectTest(point)
