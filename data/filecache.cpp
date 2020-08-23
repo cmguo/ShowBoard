@@ -243,6 +243,20 @@ QtPromise::QPromise<qint64> FileCache::saveStream(const QString &path, QSharedPo
                              const QPromiseResolve<qint64>& resolve,
                              const QPromiseReject<qint64>& reject) {
         QSharedPointer<qint64> size(new qint64(0));
+        auto error = [=](std::exception && e) {
+            *size = -1;
+            file->close();
+            reject(e);
+        };
+        auto finished = [=] () {
+            if (*size >= 0) {
+                file->close();
+                resolve(*size);
+            }
+        };
+        if (HttpStream::connect(stream.get(), finished, error)) {
+            return;
+        }
         auto read = [=] () {
             QByteArray data = stream->readAll();
             if (data.isEmpty()) {
@@ -263,24 +277,6 @@ QtPromise::QPromise<qint64> FileCache::saveStream(const QString &path, QSharedPo
         if (stream->peek(&c, 1) > 0)
             read();
         QObject::connect(stream.get(), &QIODevice::readyRead, read);
-        auto finished = [=] () {
-            if (*size >= 0) {
-                file->close();
-                resolve(*size);
-            }
-        };
-        if (QNetworkReply * reply = qobject_cast<QNetworkReply*>(stream.get())) {
-            if (reply->isFinished()) {
-                finished();
-                return;
-            }
-        }
-        if (HttpStream * reply = qobject_cast<HttpStream*>(stream.get())) {
-            if (reply->reply()->isFinished()) {
-                finished();
-                return;
-            }
-        }
         QObject::connect(stream.get(), &QIODevice::readChannelFinished, finished);
     }).then([path, file] (qint64 size) {
         if (!QFile::rename(path + ".temp", path)) {

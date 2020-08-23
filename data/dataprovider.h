@@ -30,7 +30,8 @@ public:
     Q_INVOKABLE explicit DataDataProvider(QObject *parent = nullptr);
 
 public:
-    virtual QtPromise::QPromise<QSharedPointer<QIODevice>> getStream(QObject * context, QUrl const & url, bool all) override;
+    virtual QtPromise::QPromise<QSharedPointer<QIODevice>> getStream(
+            QObject * context, QUrl const & url, bool all) override;
 };
 
 class FileDataProvider : public DataProvider
@@ -40,7 +41,8 @@ public:
     Q_INVOKABLE explicit FileDataProvider(QObject *parent = nullptr);
 
 public:
-    virtual QtPromise::QPromise<QSharedPointer<QIODevice>> getStream(QObject * context, QUrl const & url, bool all) override;
+    virtual QtPromise::QPromise<QSharedPointer<QIODevice>> getStream(
+            QObject * context, QUrl const & url, bool all) override;
 };
 
 class HttpStream : public QIODevice
@@ -52,6 +54,9 @@ public:
     virtual ~HttpStream() override;
 
     QNetworkReply * reply() { return reply_; }
+
+    static bool connect(QIODevice * stream, std::function<void()> finished,
+                        std::function<void(std::exception &&)> error);
 
 signals:
     void finished();

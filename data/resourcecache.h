@@ -24,6 +24,8 @@ public:
 
     static void resume();
 
+    static void stop();
+
 protected:
     static void loadNext();
 

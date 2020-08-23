@@ -13,6 +13,7 @@
 #include <QQuickWidget>
 
 #include <data/localhttpserver.h>
+#include <data/resourcecache.h>
 
 QComponentContainer & ShowBoard::containter()
 {
@@ -43,6 +44,7 @@ void ShowBoard::init()
 void ShowBoard::exit()
 {
     LocalHttpServer::instance()->stop();
+    ResourceCache::stop();
     WorkThread::quitAll();
 }
 

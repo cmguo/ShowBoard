@@ -49,6 +49,8 @@ void LocalHttpServer::addServePath(const QByteArray &prefix, FileCache &cache)
 {
     server_->route(prefix, [&cache](QString const & subPath) {
         const QByteArray data = cache.getData(subPath);
+        if (data.isNull())
+            return QHttpServerResponse(QHttpServerResponse::StatusCode::NotFound);
         const QByteArray mimeType = QMimeDatabase().mimeTypeForFileNameAndData(subPath, data).name().toLocal8Bit();
         return QHttpServerResponse(mimeType, data);
     });

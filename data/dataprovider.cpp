@@ -90,8 +90,7 @@ QtPromise::QPromise<QSharedPointer<QIODevice>> HttpDataProvider::getStream(QObje
                                      const QPromiseResolve<QSharedPointer<QIODevice>>& resolve,
                                      const QPromiseReject<QSharedPointer<QIODevice>>& reject) {
 
-        auto error = [reply, reject](QNetworkReply::NetworkError e) {
-            qDebug() << "HttpDataProvider:" << e << reply->errorString();
+        auto error = [reply, reject](QNetworkReply::NetworkError) {
             reply->disconnect();
             reject(std::invalid_argument("network|打开失败，请检查网络再试"));
         };
@@ -99,11 +98,7 @@ QtPromise::QPromise<QSharedPointer<QIODevice>> HttpDataProvider::getStream(QObje
         if (all) {
             auto finished = [reply, resolve, error]() {
                 reply->disconnect();
-                if (reply->reply()->error()) {
-                    error(reply->reply()->error());
-                } else {
-                    resolve(reply);
-                }
+                resolve(reply);
             };
             QObject::connect(reply.get(), &HttpStream::finished, finished);
         } else {
@@ -122,7 +117,7 @@ HttpStream::HttpStream(QObject * context, QNetworkReply *reply)
 {
     open(ReadOnly);
     if (context) {
-        connect(context, &QObject::destroyed, this, [this]() {
+        QObject::connect(context, &QObject::destroyed, this, [this]() {
             aborted_ = true;
             reply_->abort();
         });
@@ -135,6 +130,36 @@ HttpStream::~HttpStream()
     reply_->deleteLater();
 }
 
+bool HttpStream::connect(QIODevice * stream, std::function<void ()> finished,
+                         std::function<void (std::exception &&)> error)
+{
+    QNetworkReply * reply = qobject_cast<QNetworkReply*>(stream);
+    if (reply == nullptr) {
+        if (HttpStream * http = qobject_cast<HttpStream*>(stream))
+            reply = http->reply_;
+    }
+    if (reply) {
+        auto error2 = [error](QNetworkReply::NetworkError e) {
+            qDebug() << "HttpStream:" << e;
+            error(std::invalid_argument("network|打开失败，请检查网络再试"));
+        };
+        if (reply->isFinished()) {
+            if (reply->error())
+                error2(reply->error());
+            else
+                finished();
+            return true;
+        }
+        if (HttpStream * http = qobject_cast<HttpStream*>(stream)) {
+            QObject::connect(http, &HttpStream::error, error2);
+        } else {
+            void (QNetworkReply::*p)(QNetworkReply::NetworkError) = &QNetworkReply::error;
+            QObject::connect(reply, p, error2);
+        }
+    }
+    return false;
+}
+
 void HttpStream::onError(QNetworkReply::NetworkError e)
 {
     if (!aborted_ && (e <= QNetworkReply::UnknownNetworkError
@@ -143,7 +168,7 @@ void HttpStream::onError(QNetworkReply::NetworkError e)
         data_.append(reply_->readAll());
         qint64 size = pos() + data_.size();
         QNetworkRequest request = reply_->request();
-        qDebug() << "HttpStream retry" << size;
+        qDebug() << "HttpStream retry" << e << size;
         if (size > 0)
             request.setRawHeader("Range", "bytes=" + QByteArray::number(size) + "-");
         QNetworkReply * reply = reply_->manager()->get(request);
@@ -152,15 +177,18 @@ void HttpStream::onError(QNetworkReply::NetworkError e)
         reopen();
         return;
     }
+    setErrorString(reply_->errorString());
     emit error(e);
 }
 
 void HttpStream::onFinished()
 {
+    qDebug() << "HttpStream onFinished";
     if (sender() == reply_) {
         emit readChannelFinished();
         emit finished();
     } else {
+        // we are retrying
         sender()->deleteLater();
     }
 }

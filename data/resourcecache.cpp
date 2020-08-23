@@ -92,6 +92,11 @@ void ResourceCacheBase::resume()
     }
 }
 
+void ResourceCacheBase::stop()
+{
+    pause();
+}
+
 void ResourceCacheBase::loadNext()
 {
     if (paused || workCache)
