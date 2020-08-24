@@ -158,10 +158,6 @@ QWidget * WebControl::createWidget(ResourceView * res)
 
 void WebControl::loadSettings()
 {
-    if (res_->flags().testFlag(ResourceView::LargeCanvas)
-            && !flags_.testFlag(RestoreSession)) {
-        resize(item_->scene()->sceneRect().size().toSize());
-    }
     WidgetControl::loadSettings();
 #ifndef QT_DEBUG
     if (debugable()) {

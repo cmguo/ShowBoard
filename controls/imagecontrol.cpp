@@ -47,7 +47,8 @@ void ImageControl::attached()
     res_->resource()->getData().then([this, l] (QByteArray data) {
         if (l.isNull()) return;
         QPixmap pixmap;
-        pixmap.loadFromData(data);
+        if (!pixmap.loadFromData(data))
+            throw std::runtime_error("图片加载失败");
         data_ = ImageCache::instance().put(res_->url(), pixmap, mipmap_);
         adjustMipmap2(whiteCanvas()->rect().size());
     }).fail([this, l](std::exception& e) {
