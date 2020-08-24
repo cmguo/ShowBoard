@@ -1,4 +1,4 @@
-#ifndef WEBCONTROL_H
+﻿#ifndef WEBCONTROL_H
 #define WEBCONTROL_H
 
 #include "widgetcontrol.h"
@@ -53,7 +53,7 @@ protected:
     virtual QUrl url() const;
 
 public slots:
-    void loadFinished(bool ok);
+    virtual void loadFinished(bool ok);
 
     void contentsSizeChanged(const QSizeF &size);
 

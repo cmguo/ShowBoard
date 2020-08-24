@@ -1,4 +1,4 @@
-#include "webcontrol.h"
+﻿#include "webcontrol.h"
 #include "core/resource.h"
 #include "core/resourceview.h"
 #include "core/resourcetransform.h"
@@ -177,14 +177,16 @@ void WebControl::attached()
     WebView * view = static_cast<WebView *>(widget_);
     if (flags_.testFlag(RestorePersisted)) {
         widget_->setVisible(true);
-//#if QT_VERSION >= 0x050E00
-//        qobject_cast<QWebEngineView *>(widget_)->page()->setLifecycleState(QWebEnginePage::LifecycleState::Active);
-//#endif
+        //#if QT_VERSION >= 0x050E00
+        //        qobject_cast<QWebEngineView *>(widget_)->page()->setLifecycleState(QWebEnginePage::LifecycleState::Active);
+        //#endif
         // TODO: handle backup loadFinished
         loadFinished(true);
-        int diff = WebViewSizeChangeArra[webViewSizeChangeIndex_];
-        widget_->resize(widget_->size() + QSize(diff, diff));
-        webViewSizeChangeIndex_ = (++webViewSizeChangeIndex_) % 4;
+        if(QQuickWindow::sceneGraphBackend() == "software"){
+            int diff = WebViewSizeChangeArra[webViewSizeChangeIndex_];
+            widget_->resize(widget_->size() + QSize(diff, diff));
+            webViewSizeChangeIndex_ = (++webViewSizeChangeIndex_) % 4;
+        }
         return;
     }
     if (background_ != Qt::transparent) {
