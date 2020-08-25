@@ -2,9 +2,11 @@
 #include "qsshelper.h"
 #include "core/resourcemanager.h"
 
+#include <QBitmap>
 #include <QEvent>
 #include <QMetaMethod>
 #include <QPainter>
+#include <QQuickWidget>
 #include <QStyleOption>
 #include <qcomponentcontainer.h>
 
@@ -92,8 +94,14 @@ bool FrameWidget::eventFilter(QObject *watched, QEvent *event)
 
 void FrameWidget::updateShape()
 {
+    // Content geometry, will translate (same as setPos) to make room for arrow
     QRect rc(0, 0, content_->width(), content_->height());
+    // Frame geometry, base on origin content geometry,
+    //   add size from arrow and padding
+    //   offset by arrowPos_
     QRect rf = rc.adjusted(0, 0, paddingSize_ * 2, paddingSize_ * 2);
+    // Frame geometry when auto position arrow, same size as rf
+    //   TODO:
     QRect go = geometry();
     rc.translate(paddingSize_, paddingSize_);
     QPolygonF polygon(QRectF{rf});
@@ -140,11 +148,31 @@ void FrameWidget::updateShape()
             setGeometry(rf);
         }
         content_->setGeometry(rc);
+        if (qobject_cast<QQuickWidget*>(content_)
+                && QQuickWindow::sceneGraphBackend() != "software") {
+            if (mask_.isNull()) {
+                mask_ = roundMask(rc, borderRadius_);
+                content_->setMask(mask_);
+            }
+        }
         QVector<qreal> radiuses(7, borderRadius_);
         radiuses[arrowDir_ + 1] = radiuses[arrowDir_ + 3] = 0;
         radiuses[arrowDir_ + 2] = borderRadius_ / 2;
         path_ = toRoundPolygon(polygon, radiuses);
     }
+}
+
+QBitmap FrameWidget::roundMask(QRect const & rect, int radius)
+{
+    QBitmap bitmap(rect.width(), rect.height());
+    bitmap.fill();
+    QPainter painter(&bitmap);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(Qt::black);
+    painter.drawRoundedRect(bitmap.rect(), radius, radius);
+    painter.end();
+    return bitmap;
 }
 
 QPainterPath FrameWidget::toRoundPolygon(const QPolygonF &polygon, QVector<qreal> const & radiuses)

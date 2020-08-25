@@ -1,4 +1,4 @@
-﻿#include "webcontrol.h"
+#include "webcontrol.h"
 #include "core/resource.h"
 #include "core/resourceview.h"
 #include "core/resourcetransform.h"

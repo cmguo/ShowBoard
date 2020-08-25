@@ -186,9 +186,10 @@ QWidget *WhiteCanvasTools::createPageList(ResourcePackage * package)
     QQuickWidget* widget = new MyQuickWidget;
     widget->setObjectName("canvaspagelist");
     widget->setAttribute(Qt::WA_AcceptTouchEvents);
+    //widget->setAttribute(Qt::WA_AlwaysStackOnTop);
     widget->setStyleSheet("QQuickWidget{background-color:#F4F4F4}");
     widget->engine()->addImageProvider("resource", new ResourceImageProvider(package));
-    widget->setClearColor(Qt::transparent);
+    widget->setClearColor(QColor("#F4F4F4"));
     widget->rootContext()->setContextProperty("packageModel", package);
     widget->rootContext()->setContextProperty("whiteCanvasTools", this);
     widget->setSource(QUrl("qrc:/showboard/qml/PageList.qml"));
