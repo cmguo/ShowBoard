@@ -12,7 +12,7 @@ class SHOWBOARD_EXPORT DataProvider : public QObject
 {
     Q_OBJECT
 public:
-    static DataProvider * getInstance(QByteArray const & scheme);
+    static DataProvider * getProvider(QByteArray const & scheme);
 
 public:
     explicit DataProvider(QObject *parent = nullptr);
@@ -73,6 +73,8 @@ private:
     void pause();
 
     void resume();
+
+    void abort();
 
 protected:
     virtual qint64 readData(char *data, qint64 maxlen) override;

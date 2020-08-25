@@ -80,6 +80,7 @@ QtPromise::QPromise<void> ResourceCache::cacheNext(QObject * context)
 
 void ResourceCacheBase::pause(void * context)
 {
+    qDebug() << "ResourceCache pause" << context;
     if (!pauseContexts.contains(context))
         pauseContexts.append(context);
     if (lifeToken)
@@ -88,6 +89,7 @@ void ResourceCacheBase::pause(void * context)
 
 void ResourceCacheBase::resume(void * context)
 {
+    qDebug() << "ResourceCache resume" << context;
     if (pauseContexts.removeOne(context) && pauseContexts.isEmpty()) {
         if (lifeToken)
             lifeToken->resume();
@@ -112,8 +114,9 @@ void ResourceCacheBase::loadNext()
                 lifeToken.reset(new ResourceCacheLife);
             c->cacheNext(lifeToken.get())
                     .tapFail([](std::exception & e) {
-                qWarning() << "ResourceCache error:" << e.what();
+                qWarning() << "ResourceCache error:" << workUrl << e.what();
             }).finally([] () {
+                qDebug() << "ResourceCache finish" << workUrl;
                 workCache = nullptr;
                 loadNext();
             });

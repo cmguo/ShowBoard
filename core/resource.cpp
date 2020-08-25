@@ -95,7 +95,7 @@ QtPromise::QPromise<QUrl> Resource::getLocalUrl(const QUrl &url)
 
 QPromise<QSharedPointer<QIODevice>> Resource::getStream(QObject *context, QUrl const & url, bool all)
 {
-    DataProvider * provider = DataProvider::getInstance(url.scheme().toUtf8());
+    DataProvider * provider = DataProvider::getProvider(url.scheme().toUtf8());
     if (provider == nullptr) {
         return QPromise<QSharedPointer<QIODevice>>::reject(std::invalid_argument("打开失败，未知数据协议"));
     }
@@ -119,7 +119,7 @@ QtPromise::QPromise<QByteArray> Resource::getData(QObject *context, const QUrl &
     return getStream(context, url, true).then([url](QSharedPointer<QIODevice> io) {
         QByteArray data = io->readAll();
         io->close();
-        DataProvider * provider = DataProvider::getInstance(url.scheme().toUtf8());
+        DataProvider * provider = DataProvider::getProvider(url.scheme().toUtf8());
         if (provider->needCache())
             cache_->putData(url, data);
         return data;

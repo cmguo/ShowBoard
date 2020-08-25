@@ -74,7 +74,7 @@ QString FileCache::putData(QString const & path, QByteArray const & hash, QByteA
     if (f.size >= 0 && (hash.isEmpty() || f.hash == hash)) {
         return fullPath;
     }
-    QFile file(fullPath + ".temp");
+    QFile file(fullPath + ".temp2");
     bool ok = file.open(QFile::WriteOnly);
     ok = ok && file.write(data) == data.size();
     file.close();
@@ -83,6 +83,7 @@ QString FileCache::putData(QString const & path, QByteArray const & hash, QByteA
         file.remove();
         return nullptr;
     }
+    base::put(path, FileResource {data.size(), hash});
     return fullPath;
 }
 
@@ -235,7 +236,7 @@ void FileCache::check(const QString &path, const QByteArray &hash)
 QtPromise::QPromise<qint64> FileCache::saveStream(const QString &path, QSharedPointer<QIODevice> stream)
 {
     QDir().mkdir(path.left(path.lastIndexOf('/')));
-    QSharedPointer<QIODevice> file(new QFile(path + ".temp"));
+    QSharedPointer<QFile> file(new QFile(path + ".temp"));
     if (!file->open(QFile::WriteOnly)) {
         return QPromise<qint64>::reject(std::runtime_error("文件打开失败"));
     }
@@ -254,9 +255,6 @@ QtPromise::QPromise<qint64> FileCache::saveStream(const QString &path, QSharedPo
                 resolve(*size);
             }
         };
-        if (HttpStream::connect(stream.get(), finished, error)) {
-            return;
-        }
         auto read = [file, size, stream, error] () {
             QByteArray data = stream->readAll();
             if (data.isEmpty()) {
@@ -272,16 +270,19 @@ QtPromise::QPromise<qint64> FileCache::saveStream(const QString &path, QSharedPo
         char c;
         if (stream->peek(&c, 1) > 0)
             read();
+        if (HttpStream::connect(stream.get(), finished, error)) {
+            return;
+        }
         QObject::connect(stream.get(), &QIODevice::readyRead, read);
         QObject::connect(stream.get(), &QIODevice::readChannelFinished, finished);
     }).then([path, file] (qint64 size) {
-        if (!QFile::rename(path + ".temp", path)) {
-            QFile::remove(path + ".temp");
+        if (!QFile::rename(file->fileName(), path)) {
+            file->remove();
             throw std::runtime_error("文件写入失败");
         }
         return size;
-    }, [path] (std::exception &) -> qint64 {
-        QFile::remove(path + ".temp");
+    }, [path, file] (std::exception &) -> qint64 {
+        file->remove();
         throw;
     }).finally([stream]() {
         stream->disconnect();

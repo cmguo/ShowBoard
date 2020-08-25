@@ -19,7 +19,7 @@ REGISTER_DATA_RPOVIDER(DataDataProvider,"data")
 REGISTER_DATA_RPOVIDER(FileDataProvider,"file,qrc,")
 REGISTER_DATA_RPOVIDER(HttpDataProvider,"http,https")
 
-DataProvider *DataProvider::getInstance(const QByteArray &scheme)
+DataProvider *DataProvider::getProvider(const QByteArray &scheme)
 {
     static QVector<QLazy> types;
     static QMap<QByteArray, QLazy*> readerTypes;
@@ -90,6 +90,7 @@ QtPromise::QPromise<QSharedPointer<QIODevice>> HttpDataProvider::getStream(QObje
 {
     QNetworkRequest request(url);
     QSharedPointer<HttpStream> reply(new HttpStream(context, network_->get(request)));
+    reply->setObjectName(url.toString());
     return QPromise<QSharedPointer<QIODevice>>([reply, all](
                                      const QPromiseResolve<QSharedPointer<QIODevice>>& resolve,
                                      const QPromiseReject<QSharedPointer<QIODevice>>& reject) {
@@ -124,13 +125,13 @@ HttpStream::HttpStream(QObject * context, QNetworkReply *reply)
 {
     open(ReadOnly);
     if (context) {
-        QObject::connect(context, &QObject::destroyed, this, [this]() {
-            aborted_ = true;
-            reply_->abort();
-        });
+        QObject::connect(context, &QObject::destroyed,
+                         this, &HttpStream::abort);
         if (ResourceCacheLife * life = qobject_cast<ResourceCacheLife*>(context)) {
-            QObject:: connect(life, &ResourceCacheLife::pause, this, &HttpStream::pause);
-            QObject:: connect(life, &ResourceCacheLife::resume, this, &HttpStream::resume);
+            QObject:: connect(life, &ResourceCacheLife::pause,
+                              this, &HttpStream::pause);
+            QObject:: connect(life, &ResourceCacheLife::resume,
+                              this, &HttpStream::resume);
         }
     }
     reopen();
@@ -140,9 +141,10 @@ HttpStream::HttpStream(QObject * context, QNetworkReply *reply)
 
 HttpStream::~HttpStream()
 {
-    qDebug() << "HttpStream destroyed";
+    qDebug() << "HttpStream destroyed" << this;
     reply_->deleteLater();
-    ResourceCache::resume(this);
+    if (elapsed_)
+        ResourceCache::resume(this);
 }
 
 bool HttpStream::connect(QIODevice * stream, std::function<void ()> finished,
@@ -177,7 +179,7 @@ bool HttpStream::connect(QIODevice * stream, std::function<void ()> finished,
 
 void HttpStream::onError(QNetworkReply::NetworkError e)
 {
-    qDebug() << "HttpStream onError" << e << paused_;
+    qDebug() << "HttpStream onError" << e << this;
     if (paused_)
         return;
     if (!aborted_ && (e <= QNetworkReply::UnknownNetworkError
@@ -199,9 +201,9 @@ void HttpStream::onError(QNetworkReply::NetworkError e)
 
 void HttpStream::onFinished()
 {
-    qDebug() << "HttpStream onFinished";
+    qDebug() << "HttpStream onFinished" << this;
     if (sender() == reply_) {
-        qDebug() << "HttpStream onFinished 2";
+        qDebug() << "HttpStream onFinished" << pos();
         emit readChannelFinished();
         emit finished();
     } else if (sender() == paused_) {
@@ -222,20 +224,29 @@ void HttpStream::reopen()
 
 void HttpStream::pause()
 {
-    qDebug() << "HttpStream pause";
     if (paused_)
         return;
+    qDebug() << "HttpStream pause" << this;
     std::swap(paused_, reply_);
     paused_->abort();
 }
 
 void HttpStream::resume()
 {
-    qDebug() << "HttpStream resume";
     if (!paused_)
         return;
+    qDebug() << "HttpStream resume" << this;
     std::swap(paused_, reply_);
     onError(reply_->error());
+}
+
+void HttpStream::abort()
+{
+    if (aborted_)
+        return;
+    qDebug() << "HttpStream abort" << this;
+    aborted_ = true;
+    reply_->abort();
 }
 
 qint64 HttpStream::readData(char *data, qint64 maxlen)
@@ -292,9 +303,11 @@ void HttpStream::timerEvent(QTimerEvent *)
     // no data elapsed 10
     // low speed elapsed 60
     if (stop) {
+        qDebug() << "HttpStream stop" << this;
         pause();
         std::swap(reply_, paused_);
         emit error(QNetworkReply::TimeoutError);
-        onFinished();
+        emit readChannelFinished();
+        emit finished();
     }
 }
