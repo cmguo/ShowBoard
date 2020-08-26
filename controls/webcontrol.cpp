@@ -5,6 +5,7 @@
 #include "views/stateitem.h"
 #include "views/whitecanvas.h"
 #include "core/resourcepage.h"
+#include "data/resourcecache.h"
 
 #include <qproperty.h>
 
@@ -174,6 +175,9 @@ void WebControl::attached()
         Control::loadFinished(false, "打开失败，内存不足");
         return;
     }
+    if (res_->independent()) {
+        ResourceCache::pause(this);
+    }
     WebView * view = static_cast<WebView *>(widget_);
     if (flags_.testFlag(RestorePersisted)) {
         widget_->setVisible(true);
@@ -220,6 +224,9 @@ void WebControl::detached()
 //#if QT_VERSION >= 0x050E00
 //    qobject_cast<QWebEngineView *>(widget_)->page()->setLifecycleState(QWebEnginePage::LifecycleState::Discarded);
 //#endif
+    if (res_->independent()) {
+        ResourceCache::resume(this);
+    }
     WidgetControl::detached();
     --totalFront;
 }
