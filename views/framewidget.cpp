@@ -151,9 +151,11 @@ void FrameWidget::updateShape()
         if (qobject_cast<QQuickWidget*>(content_)
                 && QQuickWindow::sceneGraphBackend() != "software") {
             if (mask_.isNull()) {
-                mask_ = roundMask(rc, borderRadius_);
+                mask_ = roundMask(rc.adjusted(paddingSize_, paddingSize_,
+                                              -paddingSize_, -paddingSize_), borderRadius_);
                 content_->setMask(mask_);
             }
+            qobject_cast<QQuickWidget*>(content_)->setClearColor(backgroundColor_);
         }
         QVector<qreal> radiuses(7, borderRadius_);
         radiuses[arrowDir_ + 1] = radiuses[arrowDir_ + 3] = 0;
@@ -167,7 +169,7 @@ QBitmap FrameWidget::roundMask(QRect const & rect, int radius)
     QBitmap bitmap(rect.width(), rect.height());
     bitmap.fill();
     QPainter painter(&bitmap);
-    painter.setRenderHint(QPainter::Antialiasing);
+    //painter.setRenderHint(QPainter::Antialiasing); // no effects
     painter.setPen(Qt::NoPen);
     painter.setBrush(Qt::black);
     painter.drawRoundedRect(bitmap.rect(), radius, radius);
