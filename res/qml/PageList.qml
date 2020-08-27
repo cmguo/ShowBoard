@@ -92,7 +92,7 @@ Rectangle {
                 y: 4 * sizeScale
                 width: 24 * sizeScale
                 height: 21 * sizeScale
-                color: index == packageModel.currentIndex ? "#FF008FFF" : "transparent"
+                color: index == packageModel.currentIndex ? "#5856D6" : "transparent"
                 radius: 4 * sizeScale
                 Text {
                     anchors.centerIn: parent
@@ -109,7 +109,7 @@ Rectangle {
                 width: 192 * sizeScale
                 height: 108 * sizeScale
                 radius: 4 * sizeScale
-                color: "#1B2526"
+                color: "#102020"
 
                 Image {
                     anchors.fill: parent
@@ -122,7 +122,7 @@ Rectangle {
                         radius: 4 * sizeScale
                         color: "transparent"
                         border.width: index == packageModel.currentIndex ? 3 : 1
-                        border.color: index == packageModel.currentIndex ? "#FF008FFF" : "#FFE2E3E4"
+                        border.color: index == packageModel.currentIndex ? "#5856D6" : "#E2E3E4"
                     }
                 }
             }
