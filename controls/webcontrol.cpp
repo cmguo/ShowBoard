@@ -1,4 +1,4 @@
-#include "webcontrol.h"
+﻿#include "webcontrol.h"
 #include "core/resource.h"
 #include "core/resourceview.h"
 #include "core/resourcetransform.h"
@@ -246,12 +246,6 @@ void WebControl::loadFinished(bool ok)
         view->synthesizedMouseEvents();
 #endif
         Control::loadFinished(ok);
-        if (res_->flags().testFlag(ResourceView::LargeCanvas)) {
-            QWebEngineView * view = qobject_cast<QWebEngineView *>(widget_);
-            WebControl * canvasControl = static_cast<WebControl*>(Control::fromItem(whiteCanvas()));
-            canvasControl->resize(view->page()->contentsSize());
-            scrollPositionChanged(view->page()->scrollPosition());
-        }
     } else {
         QWebEngineView * view = qobject_cast<QWebEngineView *>(widget_);
         view->setContent("");
@@ -261,11 +255,16 @@ void WebControl::loadFinished(bool ok)
 
 void WebControl::contentsSizeChanged(const QSizeF &size)
 {
+    if (res_->flags().testFlag(ResourceView::LargeCanvas)) {
+        QWebEngineView * view = qobject_cast<QWebEngineView *>(widget_);
+        WebControl * canvasControl = static_cast<WebControl*>(Control::fromItem(whiteCanvas()));
+        canvasControl->resize(view->page()->contentsSize());
+        scrollPositionChanged(view->page()->scrollPosition());
+    }
     QSizeF d = size - QSizeF(widget_->size());
     if (!fitToContent() || (d.width() + d.height()) < 10
             || size.height() > whiteCanvas()->rect().height())
         return;
-    qDebug() << "contentsSizeChanged: " << size;
     setSize(size);
 }
 
