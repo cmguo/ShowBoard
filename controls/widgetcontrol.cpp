@@ -1,4 +1,4 @@
-#include "widgetcontrol.h"
+﻿#include "widgetcontrol.h"
 #include "core/resource.h"
 #include "core/resourceview.h"
 

@@ -23,7 +23,6 @@
 
 #define LARGE_CANVAS_LINKAGE 1
 #define LARGE_CANVAS_LINKAGE_SCALE 0
-#define DISABLE_TOUCH 1
 
 static char const * toolstr =
         "reload()|刷新|;"
@@ -45,15 +44,11 @@ public:
     WebView(QObject * settings);
     void scaleTo(qreal scale);
     void debug();
-#if DISABLE_TOUCH
     void synthesizedMouseEvents();
-#endif
     void dump();
 protected:
     virtual bool event(QEvent * event) override;
-#if DISABLE_TOUCH
     virtual bool eventFilter(QObject * watched, QEvent * event) override;
-#endif
     virtual QWebEngineView * createWindow(QWebEnginePage::WebWindowType type) override;
 private:
     QWidget *findChildWidget(const QString &className) const;
@@ -70,11 +65,7 @@ void WebControl::init()
 }
 
 WebControl::WebControl(ResourceView * res)
-#if DISABLE_TOUCH
     : WidgetControl(res, {WithSelectBar, ExpandScale, LayoutScale, FixedOnCanvas}, {CanRotate})
-#else
-    : WidgetControl(res, {WithSelectBar, ExpandScale, LayoutScale, Touchable, FixedOnCanvas}, {CanRotate})
-#endif
     , background_(Qt::transparent)
 {
 #ifdef QT_DEBUG
@@ -241,10 +232,8 @@ void WebControl::loadFinished(bool ok)
     if (!flags_.testFlag(Loading))
         return;
     if (ok) {
-#if DISABLE_TOUCH
-        WebView * view = static_cast<WebView *>(widget_);
-        view->synthesizedMouseEvents();
-#endif
+        if(!touchable())
+        static_cast<WebView *>(widget_)->synthesizedMouseEvents();
         Control::loadFinished(ok);
     } else {
         QWebEngineView * view = qobject_cast<QWebEngineView *>(widget_);
@@ -328,9 +317,7 @@ void WebView::sinit()
         char const * flags =
                 "--allow-running-insecure-content"
                 " --disable-web-security"
-        #if DISABLE_TOUCH
                 " --touch-events=disabled"
-        #endif
                 " --register-pepper-plugins="
                 "./pepflashplayer64.dll;application/x-shockwave-flash";
         qputenv("QTWEBENGINE_CHROMIUM_FLAGS", flags);
@@ -416,7 +403,6 @@ void WebView::debug()
     web->show();
 }
 
-#if DISABLE_TOUCH
 void WebView::synthesizedMouseEvents()
 {
     if (!childWidget_) {
@@ -430,7 +416,7 @@ void WebView::synthesizedMouseEvents()
     }
     childWidget_->installEventFilter(this);
 }
-#endif
+
 
 void WebView::dump()
 {
@@ -463,8 +449,6 @@ bool WebView::event(QEvent *event)
     return QWebEngineView::event(event);
 }
 
-#if DISABLE_TOUCH
-
 class Q_GUI_EXPORT QMouseEvent2 : public QInputEvent
 {
 public:
@@ -477,6 +461,8 @@ public:
 
 bool WebView::eventFilter(QObject *watched, QEvent *event)
 {
+    if(!childWidget_||watched!=childWidget_)
+        return QWebEngineView::eventFilter(watched,event);
     (void) watched;
     //if (event->type() != QEvent::Timer && event->type() != QEvent::MouseMove)
     //    qDebug() << "WebView::eventFilter: " << event->type();
@@ -491,7 +477,6 @@ bool WebView::eventFilter(QObject *watched, QEvent *event)
     return false;
 }
 
-#endif
 
 QWebEngineView *WebView::createWindow(QWebEnginePage::WebWindowType)
 {
