@@ -38,20 +38,11 @@ void ImageControl::attached()
                 adjustMipmap();
         });
     }
-    data_ = ImageCache::instance().get(res_->url());
-    if (data_) {
-        adjustMipmap2(whiteCanvas()->rect().size());
-        return;
-    }
-    QWeakPointer<int> l = life();
-    res_->resource()->getData().then([this, l] (QByteArray data) {
+    ImageCache::instance().getOrCreate(res_, res_->url(), mipmap_).then([this, l = life()] (QSharedPointer<ImageData> data) {
         if (l.isNull()) return;
-        QPixmap pixmap;
-        if (!pixmap.loadFromData(data))
-            throw std::runtime_error("图片加载失败");
-        data_ = ImageCache::instance().put(res_->url(), pixmap, mipmap_);
+        data_ = data;
         adjustMipmap2(whiteCanvas()->rect().size());
-    }).fail([this, l](std::exception& e) {
+    }, [this, l = life()](std::exception & e) {
         if (l.isNull()) return;
         loadFinished(false, e.what());
     });
