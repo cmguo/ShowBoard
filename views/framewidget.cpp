@@ -86,6 +86,7 @@ bool FrameWidget::eventFilter(QObject *watched, QEvent *event)
             this->hide();
             content_->show();
         } else if (event->type() == QEvent::Resize) {
+            mask_ = QRegion();
             updateShape();
         }
     }
@@ -164,7 +165,7 @@ void FrameWidget::updateShape()
     }
 }
 
-QBitmap FrameWidget::roundMask(QRect const & rect, int radius)
+QRegion FrameWidget::roundMask(QRect const & rect, int radius)
 {
     QBitmap bitmap(rect.width(), rect.height());
     bitmap.fill();
@@ -174,7 +175,7 @@ QBitmap FrameWidget::roundMask(QRect const & rect, int radius)
     painter.setBrush(Qt::black);
     painter.drawRoundedRect(bitmap.rect(), radius, radius);
     painter.end();
-    return bitmap;
+    return QRegion(bitmap);
 }
 
 QPainterPath FrameWidget::toRoundPolygon(const QPolygonF &polygon, QVector<qreal> const & radiuses)

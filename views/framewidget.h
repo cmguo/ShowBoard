@@ -3,7 +3,7 @@
 
 #include "ShowBoard_global.h"
 
-#include <QBitmap>
+#include <QRegion>
 #include <QPainterPath>
 #include <QWidget>
 
@@ -34,7 +34,7 @@ protected:
 private:
     void updateShape();
 
-    static QBitmap roundMask(QRect const & rect, int radius);
+    static QRegion roundMask(QRect const & rect, int radius);
 
     static QPainterPath toRoundPolygon(QPolygonF const & polygon, QVector<qreal> const & radiuses);
 
@@ -46,7 +46,7 @@ private:
 private:
     QWidget * content_;
     QPainterPath path_;
-    QBitmap mask_;
+    QRegion mask_;
     int flags_ = 0;
     QColor backgroundColor_;
     QColor borderColor_;
