@@ -8,7 +8,10 @@ QPushButton,.QLabel {
 
 QPushButton {
     qproperty-iconSize:32px 32px; /* [size] */
-    padding:4px; /* [size] */
+    padding-top:2px; /* [size] */
+    padding-bottom:2px; /* [size] */
+    padding-left:8px; /* [size] */
+    padding-right:8px; /* [size] */
     border-radius:8px; /* [size] */
 }
 

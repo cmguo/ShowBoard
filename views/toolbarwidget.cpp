@@ -39,7 +39,7 @@ ToolbarWidget::ToolbarWidget(bool horizontal, QWidget *parent)
     if (horizontal) {
         int margins = dp(6);
         layout_->setContentsMargins(margins, margins, margins, margins);
-        layout_->setSpacing(dp(20));
+        layout_->setSpacing(dp(8));
     }
     setLayout(layout_);
     hide();

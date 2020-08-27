@@ -7,7 +7,10 @@ QPushButton,.QLabel {
 }
 
 QPushButton {
-    background-color:red;
+    padding-top:2px; /* [size] */
+    padding-bottom:2px; /* [size] */
+    padding-left:8px; /* [size] */
+    padding-right:8px; /* [size] */
     qproperty-iconSize: 32px 32px; /* [size] */
 }
 
