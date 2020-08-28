@@ -17,6 +17,8 @@ static QMutex& mutex()
     return mutex;
 }
 
+static constexpr QSize MaxSize = sizeof (void*) == 4 ? QSize{3840, 2160} : QSize{7680, 4320};
+
 ImageCache &ImageCache::instance()
 {
     static ImageCache cache;
@@ -82,6 +84,7 @@ QtPromise::QPromise<QPixmap> ImageCache::load(QByteArray data)
     return QPromise<QPixmap>([data](
                              const QPromiseResolve<QPixmap>& resolve,
                              const QPromiseReject<QPixmap>& reject) {
+        OomHandler::ensureMemoryAvailable(50 * 1024 * 1024);
         ::thread().postWork([=] {
             QPixmap pixmap;
             if (pixmap.loadFromData(data))
@@ -111,10 +114,9 @@ ImageData::ImageData(const QPixmap pixmap, qreal mipmap)
     , mipmap_(mipmap)
     , life_(reinterpret_cast<int*>(1), nopdel)
 {
-    constexpr QSize maxSize = sizeof (void*) == 4 ? QSize{3840, 2160} : QSize{7680, 4320};
     if (qFuzzyIsNull(mipmap_)) {
         QSize size = pixmap.size();
-        while (size.width() > maxSize.width() || size.height() > maxSize.height()) {
+        while (size.width() > MaxSize.width() || size.height() > MaxSize.height()) {
             size /= 2;
         }
         if (size != pixmap.size()) {
@@ -123,7 +125,7 @@ ImageData::ImageData(const QPixmap pixmap, qreal mipmap)
         }
     } else {
         QSizeF size = pixmap.size();
-        while (size.width() >= maxSize.width() && size.height() >= maxSize.height()) {
+        while (size.width() >= MaxSize.width() && size.height() >= MaxSize.height()) {
             size /= mipmap_;
             pixmap_ = pixmap_.scaledToWidth(qRound(size.width()), Qt::SmoothTransformation);
             size = pixmap_.size();

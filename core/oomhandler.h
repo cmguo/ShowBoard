@@ -14,12 +14,18 @@ public:
 public:
     void addHandler(int level, std::function<bool(void)> handler);
 
-    void handle();
+    static bool isMemoryAvailable(quint64 size);
+
+    static void ensureMemoryAvailable(quint64 size);
 
 public:
     virtual bool event(QEvent * event) override;
 
 private:
+    friend void oom_handler();
+
+    void handle();
+
     bool handle2();
 
 private:

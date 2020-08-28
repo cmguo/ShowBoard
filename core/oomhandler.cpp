@@ -6,11 +6,16 @@
 #include <QThread>
 #include <QWaitCondition>
 
+#ifdef WIN32
+#include <Windows.h>
+#include <Psapi.h>
+#endif
+
 static constexpr QEvent::Type EVENT_POST_HANDLE = QEvent::User;
 
 OomHandler oomHandler;
 
-static void oom_handler()
+void oom_handler()
 {
     oomHandler.handle();
 }
@@ -27,6 +32,30 @@ void OomHandler::addHandler(int level, std::function<bool ()> handler)
     if (level < 0) level = 0;
     if (level > 5) level = 5;
     oom_handlers[level].append(handler);
+}
+
+bool OomHandler::isMemoryAvailable(quint64 size)
+{
+#ifdef WIN32
+    if (sizeof(void*) == 4) {
+        PROCESS_MEMORY_COUNTERS c;
+        BOOL b = ::GetProcessMemoryInfo(::GetCurrentProcess(), &c, sizeof (c));
+        if (!b || c.WorkingSetSize + size > 1024 * 1024 * 1024)
+            return false;
+    }
+    MEMORYSTATUSEX s;
+    s.dwLength = sizeof (s);
+    BOOL b = ::GlobalMemoryStatusEx(&s);
+    return b && size <= s.ullAvailPageFile && size <= s.ullAvailVirtual;
+#else
+    return true;
+#endif
+}
+
+void OomHandler::ensureMemoryAvailable(quint64 size)
+{
+    if (!isMemoryAvailable(size))
+        throw std::runtime_error("内存不足");
 }
 
 void OomHandler::handle()

@@ -21,6 +21,8 @@
 #include <QWebChannel>
 #include <QWebEngineProfile>
 
+#include <core/oomhandler.h>
+
 #define LARGE_CANVAS_LINKAGE 1
 #define LARGE_CANVAS_LINKAGE_SCALE 0
 
@@ -154,7 +156,7 @@ static int WebViewSizeChangeArra[4]{1,-1,1,-1};
 
 void WebControl::attached()
 {
-    if (++totalFront > MAX_WEB) {
+    if (++totalFront > MAX_WEB || !OomHandler::isMemoryAvailable(40 * 1024 * 1024)) {
         Control::loadFinished(false, "打开失败，内存不足");
         return;
     }
