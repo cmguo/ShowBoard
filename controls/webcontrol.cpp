@@ -1,4 +1,4 @@
-﻿#include "webcontrol.h"
+#include "webcontrol.h"
 #include "core/resource.h"
 #include "core/resourceview.h"
 #include "core/resourcetransform.h"
@@ -65,7 +65,7 @@ void WebControl::init()
 }
 
 WebControl::WebControl(ResourceView * res)
-    : WidgetControl(res, {WithSelectBar, ExpandScale, LayoutScale, FixedOnCanvas}, {CanRotate})
+    : WidgetControl(res, {WithSelectBar, ExpandScale, LayoutScale, Touchable, FixedOnCanvas}, {CanRotate})
     , background_(Qt::transparent)
 {
 #ifdef QT_DEBUG
@@ -232,8 +232,8 @@ void WebControl::loadFinished(bool ok)
     if (!flags_.testFlag(Loading))
         return;
     if (ok) {
-        if(!touchable())
-        static_cast<WebView *>(widget_)->synthesizedMouseEvents();
+        if (!touchable())
+            static_cast<WebView *>(widget_)->synthesizedMouseEvents();
         Control::loadFinished(ok);
     } else {
         QWebEngineView * view = qobject_cast<QWebEngineView *>(widget_);
@@ -461,8 +461,6 @@ public:
 
 bool WebView::eventFilter(QObject *watched, QEvent *event)
 {
-    if(!childWidget_||watched!=childWidget_)
-        return QWebEngineView::eventFilter(watched,event);
     (void) watched;
     //if (event->type() != QEvent::Timer && event->type() != QEvent::MouseMove)
     //    qDebug() << "WebView::eventFilter: " << event->type();
@@ -547,7 +545,8 @@ WebPage::WebPage(QObject *parent, QObject *setting)
     }
 }
 
-QWebEnginePage *WebPage::createWindow(QWebEnginePage::WebWindowType type) {
+QWebEnginePage *WebPage::createWindow(QWebEnginePage::WebWindowType type)
+{
     if (mode_ == Disable) {
         return nullptr;
     }
