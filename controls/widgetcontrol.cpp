@@ -40,6 +40,7 @@ QGraphicsItem * WidgetControl::create(ResourceView *res)
     res_ = res;
     widget_ = createWidget(res);
     QGraphicsProxyWidget * item = new QGraphicsProxyWidget();
+    item->setData(100000001,res->property("through").toInt());
     if (flags_.testFlag(Touchable))
         item->setAcceptTouchEvents(true);
     item->setAutoFillBackground(false);
