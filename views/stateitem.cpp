@@ -421,7 +421,7 @@ QGraphicsItem *StateItem::createButtonItem(bool independent)
 {
     QGraphicsPathItem * btnItem = new QGraphicsPathItem(this);
     btnItem->setPen(Qt::NoPen);
-    btnItem->setBrush(QColor("#FF008FFF"));
+    btnItem->setBrush(QColor("#FF5856D6"));
     QPainterPath path;
     QSizeF size;
     qreal radius;
