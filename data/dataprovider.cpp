@@ -246,12 +246,19 @@ void HttpStream::abort()
         return;
     qDebug() << "HttpStream abort" << this;
     aborted_ = true;
+    if (paused_) {
+        std::swap(reply_, paused_);
+        emit error(QNetworkReply::OperationCanceledError);
+        emit readChannelFinished();
+        emit finished();
+        return;
+    }
     reply_->abort();
 }
 
 qint64 HttpStream::readData(char *data, qint64 maxlen)
 {
-    if (!reply_->isOpen())
+    if (!reply_ || !reply_->isOpen()) // maybe paused
         return 0;
     qint64 result = reply_->read(data, maxlen);
     /*
