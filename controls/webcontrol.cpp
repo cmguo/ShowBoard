@@ -137,14 +137,6 @@ QWidget * WebControl::createWidget(ResourceView * res)
     (void)res;
     WebView * view = new WebView(res);
     view->resize(1024, 576);
-    QObject::connect(view->page(), &QWebEnginePage::loadFinished,
-                     this, &WebControl::loadFinished, Qt::QueuedConnection);
-    QObject::connect(view->page(), &QWebEnginePage::contentsSizeChanged,
-                     this, &WebControl::contentsSizeChanged, Qt::QueuedConnection);
-    if (res_->flags().testFlag(ResourceView::LargeCanvas)) {
-        QObject::connect(view->page(), &QWebEnginePage::scrollPositionChanged,
-                         this, &WebControl::scrollPositionChanged, Qt::QueuedConnection);
-    }
     return view;
 }
 
@@ -170,6 +162,15 @@ void WebControl::attached()
         ResourceCache::pause(this);
     }
     WebView * view = static_cast<WebView *>(widget_);
+    QObject::connect(view->page(), &QWebEnginePage::loadFinished,
+                     this, &WebControl::loadFinished, Qt::QueuedConnection);
+    QObject::connect(view->page(), &QWebEnginePage::contentsSizeChanged,
+                     this, &WebControl::contentsSizeChanged, Qt::QueuedConnection);
+    if (res_->flags().testFlag(ResourceView::LargeCanvas)) {
+        QObject::connect(view->page(), &QWebEnginePage::scrollPositionChanged,
+                         this, &WebControl::scrollPositionChanged, Qt::QueuedConnection);
+    }
+
     if (flags_.testFlag(RestorePersisted)) {
         widget_->setVisible(true);
         //#if QT_VERSION >= 0x050E00
