@@ -64,11 +64,28 @@ QSharedPointer<QIODevice> ZipFileCache::getStream(QString const & path)
     }
     if (!entryName.isEmpty()) {
         qDebug() << "ZipFileCache " << zipFile << entryName;
-        QuaZipFile * file = new QuaZipFile(dir_.filePath(zipFile), entryName);
-        if (file->open(QIODevice::ReadOnly)) {
-            return QSharedPointer<QIODevice>(file);
+        std::lock_guard<std::mutex> l(FileCache::lock());
+        if (lockedFiles_.contains(zipFile)) {
+            QuaZip *& zip = lockedFiles_[zipFile];
+            if (zip == nullptr) {
+                zip = new QuaZip(dir_.filePath(zipFile));
+                zip->open(QuaZip::mdUnzip);
+            }
+            if (!zip->isOpen())
+                return nullptr;
+            zip->setCurrentFile(entryName);
+            QuaZipFile * file = new QuaZipFile(zip);
+            if (file->open(QIODevice::ReadOnly)) {
+                return QSharedPointer<QIODevice>(file);
+            }
+            delete file;
+        } else {
+            QuaZipFile * file = new QuaZipFile(dir_.filePath(zipFile), entryName);
+            if (file->open(QIODevice::ReadOnly)) {
+                return QSharedPointer<QIODevice>(file);
+            }
+            delete file;
         }
-        delete file;
     }
     qWarning() << "ZipFileCache not found" << path;
     return nullptr;
@@ -83,6 +100,32 @@ QByteArray ZipFileCache::getData(QString const & path)
         return data;
     }
     return nullptr;
+}
+
+void ZipFileCache::lock(const QStringList &files)
+{
+    std::lock_guard<std::mutex> l(FileCache::lock());
+    for (auto & f : files) {
+        if (!lockedFiles_.contains(f))
+            lockedFiles_.insert(f, nullptr);
+    }
+}
+
+void ZipFileCache::unlock(const QStringList &files)
+{
+    std::lock_guard<std::mutex> l(FileCache::lock());
+    for (auto & f : files) {
+        auto zip = lockedFiles_.take(f);
+        delete zip;
+    }
+}
+
+bool ZipFileCache::destroy(const QString &k, const FileResource &v)
+{
+    // in lock
+    if (lockedFiles_.contains(k))
+        return false;
+    return FileCache::destroy(k, v);
 }
 
 void ZipFileCache::setZipWithRootName(bool b)
