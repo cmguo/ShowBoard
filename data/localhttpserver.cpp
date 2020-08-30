@@ -1,13 +1,20 @@
 #include "filecache.h"
 #include "localhttpserver.h"
 #include "showboard.h"
-
-#include <QtHttpServer/QtHttpServer>
+#include "core/workthread.h"
 
 #include <qexport.h>
 #include <qcomponentcontainer.h>
 
+#include <QtHttpServer/QtHttpServer>
+
 static QExport<LocalHttpServer> export_(QPart::shared);
+
+static WorkThread& thread()
+{
+    static WorkThread th("LocalHttpServer");
+    return th;
+}
 
 LocalHttpServer *LocalHttpServer::instance()
 {
@@ -20,11 +27,9 @@ LocalHttpServer *LocalHttpServer::instance()
 LocalHttpServer::LocalHttpServer(QObject * parent)
     : QObject(parent)
 {
-    server_ = new QHttpServer(this);
-    server_->router()->addConverter(qMetaTypeId<QString>(), QLatin1String(".+"));
-    server_->route("/remote_address", [](const QHttpServerRequest &request) {
-        return request.remoteAddress().toString();
-    });
+    moveToThread(&::thread());
+    connect(this, &LocalHttpServer::start, this, &LocalHttpServer::start2);
+    connect(this, &LocalHttpServer::stop, this, &LocalHttpServer::stop2);
     //addServePath("/", QDir::currentPath() + "/");
 }
 
@@ -56,8 +61,13 @@ void LocalHttpServer::addServePath(const QByteArray &prefix, FileCache &cache)
     });
 }
 
-void LocalHttpServer::start()
+void LocalHttpServer::start2()
 {
+    server_ = new QHttpServer(this);
+    server_->router()->addConverter(qMetaTypeId<QString>(), QLatin1String(".+"));
+    server_->route("/remote_address", [](const QHttpServerRequest &request) {
+        return request.remoteAddress().toString();
+    });
     port_ = server_->listen(QHostAddress::Any, port_);
     if (!port_) {
         qWarning() << "LocalServer: failed to listen on a port.";
@@ -66,7 +76,7 @@ void LocalHttpServer::start()
     }
 }
 
-void LocalHttpServer::stop()
+void LocalHttpServer::stop2()
 {
     delete server_;
 }

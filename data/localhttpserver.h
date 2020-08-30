@@ -29,9 +29,15 @@ public:
 
     void addServePath(QByteArray const & prefix, FileCache & cache);
 
+signals:
     void start();
 
     void stop();
+
+private:
+    void start2();
+
+    void stop2();
 
 private:
     QHttpServer * server_ = nullptr;
