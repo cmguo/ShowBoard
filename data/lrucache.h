@@ -4,7 +4,16 @@
 #include <QLinkedList>
 #include <QMap>
 
-template <typename K, typename V>
+#include <mutex>
+
+class EmptyMutex
+{
+public:
+    void lock();
+    void unlock();
+};
+
+template <typename K, typename V, typename L = EmptyMutex>
 class LRUCache
 {
 public:
@@ -18,6 +27,7 @@ public:
 
 public:
     void put(K const & k, V const & v) {
+        std::lock_guard<L> lock(lock_);
         if (lruMap_.contains(k)) {
             return;
         }
@@ -42,6 +52,7 @@ public:
     }
 
     V get(K const & k) {
+        std::lock_guard<L> lock(lock_);
         if (!lruMap_.contains(k)) {
             return V();
         }
@@ -55,6 +66,7 @@ public:
     }
 
     void remove(K const & k) {
+        std::lock_guard<L> lock(lock_);
         if (!lruMap_.contains(k)) {
             return;
         }
@@ -69,6 +81,7 @@ public:
     }
 
     bool contains(K const & k) {
+        std::lock_guard<L> lock(lock_);
         return lruMap_.contains(k);
     }
 
@@ -82,9 +95,13 @@ protected:
         return false;
     }
 
+protected:
+    L & lock() { return lock_; }
+
 private:
     quint64 size_;
     quint64 capacity_;
+    L lock_;
     QLinkedList<QPair<K, V>> lruList_;
     QMap<K, typename QLinkedList<QPair<K, V>>::iterator> lruMap_;
 };

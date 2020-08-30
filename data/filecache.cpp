@@ -31,6 +31,7 @@ QPromise<QString> FileCache::putStream(QString const & path, QByteArray const & 
     if (f.size >= 0) { // not replace old
         return QPromise<QString>::resolve(fullPath);
     }
+    std::lock_guard<std::mutex> l(FileCache::lock());
     auto iter = asyncPuts_.find(path);
     if (iter != asyncPuts_.end())
         return iter.value();
@@ -39,6 +40,7 @@ QPromise<QString> FileCache::putStream(QString const & path, QByteArray const & 
         base::put(path, FileResource {size, hash});
         return fullPath;
     }).finally([this, path] () {
+        std::lock_guard<std::mutex> l(FileCache::lock());
         asyncPuts_.remove(path);
     });
     asyncPuts_.insert(path, asyncPut);
@@ -52,6 +54,7 @@ QtPromise::QPromise<QString> FileCache::putStream(QObject *context, QString cons
     if (f.size >= 0) {
         return QPromise<QString>::resolve(fullPath);
     }
+    std::lock_guard<std::mutex> l(FileCache::lock());
     auto iter = asyncPuts_.find(path);
     if (iter != asyncPuts_.end())
         return iter.value();
@@ -61,6 +64,7 @@ QtPromise::QPromise<QString> FileCache::putStream(QObject *context, QString cons
             return fullPath;
         });
     }).finally([this, path] () {
+        std::lock_guard<std::mutex> l(FileCache::lock());
         asyncPuts_.remove(path);
     });
     asyncPuts_.insert(path, asyncPut);
@@ -125,6 +129,7 @@ QtPromise::QPromise<QString> FileCache::getFileAsync(QString const & path)
     if (f.size >= 0) { // not replace old
         return QPromise<QString>::resolve(dir_.filePath(path));
     }
+    std::lock_guard<std::mutex> l(FileCache::lock());
     auto iter = asyncPuts_.find(path);
     if (iter != asyncPuts_.end())
         return iter.value();

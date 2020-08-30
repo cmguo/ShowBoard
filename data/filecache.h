@@ -14,9 +14,9 @@ struct FileResource
     QByteArray hash; // md5
 };
 
-class SHOWBOARD_EXPORT FileCache : public LRUCache<QString, FileResource>
+class SHOWBOARD_EXPORT FileCache : public LRUCache<QString, FileResource, std::mutex>
 {
-    typedef LRUCache<QString, FileResource> base;
+    typedef LRUCache<QString, FileResource, std::mutex> base;
 
 public:
     FileCache(QDir const & dir, quint64 capacity, QByteArray algorithm = nullptr);
