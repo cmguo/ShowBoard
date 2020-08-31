@@ -22,6 +22,8 @@ public:
     FileCache(QDir const & dir, quint64 capacity, QByteArray algorithm = nullptr);
 
 public:
+    QtPromise::QPromise<QString> putUrl(QObject * context, QString const & path, QByteArray const & hash, QUrl const & url);
+
     QtPromise::QPromise<QString> putStream(QString const & path, QByteArray const & hash, QSharedPointer<QIODevice> stream);
 
     QtPromise::QPromise<QString> putStream(QObject *context, QString const & path, QByteArray const & hash, std::function<QtPromise::QPromise<QSharedPointer<QIODevice>> (QObject *)> openStream);

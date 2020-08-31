@@ -35,10 +35,7 @@ QString UrlFileCache::putData(const QUrl &url, QByteArray data)
 
 QtPromise::QPromise<QString> UrlFileCache::putUrl(QObject *context, const QUrl &url)
 {
-    return putStream(context, url, [url](QObject * context) {
-        DataProvider * provider = DataProvider::getProvider(url.scheme().toUtf8());
-        return provider->getStream(context, url, true);
-    });
+    return FileCache::putUrl(context, md5Path(url), nullptr, url);
 }
 
 QByteArray UrlFileCache::getData(const QUrl &url)

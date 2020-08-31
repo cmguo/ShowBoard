@@ -81,9 +81,8 @@ QPromise<QUrl> Resource::getLocalUrl(QObject *context, QUrl const & url)
         else
             return QPromise<QUrl>::reject(std::invalid_argument("打开失败，请重试"));
     }
-    return cache_->putStream(context, url, [url] (QObject *c) {
-        return getStream(c, url);
-    }).then([] (QString const & file) {
+    return cache_->putUrl(context, url)
+            .then([] (QString const & file) {
         return QUrl::fromLocalFile(file);
     });
 }

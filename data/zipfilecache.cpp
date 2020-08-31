@@ -13,17 +13,6 @@ ZipFileCache::ZipFileCache(const QDir &dir, quint64 capacity, QByteArray algorit
     });
 }
 
-QtPromise::QPromise<QString> ZipFileCache::putUrl(QObject * context, const QString &path, const QByteArray &hash, const QUrl &url)
-{
-    return putStream(context, path, hash, [url](QObject * context) {
-        DataProvider * provider = DataProvider::getProvider(url.scheme().toUtf8());
-        if (provider == nullptr) {
-            return QPromise<QSharedPointer<QIODevice>>::reject(std::invalid_argument("打开失败，未知数据协议"));
-        }
-        return provider->getStream(context, url, false);
-    });
-}
-
 QSharedPointer<QIODevice> ZipFileCache::getStream(QString const & path)
 {
     QSharedPointer<QIODevice> stream = FileCache::getStream(path);
