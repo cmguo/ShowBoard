@@ -139,6 +139,9 @@ QWidget * WebControl::createWidget(ResourceView * res)
     (void)res;
     WebView * view = new WebView(res);
     view->resize(1024, 576);
+#ifndef QT_DEBUG
+    view->setContextMenuPolicy(Qt::NoContextMenu);
+#endif
     return view;
 }
 
