@@ -35,13 +35,24 @@ public:
     void setResourcePackage(ResourcePackage * pack);
 
 private slots:
+    // Delete
     void deleteSelection();
 
+    // Escape
     void cancelSelection();
 
+    // L/T/R/D
     void moveSelection();
 
+    // Shift + L/T/R/D
     void scaleSelection();
+
+    // Shift + +/-, scale without direction
+    void scaleSelection2();
+
+    // Control + L/T/R/D
+    // PageUp, PageDown, Space, Backspace
+    void switchPage();
 
 private:
     virtual void resizeEvent(QResizeEvent *event) override;

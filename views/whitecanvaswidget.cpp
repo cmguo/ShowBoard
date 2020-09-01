@@ -43,28 +43,47 @@ WhiteCanvasWidget::WhiteCanvasWidget(QWidget *parent)
     //setDragMode(QGraphicsView::ScrollHandDrag);
 
 #ifdef QT_DEBUG
+    // Delete
     QObject::connect(new QShortcut(QKeySequence::Delete, this), &QShortcut::activated,
                      this, &WhiteCanvasWidget::deleteSelection);
+    // Escape
     QObject::connect(new QShortcut(QKeySequence::Cancel, this), &QShortcut::activated,
                      this, &WhiteCanvasWidget::cancelSelection);
+    // Page Up, Page Down
     QObject::connect(new QShortcut(QKeySequence::MoveToNextPage, this), &QShortcut::activated,
-                     this, [this]() { package()->gotoNext(); });
+                     this, &WhiteCanvasWidget::switchPage);
     QObject::connect(new QShortcut(QKeySequence::MoveToPreviousPage, this), &QShortcut::activated,
-                     this, [this]() { package()->gotoPrevious(); });
+                     this, &WhiteCanvasWidget::switchPage);
+    // Control + C, Control + V
     QObject::connect(new QShortcut(QKeySequence::Copy, this), &QShortcut::activated,
                      this, [this]() { if (canvas_->selected()) canvas_->copyResource(canvas_->selected()); });
+    // Tab, Shift + Tab
     QObject::connect(new QShortcut(QKeySequence(Qt::Key_Tab), this), &QShortcut::activated,
                      this, [this]() { canvas_->selectNext(); });
     QObject::connect(new QShortcut(QKeySequence(Qt::Key_Tab | Qt::ShiftModifier), this), &QShortcut::activated,
                      this, [this]() { canvas_->selectPrev(); });
+    // Direction Arrows
     for (int k : {Qt::Key_Left, Qt::Key_Up, Qt::Key_Right, Qt::Key_Down}) {
+        // Direction Arrows
         QObject::connect(new QShortcut(QKeySequence(k), this), &QShortcut::activated,
                          this, &WhiteCanvasWidget::moveSelection);
+        // Shift + Direction Arrows
         QObject::connect(new QShortcut(QKeySequence(k | Qt::ShiftModifier), this), &QShortcut::activated,
                          this, &WhiteCanvasWidget::scaleSelection);
+        // Control + Direction Arrows
+        QObject::connect(new QShortcut(QKeySequence(k | Qt::ControlModifier), this), &QShortcut::activated,
+                         this, &WhiteCanvasWidget::switchPage);
     }
-    QObject::connect(new QShortcut(QKeySequence(Qt::Key_Tab | Qt::ShiftModifier), this), &QShortcut::activated,
-                     this, [this]() { canvas_->selectPrev(); });
+    // Control + +/-
+    QObject::connect(new QShortcut(QKeySequence(Qt::Key_Plus | Qt::ControlModifier), this), &QShortcut::activated,
+                     this, &WhiteCanvasWidget::scaleSelection2);
+    QObject::connect(new QShortcut(QKeySequence(Qt::Key_Minus | Qt::ControlModifier), this), &QShortcut::activated,
+                     this, &WhiteCanvasWidget::scaleSelection2);
+    // Space, Backspace
+    QObject::connect(new QShortcut(QKeySequence(Qt::Key_Space), this), &QShortcut::activated,
+                     this, &WhiteCanvasWidget::switchPage);
+    QObject::connect(new QShortcut(QKeySequence(Qt::Key_Backspace), this), &QShortcut::activated,
+                     this, &WhiteCanvasWidget::switchPage);
 #endif
     mainInstance_ = this;
 }
@@ -181,7 +200,8 @@ void WhiteCanvasWidget::moveSelection()
     Control * c = canvas_->selected();
     qreal delta = 10;
     if (!c) { c = Control::fromItem(canvas_); delta = -20; }
-    if (!c) return;
+    if (!c || !c->flags().testFlag(Control::CanMove))
+        return;
     QPointF d;
     QShortcut* s = qobject_cast<QShortcut*>(sender());
     if (s->key() == QKeySequence(Qt::Key_Left)) {
@@ -200,7 +220,8 @@ void WhiteCanvasWidget::scaleSelection()
 {
     Control * c = canvas_->selected();
     qreal delta = 10;
-    if (!c) return;
+    if (!c || !c->flags().testFlag(Control::CanScale))
+        return;
     QPointF d;
     QShortcut* s = qobject_cast<QShortcut*>(sender());
     if (s->key().matches(QKeySequence(Qt::Key_Left | Qt::ShiftModifier))) {
@@ -219,4 +240,39 @@ void WhiteCanvasWidget::scaleSelection()
         t.setWidth(1);
     }
     c->scale(t, d);
+}
+
+void WhiteCanvasWidget::scaleSelection2()
+{
+    Control * c = canvas_->selected();
+    qreal delta = 1;
+    if (!c) { c = Control::fromItem(canvas_); }
+    if (!c || !c->flags().testFlag(Control::CanScale))
+        return;
+    QShortcut* s = qobject_cast<QShortcut*>(sender());
+    if (s->key().matches(QKeySequence(Qt::Key_Minus | Qt::ControlModifier))) {
+        delta = 1.0 / 1.2;
+    } else if (s->key().matches(QKeySequence(Qt::Key_Plus | Qt::ControlModifier))) {
+        delta = 1.2;
+    }
+    c->scale(c->item()->boundingRect().center(), delta);
+}
+
+void WhiteCanvasWidget::switchPage()
+{
+    QShortcut * s = qobject_cast<QShortcut*>(sender());
+    bool next = true;
+    if (s->key().matches(QKeySequence(Qt::Key_PageUp))
+            || s->key().matches(QKeySequence(Qt::Key_Backspace))
+            || s->key().matches(QKeySequence(Qt::Key_Up | Qt::ControlModifier))
+            || s->key().matches(QKeySequence(Qt::Key_Left | Qt::ControlModifier))) {
+        next = false;
+    }
+    ResourcePage * page = canvas_->page();
+    if (page->hasSubPage()) {
+    }
+    if (next)
+        package()->gotoNext();
+    else
+        package()->gotoPrevious();
 }
