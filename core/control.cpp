@@ -589,6 +589,7 @@ void Control::initScale()
     if (res_->flags().testFlag(ResourceView::LargeCanvas)) {
         Control * canvasControl = fromItem(whiteCanvas());
         canvasControl->flags_.setFlag(CanScale, flags_.testFlag(CanScale));
+        canvasControl->flags_.setFlag(Touchable, flags_.testFlag(Touchable));
         flags_.setFlag(DefaultFlags, 0);
         if (flags_ & RestoreSession) {
             return;

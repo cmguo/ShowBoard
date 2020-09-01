@@ -11,14 +11,19 @@ class WhiteCanvasControl : public Control
     Q_OBJECT
 
     Q_PROPERTY(QString toolBarStyles WRITE setToolBarStyles)
+    Q_PROPERTY(bool noScaleButton WRITE setNoScaleButton)
 
 public:
+    static constexpr Flag NoScaleButton = static_cast<Flag>(1 << 16);
+
     WhiteCanvasControl(ResourceView * view, QGraphicsItem * canvas);
 
     virtual ~WhiteCanvasControl() override;
 
 public:
     void setToolBarStyles(QString const & stylesheet);
+
+    void setNoScaleButton(bool b);
 
 public slots:
     void setPosBarVisible(bool visible);

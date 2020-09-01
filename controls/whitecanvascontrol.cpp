@@ -107,6 +107,11 @@ void WhiteCanvasControl::setToolBarStyles(const QString &stylesheet)
             ->setStyleSheet(QssHelper(stylesheet));
 }
 
+void WhiteCanvasControl::setNoScaleButton(bool b)
+{
+    flags_.setFlag(NoScaleButton, b);
+}
+
 void WhiteCanvasControl::setPosBarVisible(bool visible)
 {
     if (posBar_)
@@ -190,10 +195,10 @@ void WhiteCanvasControl::updateToolButton(ToolButton *button)
 {
     if (button->name() == "scaleUp()") {
         button->setEnabled(resource()->transform().scale().m11() < 10);
-        button->setVisible(flags_.testFlag(CanScale));
+        button->setVisible(flags_.testFlag(CanScale) && !flags_.testFlag(NoScaleButton));
     } else if (button->name() == "scaleDown()") {
         button->setEnabled(resource()->transform().scale().m11() > 1.1);
-        button->setVisible(flags_.testFlag(CanScale));
+        button->setVisible(flags_.testFlag(CanScale) && !flags_.testFlag(NoScaleButton));
     } else if (button->name() == "close()") {
         button->setVisible(res_->flags().testFlag(ResourceView::CanDelete));
     } else {
