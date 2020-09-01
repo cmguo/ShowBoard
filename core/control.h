@@ -53,9 +53,8 @@ public:
         LayoutScale = 1 << 10,
         ExpandScale = 1 << 11,
         Touchable = 1 << 12,
-        ImpliedEditable = 1 << 13, // for geometry
-        FixedOnCanvas = 1 << 14,
-        ShowSelectMask = 1 << 15,
+        FixedOnCanvas = 1 << 13,
+        ShowSelectMask = 1 << 14,
         // States
         Loading = 1 << 24,
         LoadFinished = 1 << 25,

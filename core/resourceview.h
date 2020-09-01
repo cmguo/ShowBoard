@@ -58,8 +58,8 @@ public:
         ListOfPages = Independent | (1 << 13),
         PersistSession = 1 << 14,
         // States
-        SavedSession = 1 << 16,
-        DrawFinised = 1 << 17,
+        SavedSession = 1 << 24,
+        DrawFinised = 1 << 25,
     };
 
     Q_DECLARE_FLAGS(Flags, Flag)
