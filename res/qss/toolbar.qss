@@ -14,6 +14,11 @@ QPushButton {
     qproperty-iconSize: 32px 32px; /* [size] */
 }
 
+QPushButton[text=""] {
+    padding-left:2px; /* [size] */
+    padding-right:2px; /* [size] */
+}
+
 QPushButton:checked {
     color:#1AA9EF;
 }

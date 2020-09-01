@@ -15,6 +15,11 @@ QPushButton {
     border-radius:8px; /* [size] */
 }
 
+QPushButton[text=""] {
+    padding-left:2px; /* [size] */
+    padding-right:2px; /* [size] */
+}
+
 QPushButton:checked {
     background-color:#4A515A;
 }
