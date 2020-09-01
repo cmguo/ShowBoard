@@ -151,6 +151,7 @@ void WhiteCanvasControl::resize(const QSizeF &size)
             QPointF d{ds.width(), ds.height()};
             move(d);
         }
+        setMaxSize(size.toSize() * 4);
     }
 }
 

@@ -55,10 +55,17 @@ private:
         Implied,
     };
 
+    enum EventType
+    {
+        Mouse,
+        Touch,
+        Wheel
+    };
+
 private:
     void select2(Control * control);
 
-    void selectAt(QPointF const & pos, QPointF const & scenePos, bool fromTouch);
+    void selectAt(QPointF const & pos, QPointF const & scenePos, EventType eventType);
 
     void selectMove(QPointF const & pos, QPointF const & scenePos);
 
@@ -75,11 +82,13 @@ private:
 
     virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
 
-    virtual void touchBegin(QTouchEvent* event);
+    void touchBegin(QTouchEvent* event);
 
-    virtual void touchUpdate(QTouchEvent* event);
+    void touchUpdate(QTouchEvent* event);
 
-    virtual void touchEnd(QTouchEvent* event);
+    void touchEnd(QTouchEvent* event);
+
+    virtual void wheelEvent(QGraphicsSceneWheelEvent *event) override;
 
     virtual bool sceneEvent(QEvent *event) override;
 
