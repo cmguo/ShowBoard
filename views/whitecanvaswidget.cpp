@@ -268,8 +268,11 @@ void WhiteCanvasWidget::switchPage()
             || s->key().matches(QKeySequence(Qt::Key_Left | Qt::ControlModifier))) {
         next = false;
     }
-    ResourcePage * page = canvas_->page();
-    if (page->hasSubPage()) {
+    ResourcePage * page = package()->currentPage();
+    if (page->isIndependentPage()) {
+        Control * c = canvas_->findControl(page->mainResource());
+        if ((next ? c->exec("next()") : c->exec("prev()")))
+            return;
     }
     if (next)
         package()->gotoNext();

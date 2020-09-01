@@ -56,8 +56,10 @@ bool ToolButtonProvider::exec(QByteArray const & cmd, QGenericArgument arg0,
             return setOption(cmd, list);
     }
     QMetaMethod method = metaObject()->method(index);
-    method.parameterType(index);
-    return method.invoke(this, arg0, arg1, arg2);
+    QVariant result(method.returnType(), nullptr);
+    QGenericReturnArgument ret(QMetaType::typeName(method.returnType()), result.data());
+    return method.invoke(this, ret, arg0, arg1, arg2)
+            && (!result.convert(QVariant::Bool) || result.toBool());
 }
 
 bool ToolButtonProvider::exec(QByteArray const & cmd, QStringList const & args)
@@ -90,7 +92,10 @@ bool ToolButtonProvider::exec(QByteArray const & cmd, QStringList const & args)
             return false;
         argv[i] = QGenericArgument(QMetaType::typeName(t), varg[i].data());
     }
-    return method.invoke(this, argv[0], argv[1], argv[2], argv[3]);
+    QVariant result(method.returnType(), nullptr);
+    QGenericReturnArgument ret(QMetaType::typeName(method.returnType()), result.data());
+    return method.invoke(this, argv[0], argv[1], argv[2], argv[3])
+            && (!result.convert(QVariant::Bool) || result.toBool());
 }
 
 void ToolButtonProvider::setToolsString(const QString &tools)
