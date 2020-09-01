@@ -698,6 +698,35 @@ bool Control::scale(const QRectF &direction, QPointF &delta)
     return true;
 }
 
+bool Control::scale(const QPointF &center, qreal &delta)
+{
+    QRectF rect = boundRect();
+    QRectF padding;
+    QPointF center2 = center;
+    if (realItem_ != item_) {
+        padding = itemFrame()->padding();
+        center2 = item_->mapFromItem(realItem_, center2);
+    }
+    center2 -= item_->boundingRect().center();
+    adjusting(true);
+    bool result = res_->transform().scale(rect, center2,
+                                          delta, padding, flags_ & LayoutScale, minMaxSize_);
+    if (!result)
+        return false;
+    QRectF origin = rect;
+    if (item_ != realItem_) {
+        static_cast<ItemFrame *>(realItem_)->updateRectToChild(origin);
+    }
+    if (flags_ & LayoutScale) {
+        resize(origin.size());
+        sizeChanged();
+    }
+    adjusting(false);
+    if (realItem_->parentItem()) // maybe scaling canvas
+        whiteCanvas()->selector()->updateSelect(this);
+    return true;
+}
+
 void Control::gesture(const QPointF &from1, const QPointF &from2, QPointF &to1, QPointF &to2)
 {
     qreal layoutScale = 1.0;

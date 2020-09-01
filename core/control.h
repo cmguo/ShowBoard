@@ -174,6 +174,11 @@ public:
      */
     bool scale(QRectF const & direction, QPointF & delta);
 
+    /*
+     * scale this item, is saved at transform
+     */
+    bool scale(QPointF const & center, qreal & delta);
+
     void gesture(QPointF const & from1, QPointF const & from2, QPointF & to1, QPointF & to2);
 
     /*

@@ -149,6 +149,50 @@ void ResourceTransform::scale(QSizeF const & delta)
 static constexpr qreal SCALE_MIN_ADJUST = 1.000001;
 static constexpr qreal SCALE_MAX_ADJUST = 0.999999;
 
+bool ResourceTransform::scale(QRectF & rect, QPointF const & center, qreal & delta,
+                              QRectF const & padding, bool layoutScale, QSizeF limitSize[2])
+{
+    QRectF origin = rect.adjusted(-padding.x(), -padding.y(), -padding.right(), -padding.bottom());
+    QRectF result{origin.topLeft() * delta, origin.bottomRight() * delta};
+    QPointF c1 = scaleRotate_.map(center);
+    if (limitSize) {
+        if (limitSize[0].width() > 0 && origin.width() >= limitSize[0].width() && result.width() < limitSize[0].width()) {
+            qreal w = limitSize[0].width() * SCALE_MIN_ADJUST;
+            result.setHeight(result.height() * w / result.width());
+            result.setWidth(w);
+            delta = w / origin.width();
+        } else if (limitSize[1].width() > 0 && origin.width() <= limitSize[1].width() && result.width() > limitSize[1].width()) {
+            qreal w = limitSize[1].width() * SCALE_MAX_ADJUST;
+            result.setHeight(result.height() * w / result.width());
+            result.setWidth(w);
+            delta = w / origin.width();
+        }
+        if (limitSize[0].height() > 0 && origin.height() >= limitSize[0].height() && result.height() < limitSize[0].height()) {
+            qreal h = limitSize[0].height() * SCALE_MIN_ADJUST;
+            result.setWidth(result.width() * h / result.height());
+            result.setHeight(h);
+            delta = h / origin.height();
+        } else if (limitSize[1].height() > 0 && origin.height() <= limitSize[1].height() && result.height() > limitSize[1].height()) {
+            qreal h = limitSize[1].height() * SCALE_MAX_ADJUST;
+            result.setWidth(result.width() * h / result.height());
+            result.setHeight(h);
+            delta = h / origin.height();
+        }
+    }
+    if (layoutScale) {
+        scaleRotate_ = rotate_;
+        translate(c1 - rotate_.map(center * delta), 4);
+    } else {
+        scale_.scale(delta, delta);
+        scaleRotate_ = scale_ * rotate_;
+        translate(c1 - scaleRotate_.map(center), 4);
+    }
+    result.moveCenter({0, 0});
+    result.adjust(padding.x(), padding.y(), padding.right(), padding.bottom());
+    rect = result;
+    return true;
+}
+
 bool ResourceTransform::scale(QRectF & rect, QRectF const & direction, QPointF & delta,
                               QRectF const & padding, bool KeepAspectRatio, bool layoutScale, QSizeF limitSize[2])
 {

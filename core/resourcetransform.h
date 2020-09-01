@@ -108,6 +108,12 @@ public:
      */
     void scale(QSizeF const & delta);
 
+    /*
+     * add <delta> to scale, not moving center
+     */
+    bool scale(QRectF & rect, QPointF const & center, qreal & delta,
+               QRectF const & padding, bool layoutScale, QSizeF limitSize[2]);
+
     /* Scale by border handles
      *   scale with one direction of 8 directions by delta
      *   current rotation should take account
