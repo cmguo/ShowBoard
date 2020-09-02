@@ -61,12 +61,19 @@ qreal ResourceTransform::angle() const
 
 void ResourceTransform::translateTo(const QPointF &offset)
 {
-    translate(offset - this->offset());
+    translate(offset - this->offset(), 0);
 }
 
-void ResourceTransform::translate(const QPointF &delta)
+void ResourceTransform::translate(QPointF const & delta)
 {
     translate(delta, 0);
+}
+
+void ResourceTransform::translate(QPointF & delta)
+{
+    QPointF o = offset();
+    translate(delta, 0);
+    delta = offset() - o;
 }
 
 void ResourceTransform::rotate(QPointF const & from, QPointF & to)

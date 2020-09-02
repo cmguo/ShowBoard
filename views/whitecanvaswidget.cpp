@@ -200,20 +200,23 @@ void WhiteCanvasWidget::moveSelection()
     Control * c = canvas_->selected();
     qreal delta = 10;
     if (!c) { c = Control::fromItem(canvas_); delta = -20; }
-    if (!c || !c->flags().testFlag(Control::CanMove))
-        return;
     QPointF d;
-    QShortcut* s = qobject_cast<QShortcut*>(sender());
-    if (s->key() == QKeySequence(Qt::Key_Left)) {
-        d.setX(-delta);
-    } else if (s->key() == QKeySequence(Qt::Key_Right)) {
-        d.setX(delta);
-    } else if (s->key() == QKeySequence(Qt::Key_Up)) {
-        d.setY(-delta);
-    } else if (s->key() == QKeySequence(Qt::Key_Down)) {
-        d.setY(delta);
+    if (c && c->flags().testFlag(Control::CanMove)) {
+        QShortcut* s = qobject_cast<QShortcut*>(sender());
+        if (s->key().matches(Qt::Key_Left)) {
+            d.setX(-delta);
+        } else if (s->key().matches(Qt::Key_Right)) {
+            d.setX(delta);
+        } else if (s->key().matches(Qt::Key_Up)) {
+            d.setY(-delta);
+        } else if (s->key().matches(Qt::Key_Down)) {
+            d.setY(delta);
+        }
+        c->move(d);
     }
-    c->move(d);
+    if (d.isNull()) {
+        switchPage();
+    }
 }
 
 void WhiteCanvasWidget::scaleSelection()
@@ -264,15 +267,19 @@ void WhiteCanvasWidget::switchPage()
     bool next = true;
     if (s->key().matches(QKeySequence(Qt::Key_PageUp))
             || s->key().matches(QKeySequence(Qt::Key_Backspace))
+            || s->key().matches(QKeySequence(Qt::Key_Up))
+            || s->key().matches(QKeySequence(Qt::Key_Left))
             || s->key().matches(QKeySequence(Qt::Key_Up | Qt::ControlModifier))
             || s->key().matches(QKeySequence(Qt::Key_Left | Qt::ControlModifier))) {
         next = false;
     }
-    ResourcePage * page = package()->currentPage();
-    if (page->isIndependentPage()) {
-        Control * c = canvas_->findControl(page->mainResource());
-        if ((next ? c->exec("next()") : c->exec("prev()")))
-            return;
+    if (!(s->key()[0] & Qt::ControlModifier)) {
+        ResourcePage * page = package()->currentPage();
+        if (page->isIndependentPage()) {
+            Control * c = canvas_->findControl(page->mainResource());
+            if ((next ? c->exec("next()") : c->exec("prev()")))
+                return;
+        }
     }
     if (next)
         package()->gotoNext();

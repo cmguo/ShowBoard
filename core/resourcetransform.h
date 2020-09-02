@@ -82,6 +82,8 @@ public:
 
     void translate(QPointF const & delta);
 
+    void translate(QPointF & delta);
+
     /* rotate by handle
      *   center at translate of [0, 0]
      */
