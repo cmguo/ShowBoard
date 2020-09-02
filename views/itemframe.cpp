@@ -57,7 +57,7 @@ void ItemFrame::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
         }
     }
     QRectF r(boundingRect());
-    painter->setPen(QColor("#FFE2E3E4"));
+    painter->setPen(QColor("#FFCDCDCD"));
     painter->drawRoundedRect(r.x(), r.y(), r.width(), r.height(), radius, radius);
 }
 
