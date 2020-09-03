@@ -19,6 +19,8 @@ protected:
 
     virtual void onText(QString text) override;
 
+    virtual void copy(QMimeData & data) override;
+
 private:
     virtual bool eventFilter(QObject *watched, QEvent *event) override;
 

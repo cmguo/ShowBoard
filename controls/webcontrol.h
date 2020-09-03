@@ -1,4 +1,4 @@
-﻿#ifndef WEBCONTROL_H
+#ifndef WEBCONTROL_H
 #define WEBCONTROL_H
 
 #include "widgetcontrol.h"
@@ -49,8 +49,6 @@ protected:
     virtual void attached() override;
 
     virtual void detached() override;
-
-    virtual QUrl url() const;
 
 public slots:
     virtual void loadFinished(bool ok);

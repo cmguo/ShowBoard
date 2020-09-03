@@ -45,6 +45,8 @@ ResourceManager::ResourceManager(QObject *parent)
                                       static_cast<int>((*iter).second.second));
         }
     }
+    // QMimeData types
+    mapResourceType("x-qt-image", "image");
 }
 
 void ResourceManager::onComposition()
@@ -123,7 +125,7 @@ ResourceView * ResourceManager::createResource(QUrl const & uri, QByteArray cons
     if (typeHint.isEmpty()) {
         type = findType(uri, originType, lazy, flags);
     } else {
-        type = originType = typeHint;
+        type = originType = mapTypes_.value(typeHint, typeHint);
         auto iter = resources_.find(type);
         if (iter != resources_.end())
             lazy = iter->second;

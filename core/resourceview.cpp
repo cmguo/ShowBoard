@@ -2,10 +2,13 @@
 #include "resource.h"
 #include "resourcetransform.h"
 #include "resourcepage.h"
+#include "resourcemanager.h"
 
 #include <QApplication>
 #include <QGraphicsItem>
 #include <QMetaMethod>
+#include <QMimeData>
+#include <QVariant>
 
 char const * const ResourceView::EXPORT_ATTR_FACTORY = "rfactory";
 
@@ -210,6 +213,13 @@ ResourceView::ResourceView(ResourceView const & o)
     //transform_->translate({60, 60});
 }
 
+Q_DECLARE_METATYPE(QMimeData const *)
+
+QMimeData const * ResourceView::mimeData()
+{
+    return property("mimedata").value<QMimeData const *>();
+}
+
 ResourceView * ResourceView::clone() const
 {
 
@@ -217,6 +227,54 @@ ResourceView * ResourceView::clone() const
     if (clone)
         return qobject_cast<ResourceView*>(clone);
     return new ResourceView(*this);
+}
+
+static QList<QWeakPointer<LifeObject>> clipboardResources;
+
+void ResourceView::copy(QMimeData &data)
+{
+    data.setUrls({res_->url()});
+    int n = clipboardResources.indexOf(QWeakPointer<LifeObject>());
+    if (n < 0) {
+        n = clipboardResources.size();
+        clipboardResources.append(life());
+    } else {
+        clipboardResources[n] = life();
+    }
+    data.setText(res_->url().toString());
+    data.setData("Resource", QByteArray(reinterpret_cast<char*>(&n), sizeof(n)));
+    connect(&data, &QObject::destroyed, [n]() {
+        clipboardResources[n].clear();
+    });
+}
+
+ResourceView *ResourceView::paste(QMimeData const &data)
+{
+    QByteArray resId = data.data("Resource");
+    if (resId.length() == sizeof(int)) {
+        int n = 0;
+        memcpy(&n, resId.data(), sizeof(n));
+        if (n >= 0 && n < clipboardResources.size()) {
+            QSharedPointer<LifeObject> res = clipboardResources[n].toStrongRef();
+            return qobject_cast<ResourceView*>(res.get())->clone();
+        }
+    }
+    // we like urls
+    if (data.hasUrls()) {
+        return ResourceManager::instance()->createResource(data.urls().first());
+    }
+    for (auto f : data.formats()) {
+        qDebug() << f;
+        int n = f.indexOf('/');
+        QUrl url = n > 0 ? QUrl(f.left(n) + ":mimedata." + f.mid(n + 1))
+                         : QUrl(f.left(n) + ":");
+        if (ResourceManager::instance()->isExplitSupported(url)) {
+            ResourceView * res = ResourceManager::instance()->createResource(url);
+            res->setProperty("mimedata", QVariant::fromValue(&data));
+            return res;
+        }
+    }
+    return nullptr;
 }
 
 QUrl const & ResourceView::url() const

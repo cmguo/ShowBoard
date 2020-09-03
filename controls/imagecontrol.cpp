@@ -7,6 +7,7 @@
 
 #include <QPixmap>
 #include <QGraphicsPixmapItem>
+#include <QMimeData>
 
 ImageControl::ImageControl(ResourceView * res, Flags flags, Flags clearFlags)
     : Control(res, flags | Flags{KeepAspectRatio, FullSelect, FixedOnCanvas}, clearFlags)
@@ -38,6 +39,11 @@ void ImageControl::attached()
                 adjustMipmap();
         });
     }
+    if (auto * data = res_->mimeData()) {
+        data_.reset(new ImageData(data->imageData().value<QPixmap>(), mipmap_));
+        adjustMipmap2(whiteCanvas()->rect().size());
+        return;
+    }
     ImageCache::instance().getOrCreate(res_, res_->url(), mipmap_).then([this, l = life()] (QSharedPointer<ImageData> data) {
         if (l.isNull()) return;
         data_ = data;
@@ -46,6 +52,12 @@ void ImageControl::attached()
         if (l.isNull()) return;
         loadFinished(false, e.what());
     });
+}
+
+void ImageControl::copy(QMimeData &data)
+{
+    Control::copy(data);
+    data.setImageData(data_->pixmap().toImage());
 }
 
 void ImageControl::setPixmap(const QPixmap &pixmap)

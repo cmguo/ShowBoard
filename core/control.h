@@ -7,14 +7,16 @@
 #include <QSizeF>
 #include <QRectF>
 
-class QGraphicsItem;
 class ResourceView;
-class QGraphicsTransform;
 class StateItem;
 class ToolButton;
 class ItemFrame;
-class QIODevice;
 class WhiteCanvas;
+
+class QGraphicsTransform;
+class QIODevice;
+class QGraphicsItem;
+class QMimeData;
 
 class SHOWBOARD_EXPORT Control : public ToolButtonProvider
 {
@@ -221,6 +223,8 @@ public:
     virtual void beforeClone();
 
     virtual void afterClone(Control * control);
+
+    virtual void copy(QMimeData & data);
 
 protected:
     /*

@@ -258,6 +258,12 @@ void Control::afterClone(Control *)
 {
 }
 
+void Control::copy(QMimeData &data)
+{
+    beforeClone();
+    res_->copy(data);
+}
+
 void Control::attaching()
 {
 }

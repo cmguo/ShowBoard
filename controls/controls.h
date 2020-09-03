@@ -13,14 +13,14 @@
 
 #include <qexport.h>
 
-REGISTER_CONTROL(ImageControl, "bmp,gif,jpg,jpeg,png")
-REGISTER_CONTROL(VideoControl, "mp4,wmv,ts,flv,m3u8,asf,avi,"
-                               "mp3,wma,wav,"
+REGISTER_CONTROL(ImageControl, "image,bmp,gif,jpg,jpeg,png")
+REGISTER_CONTROL(VideoControl, "video,mp4,wmv,ts,flv,m3u8,asf,avi,"
+                               "audio,mp3,wma,wav,"
                                "rtsp,rtmp,rtp")
 REGISTER_CONTROL(StrokeControl, "glstroke")
 REGISTER_CONTROL(WebControl, "htm,html,http,https,chrome,swf")
 REGISTER_CONTROL(QmlControl, "qml")
-REGISTER_CONTROL(TextControl, "txt,js,cpp,h,qss,css")
+REGISTER_CONTROL(TextControl, "text,txt,js,cpp,h,qss,css")
 
 #ifdef WIN32
 REGISTER_CONTROL(PptxControl, "ppt,pptx")

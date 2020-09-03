@@ -20,6 +20,7 @@
 #include <QWebEngineFullScreenRequest>
 #include <QWebChannel>
 #include <QWebEngineProfile>
+#include <QMimeData>
 
 #include <core/oomhandler.h>
 
@@ -212,7 +213,10 @@ void WebControl::attached()
         });
     }
 #endif
-    view->load(url());
+    if (auto data = res_->mimeData())
+        view->setHtml(data->html());
+    else
+        view->load(res_->url());
 }
 
 void WebControl::detached()
@@ -226,11 +230,6 @@ void WebControl::detached()
     }
     WidgetControl::detached();
     --totalFront;
-}
-
-QUrl WebControl::url() const
-{
-    return res_->resource()->url();
 }
 
 void WebControl::loadFinished(bool ok)

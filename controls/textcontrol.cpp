@@ -5,6 +5,7 @@
 #include <QTextEdit>
 #include <QMouseEvent>
 #include <QScrollBar>
+#include <QMimeData>
 
 TextControl::TextControl(ResourceView * res)
     : WidgetControl(res, {WithSelectBar, ExpandScale, LayoutScale, FixedOnCanvas})
@@ -29,6 +30,11 @@ QWidget *TextControl::createWidget(ResourceView *res)
 
 void TextControl::attached()
 {
+    if (auto data = res_->mimeData()) {
+        onText(data->text());
+        loadFinished(true);
+        return;
+    }
     loadText();
 }
 
@@ -36,6 +42,13 @@ void TextControl::onText(QString text)
 {
     QTextEdit* textEdit = qobject_cast<QTextEdit*>(widget_);
     textEdit->setText(text);
+}
+
+void TextControl::copy(QMimeData &data)
+{
+    Control::copy(data);
+    QTextEdit* textEdit = qobject_cast<QTextEdit*>(widget_);
+    data.setText(textEdit->toPlainText());
 }
 
 bool TextControl::eventFilter(QObject *watched, QEvent *event)

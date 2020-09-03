@@ -4,11 +4,11 @@
 #include "core/resourceview.h"
 #include "strokes.h"
 
-REGISTER_COMMON_RESOURCE_TYPES(image, "bmp,gif,jpg,jpeg,png", {}, {}) // copyable
-REGISTER_COMMON_RESOURCE_TYPES(text, "txt,js,cpp,h,qss,css", {}, ResourceView::CanCopy)
+REGISTER_COMMON_RESOURCE_TYPES(image, "image,bmp,gif,jpg,jpeg,png", {}, {}) // copyable
+REGISTER_COMMON_RESOURCE_TYPES(text, "text,txt,js,cpp,h,qss,css", {}, ResourceView::CanCopy)
 REGISTER_COMMON_RESOURCE_TYPES(doc, "ppt,pptx,html,htm,swf", {}, ResourceView::CanCopy)
-REGISTER_COMMON_RESOURCE_TYPES(video, "mp4,wmv,ts,flv,m3u8,asf,avi,"
-                                      "mp3,wma,wav,"
+REGISTER_COMMON_RESOURCE_TYPES(video, "video,mp4,wmv,ts,flv,m3u8,asf,avi,"
+                                      "audio,mp3,wma,wav,"
                                       "rtsp,rtmp,rtp", {}, {ResourceView::CanCopy})
 REGISTER_RESOURCE_VIEW(Strokes, "stroke,glstroke")
 

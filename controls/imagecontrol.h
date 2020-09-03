@@ -20,6 +20,8 @@ protected:
 
     virtual void attached() override;
 
+    virtual void copy(QMimeData &data) override;
+
 protected:
     void setPixmap(QPixmap const & pixmap);
 

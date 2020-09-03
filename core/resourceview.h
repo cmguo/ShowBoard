@@ -11,7 +11,9 @@
 class Resource;
 class ResourceTransform;
 class ResourcePage;
+
 class QGraphicsItem;
+class QMimeData;
 
 class SHOWBOARD_EXPORT ResourceView : public ToolButtonProvider
 {
@@ -104,6 +106,12 @@ public:
 
 public:
     virtual ResourceView * clone() const;
+
+    virtual void copy(QMimeData & data);
+
+    static ResourceView * paste(QMimeData const & data);
+
+    QMimeData const * mimeData();
 
 protected:
     ResourceView(ResourceView const & res);
