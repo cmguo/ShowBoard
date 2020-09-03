@@ -57,7 +57,7 @@ void PptxControl::open()
         open(localUrl.toUrl());
         return;
     }
-    QWeakPointer<int> life(this->life());
+    auto life(this->life());
     res_->resource()->getLocalUrl().then([this, life](QUrl const & url) {
         if (life.isNull())
             return;

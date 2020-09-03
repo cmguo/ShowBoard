@@ -15,12 +15,12 @@ public:
 protected:
     LifeObject(LifeObject const & o);
 
-    QWeakPointer<int> life();
+    QWeakPointer<LifeObject> life();
 
-    QWeakPointer<int> uniqeLife();
+    QWeakPointer<LifeObject> uniqeLife();
 
 private:
-    QSharedPointer<int> lifeToken_;
+    QSharedPointer<LifeObject> lifeToken_;
 };
 
 #endif // LIFEOBJECT_H

@@ -15,17 +15,17 @@ LifeObject::LifeObject(const LifeObject &o)
         setProperty(k, o.property(k));
 }
 
-static void nopdel(int *) {}
+static void nopdel(LifeObject *) {}
 
-QWeakPointer<int> LifeObject::life()
+QWeakPointer<LifeObject> LifeObject::life()
 {
     if (lifeToken_.isNull())
-        lifeToken_.reset(reinterpret_cast<int*>(1), nopdel);
+        lifeToken_.reset(this, nopdel);
     return lifeToken_;
 }
 
-QWeakPointer<int> LifeObject::uniqeLife()
+QWeakPointer<LifeObject> LifeObject::uniqeLife()
 {
-    lifeToken_.reset(reinterpret_cast<int*>(1), nopdel);
+    lifeToken_.reset(this, nopdel);
     return lifeToken_;
 }

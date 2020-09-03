@@ -828,7 +828,7 @@ ItemFrame * Control::itemFrame()
 
 void Control::loadStream()
 {
-    QWeakPointer<int> l = life();
+    auto l = life();
     res_->resource()->getStream().then([this, l] (QSharedPointer<QIODevice> stream) {
         if (l.isNull()) return;
         onStream(stream.get());
@@ -840,7 +840,7 @@ void Control::loadStream()
 
 void Control::loadData()
 {
-    QWeakPointer<int> l = life();
+    auto l = life();
     res_->resource()->getData().then([this, l] (QByteArray data) {
         if (l.isNull()) return;
         onData(data);
@@ -852,7 +852,7 @@ void Control::loadData()
 
 void Control::loadText()
 {
-    QWeakPointer<int> l = life();
+    auto l = life();
     res_->resource()->getText().then([this, l] (QString text) {
         if (l.isNull()) return;
         onText(text);

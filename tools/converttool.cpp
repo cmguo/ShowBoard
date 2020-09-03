@@ -47,7 +47,7 @@ void ConvertTool::attached()
         startTimer(3000);
         return;
     }
-    QWeakPointer<int> l = life();
+    auto l = life();
     res_->resource()->getLocalUrl().then([l, this] (QUrl url) {
         if (!l.isNull())
             convert(url);
