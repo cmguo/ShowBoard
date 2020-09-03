@@ -7,16 +7,16 @@ QPushButton,.QLabel {
 }
 
 QPushButton {
+    qproperty-iconSize: 32px 32px; /* [size] */
     padding-top:2px; /* [size] */
     padding-bottom:2px; /* [size] */
-    padding-left:8px; /* [size] */
-    padding-right:8px; /* [size] */
-    qproperty-iconSize: 32px 32px; /* [size] */
-}
-
-QPushButton[text=""] {
     padding-left:2px; /* [size] */
     padding-right:2px; /* [size] */
+}
+
+QPushButton[text] {
+    padding-left:8px; /* [size] */
+    padding-right:8px; /* [size] */
 }
 
 QPushButton:checked {
