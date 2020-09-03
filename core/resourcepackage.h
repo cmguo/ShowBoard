@@ -56,6 +56,12 @@ public:
 
     ResourcePage * currentPage() const;
 
+    ResourcePage * newPage(QUrl const & mainUrl, QVariantMap const & settings = QVariantMap());
+
+    ResourcePage * newPageOrSwitchTo(QUrl const & mainUrl, QVariantMap const & settings = QVariantMap());
+
+    ResourcePage * findPage(QUrl const & mainUrl) const;
+
     void removePage(ResourcePage * page);
 
     /*
@@ -99,13 +105,13 @@ public:
 
     ResourcePage * findVirtualPage(QUrl const & mainUrl) const;
 
-    void showVirtualPage(ResourcePage* page, bool show);
+    void showVirtualPage(ResourcePage* page, bool show = true);
 
     void toggleVirtualPage(ResourcePage* page);
 
     void removeVirtualPage(ResourcePage* page);
 
-    void showVirtualPage(QUrl const & mainUrl, bool show);
+    void showVirtualPage(QUrl const & mainUrl, bool show = true);
 
     void toggleVirtualPage(QUrl const & mainUrl);
 

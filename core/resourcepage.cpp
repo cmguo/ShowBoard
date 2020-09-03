@@ -52,10 +52,10 @@ ResourceView * ResourcePage::addResourceOrBringTop(QUrl const & url, QVariantMap
         rv->page()->moveResourceBack(rv);
         return rv;
     }
-    ResourcePage * vpage = qobject_cast<ResourcePackage*>(parent())->findVirtualPage(url);
-    if (vpage) {
-        qobject_cast<ResourcePackage*>(parent())->showVirtualPage(vpage, true);
-        return vpage->resources().first();
+    ResourcePage * page2 = qobject_cast<ResourcePackage*>(parent())->findPage(url);
+    if (page2) {
+        qobject_cast<ResourcePackage*>(parent())->switchPage(page2);
+        return page->resources().first();
     }
     return addResource(url, settings);
 }

@@ -51,6 +51,43 @@ ResourcePage * ResourcePackage::currentPage() const
                                  : visiblePages_.back();
 }
 
+ResourcePage *ResourcePackage::newPage(const QUrl &mainUrl, QVariantMap const & settings)
+{
+    ResourcePage * page = new ResourcePage(mainUrl, settings, this);
+    emit pageCreated(page);
+    if (page->isVirtualPage()) {
+        visiblePages_.push_back(page);
+        emit currentPageChanged(page);
+    } else {
+        int index = current_ + 1;
+        addPage(index, page);
+        switchPage(index);
+    }
+    return page;
+}
+
+ResourcePage *ResourcePackage::newPageOrSwitchTo(const QUrl &mainUrl, const QVariantMap &settings)
+{
+    ResourcePage * page = findPage(mainUrl);
+    if (page == nullptr) {
+        page = newPage(mainUrl, settings);
+    } else {
+        switchPage(page);
+    }
+    return page;
+}
+
+ResourcePage *ResourcePackage::findPage(const QUrl &mainUrl) const
+{
+    ResourcePage * page = findVirtualPage(mainUrl);
+    if (page)
+        return page;
+    for (ResourcePage * p : pages_)
+        if (p->isIndependentPage() && p->mainResource()->url() == mainUrl)
+            return p;
+    return nullptr;
+}
+
 void ResourcePackage::removePage(ResourcePage *page)
 {
     int index = pages_.indexOf(page);
@@ -250,9 +287,11 @@ void ResourcePackage::switchPage(int page)
 void ResourcePackage::switchPage(ResourcePage * page)
 {
     int n = pages_.indexOf(page);
-    if (n < 0 || n == current_)
-        return;
-    switchPage(n);
+    if (n < 0) {
+        showVirtualPage(page, true);
+    } else if (n != current_) {
+        switchPage(n);
+    }
 }
 
 void ResourcePackage::addPage(int index, ResourcePage * page)
