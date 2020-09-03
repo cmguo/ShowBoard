@@ -151,6 +151,15 @@ Control * WhiteCanvas::addResource(QUrl const & url, QVariantMap settings)
     return ct;
 }
 
+Control *WhiteCanvas::addResource(ResourceView *res)
+{
+    canvas_->page()->addResource(res);
+    Control * ct = canvas_->findControl(res);
+    if (ct && ct->flags().testFlag(Control::CanSelect))
+        selector_->select(ct);
+    return ct;
+}
+
 Control *WhiteCanvas::copyResource(Control *control)
 {
     control->beforeClone();

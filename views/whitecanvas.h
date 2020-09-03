@@ -70,6 +70,8 @@ public:
      */
     Control * addResource(QUrl const & url, QVariantMap settings = {});
 
+    Control * addResource(ResourceView * res);
+
     /*
      * copy resource to attached resource page
      * use ResourcePage instead

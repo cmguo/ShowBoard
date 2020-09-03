@@ -11,6 +11,10 @@
 #include <QScreen>
 #include <QDebug>
 #include <QShortcut>
+#include <QMimeData>
+#include <QClipboard>
+
+#include <core/resourceview.h>
 
 static WhiteCanvasWidget * mainInstance_;
 
@@ -56,7 +60,9 @@ WhiteCanvasWidget::WhiteCanvasWidget(QWidget *parent)
                      this, &WhiteCanvasWidget::switchPage);
     // Control + C, Control + V
     QObject::connect(new QShortcut(QKeySequence::Copy, this), &QShortcut::activated,
-                     this, [this]() { if (canvas_->selected()) canvas_->copyResource(canvas_->selected()); });
+                     this, &WhiteCanvasWidget::copyPaste);
+    QObject::connect(new QShortcut(QKeySequence::Paste, this), &QShortcut::activated,
+                     this, &WhiteCanvasWidget::copyPaste);
     // Tab, Shift + Tab
     QObject::connect(new QShortcut(QKeySequence(Qt::Key_Tab), this), &QShortcut::activated,
                      this, [this]() { canvas_->selectNext(); });
@@ -94,6 +100,7 @@ WhiteCanvasWidget::WhiteCanvasWidget(WhiteCanvasWidget *mainView, QWidget *paren
     , canvas_(mainView->canvas_)
 {
     setStyleSheet("border: 0px;");
+    setAttribute(Qt::WA_AcceptDrops);
     setRenderHint(QPainter::Antialiasing);
     setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -122,6 +129,27 @@ void WhiteCanvasWidget::showEvent(QShowEvent *event)
 {
     (void) event;
     window()->installEventFilter(this);
+}
+
+void WhiteCanvasWidget::dragEnterEvent(QDragEnterEvent *event)
+{
+    event->accept();
+}
+
+void WhiteCanvasWidget::dragMoveEvent(QDragMoveEvent *event)
+{
+    event->accept();
+}
+
+void WhiteCanvasWidget::dropEvent(QDropEvent *event)
+{
+    QMimeData const * data = event->mimeData();
+    if (data) {
+        ResourceView * res = ResourceView::paste(*data);
+        if (res)
+            canvas()->addResource(res);
+    }
+    event->setDropAction(Qt::CopyAction);
 }
 
 bool WhiteCanvasWidget::eventFilter(QObject *watched, QEvent *event)
@@ -285,4 +313,24 @@ void WhiteCanvasWidget::switchPage()
         package()->gotoNext();
     else
         package()->gotoPrevious();
+}
+
+void WhiteCanvasWidget::copyPaste()
+{
+    QShortcut * s = qobject_cast<QShortcut*>(sender());
+    if (s->key().matches(QKeySequence::Copy)) {
+        Control * c = canvas_->selected();
+        if (c) {
+            QMimeData * data = new QMimeData;
+            c->copy(*data);
+            QApplication::clipboard()->setMimeData(data);
+        }
+    } else {
+        QMimeData const * data = QApplication::clipboard()->mimeData();
+        if (data) {
+            ResourceView * res = ResourceView::paste(*data);
+            if (res)
+                canvas()->addResource(res);
+        }
+    }
 }
