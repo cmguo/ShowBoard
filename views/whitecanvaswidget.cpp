@@ -46,7 +46,6 @@ WhiteCanvasWidget::WhiteCanvasWidget(QWidget *parent)
     //setTransformationAnchor(AnchorUnderMouse);
     //setDragMode(QGraphicsView::ScrollHandDrag);
 
-#ifdef QT_DEBUG
     // Delete
     QObject::connect(new QShortcut(QKeySequence::Delete, this), &QShortcut::activated,
                      this, &WhiteCanvasWidget::deleteSelection);
@@ -90,7 +89,7 @@ WhiteCanvasWidget::WhiteCanvasWidget(QWidget *parent)
                      this, &WhiteCanvasWidget::switchPage);
     QObject::connect(new QShortcut(QKeySequence(Qt::Key_Backspace), this), &QShortcut::activated,
                      this, &WhiteCanvasWidget::switchPage);
-#endif
+
     mainInstance_ = this;
 }
 
