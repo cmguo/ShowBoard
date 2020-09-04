@@ -1,4 +1,4 @@
-#include "webcontrol.h"
+﻿#include "webcontrol.h"
 #include "core/resource.h"
 #include "core/resourceview.h"
 #include "core/resourcetransform.h"
@@ -216,7 +216,7 @@ void WebControl::attached()
     if (auto data = res_->mimeData())
         view->setHtml(data->html());
     else
-        view->load(res_->url());
+        view->load(res_->property("realUrl").isValid()? res_->property("realUrl").toString() : res_->url() );
 }
 
 void WebControl::detached()

@@ -1,4 +1,4 @@
-#include "resourcepage.h"
+﻿#include "resourcepage.h"
 #include "resource.h"
 #include "resourcepackage.h"
 #include "resourceview.h"
@@ -55,7 +55,7 @@ ResourceView * ResourcePage::addResourceOrBringTop(QUrl const & url, QVariantMap
     ResourcePage * page2 = qobject_cast<ResourcePackage*>(parent())->findPage(url);
     if (page2) {
         qobject_cast<ResourcePackage*>(parent())->switchPage(page2);
-        return page->resources().first();
+        return page2->mainResource();
     }
     return addResource(url, settings);
 }
