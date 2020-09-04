@@ -47,21 +47,15 @@ WhiteCanvasWidget::WhiteCanvasWidget(QWidget *parent)
     //setDragMode(QGraphicsView::ScrollHandDrag);
 
     // Delete
-    QObject::connect(new QShortcut(QKeySequence::Delete, this), &QShortcut::activated,
-                     this, &WhiteCanvasWidget::deleteSelection);
+    new QShortcut(QKeySequence::Delete, this, SLOT(deleteSelection()));
     // Escape
-    QObject::connect(new QShortcut(QKeySequence::Cancel, this), &QShortcut::activated,
-                     this, &WhiteCanvasWidget::cancelSelection);
+    new QShortcut(QKeySequence::Cancel, this, SLOT(cancelSelection()));
     // Page Up, Page Down
-    QObject::connect(new QShortcut(QKeySequence::MoveToNextPage, this), &QShortcut::activated,
-                     this, &WhiteCanvasWidget::switchPage);
-    QObject::connect(new QShortcut(QKeySequence::MoveToPreviousPage, this), &QShortcut::activated,
-                     this, &WhiteCanvasWidget::switchPage);
+    new QShortcut(QKeySequence::MoveToNextPage, this, SLOT(switchPage()));
+    new QShortcut(QKeySequence::MoveToPreviousPage, this, SLOT(switchPage()));
     // Control + C, Control + V
-    QObject::connect(new QShortcut(QKeySequence::Copy, this), &QShortcut::activated,
-                     this, &WhiteCanvasWidget::copyPaste);
-    QObject::connect(new QShortcut(QKeySequence::Paste, this), &QShortcut::activated,
-                     this, &WhiteCanvasWidget::copyPaste);
+    new QShortcut(QKeySequence::Copy, this, SLOT(copyPaste()));
+    new QShortcut(QKeySequence::Paste, this, SLOT(copyPaste()));
     // Tab, Shift + Tab
     QObject::connect(new QShortcut(QKeySequence(Qt::Key_Tab), this), &QShortcut::activated,
                      this, [this]() { canvas_->selectNext(); });
@@ -69,26 +63,24 @@ WhiteCanvasWidget::WhiteCanvasWidget(QWidget *parent)
                      this, [this]() { canvas_->selectPrev(); });
     // Direction Arrows
     for (int k : {Qt::Key_Left, Qt::Key_Up, Qt::Key_Right, Qt::Key_Down}) {
+//        // Direction Arrows ( first press )
+//        QShortcut * s = new QShortcut(QKeySequence(k), this);
+//        s->setAutoRepeat(false);
+//        QObject::connect(s, &QShortcut::activated,
+//                         this, &WhiteCanvasWidget::moveSelection);
         // Direction Arrows
-        QObject::connect(new QShortcut(QKeySequence(k), this), &QShortcut::activated,
-                         this, &WhiteCanvasWidget::moveSelection);
+        new QShortcut(QKeySequence(k), this, SLOT(moveSelection()));
         // Shift + Direction Arrows
-        QObject::connect(new QShortcut(QKeySequence(k | Qt::ShiftModifier), this), &QShortcut::activated,
-                         this, &WhiteCanvasWidget::scaleSelection);
+        new QShortcut(QKeySequence(k | Qt::ShiftModifier), this, SLOT(scaleSelection()));
         // Control + Direction Arrows
-        QObject::connect(new QShortcut(QKeySequence(k | Qt::ControlModifier), this), &QShortcut::activated,
-                         this, &WhiteCanvasWidget::switchPage);
+        new QShortcut(QKeySequence(k | Qt::ControlModifier), this, SLOT(switchPage()));
     }
     // Control + +/-
-    QObject::connect(new QShortcut(QKeySequence(Qt::Key_Plus | Qt::ControlModifier), this), &QShortcut::activated,
-                     this, &WhiteCanvasWidget::scaleSelection2);
-    QObject::connect(new QShortcut(QKeySequence(Qt::Key_Minus | Qt::ControlModifier), this), &QShortcut::activated,
-                     this, &WhiteCanvasWidget::scaleSelection2);
+    new QShortcut(QKeySequence(Qt::Key_Plus | Qt::ControlModifier), this, SLOT(scaleSelection2()));
+    new QShortcut(QKeySequence(Qt::Key_Minus | Qt::ControlModifier), this, SLOT(scaleSelection2()));
     // Space, Backspace
-    QObject::connect(new QShortcut(QKeySequence(Qt::Key_Space), this), &QShortcut::activated,
-                     this, &WhiteCanvasWidget::switchPage);
-    QObject::connect(new QShortcut(QKeySequence(Qt::Key_Backspace), this), &QShortcut::activated,
-                     this, &WhiteCanvasWidget::switchPage);
+    new QShortcut(QKeySequence(Qt::Key_Space), this, SLOT(switchPage()));
+    new QShortcut(QKeySequence(Qt::Key_Backspace), this, SLOT(switchPage()));
 
     mainInstance_ = this;
 }
