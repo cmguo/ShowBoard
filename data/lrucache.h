@@ -26,7 +26,8 @@ public:
     virtual ~LRUCache() {}
 
 public:
-    void put(K const & k, V const & v) {
+    void put(K const & k, V const & v)
+    {
         std::lock_guard<L> lock(lock_);
         if (lruMap_.contains(k)) {
             return;
@@ -51,12 +52,14 @@ public:
         }
     }
 
-    V get(K const & k) {
+    V get(K const & k)
+    {
         std::lock_guard<L> lock(lock_);
-        if (!lruMap_.contains(k)) {
+        auto iter = lruMap_.find(k);
+        if (iter == lruMap_.end()) {
             return V();
         }
-        typename QLinkedList<QPair<K, V>>::iterator & i = lruMap_[k];
+        typename QLinkedList<QPair<K, V>>::iterator & i = iter.value();
         if (i != lruList_.begin()) {
             lruList_.prepend(*i);
             lruList_.erase(i);
@@ -65,12 +68,15 @@ public:
         return i->second;
     }
 
-    void remove(K const & k) {
+    void remove(K const & k)
+    {
         std::lock_guard<L> lock(lock_);
-        if (!lruMap_.contains(k)) {
+        auto iter = lruMap_.find(k);
+        if (iter == lruMap_.end()) {
             return;
         }
-        typename QLinkedList<QPair<K, V>>::iterator i = lruMap_.take(k);
+        typename QLinkedList<QPair<K, V>>::iterator i = iter.value();
+        lruMap_.erase(iter);
         QPair<K, V> & l = *i;
         if (destroy(l.first, l.second)) {
             size_ -= sizeOf(l.second);
@@ -80,7 +86,8 @@ public:
         }
     }
 
-    bool contains(K const & k) {
+    bool contains(K const & k)
+    {
         std::lock_guard<L> lock(lock_);
         return lruMap_.contains(k);
     }
@@ -97,6 +104,18 @@ protected:
 
 protected:
     L & lock() { return lock_; }
+
+    // not change order
+    void update(K const & k, V const & v)
+    {
+        std::lock_guard<L> lock(lock_);
+        auto iter = lruMap_.find(k);
+        if (iter == lruMap_.end()) {
+            return;
+        }
+        typename QLinkedList<QPair<K, V>>::iterator & i = iter.value();
+        i->second = v;
+    }
 
 private:
     quint64 size_;

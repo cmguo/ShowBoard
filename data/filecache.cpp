@@ -219,10 +219,10 @@ void FileCache::load(std::function<bool (QString const & name)> filter)
     std::sort(files.begin(), files.end(), [] (QFileInfo const & l, QFileInfo const & r) {
         return l.lastModified() < r.lastModified();
     });
+    for (QFileInfo & f : files) {
+        base::put(f.filePath().mid(n), FileResource{f.size(), nullptr});
+    }
     if (algorithm_.isEmpty()) {
-        for (QFileInfo & f : files) {
-            base::put(f.filePath().mid(n), FileResource{f.size(), nullptr});
-        }
         loaded();
     } else {
         QCryptographicHash::Algorithm al = QVariant(algorithm_).value<QCryptographicHash::Algorithm>();
@@ -237,7 +237,7 @@ void FileCache::load(std::function<bool (QString const & name)> filter)
                 return FileResource{f.size(), hash.result()};
             }).then([this, p = f.filePath().mid(n)] (FileResource const & f) {
                 if (f.size >= 0)
-                    base::put(p, f);
+                    base::update(p, f);
             });
         }
         thread().asyncWork([] () {}).then([this] () { loaded(); });
