@@ -41,22 +41,7 @@ public:
 
     void setWebBridges(QHash<QString, QObject*> const& bridges);
 
-protected:
-    virtual QWidget * createWidget(ResourceView * res) override;
-
-    virtual void loadSettings() override;
-
-    virtual void attached() override;
-
-    virtual void detached() override;
-
 public slots:
-    virtual void loadFinished(bool ok);
-
-    void contentsSizeChanged(const QSizeF &size);
-
-    void scrollPositionChanged(const QPointF &pos);
-
     void reload();
 
     void hide();
@@ -68,6 +53,27 @@ public slots:
     void debug();
 
     void dump();
+
+    void scaleUp();
+
+    void scaleDown();
+
+protected:
+    virtual QWidget * createWidget(ResourceView * res) override;
+
+    virtual void loadSettings() override;
+
+    virtual void attached() override;
+
+    virtual void detached() override;
+
+protected:
+    virtual void loadFinished(bool ok);
+
+private:
+    void contentsSizeChanged(const QSizeF &size);
+
+    void scrollPositionChanged(const QPointF &pos);
 
 private:
     QColor background_;

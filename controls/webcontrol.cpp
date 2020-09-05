@@ -25,7 +25,7 @@
 #include <core/oomhandler.h>
 
 #define LARGE_CANVAS_LINKAGE 1
-#define LARGE_CANVAS_LINKAGE_SCALE 0
+#define LARGE_CANVAS_LINKAGE_SCALE 1
 
 static char const * toolstr =
         "reload()|刷新|;"
@@ -45,7 +45,9 @@ public:
     static void sinit();
 public:
     WebView(QObject * settings);
-    void scaleTo(qreal scale);
+    qreal scale() const;
+    void scale(qreal scale);
+    void scaleTo(qreal scaleTo);
     void debug();
     void synthesizedMouseEvents();
     void dump();
@@ -54,10 +56,9 @@ protected:
     virtual bool eventFilter(QObject * watched, QEvent * event) override;
     virtual QWebEngineView * createWindow(QWebEnginePage::WebWindowType type) override;
 private:
-    QWidget *findChildWidget(const QString &className) const;
+    QQuickWidget *hostWidget();
 private:
-    QPointer<QQuickWidget> childWidget_;
-    qreal scale_ = 1.0;
+    QQuickWidget* childWidget_ = nullptr;
 };
 
 // TODO: fix multiple touch crash
@@ -201,18 +202,18 @@ void WebControl::attached()
         background->setFlag(QGraphicsItem::ItemStacksBehindParent);
     }
     item_->setFlag(QGraphicsItem::ItemIsFocusable);
-#if LARGE_CANVAS_LINKAGE_SCALE
-    if (res_->flags().testFlag(ResourceView::LargeCanvas)) {
-        Control * canvasControl = Control::fromItem(whiteCanvas());
-        connect(&canvasControl->resource()->transform(), &ResourceTransform::changed,
-                this, [this, view]() {
-            if (flags_.testFlag(Loading))
-                return;
-            qreal scale = qobject_cast<ResourceTransform*>(sender())->scale().m11();
-            view->scaleTo(scale);
-        });
-    }
-#endif
+//#if LARGE_CANVAS_LINKAGE_SCALE
+//    if (res_->flags().testFlag(ResourceView::LargeCanvas)) {
+//        Control * canvasControl = Control::fromItem(whiteCanvas());
+//        connect(&canvasControl->resource()->transform(), &ResourceTransform::changed,
+//                this, [this, view]() {
+//            if (flags_.testFlag(Loading))
+//                return;
+//            qreal scale = qobject_cast<ResourceTransform*>(sender())->scale().m11();
+//            view->scaleTo(scale);
+//        });
+//    }
+//#endif
     if (auto data = res_->mimeData())
         view->setHtml(data->html());
     else
@@ -240,6 +241,7 @@ void WebControl::loadFinished(bool ok)
         if (!touchable())
             static_cast<WebView *>(widget_)->synthesizedMouseEvents();
         Control::loadFinished(ok);
+        contentsSizeChanged({ 0, 0 });
     } else {
         QWebEngineView * view = qobject_cast<QWebEngineView *>(widget_);
         view->setContent("");
@@ -268,6 +270,8 @@ void WebControl::scrollPositionChanged(const QPointF &pos)
     QRectF rect = canvasControl->boundRect();
     rect.moveCenter({0, 0});
     rect.setSize(item_->boundingRect().size());
+    qreal scale = static_cast<WebView *>(widget_)->scale();
+    canvasControl->resource()->transform().scaleTo(scale);
     canvasControl->resource()->transform()
             .translateTo(-rect.center() - pos);
 }
@@ -304,6 +308,16 @@ void WebControl::debug()
 void WebControl::dump()
 {
     static_cast<WebView *>(widget_)->dump();
+}
+
+void WebControl::scaleUp()
+{
+    static_cast<WebView *>(widget_)->scale(1.2);
+}
+
+void WebControl::scaleDown()
+{
+    static_cast<WebView *>(widget_)->scale(1.0 / 1.2);
 }
 
 /* WebView */
@@ -370,31 +384,90 @@ WebView::WebView(QObject *settings)
     });
 }
 
-void WebView::scaleTo(qreal scale)
+qreal WebView::scale() const
 {
-    //    if (!childWidget_) {
-    //        QWidget * widget = findChildWidget(
-    //                    "QtWebEngineCore::RenderWidgetHostViewQtDelegateWidget");
-    //        childWidget_ = qobject_cast<QQuickWidget*>(widget);
+    QSharedPointer<qreal> v(new qreal);
+    QtPromise::QPromise<void>([this, v] (QtPromise::QPromiseResolve<void> resolve) {
+        page()->runJavaScript("window.visualViewport.scale", [resolve, v] (QVariant result) {
+            *v = result.toReal();
+            resolve();
+        });
+    }).wait();
+    qDebug() << "WebView::scale" << *v;
+    return *v;
+}
+
+void WebView::scale(qreal scale)
+{
+    qDebug() << "WebView::scale" << scale;
+    QWidget * target = hostWidget();
+    // first point
+    QList<QTouchEvent::TouchPoint> touchPoints;
+    QTouchEvent::TouchPoint touchPoint;
+    QPointF c = target->geometry().center();
+    touchPoint.setId(10000001);
+    touchPoint.setState(Qt::TouchPointPressed);
+    touchPoint.setPos(c - QPointF{100, 100});
+    touchPoint.setScenePos(touchPoint.pos());
+    touchPoints.append(touchPoint);
+    { // TouchBegin
+        QTouchEvent event(QEvent::TouchBegin);
+        event.setTouchPoints(touchPoints);
+        QApplication::sendEvent(target, &event);
+    }
+    // add second point
+    touchPoints[0].setState(Qt::TouchPointStationary);
+    touchPoint.setId(10000002);
+    touchPoint.setPos(c + QPointF{100, 100});
+    touchPoint.setScenePos(touchPoint.pos());
+    touchPoints.append(touchPoint);
+    { // TouchUpdate
+        QTouchEvent event(QEvent::TouchUpdate);
+        event.setTouchPoints(touchPoints);
+        QApplication::sendEvent(target, &event);
+    }
+    // move one point
+    touchPoints[0].setState(Qt::TouchPointMoved);
+    touchPoints[0].setPos(c - QPointF{100, 100} * scale);
+    touchPoints[0].setScenePos(touchPoints[0].pos());
+//    touchPoints[1].setState(Qt::TouchPointStationary);
+//    { // TouchUpdate
+//        QTouchEvent event(QEvent::TouchUpdate);
+//        event.setTouchPoints(touchPoints);
+//        QApplication::sendEvent(target, &event);
 //    }
-    if (!childWidget_)
-        return;
-    const QTouchDevice *dev = nullptr;
-    const QPointF localPos = page()->scrollPosition() + QPointF(width(), height()) / 2 / scale_;
-    const QPointF windowPos = QPointF(width(), height()) / 2;
-    const QPointF screenPos = mapToGlobal(windowPos.toPoint());
-    qreal value = scale / scale_ - 1.0;
-    qDebug() << "WebView::scale" << scale << value;
-    qDebug() << "WebView::scale" << localPos << windowPos << screenPos;
-    scale_ = scale;
-    ulong sequenceId = 0;
-    quint64 intArgument = 0;
-    QNativeGestureEvent event1(Qt::BeginNativeGesture, dev, localPos, windowPos, screenPos, value, sequenceId, intArgument);
-    QNativeGestureEvent event2(Qt::ZoomNativeGesture, dev, localPos, windowPos, screenPos, value, sequenceId, intArgument);
-    QNativeGestureEvent event3(Qt::EndNativeGesture, dev, localPos, windowPos, screenPos, value, sequenceId, intArgument);
-    QApplication::sendEvent(childWidget_, &event1);
-    QApplication::sendEvent(childWidget_, &event2);
-    QApplication::sendEvent(childWidget_, &event3);
+//    // move another point
+//    touchPoints[0].setState(Qt::TouchPointStationary);
+    touchPoints[1].setState(Qt::TouchPointMoved);
+    touchPoints[1].setPos(c + QPointF{100, 100} * scale);
+    touchPoints[1].setScenePos(touchPoints[1].pos());
+    { // TouchUpdate
+        QTouchEvent event(QEvent::TouchUpdate);
+        event.setTouchPoints(touchPoints);
+        QApplication::sendEvent(target, &event);
+    }
+    // release one point
+    touchPoints[0].setState(Qt::TouchPointReleased);
+    touchPoints[1].setState(Qt::TouchPointStationary);
+    { // TouchUpdate
+        QTouchEvent event(QEvent::TouchUpdate);
+        event.setTouchPoints(touchPoints);
+        QApplication::sendEvent(target, &event);
+    }
+    // release another point
+    touchPoints.pop_front();
+    touchPoints[0].setState(Qt::TouchPointReleased);
+    { // TouchEnd
+        QTouchEvent event(QEvent::TouchEnd);
+        event.setTouchPoints(touchPoints);
+        QApplication::sendEvent(target, &event);
+    }
+
+}
+
+void WebView::scaleTo(qreal scaleTo)
+{
+    scale(scaleTo / scale());
 }
 
 void WebView::debug()
@@ -410,16 +483,11 @@ void WebView::debug()
 
 void WebView::synthesizedMouseEvents()
 {
-    if (!childWidget_) {
-        QWidget * widget = findChildWidget(
-                    "QtWebEngineCore::RenderWidgetHostViewQtDelegateWidget");
-        childWidget_ = qobject_cast<QQuickWidget*>(widget);
-        QObject::connect(childWidget_, &QObject::destroyed, this, [this]() {
-            reload();
-            synthesizedMouseEvents();
-        }, Qt::QueuedConnection);
-    }
-    childWidget_->installEventFilter(this);
+    QObject::connect(hostWidget(), &QObject::destroyed, this, [this]() {
+        reload();
+        synthesizedMouseEvents();
+    }, Qt::QueuedConnection);
+    hostWidget()->installEventFilter(this);
 }
 
 
@@ -438,18 +506,14 @@ bool WebView::event(QEvent *event)
             || event->type() == QEvent::TouchEnd
             || event->type() == QEvent::TouchUpdate
             || event->type() == QEvent::TouchCancel) {
-        if (!childWidget_) {
-            QWidget * widget = findChildWidget(
-                        "QtWebEngineCore::RenderWidgetHostViewQtDelegateWidget");
-            childWidget_ = qobject_cast<QQuickWidget*>(widget);
-        }
-        Q_ASSERT(childWidget_);
-        QApplication::sendEvent(childWidget_, event);
+        QApplication::sendEvent(hostWidget(), event);
         return true;
     } else if (event->type() == QEvent::Wheel) {
         QWebEngineView::event(event);
         event->accept();
         return true;
+    } else if (event->type() == QEvent::CursorChange) {
+        graphicsProxyWidget()->setCursor(hostWidget()->cursor());
     }
     return QWebEngineView::event(event);
 }
@@ -474,8 +538,6 @@ bool WebView::eventFilter(QObject *watched, QEvent *event)
             || event->type() == QEvent::MouseButtonRelease) {
         //qDebug() << "WebView::eventFilter: " << static_cast<QMouseEvent*>(event);
         static_cast<QMouseEvent2*>(event)->caps = 0;
-    } else if (event->type() == QEvent::CursorChange) {
-        graphicsProxyWidget()->setCursor(childWidget_->cursor());
     }
     return false;
 }
@@ -490,11 +552,18 @@ QWebEngineView *WebView::createWindow(QWebEnginePage::WebWindowType)
     return static_cast<WebView*>(control->widget());
 }
 
-QWidget *WebView::findChildWidget(const QString &className) const
+QQuickWidget *WebView::hostWidget()
 {
-    for (auto w: findChildren<QWidget*>())
-        if (className == QString(w->metaObject()->className()))
-            return w;
+    if (childWidget_)
+        return childWidget_;
+    const QByteArray hostClass = "QtWebEngineCore::RenderWidgetHostViewQtDelegateWidget";
+    for (auto w: findChildren<QWidget*>()) {
+        if (hostClass == w->metaObject()->className()) {
+            childWidget_ = qobject_cast<QQuickWidget*>(w);
+            return childWidget_;
+        }
+    }
+    Q_ASSERT(false);
     return nullptr;
 }
 
