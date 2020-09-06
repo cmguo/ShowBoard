@@ -123,12 +123,18 @@ void WhiteCanvasControl::setPosBarVisible(bool visible)
 
 void WhiteCanvasControl::scaleUp()
 {
-    res_->transform().scale({1.25, 1.25});
+    Control * c = static_cast<WhiteCanvas*>(item_)
+            ->findControl(res_->page()->mainResource());
+    if (!c->exec("scaleUp()"))
+        res_->transform().scale({1.25, 1.25});
 }
 
 void WhiteCanvasControl::scaleDown()
 {
-    res_->transform().scale({0.8, 0.8});
+    Control * c = static_cast<WhiteCanvas*>(item_)
+            ->findControl(res_->page()->mainResource());
+    if (!c->exec("scaleDown()"))
+        res_->transform().scale({0.8, 0.8});
 }
 
 void WhiteCanvasControl::close()
