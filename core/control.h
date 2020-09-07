@@ -226,6 +226,8 @@ public:
 
     virtual void copy(QMimeData & data);
 
+    static void paste(QMimeData const & data, Control * control);
+
 protected:
     /*
      * override this to do really creation of item

@@ -256,7 +256,8 @@ ResourceView *ResourceView::paste(QMimeData const &data)
         memcpy(&n, resId.data(), sizeof(n));
         if (n >= 0 && n < clipboardResources.size()) {
             QSharedPointer<LifeObject> res = clipboardResources[n].toStrongRef();
-            return qobject_cast<ResourceView*>(res.get())->clone();
+            if (res)
+                return qobject_cast<ResourceView*>(res.get())->clone();
         }
     }
     // we like urls

@@ -19,6 +19,7 @@
 #include <QMetaMethod>
 #include <QApplication>
 #include <QScreen>
+#include <QMimeData>
 
 #include <map>
 
@@ -262,6 +263,14 @@ void Control::copy(QMimeData &data)
 {
     beforeClone();
     res_->copy(data);
+    data.setProperty("OriginControl", QVariant::fromValue(life()));
+}
+
+void Control::paste(QMimeData const & data, Control *control)
+{
+    QSharedPointer<LifeObject> life = data.property("OriginControl").value<QWeakPointer<LifeObject>>();
+    if (life)
+        qobject_cast<Control*>(life.get())->afterClone(control);
 }
 
 void Control::attaching()

@@ -320,8 +320,10 @@ void WhiteCanvasWidget::copyPaste()
         QMimeData const * data = QApplication::clipboard()->mimeData();
         if (data) {
             ResourceView * res = ResourceView::paste(*data);
-            if (res)
-                canvas()->addResource(res);
+            if (res) {
+                Control * c = canvas()->addResource(res);
+                Control::paste(*data, c);
+            }
         }
     }
 }
