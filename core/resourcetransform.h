@@ -152,6 +152,8 @@ public:
      */
     void keepInnerOf(QRectF const & border, QRectF & self);
 
+    void keepAtOrigin();
+
 public:
     friend ResourceTransform operator*(ResourceTransform const & l, ResourceTransform const & r)
     {

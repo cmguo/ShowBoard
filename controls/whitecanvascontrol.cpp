@@ -4,6 +4,8 @@
 #include "views/toolbarwidget.h"
 #include "views/qsshelper.h"
 #include "views/itemselector.h"
+#include "views/animcanvas.h"
+#include "core/resource.h"
 #include "core/resourceview.h"
 #include "core/resourcetransform.h"
 #include "core/resourcepage.h"
@@ -50,21 +52,7 @@ WhiteCanvasControl::WhiteCanvasControl(ResourceView * view, QGraphicsItem * canv
     ToolbarWidget* toolbar = new ToolbarWidget;
     toolbar->setObjectName("canvastoolbar");
     toolbar->setStyleSheet(QSS);
-
-    ResourcePage * parentView = qobject_cast<ResourcePage *>(view->parent());
-    bool toolbarFixed = true;
-    QString toolbarPosition = "";
-    if (parentView) {
-        ResourceView * originResourView = parentView->mainResource();
-        if (originResourView) {
-            toolbarFixed = originResourView->property("toolbarFixPosition").toBool();
-            toolbarPosition = originResourView->property("toolbarPosition").toString();
-        }
-    }
-    if (!toolbarFixed) {
-        toolbar->setDragable();
-    }
-
+    toolbar->setDragable();
     toolBar_ = toolbar->toGraphicsProxy(nullptr, true);
     toolbar->attachProvider(this);
     loadSettings();
@@ -73,17 +61,29 @@ WhiteCanvasControl::WhiteCanvasControl(ResourceView * view, QGraphicsItem * canv
     qDebug() << "WhiteCanvasControl" << res_->transform().transform();
     item_->scene()->addItem(toolBar_);
 
-    float destinyScale = QGuiApplication::primaryScreen()->size().height() / 1080.0f;
-    int offset = destinyScale * 60;
+    int offset = dp(60);
     QRectF rect = item_->scene()->sceneRect();
+    ResourceView * originResourView = view->page()->mainResource();
+    QString toolbarPosition = originResourView->property("toolbarPosition").toString();
     if (toolbarPosition == "rightBottom") {
-        int right = rect.right() - (rect.width() - rect.height() * 4 / 3) / 2;
-        QPoint position(right - offset, rect.bottom() - offset);
+        qreal right = rect.right() - dp(110);
+        offset = dp(80);
+        QPointF position(right - offset, rect.bottom() - offset);
         toolBar_->setPos(position);
     } else {
         toolBar_->setPos(QPointF(0, rect.bottom() - offset));
     }
     flags_.setFlag(LoadFinished);
+}
+
+WhiteCanvasControl::WhiteCanvasControl(WhiteCanvas *canvas)
+    : Control(new ResourceView(new Resource("fakecanvas", QUrl())), {},
+                                          Control::CanSelect | Control::CanScale | Control::CanRotate)
+{
+    item_ = canvas;
+    realItem_ = item_;
+    QObject::connect(&res_->transform(), &ResourceTransform::beforeChanged,
+                     this, [&t = res_->transform()]() { t.keepAtOrigin(); });
 }
 
 WhiteCanvasControl::~WhiteCanvasControl()
@@ -93,7 +93,7 @@ WhiteCanvasControl::~WhiteCanvasControl()
     qDebug() << "~WhiteCanvasControl" << res_->transform().transform();
     saveSettings();
     delete posBar_;
-    if (flags_ & Selected)
+    if (flags_ & (Selected | Adjusting))
         static_cast<WhiteCanvas*>(item_)->selector()->unselect(this);
     item_->setData(ITEM_KEY_CONTROL, QVariant());
     item_->setTransformations({});
@@ -171,6 +171,57 @@ void WhiteCanvasControl::attached()
 void WhiteCanvasControl::sizeChanged()
 {
     // do nothing
+}
+
+void WhiteCanvasControl::adjusting(bool be)
+{
+    Control::adjusting(be);
+    if (!be) {
+        if (anim_)
+            anim_->release();
+        anim_ = nullptr;
+    }
+}
+
+void WhiteCanvasControl::move(QPointF &delta)
+{
+    if (anim_) {
+        if (anim_->move(delta))
+            return;
+        anim_ = nullptr;
+    }
+    QPointF d = delta;
+    Control::move(delta);
+    if (qFuzzyIsNull(delta.x()) && qFuzzyIsNull(delta.y()) && !qFuzzyIsNull(d.x())) {
+        delta.setX(d.x());
+        anim_ = static_cast<WhiteCanvas*>(item_)->getDragAnimation(delta.x() > 0);
+        if (anim_)
+            anim_->move(delta);
+    }
+}
+
+void WhiteCanvasControl::gesture(const QPointF &from1, const QPointF &from2, QPointF &to1, QPointF &to2)
+{
+    QPointF d = (to1 + to2 - from1 - from2) / 2;
+    if (anim_) {
+        if (anim_->move(d))
+            return;
+        anim_ = nullptr;
+    }
+    qreal s = res_->transform().scale().m11();
+    Control::gesture(from1, from2, to1, to2);
+    QPointF delta = (to1 + to2 - from1 - from2) / 2;
+    if (qFuzzyIsNull(delta.x()) && qFuzzyIsNull(delta.y()) && !qFuzzyIsNull(d.x())
+            && qFuzzyIsNull((s / res_->transform().scale().m11() - 1.0) / 1000.0)) {
+        delta.setX(d.x());
+        anim_ = static_cast<WhiteCanvas*>(item_)->getDragAnimation(delta.x() > 0);
+        if (anim_)
+            anim_->move(delta);
+    } else {
+        d -= delta;
+        to1 += d;
+        to2 += d;
+    }
 }
 
 void WhiteCanvasControl::getToolButtons(QList<ToolButton *> &buttons, QList<ToolButton *> const & parents)

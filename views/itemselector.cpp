@@ -16,6 +16,8 @@
 #include <QGraphicsProxyWidget>
 #include <QApplication>
 
+#include <core/resource.h>
+
 #define ENBALE_TOUCH 1
 
 ItemSelector::ItemSelector(QGraphicsItem * parent)
@@ -25,11 +27,11 @@ ItemSelector::ItemSelector(QGraphicsItem * parent)
     , hideMenu_(false)
     , fastClone_(false)
     , autoUnselect_(false)
-    , selectControl_(nullptr)
-    , tempControl_(nullptr)
     , selBoxTransform_(new ControlTransform(ControlTransform::SelectBox))
     , selBoxCanvasTransform_(new ControlTransform(ControlTransform::SelectBoxLargeCanvas))
     , toolBarTransform_(new ControlTransform(ControlTransform::LargeCanvasTooBar))
+    , selectControl_(nullptr)
+    , tempControl_(nullptr)
     , cloneControl_(nullptr)
     , type_(None)
 {
@@ -131,8 +133,12 @@ void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos, EventT
                 parent = parent->parentItem();
             }
             Control * ct = Control::fromItem(item);
-            if (!ct)
-                continue;
+            if (!ct) {
+                if (force_ && item == parentItem())
+                    ct = static_cast<WhiteCanvas*>(parentItem())->canvasControl();
+                else
+                    continue;
+            }
             bool force = force_ && (ct->flags() & Control::DefaultFlags);
             // if item can not handle touch events, we also pass through all touch events here
             // but let selectTest take effect
@@ -208,9 +214,8 @@ void ItemSelector::selectMove(QPointF const & pos, QPointF const & scenePos)
     QPointF d = pt - start_;
     switch (type_) {
     case Translate:
-        if (tempControl_->flags() & Control::CanMove) {
+        if (tempControl_->flags() & Control::CanMove)
             tempControl_->move(d);
-        }
         break;
     case Scale: {
         if (!tempControl_->scale(rect_, direction_, d)) {

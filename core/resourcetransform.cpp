@@ -374,7 +374,15 @@ void ResourceTransform::gesture(const QPointF &from1, const QPointF &from2, QPoi
     rotateTranslate_ = rotate_ * translate_;
     transform_ = scaleRotate_ * translate_;
     int elements = (scale ? 4 : 0) + (rotate ? 2 : 0) + (translate ? 1 : 0);
+    s = scale_.m11();
+    t = offset();
     emit beforeChanged(elements);
+    if (!qFuzzyIsNull(s / scale_.m11() - 1.0))
+        to2 = to1 + (to2 - to1) * scale_.m11() / s;
+    if (t != offset()) {
+        to1 += offset() - t;
+        to2 += offset() - t;
+    }
     emit changed(elements);
 }
 
@@ -408,6 +416,11 @@ void ResourceTransform::keepOuterOf(QRectF const &border, QRectF &self)
     }
     //qDebug() << "after" << border << crect << transform_;
     self = crect;
+}
+
+void ResourceTransform::keepAtOrigin()
+{
+    translate_.reset();
 }
 
 void ResourceTransform::translate(const QPointF &delta, int otherChanges)

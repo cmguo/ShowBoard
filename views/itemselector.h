@@ -106,11 +106,11 @@ private:
     bool autoUnselect_;
 
 private:
-    Control * selectControl_;
-    Control * tempControl_;
     ControlTransform* selBoxTransform_;
     ControlTransform* selBoxCanvasTransform_;
     ControlTransform* toolBarTransform_;
+    Control * selectControl_;
+    Control * tempControl_;
     Control * cloneControl_;
 
 private:

@@ -163,13 +163,19 @@ public:
     /*
      * move (shift) this item, is saved at transform
      */
-    void move(QPointF & delta);
+    virtual void move(QPointF & delta);
 
     /*
      * scale this item, is saved at transform
      */
-    bool scale(QRectF & rect, QRectF const & direction, QPointF & delta);
+    virtual bool scale(QRectF & rect, QRectF const & direction, QPointF & delta);
 
+    /*
+     * pinch scale/move/rotate this item, is saved at transform
+     */
+    virtual void gesture(QPointF const & from1, QPointF const & from2, QPointF & to1, QPointF & to2);
+
+public:
     /*
      * scale this item, is saved at transform
      */
@@ -179,8 +185,6 @@ public:
      * scale this item, is saved at transform
      */
     bool scale(QPointF const & center, qreal & delta);
-
-    void gesture(QPointF const & from1, QPointF const & from2, QPointF & to1, QPointF & to2);
 
     /*
      * rotate this item against it's center, is saved at transform
@@ -192,6 +196,7 @@ public:
      */
     void rotate(QPointF const & center, QPointF const & from, QPointF & to);
 
+public:
     void setGeometry(QRectF const & geometry);
 
     QRectF boundRect() const;

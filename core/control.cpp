@@ -209,7 +209,7 @@ void Control::detachFrom(QGraphicsItem *parent, QGraphicsItem *)
     if (flags_ & LoadFinished)
         saveSettings();
     (void) parent;
-    if (flags_ & Selected)
+    if (flags_ & (Selected | Adjusting))
         whiteCanvas()->selector()->unselect(this);
     realItem_->scene()->removeItem(realItem_);
     QList<QGraphicsTransform*> transforms = realItem_->transformations();

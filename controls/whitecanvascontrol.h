@@ -5,6 +5,7 @@
 
 class WhiteCanvas;
 class PositionBar;
+class AnimCanvas;
 
 class WhiteCanvasControl : public Control
 {
@@ -17,6 +18,9 @@ public:
     static constexpr Flag NoScaleButton = static_cast<Flag>(1 << 16);
 
     WhiteCanvasControl(ResourceView * view, QGraphicsItem * canvas);
+
+    // fake canvas control
+    WhiteCanvasControl(WhiteCanvas * canvas);
 
     virtual ~WhiteCanvasControl() override;
 
@@ -35,6 +39,11 @@ public slots:
 
     void close();
 
+public:
+    PositionBar * posBar() const { return posBar_; }
+
+    QGraphicsItem* toolBar() const { return toolBar_; }
+
 private:
     QGraphicsItem * create(ResourceView *res) override;
 
@@ -44,6 +53,13 @@ private:
 
     virtual void sizeChanged() override;
 
+    virtual void adjusting(bool be) override;
+
+    virtual void move(QPointF &delta) override;
+
+    virtual void gesture(const QPointF &from1, const QPointF &from2, QPointF &to1, QPointF &to2) override;
+
+public:
     virtual void getToolButtons(QList<ToolButton *> &buttons, QList<ToolButton *> const & parents) override;
 
     virtual void getToolButtons(QList<ToolButton *> &buttons, ToolButton *parent) override;
@@ -58,6 +74,7 @@ private:
 private:
     PositionBar * posBar_ = nullptr;
     QGraphicsItem* toolBar_ = nullptr;
+    AnimCanvas * anim_ = nullptr;
 };
 
 #endif // WHITECANVASCONTROL_H
