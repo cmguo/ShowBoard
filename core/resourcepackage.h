@@ -64,6 +64,10 @@ public:
 
     void removePage(ResourcePage * page);
 
+    ResourcePage * prevPage(ResourcePage * page) const;
+
+    ResourcePage * nextPage(ResourcePage * page) const;
+
     /*
      *  current page index, start from 0
      */

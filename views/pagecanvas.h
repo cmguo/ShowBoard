@@ -17,6 +17,10 @@ class PageCanvas : public QObject, public CanvasItem
 public:
     PageCanvas(QGraphicsItem * parent = nullptr);
 
+    enum { Type = UserType + 1 };
+
+    virtual int type() const override { return Type; }
+
 public:
     void switchPage(ResourcePage * page);
 
@@ -40,18 +44,6 @@ public:
 
 public:
     QPixmap thumbnail(QPixmap* snapshot = nullptr);
-
-    enum AnimateDirection
-    {
-        LeftToRight = 1,
-        RightToLeft = 2,
-        TopToBottom = 4,
-        BottomToTop = 8,
-        LeftTopToRight = 5,
-        RightBottomToLeftTop = 10,
-        LeftBottomToRightTop = 9,
-        RightTopToLeftBottomTop = 6,
-    };
 
 private:
     void resourceInserted(QModelIndex const &parent, int first, int last);

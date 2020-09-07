@@ -14,7 +14,7 @@ class PageCanvas;
 class AnimCanvas;
 class ToolCanvas;
 class ItemSelector;
-
+class WhiteCanvasControl;
 class ToolButton;
 
 /*
@@ -58,6 +58,11 @@ public:
     void switchPage(ResourcePage * page);
 
     void updateThunmbnail();
+
+public:
+    AnimCanvas * getDragAnimation(bool prev = false);
+
+    void dragRelease();
 
 #ifdef PROD_TEST
 public slots:
@@ -145,6 +150,8 @@ public:
 public:
     ItemSelector * selector();
 
+    WhiteCanvasControl * canvasControl();
+
     void enableSelector(bool enable);
 
     bool loading();
@@ -174,6 +181,7 @@ private:
     PageCanvas * globalCanvas_;
     ToolCanvas * tools_;
     ItemSelector * selector_;
+    WhiteCanvasControl * canvasControl_;
     int loadingCount_;
     int lastPage_;
 };

@@ -18,12 +18,15 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QGuiApplication>
 
+#include <controls/whitecanvascontrol.h>
+
 int WhiteCanvas::THUMBNAIL_HEIGHT = 108;
 
 WhiteCanvas::WhiteCanvas(QObject * parent)
     : QObject(parent)
     , package_(nullptr)
     , animCanvas_(nullptr)
+    , canvasControl_(nullptr)
     , loadingCount_(0)
 {
     static int THUMBNAIL_HEIGHT2 = dp(THUMBNAIL_HEIGHT);
@@ -109,27 +112,43 @@ bool WhiteCanvas::sceneEvent(QEvent *event)
 void WhiteCanvas::switchPage(ResourcePage * page)
 {
     loadingCount_ = 0;
+    // handle animation & snapshot
     AnimCanvas* anim = nullptr;
     if (this->page() && !animCanvas_) {
         if (page && !this->page()->isVirtualPage()
-                && !page->isVirtualPage() && !property("FromUser").toBool())
+                && !page->isVirtualPage() && !property("FromUser").toBool()) {
+            QPixmap snapshot;
+            this->page()->setThumbnail(canvas_->thumbnail(&snapshot));
             anim = new AnimCanvas(this);
-        this->page()->setThumbnail(canvas_->thumbnail(anim ? &anim->snapshot() : nullptr));
+            anim->setSnapshot(snapshot);
+        } else {
+            this->page()->setThumbnail(canvas_->thumbnail());
+        }
     }
+    // switch page
+    if (canvasControl_ != Control::fromItem(this))
+        delete canvasControl_;
     canvas_->switchPage(nullptr);
     setGeometry(scene()->sceneRect());
     canvas_->switchPage(page);
+    canvasControl_ = qobject_cast<WhiteCanvasControl*>(Control::fromItem(this));
+    if (page && canvasControl_ == nullptr)
+        canvasControl_ = new WhiteCanvasControl(this);
+    // handle animation
     int index = package_ ? package_->currentIndex() : -1;
     if (anim) {
         anim->stackBefore(globalCanvas_);
-        anim->startAnimate(index > lastPage_ ? PageCanvas::RightToLeft : PageCanvas::LeftToRight);
+        anim->setDirection(index > lastPage_
+                           ? AnimCanvas::RightToLeft : AnimCanvas::LeftToRight);
+        anim->setAfterPageSwitch(true);
+        anim->startAnimate();
         animCanvas_ = anim;
         connect(anim, &AnimCanvas::animateFinished, this, [this]() {
             delete animCanvas_;
             animCanvas_ = nullptr;
         });
     } else if (animCanvas_) {
-        animCanvas_->updateAnimate();
+        animCanvas_->updateCanvas();
     }
     emit currentPageChanged(canvas_->subPage());
     lastPage_ = index;
@@ -140,6 +159,45 @@ void WhiteCanvas::updateThunmbnail()
     if (page()) {
         page()->setThumbnail(canvas_->thumbnail());
     }
+}
+
+AnimCanvas* WhiteCanvas::getDragAnimation(bool prev)
+{
+    AnimCanvas::AnimateDirection dir = prev ? AnimCanvas::LeftToRight : AnimCanvas::RightToLeft;
+    if (animCanvas_) {
+        if (animCanvas_->afterPageSwitch()
+                || animCanvas_->inAnimate())
+            return nullptr;
+        delete animCanvas_;
+        animCanvas_ = nullptr;
+    }
+    ResourcePage * target = prev ? package_->prevPage(page()) : package_->nextPage(page());
+    if (target == nullptr)
+        return nullptr;
+    animCanvas_ = new AnimCanvas(this);
+    animCanvas_->setSnapshot(target->thumbnail());
+    animCanvas_->setDirection(dir);
+    animCanvas_->startAnimate();
+    connect(animCanvas_, &AnimCanvas::animateFinished, this, [this]() {
+        ResourcePage * target = nullptr;
+        if (animCanvas_->switchPage())
+            target = animCanvas_->direction() == AnimCanvas::LeftToRight
+                ? package_->prevPage(page())
+                : package_->nextPage(page());
+        delete animCanvas_;
+        animCanvas_ = nullptr;
+        if (target) {
+            setProperty("FromUser", true);
+            package_->switchPage(target);
+            setProperty("FromUser", QVariant());
+        }
+    });
+    return animCanvas_;
+}
+
+void WhiteCanvas::dragRelease()
+{
+    animCanvas_->release();
 }
 
 Control * WhiteCanvas::addResource(QUrl const & url, QVariantMap settings)
@@ -320,6 +378,11 @@ Control *WhiteCanvas::selectablePrev(Control * control)
 ItemSelector * WhiteCanvas::selector()
 {
     return selector_;
+}
+
+WhiteCanvasControl *WhiteCanvas::canvasControl()
+{
+    return canvasControl_;
 }
 
 void WhiteCanvas::enableSelector(bool enable)

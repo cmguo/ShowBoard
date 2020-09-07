@@ -114,6 +114,22 @@ void ResourcePackage::removePage(ResourcePage *page)
     return;
 }
 
+ResourcePage *ResourcePackage::prevPage(ResourcePage *page) const
+{
+    if (current_ >= 0 && page == pages_[current_])
+        return current_ == 0 ? nullptr : pages_[current_ - 1];
+    int n = pages_.indexOf(page);
+    return n > 0 ? pages_[n - 1] : nullptr;
+}
+
+ResourcePage *ResourcePackage::nextPage(ResourcePage *page) const
+{
+    if (current_ >= 0 && page == pages_[current_])
+        return current_ + 1 == pages_.size() ? nullptr : pages_[current_ + 1];
+    int n = pages_.indexOf(page) + 1;
+    return (n >= 0 && n < pages_.size()) ? pages_[n] : nullptr;
+}
+
 int ResourcePackage::currentNumber() const
 {
     return current_ + 1;
