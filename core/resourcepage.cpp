@@ -284,7 +284,8 @@ bool ResourcePage::isSubPage() const
 
 ResourceView *ResourcePage::mainResource() const
 {
-    return resources_.isEmpty() ? nullptr : resources_.first();
+    return (canvasView_ == nullptr || resources_.isEmpty())
+            ? nullptr : resources_.first();
 }
 
 void ResourcePage::setThumbnail(QPixmap thumb)

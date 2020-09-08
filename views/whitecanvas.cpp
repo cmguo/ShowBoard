@@ -1,4 +1,5 @@
 #include "animcanvas.h"
+#include "pageswitchevent.h"
 #include "qsshelper.h"
 #include "whitecanvas.h"
 
@@ -105,6 +106,26 @@ bool WhiteCanvas::sceneEvent(QEvent *event)
         break;
     default:
         return CanvasItem::sceneEvent(event);
+    }
+    return event->isAccepted();
+}
+
+bool WhiteCanvas::event(QEvent *event)
+{
+    switch (event->type()) {
+    case PageSwitchEvent::PageSwitchStart:
+        event->setAccepted(getDragAnimation(
+                               static_cast<PageSwitchStartEvent*>(event)->delta().x() > 0));
+        break;
+    case PageSwitchEvent::PageSwitchMove:
+        event->setAccepted(animCanvas_ && animCanvas_->move(
+                               static_cast<PageSwitchMoveEvent*>(event)->delta()));
+        break;
+    case PageSwitchEvent::PageSwitchEnd:
+        event->setAccepted(animCanvas_ && animCanvas_->release());
+        break;
+    default:
+        return QObject::event(event);
     }
     return event->isAccepted();
 }

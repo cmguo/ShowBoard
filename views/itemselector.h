@@ -40,6 +40,8 @@ public:
 
     Control * selected() const { return selectControl_; }
 
+    QEvent * currentEvent() const { return currentEvent_; }
+
 private:
     enum SelectType
     {
@@ -114,6 +116,7 @@ private:
     Control * cloneControl_;
 
 private:
+    QEvent * currentEvent_;
     QPointF start_;
     QMap<int, QPointF> lastPositions_;
     QRectF direction_;

@@ -53,7 +53,7 @@ public:
     // return true if reverted
     bool move(QPointF const & offset);
 
-    void release();
+    bool release();
 
     void stopAnimate();
 

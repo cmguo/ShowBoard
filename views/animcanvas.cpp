@@ -136,7 +136,7 @@ bool AnimCanvas::move(QPointF const & offset)
     return true;
 }
 
-void AnimCanvas::release()
+bool AnimCanvas::release()
 {
     assert(!afterPageSwitch_);
     QPointF p = pos();
@@ -154,6 +154,7 @@ void AnimCanvas::release()
     } else {
         timer_ = startTimer(20);
     }
+    return switchPage_;
 }
 
 void AnimCanvas::initAnimate()

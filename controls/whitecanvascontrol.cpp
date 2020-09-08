@@ -19,6 +19,8 @@
 #include <QGuiApplication>
 #include <QScreen>
 
+#include <views/pageswitchevent.h>
+
 static QssHelper QSS(":/showboard/qss/canvastoolbar.qss");
 
 static constexpr char const * toolsStr =
@@ -37,7 +39,7 @@ WhiteCanvasControl::WhiteCanvasControl(ResourceView * view, QGraphicsItem * canv
     realItem_ = item_;
 
 #ifdef PROD_TEST
-    setParent(static_cast<WhiteCanvas*>(item_)); // for testbed
+    setParent(whiteCanvas()); // for testbed
 #endif
 
     if (view->flags().testFlag(ResourceView::LargeCanvas)) {
@@ -80,6 +82,7 @@ WhiteCanvasControl::WhiteCanvasControl(WhiteCanvas *canvas)
     : Control(new ResourceView(new Resource("fakecanvas", QUrl())), {},
                                           Control::CanSelect | Control::CanScale | Control::CanRotate)
 {
+    res_->setParent(canvas->page());
     item_ = canvas;
     realItem_ = item_;
     QObject::connect(&res_->transform(), &ResourceTransform::beforeChanged,
@@ -94,7 +97,7 @@ WhiteCanvasControl::~WhiteCanvasControl()
     saveSettings();
     delete posBar_;
     if (flags_ & (Selected | Adjusting))
-        static_cast<WhiteCanvas*>(item_)->selector()->unselect(this);
+        whiteCanvas()->selector()->unselect(this);
     item_->setData(ITEM_KEY_CONTROL, QVariant());
     item_->setTransformations({});
     item_ = nullptr;
@@ -150,7 +153,7 @@ void WhiteCanvasControl::resize(const QSizeF &size)
         QRectF rect(QPointF(0, 0), size);
         rect.moveCenter(QPointF(0, 0));
         rect |= srect;
-        static_cast<WhiteCanvas*>(item_)->setGeometry(rect);
+        whiteCanvas()->setGeometry(rect);
         if (flags_.testFlag(LoadFinished)) {
             QSizeF ds = (rect.size() - old.size()) / 2;
             QPointF d{ds.width(), ds.height()};
@@ -177,46 +180,38 @@ void WhiteCanvasControl::adjusting(bool be)
 {
     Control::adjusting(be);
     if (!be) {
-        if (anim_)
-            anim_->release();
-        anim_ = nullptr;
+        PageSwitchEndEvent e;
+        e.setOriginEvent(whiteCanvas()->selector()->currentEvent());
+        if (pageSwitch_)
+            pageSwitch_->event(&e);
+        pageSwitch_ = nullptr;
     }
 }
 
 void WhiteCanvasControl::move(QPointF &delta)
 {
-    if (anim_) {
-        if (anim_->move(delta))
-            return;
-        anim_ = nullptr;
-    }
+    if (pageSwitchMove(delta))
+        return;
     QPointF d = delta;
     Control::move(delta);
     if (qFuzzyIsNull(delta.x()) && qFuzzyIsNull(delta.y()) && !qFuzzyIsNull(d.x())) {
         delta.setX(d.x());
-        anim_ = static_cast<WhiteCanvas*>(item_)->getDragAnimation(delta.x() > 0);
-        if (anim_)
-            anim_->move(delta);
+        pageSwitchStart(delta);
     }
 }
 
 void WhiteCanvasControl::gesture(const QPointF &from1, const QPointF &from2, QPointF &to1, QPointF &to2)
 {
     QPointF d = (to1 + to2 - from1 - from2) / 2;
-    if (anim_) {
-        if (anim_->move(d))
-            return;
-        anim_ = nullptr;
-    }
+    if (pageSwitchMove(d))
+        return;
     qreal s = res_->transform().scale().m11();
     Control::gesture(from1, from2, to1, to2);
     QPointF delta = (to1 + to2 - from1 - from2) / 2;
     if (qFuzzyIsNull(delta.x()) && qFuzzyIsNull(delta.y()) && !qFuzzyIsNull(d.x())
             && qFuzzyIsNull((s / res_->transform().scale().m11() - 1.0) / 1000.0)) {
         delta.setX(d.x());
-        anim_ = static_cast<WhiteCanvas*>(item_)->getDragAnimation(delta.x() > 0);
-        if (anim_)
-            anim_->move(delta);
+        pageSwitchStart(delta);
     } else {
         d -= delta;
         to1 += d;
@@ -272,4 +267,36 @@ void WhiteCanvasControl::updateTransform()
     QRectF srect = item_->scene()->sceneRect();
     QRectF crect = item_->boundingRect();
     posBar_->update(srect, crect, transform.scale().m11(), transform.offset());
+}
+
+WhiteCanvas * WhiteCanvasControl::whiteCanvas()
+{
+    return static_cast<WhiteCanvas*>(item_);
+}
+
+void WhiteCanvasControl::pageSwitchStart(const QPointF &delta)
+{
+    PageSwitchStartEvent e(delta);
+    e.setOriginEvent(whiteCanvas()->selector()->currentEvent());
+    Control * c = static_cast<WhiteCanvas*>(item_)
+            ->findControl(res_->page()->mainResource());
+    if (c && c->event(&e) && e.isAccepted()) {
+        pageSwitch_ = c;
+    } else {
+        pageSwitch_ = whiteCanvas();
+        if (!pageSwitch_->event(&e) || !e.isAccepted())
+            pageSwitch_ = nullptr;
+    }
+    pageSwitchMove(delta);
+}
+
+bool WhiteCanvasControl::pageSwitchMove(const QPointF &delta)
+{
+    if (pageSwitch_) {
+        PageSwitchMoveEvent e(delta);
+        e.setOriginEvent(whiteCanvas()->selector()->currentEvent());
+        if (!pageSwitch_->event(&e) || !e.isAccepted())
+            pageSwitch_ = nullptr;
+    }
+    return pageSwitch_ != nullptr;
 }

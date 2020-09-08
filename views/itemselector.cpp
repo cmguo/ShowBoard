@@ -33,6 +33,7 @@ ItemSelector::ItemSelector(QGraphicsItem * parent)
     , selectControl_(nullptr)
     , tempControl_(nullptr)
     , cloneControl_(nullptr)
+    , currentEvent_(nullptr)
     , type_(None)
 {
     setAcceptedMouseButtons(Qt::LeftButton);
@@ -440,6 +441,7 @@ void ItemSelector::mousePressEvent(QGraphicsSceneMouseEvent *event)
         CanvasItem::mousePressEvent(event);
         return;
     }
+    currentEvent_ = event;
     selectAt(event->pos(), event->scenePos(), Mouse);
     if (type_ == None || type_ == Implied) {
         CanvasItem::mousePressEvent(event);
@@ -459,6 +461,7 @@ void ItemSelector::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         return;
     }
     //qDebug() << "mouseMove";
+    currentEvent_ = event;
     selectMove(event->pos(), event->scenePos());
 }
 
@@ -475,12 +478,14 @@ void ItemSelector::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
         return;
     }
     //qDebug() << "mouseRelease";
+    currentEvent_ = event;
     selectRelease();
 }
 
 void ItemSelector::touchBegin(QTouchEvent *event)
 {
     //qDebug() << "touchBegin";
+    currentEvent_ = event;
     QTouchEvent::TouchPoint const & point(event->touchPoints().first());
     selectAt(point.pos(), point.scenePos(), Touch);
     if (type_ != None && type_ != Implied) {
@@ -500,6 +505,7 @@ void ItemSelector::touchUpdate(QTouchEvent *event)
     if (tempControl_ == nullptr)
         return;
     //qDebug() << "touchUpdate";
+    currentEvent_ = event;
     QMap<int, QPointF> positions;
     bool isCanvas = tempControl_->metaObject() == &WhiteCanvasControl::staticMetaObject
             || (tempControl_->flags() & Control::FixedOnCanvas);
@@ -561,7 +567,7 @@ void ItemSelector::touchUpdate(QTouchEvent *event)
 void ItemSelector::touchEnd(QTouchEvent *event)
 {
     //qDebug() << "touchEnd";
-    (void) event;
+    currentEvent_ = event;
     lastPositions_.clear();
     selectRelease();
 }

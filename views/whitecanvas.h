@@ -169,6 +169,8 @@ private:
 
     virtual bool sceneEvent(QEvent *event) override;
 
+    virtual bool event(QEvent *event) override;
+
 private:
     Control * selectableNext(Control * control);
 

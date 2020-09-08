@@ -6,6 +6,7 @@ HEADERS += \
     $$PWD/itemframe.h \
     $$PWD/itemselector.h \
     $$PWD/pagecanvas.h \
+    $$PWD/pageswitchevent.h \
     $$PWD/positionbar.h \
     $$PWD/qsshelper.h \
     $$PWD/quickproxyitem.h \
@@ -27,6 +28,7 @@ SOURCES += \
     $$PWD/itemframe.cpp \
     $$PWD/itemselector.cpp \
     $$PWD/pagecanvas.cpp \
+    $$PWD/pageswitchevent.cpp \
     $$PWD/positionbar.cpp \
     $$PWD/qsshelper.cpp \
     $$PWD/quickproxyitem.cpp \

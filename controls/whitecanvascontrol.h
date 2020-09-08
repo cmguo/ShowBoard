@@ -5,7 +5,7 @@
 
 class WhiteCanvas;
 class PositionBar;
-class AnimCanvas;
+class WhiteCanvas;
 
 class WhiteCanvasControl : public Control
 {
@@ -71,10 +71,16 @@ private:
 
     void updateTransform();
 
+    WhiteCanvas * whiteCanvas();
+
+    void pageSwitchStart(QPointF const & delta);
+
+    bool pageSwitchMove(QPointF const & delta);
+
 private:
     PositionBar * posBar_ = nullptr;
     QGraphicsItem* toolBar_ = nullptr;
-    AnimCanvas * anim_ = nullptr;
+    QObject * pageSwitch_ = nullptr;
 };
 
 #endif // WHITECANVASCONTROL_H
