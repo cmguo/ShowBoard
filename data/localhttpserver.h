@@ -24,18 +24,21 @@ public:
 
     ushort port() const;
 
-public:
-    void addServePath(QByteArray const & prefix, QString const & path);
-
-    void addServePath(QByteArray const & prefix, FileCache & cache);
-
 signals:
     void start();
+
+    void addServePath(QByteArray const & prefix, QString const & path);
+
+    void addServeCache(QByteArray const & prefix, FileCache * cache);
 
     void stop();
 
 private:
     void start2();
+
+    void addServePath2(QByteArray const & prefix, QString const & path);
+
+    void addServeCache2(QByteArray const & prefix, FileCache * cache);
 
     void stop2();
 

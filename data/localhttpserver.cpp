@@ -29,6 +29,8 @@ LocalHttpServer::LocalHttpServer(QObject * parent)
 {
     moveToThread(&::thread());
     connect(this, &LocalHttpServer::start, this, &LocalHttpServer::start2);
+    connect(this, &LocalHttpServer::addServePath, this, &LocalHttpServer::addServePath2);
+    connect(this, &LocalHttpServer::addServeCache, this, &LocalHttpServer::addServeCache2);
     connect(this, &LocalHttpServer::stop, this, &LocalHttpServer::stop2);
     //addServePath("/", QDir::currentPath() + "/");
 }
@@ -43,17 +45,17 @@ ushort LocalHttpServer::port() const
     return port_;
 }
 
-void LocalHttpServer::addServePath(const QByteArray &prefix, const QString &path)
+void LocalHttpServer::addServePath2(const QByteArray &prefix, const QString &path)
 {
     server_->route(prefix, [path](QString const & subPath) {
         return QHttpServerResponse::fromFile(path + subPath);
     });
 }
 
-void LocalHttpServer::addServePath(const QByteArray &prefix, FileCache &cache)
+void LocalHttpServer::addServeCache2(const QByteArray &prefix, FileCache *cache)
 {
-    server_->route(prefix, [&cache](QString const & subPath) {
-        const QByteArray data = cache.getData(subPath);
+    server_->route(prefix, [cache](QString const & subPath) {
+        const QByteArray data = cache->getData(subPath);
         if (data.isNull())
             return QHttpServerResponse(QHttpServerResponse::StatusCode::NotFound);
         const QByteArray mimeType = QMimeDatabase().mimeTypeForFileNameAndData(subPath, data).name().toLocal8Bit();
