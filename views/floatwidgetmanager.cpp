@@ -375,7 +375,7 @@ void FloatWidgetManager::focusChanged(QWidget * old, QWidget *now)
             qDebug() << "FloatWidgetManager::focusChanged: ignore fast focus lost";
             old->setFocus();
             return;
-        } else {
+        } else if (main_->isActiveWindow()) {
             old->hide();
         }
     }
