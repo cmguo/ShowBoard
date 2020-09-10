@@ -219,7 +219,7 @@ void WhiteCanvasWidget::moveSelection()
 {
     Control * c = canvas_->selected();
     qreal delta = 10;
-    if (!c) { c = Control::fromItem(canvas_); delta = -20; }
+    //if (!c) { c = Control::fromItem(canvas_); delta = -20; }
     QPointF d;
     if (c && c->flags().testFlag(Control::CanMove)) {
         QShortcut* s = qobject_cast<QShortcut*>(sender());
