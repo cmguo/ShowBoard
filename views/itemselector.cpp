@@ -443,6 +443,7 @@ void ItemSelector::mousePressEvent(QGraphicsSceneMouseEvent *event)
     }
     currentEvent_ = event;
     selectAt(event->pos(), event->scenePos(), Mouse);
+    currentEvent_ = nullptr;
     if (type_ == None || type_ == Implied) {
         CanvasItem::mousePressEvent(event);
     }
@@ -463,6 +464,7 @@ void ItemSelector::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     //qDebug() << "mouseMove";
     currentEvent_ = event;
     selectMove(event->pos(), event->scenePos());
+    currentEvent_ = nullptr;
 }
 
 void ItemSelector::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
@@ -480,6 +482,7 @@ void ItemSelector::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     //qDebug() << "mouseRelease";
     currentEvent_ = event;
     selectRelease();
+    currentEvent_ = nullptr;
 }
 
 void ItemSelector::touchBegin(QTouchEvent *event)
@@ -488,6 +491,7 @@ void ItemSelector::touchBegin(QTouchEvent *event)
     currentEvent_ = event;
     QTouchEvent::TouchPoint const & point(event->touchPoints().first());
     selectAt(point.pos(), point.scenePos(), Touch);
+    currentEvent_ = nullptr;
     if (type_ != None && type_ != Implied) {
         bool isCanvas = tempControl_->metaObject() == &WhiteCanvasControl::staticMetaObject
                 || (tempControl_->flags() & Control::FixedOnCanvas);
@@ -561,6 +565,7 @@ void ItemSelector::touchUpdate(QTouchEvent *event)
                 layoutToolbar();
         }
     }
+    currentEvent_ = nullptr;
     lastPositions_.swap(positions);
 }
 
@@ -570,10 +575,12 @@ void ItemSelector::touchEnd(QTouchEvent *event)
     currentEvent_ = event;
     lastPositions_.clear();
     selectRelease();
+    currentEvent_ = nullptr;
 }
 
 void ItemSelector::wheelEvent(QGraphicsSceneWheelEvent *event)
 {
+    currentEvent_ = event;
     selectAt(event->pos(), event->scenePos(), Wheel);
     if (tempControl_) {
         if (event->modifiers().testFlag(Qt::KeyboardModifier::ControlModifier)) {
@@ -592,6 +599,7 @@ void ItemSelector::wheelEvent(QGraphicsSceneWheelEvent *event)
     } else {
         event->ignore();
     }
+    currentEvent_ = nullptr;
 }
 
 bool ItemSelector::sceneEvent(QEvent *event)

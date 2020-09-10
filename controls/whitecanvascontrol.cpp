@@ -282,8 +282,11 @@ WhiteCanvas * WhiteCanvasControl::whiteCanvas()
 
 void WhiteCanvasControl::pageSwitchStart(const QPointF &delta)
 {
+    QEvent * oe = whiteCanvas()->selector()->currentEvent();
+    if (!oe || oe->type() == QEvent::GraphicsSceneWheel)
+        return;
     PageSwitchStartEvent e(delta);
-    e.setOriginEvent(whiteCanvas()->selector()->currentEvent());
+    e.setOriginEvent(oe);
     Control * c = static_cast<WhiteCanvas*>(item_)
             ->findControl(res_->page()->mainResource());
     if (c && c->event(&e) && e.isAccepted()) {
