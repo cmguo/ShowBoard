@@ -45,6 +45,8 @@ public:
 public:
     QPixmap thumbnail(QPixmap* snapshot = nullptr);
 
+    bool hasSubCanvas(QGraphicsItem * canvas);
+
 private:
     void resourceInserted(QModelIndex const &parent, int first, int last);
 
@@ -55,8 +57,6 @@ private:
 
 private:
     void subPageChanged(ResourcePage* page);
-
-    bool hasSubCanvas(QGraphicsItem * canvas);
 
 private:
     void insertResource(int layer);

@@ -165,10 +165,8 @@ void AnimCanvas::initAnimate()
     canvas->setBrush(brush());
     canvas->setFlag(ItemHasNoContents, false);
     for (QGraphicsItem * sibling : parentItem()->childItems()) {
-        if (sibling == this)
+        if (!canvas->hasSubCanvas(sibling))
             break;
-        if (sibling->type() != PageCanvas::Type)
-            continue;
         sibling->setFlag(ItemClipsChildrenToShape, true);
     }
 }
@@ -179,10 +177,8 @@ void AnimCanvas::termAnimate()
     canvas->setBrush(QBrush());
     canvas->setFlag(ItemHasNoContents, true);
     for (QGraphicsItem * sibling : parentItem()->childItems()) {
-        if (sibling == this)
+        if (!canvas->hasSubCanvas(sibling))
             break;
-        if (sibling->type() != PageCanvas::Type)
-            continue;
         sibling->setFlag(ItemClipsChildrenToShape, false);
     }
     scene()->setBackgroundBrush(brush());
