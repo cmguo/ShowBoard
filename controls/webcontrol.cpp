@@ -1,4 +1,4 @@
-﻿#include "webcontrol.h"
+#include "webcontrol.h"
 #include "core/resource.h"
 #include "core/resourceview.h"
 #include "core/resourcetransform.h"
@@ -25,7 +25,7 @@
 #include <core/oomhandler.h>
 
 #define LARGE_CANVAS_LINKAGE 1
-#define LARGE_CANVAS_LINKAGE_SCALE 1
+#define LARGE_CANVAS_LINKAGE_SCALE 0
 
 static char const * toolstr =
         "reload()|刷新|;"
@@ -273,7 +273,7 @@ void WebControl::scrollPositionChanged(const QPointF &pos)
     qreal scale = static_cast<WebView *>(widget_)->scale();
     canvasControl->resource()->transform().scaleTo(scale);
     canvasControl->resource()->transform()
-            .translateTo(-rect.center() - pos);
+            .translateTo(-rect.center() - pos * scale);
 }
 
 void WebControl::reload()
