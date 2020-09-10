@@ -213,11 +213,11 @@ ResourceView::ResourceView(ResourceView const & o)
     //transform_->translate({60, 60});
 }
 
-Q_DECLARE_METATYPE(QMimeData const *)
+Q_DECLARE_METATYPE(QSharedPointer<QMimeData>)
 
 QMimeData const * ResourceView::mimeData()
 {
-    return property("mimedata").value<QMimeData const *>();
+    return property("mimedata").value<QSharedPointer<QMimeData>>().get();
 }
 
 ResourceView * ResourceView::clone() const
@@ -248,6 +248,17 @@ void ResourceView::copy(QMimeData &data)
     });
 }
 
+class CopyMimeData : public QMimeData
+{
+public:
+    CopyMimeData(QMimeData const & data)
+    {
+        setImageData(data.imageData());
+        setText(data.text());
+        setHtml(data.html());
+    }
+};
+
 ResourceView *ResourceView::paste(QMimeData const &data)
 {
     QByteArray resId = data.data("Resource");
@@ -274,7 +285,8 @@ ResourceView *ResourceView::paste(QMimeData const &data)
                          : QUrl(f.left(n) + ":");
         if (ResourceManager::instance()->isExplitSupported(url)) {
             ResourceView * res = ResourceManager::instance()->createResource(url);
-            res->setProperty("mimedata", QVariant::fromValue(&data));
+            QSharedPointer<QMimeData> cd(new CopyMimeData(data));
+            res->setProperty("mimedata", QVariant::fromValue(cd));
             return res;
         }
     }
