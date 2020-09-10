@@ -34,6 +34,7 @@ ItemSelector::ItemSelector(QGraphicsItem * parent)
     , tempControl_(nullptr)
     , cloneControl_(nullptr)
     , currentEvent_(nullptr)
+    , currentEventSource_(nullptr)
     , type_(None)
 {
     setAcceptedMouseButtons(Qt::LeftButton);
@@ -109,7 +110,7 @@ void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos, EventT
     type_ = None;
     if (selectControl_ && selBox_->isVisible()) {
         type_ = static_cast<SelectType>(
-                    selBox_->hitTest(selBox_->mapFromParent(pos), direction_));
+                    selBox_->hitTest(selBox_->mapFromItem(currentEventSource_, pos), direction_));
         if (fastClone_ && type_ == Translate)
             type_ = FastClone;
         if (type_ == None && eventType == Touch) { // maybe hit menu bar
@@ -147,7 +148,9 @@ void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos, EventT
                     && !(ct->flags() & (Control::Touchable | Control::FullSelect)))
                 force = false;
             if (!force) {
-                mode = ct->selectTest(children[i], item, mapToItem(ct->item(), pos), mode == Control::PassSelect2);
+                mode = ct->selectTest(children[i], item,
+                                      ct->item()->mapFromItem(currentEventSource_, pos),
+                                      mode == Control::PassSelect2);
             }
             //qDebug() << force << ct->resource()->name() << mode;
             if (force || mode == Control::Select) {
@@ -441,9 +444,7 @@ void ItemSelector::mousePressEvent(QGraphicsSceneMouseEvent *event)
         CanvasItem::mousePressEvent(event);
         return;
     }
-    currentEvent_ = event;
     selectAt(event->pos(), event->scenePos(), Mouse);
-    currentEvent_ = nullptr;
     if (type_ == None || type_ == Implied) {
         CanvasItem::mousePressEvent(event);
     }
@@ -462,9 +463,7 @@ void ItemSelector::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         return;
     }
     //qDebug() << "mouseMove";
-    currentEvent_ = event;
     selectMove(event->pos(), event->scenePos());
-    currentEvent_ = nullptr;
 }
 
 void ItemSelector::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
@@ -480,18 +479,14 @@ void ItemSelector::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
         return;
     }
     //qDebug() << "mouseRelease";
-    currentEvent_ = event;
     selectRelease();
-    currentEvent_ = nullptr;
 }
 
 void ItemSelector::touchBegin(QTouchEvent *event)
 {
-    //qDebug() << "touchBegin";
-    currentEvent_ = event;
+    qDebug() << "touchBegin";
     QTouchEvent::TouchPoint const & point(event->touchPoints().first());
     selectAt(point.pos(), point.scenePos(), Touch);
-    currentEvent_ = nullptr;
     if (type_ != None && type_ != Implied) {
         bool isCanvas = tempControl_->metaObject() == &WhiteCanvasControl::staticMetaObject
                 || (tempControl_->flags() & Control::FixedOnCanvas);
@@ -508,8 +503,7 @@ void ItemSelector::touchUpdate(QTouchEvent *event)
 {
     if (tempControl_ == nullptr)
         return;
-    //qDebug() << "touchUpdate";
-    currentEvent_ = event;
+    qDebug() << "touchUpdate";
     QMap<int, QPointF> positions;
     bool isCanvas = tempControl_->metaObject() == &WhiteCanvasControl::staticMetaObject
             || (tempControl_->flags() & Control::FixedOnCanvas);
@@ -565,22 +559,20 @@ void ItemSelector::touchUpdate(QTouchEvent *event)
                 layoutToolbar();
         }
     }
-    currentEvent_ = nullptr;
     lastPositions_.swap(positions);
 }
 
-void ItemSelector::touchEnd(QTouchEvent *event)
+void ItemSelector::touchEnd(QTouchEvent *)
 {
-    //qDebug() << "touchEnd";
-    currentEvent_ = event;
+    if (tempControl_ == nullptr)
+        return;
+    qDebug() << "touchEnd";
     lastPositions_.clear();
     selectRelease();
-    currentEvent_ = nullptr;
 }
 
 void ItemSelector::wheelEvent(QGraphicsSceneWheelEvent *event)
 {
-    currentEvent_ = event;
     selectAt(event->pos(), event->scenePos(), Wheel);
     if (tempControl_) {
         if (event->modifiers().testFlag(Qt::KeyboardModifier::ControlModifier)) {
@@ -599,11 +591,12 @@ void ItemSelector::wheelEvent(QGraphicsSceneWheelEvent *event)
     } else {
         event->ignore();
     }
-    currentEvent_ = nullptr;
 }
 
 bool ItemSelector::sceneEvent(QEvent *event)
 {
+    currentEvent_ = event;
+    currentEventSource_ = this;
     switch (event->type()) {
     case QEvent::TouchBegin:
         touchBegin(static_cast<QTouchEvent*>(event));
@@ -619,8 +612,13 @@ bool ItemSelector::sceneEvent(QEvent *event)
             select2(nullptr);
         break;
     default:
-        return CanvasItem::sceneEvent(event);
+        bool b = CanvasItem::sceneEvent(event);
+        currentEvent_ = nullptr;
+        currentEventSource_ = nullptr;
+        return b;
     }
+    currentEvent_ = nullptr;
+    currentEventSource_ = nullptr;
     return event->isAccepted();
 }
 
@@ -629,6 +627,8 @@ bool ItemSelector::sceneEventFilter(QGraphicsItem *watched, QEvent *event)
     (void) watched;
     bool mouse = false;
     //qDebug() << "sceneEventFilter" << event->type();
+    currentEvent_ = event;
+    currentEventSource_ = watched;
     switch (event->type()) {
     case QEvent::GraphicsSceneMousePress:
         mouse = true;
@@ -664,6 +664,8 @@ bool ItemSelector::sceneEventFilter(QGraphicsItem *watched, QEvent *event)
     default:
         break;
     }
+    currentEvent_ = nullptr;
+    currentEventSource_ = nullptr;
     // for mouse events, return true to stop handling,
     //   this will cause sendEvent() return false,
     //   but return value is not used by mousePressEventHandler()

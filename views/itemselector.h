@@ -94,6 +94,9 @@ private:
 
     virtual bool sceneEvent(QEvent *event) override;
 
+public:
+    // for StylusGuestureHelper from TeachingTools
+    // TODO:
     virtual bool sceneEventFilter(QGraphicsItem *watched, QEvent *event) override;
 
 private:
@@ -117,6 +120,7 @@ private:
 
 private:
     QEvent * currentEvent_;
+    QGraphicsItem * currentEventSource_;
     QPointF start_;
     QMap<int, QPointF> lastPositions_;
     QRectF direction_;
