@@ -82,6 +82,9 @@ WhiteCanvasWidget::WhiteCanvasWidget(QWidget *parent)
     // Space, Backspace
     new QShortcut(QKeySequence(Qt::Key_Space), this, SLOT(switchPage()));
     new QShortcut(QKeySequence(Qt::Key_Backspace), this, SLOT(switchPage()));
+    // Control + Space/Backspace
+    new QShortcut(QKeySequence(Qt::Key_Space | Qt::ControlModifier), this, SLOT(switchPage()));
+    new QShortcut(QKeySequence(Qt::Key_Backspace | Qt::ControlModifier), this, SLOT(switchPage()));
 
     mainInstance_ = this;
 }
@@ -300,11 +303,12 @@ void WhiteCanvasWidget::switchPage()
             if ((next ? c->exec("next()") : c->exec("prev()")))
                 return;
         }
+    } else {
+        if (next)
+            package()->gotoNext();
+        else
+            package()->gotoPrevious();
     }
-    if (next)
-        package()->gotoNext();
-    else
-        package()->gotoPrevious();
 }
 
 void WhiteCanvasWidget::copyPaste()
