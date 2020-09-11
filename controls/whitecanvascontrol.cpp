@@ -292,9 +292,11 @@ void WhiteCanvasControl::pageSwitchStart(const QPointF &delta)
     if (c && c->event(&e) && e.isAccepted()) {
         pageSwitch_ = c;
     } else {
+#ifdef QT_DEBUG
         pageSwitch_ = whiteCanvas();
         if (!pageSwitch_->event(&e) || !e.isAccepted())
             pageSwitch_ = nullptr;
+#endif
     }
     pageSwitchMove(delta);
 }

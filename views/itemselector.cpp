@@ -136,9 +136,11 @@ void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos, EventT
             }
             Control * ct = Control::fromItem(item);
             if (!ct) {
+#ifdef QT_DEBUG
                 if (force_ && item == parentItem())
                     ct = static_cast<WhiteCanvas*>(parentItem())->canvasControl();
                 else
+#endif
                     continue;
             }
             bool force = force_ && (ct->flags() & Control::DefaultFlags);
