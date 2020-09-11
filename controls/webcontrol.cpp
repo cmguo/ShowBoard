@@ -1,4 +1,4 @@
-#include "webcontrol.h"
+﻿#include "webcontrol.h"
 #include "core/resource.h"
 #include "core/resourceview.h"
 #include "core/resourcetransform.h"
@@ -59,6 +59,7 @@ private:
     QQuickWidget *hostWidget();
 private:
     QQuickWidget* childWidget_ = nullptr;
+    bool synthesizedMouse_ = false;
 };
 
 // TODO: fix multiple touch crash
@@ -238,8 +239,8 @@ void WebControl::loadFinished(bool ok)
     if (!flags_.testFlag(Loading))
         return;
     if (ok) {
-        if (!touchable())
-            static_cast<WebView *>(widget_)->synthesizedMouseEvents();
+        if(!touchable())
+        static_cast<WebView *>(widget_)->synthesizedMouseEvents();
         Control::loadFinished(ok);
         contentsSizeChanged({ 0, 0 });
     } else {
@@ -382,6 +383,12 @@ WebView::WebView(QObject *settings)
     connect(page(), &WebPage::fullScreenRequested, this, [](QWebEngineFullScreenRequest fullScreenRequest) {
         fullScreenRequest.accept();
     });
+    connect(page(), &WebPage::loadFinished, this, [this]() {
+         QObject::connect(hostWidget(), &QObject::destroyed, this, [this]() {
+             reload();
+         }, Qt::QueuedConnection);
+         hostWidget()->installEventFilter(this);
+    });
 }
 
 qreal WebView::scale() const
@@ -483,11 +490,7 @@ void WebView::debug()
 
 void WebView::synthesizedMouseEvents()
 {
-    QObject::connect(hostWidget(), &QObject::destroyed, this, [this]() {
-        reload();
-        synthesizedMouseEvents();
-    }, Qt::QueuedConnection);
-    hostWidget()->installEventFilter(this);
+    synthesizedMouse_ = true;
 }
 
 
@@ -531,13 +534,14 @@ public:
 bool WebView::eventFilter(QObject *watched, QEvent *event)
 {
     (void) watched;
-    //if (event->type() != QEvent::Timer && event->type() != QEvent::MouseMove)
-    //    qDebug() << "WebView::eventFilter: " << event->type();
-    if (event->type() == QEvent::MouseButtonPress
+    if ( synthesizedMouse_ && (event->type() == QEvent::MouseButtonPress
             || event->type() == QEvent::MouseMove
-            || event->type() == QEvent::MouseButtonRelease) {
-        //qDebug() << "WebView::eventFilter: " << static_cast<QMouseEvent*>(event);
+            || event->type() == QEvent::MouseButtonRelease)) {
         static_cast<QMouseEvent2*>(event)->caps = 0;
+    }
+    if( event->type() == QEvent::Wheel && QApplication::keyboardModifiers ().testFlag(Qt::ControlModifier)) {
+        event->accept();
+        return true;
     }
     return false;
 }
