@@ -486,7 +486,7 @@ void ItemSelector::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 
 void ItemSelector::touchBegin(QTouchEvent *event)
 {
-    qDebug() << "touchBegin";
+    //qDebug() << "touchBegin";
     QTouchEvent::TouchPoint const & point(event->touchPoints().first());
     selectAt(point.pos(), point.scenePos(), Touch);
     if (type_ != None && type_ != Implied) {
@@ -505,7 +505,7 @@ void ItemSelector::touchUpdate(QTouchEvent *event)
 {
     if (tempControl_ == nullptr)
         return;
-    qDebug() << "touchUpdate";
+    //qDebug() << "touchUpdate";
     QMap<int, QPointF> positions;
     bool isCanvas = tempControl_->metaObject() == &WhiteCanvasControl::staticMetaObject
             || (tempControl_->flags() & Control::FixedOnCanvas);
@@ -568,7 +568,7 @@ void ItemSelector::touchEnd(QTouchEvent *)
 {
     if (tempControl_ == nullptr)
         return;
-    qDebug() << "touchEnd";
+    //qDebug() << "touchEnd";
     lastPositions_.clear();
     selectRelease();
 }

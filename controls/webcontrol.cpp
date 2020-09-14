@@ -185,7 +185,7 @@ void WebControl::attached()
         //        qobject_cast<QWebEngineView *>(widget_)->page()->setLifecycleState(QWebEnginePage::LifecycleState::Active);
         //#endif
         // TODO: handle backup loadFinished
-        loadFinished(true);
+        Control::loadFinished(true);
         if(QQuickWindow::sceneGraphBackend() == "software"){
             int diff = WebViewSizeChangeArra[webViewSizeChangeIndex_];
             widget_->resize(widget_->size() + QSize(diff, diff));
@@ -239,8 +239,8 @@ void WebControl::loadFinished(bool ok)
     if (!flags_.testFlag(Loading))
         return;
     if (ok) {
-        if(!touchable())
-        static_cast<WebView *>(widget_)->synthesizedMouseEvents();
+        if (!touchable())
+            static_cast<WebView *>(widget_)->synthesizedMouseEvents();
         Control::loadFinished(ok);
         contentsSizeChanged({ 0, 0 });
     } else {
