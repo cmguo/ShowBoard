@@ -70,6 +70,10 @@ public:
         return rotateTranslate_;
     }
 
+    qreal zoom() const;
+
+    QSizeF zoom2d() const;
+
     qreal angle() const;
 
     QPointF offset() const

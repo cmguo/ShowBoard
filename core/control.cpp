@@ -649,7 +649,7 @@ void Control::initScale()
             }
         }
         if (canvasControl && !flags_.testFlag(FixedOnCanvas)) {
-            qreal s = 1 / canvasControl->resource()->transform().scale().m11();
+            qreal s = 1 / canvasControl->resource()->transform().zoom();
             size *= s;
             scale *= s;
         }

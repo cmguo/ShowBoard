@@ -64,7 +64,7 @@ void ImageControl::copy(QMimeData &data)
 void ImageControl::setPixmap(const QPixmap &pixmap)
 {
     if (qIsNull(mipmap_)) {
-        qreal scale = res_->transform().scale().m11();
+        qreal scale = res_->transform().zoom();
         QSizeF size = item_->boundingRect().size() * scale;
         setMipMapPixmap(pixmap, size);
     } else {
@@ -77,7 +77,7 @@ void ImageControl::setPixmap(const QPixmap &pixmap)
             });
             adjustMipmap2(whiteCanvas()->rect().size());
         } else {
-            qreal scale = res_->transform().scale().m11();
+            qreal scale = res_->transform().zoom();
             adjustMipmap2(item_->boundingRect().size() * scale);
         }
     }
@@ -110,7 +110,7 @@ void ImageControl::adjustMipmap()
 {
     if (!data_)
         return;
-    qreal scale = res_->transform().scale().m11();
+    qreal scale = res_->transform().zoom();
     if (scale >= 1 || scale <= 1 / mipmap_) {
         adjustMipmap2(item_->boundingRect().size() * scale);
     }

@@ -54,6 +54,16 @@ ResourceTransform &ResourceTransform::operator=(const ResourceTransform &o)
     return *this;
 }
 
+qreal ResourceTransform::zoom() const
+{
+    return scale_.m11();
+}
+
+QSizeF ResourceTransform::zoom2d() const
+{
+    return {scale_.m11(), scale_.m22()};
+}
+
 qreal ResourceTransform::angle() const
 {
     return angle(rotate_.map(QPointF(100, 0)));
@@ -329,17 +339,21 @@ void ResourceTransform::gesture(const QPointF &from1, const QPointF &from2, QPoi
     // line1: from1 -- from2
     // line2: to1 -- to2
     // split into scale, rotate and translate
-    //qDebug() << "from1" << from1 << "from2" << from2 << "to1" << to1 << "to2" << to2;
-    qreal s = scale ? length(to2 - to1) / length(from2 - from1) : 1;
-    qreal r = rotate ? angle(to2 - to1) - angle(from2 - from1) : 0;
+    //qDebug() << "ResourceTransform::gesture: fr1" << from1 << "fr2" << from2;
+    //qDebug() << "ResourceTransform::gesture: to1" << to1 << "to2" << to2;
+    qreal s = length(to2 - to1) / length(from2 - from1);
+    qreal r = angle(to2 - to1) - angle(from2 - from1);
     QPointF t0 = QPointF(translate_.dx(), translate_.dy());
-    QPointF t = from2 - t0;
+    //QPointF t1 = from1 - t0;
+    QPointF t2 = from2 - t0;
     if (scale) {
         qreal s0 = s;
-        if (limitScale[0] > 0 && s * scale_.m11() < limitScale[0])
-            s = limitScale[0] / scale_.m11();
-        else if (limitScale[1] > 0 && s * scale_.m11() > limitScale[1])
-            s = limitScale[1] / scale_.m11();
+        if (limitScale[0] > 0 && s * zoom() < limitScale[0])
+            s = limitScale[0] / zoom();
+        else if (limitScale[1] > 0 && s * zoom() > limitScale[1])
+            s = limitScale[1] / zoom();
+        else if (s < 1.02 && s > 0.98)
+            s = 1.0;
         else
             limitScale = nullptr;
         if (limitScale) {
@@ -351,8 +365,12 @@ void ResourceTransform::gesture(const QPointF &from1, const QPointF &from2, QPoi
         } else {
             scale_.scale(s, s);
         }
-        if (translate)
-            t *= s;
+        if (translate) {
+            //t1 *= s;
+            t2 *= s;
+        }
+    } else {
+        to2 = (to2 - to1) / s + to1;
     }
     if (rotate) {
         qreal r1 = r;
@@ -362,27 +380,44 @@ void ResourceTransform::gesture(const QPointF &from1, const QPointF &from2, QPoi
             QTransform tr; tr.rotate(r1);
             to2 = to1 + tr.map(to2 - to1);
         }
-        if (translate)
-            t = QTransform().rotate(r).map(t);
+        if (translate) {
+            //t1 = QTransform().rotate(r).map(t1);
+            t2 = QTransform().rotate(r).map(t2);
+        }
+    } else {
+        if (translate) {
+            QTransform tr; tr.rotate(-r);
+            to2 = to1 + tr.map(to2 - to1);
+        }
     }
     if (translate) {
-        t = to2 - t0 - t;
-        translate_.translate(t.x(), t.y());
+        //t1 = to1 - t0 - t1;
+        t2 = to2 - t0 - t2;
+        //qDebug() << "ResourceTransform::gesture: translate" << t1 << t2;
+        translate_.translate(t2.x(), t2.y());
     }
     //qDebug() << "scale" << s << "rotate" << r << "translate" << t;
+    //qDebug() << "ResourceTransform::gesture: fr1" << from1 << "fr2" << from2;
+    //qDebug() << "ResourceTransform::gesture: to1" << to1 << "to2" << to2;
     scaleRotate_ = scale_ * rotate_;
     rotateTranslate_ = rotate_ * translate_;
     transform_ = scaleRotate_ * translate_;
     int elements = (scale ? 4 : 0) + (rotate ? 2 : 0) + (translate ? 1 : 0);
-    s = scale_.m11();
-    t = offset();
+    qreal z = zoom();
+    QPointF o = offset();
     emit beforeChanged(elements);
-    if (!qFuzzyIsNull(s / scale_.m11() - 1.0))
-        to2 = to1 + (to2 - to1) * scale_.m11() / s;
-    if (t != offset()) {
-        to1 += offset() - t;
-        to2 += offset() - t;
+    if (!qFuzzyIsNull(z / zoom() - 1.0)) {
+        to2 = to1 + (to2 - to1) * zoom() / z;
+        o = o * zoom() / z;
     }
+    //qDebug() << "ResourceTransform::gesture: zoom" << z << zoom();
+    //qDebug() << "ResourceTransform::gesture: offset" << o << offset();
+    if (o != offset()) {
+        to1 += offset() - o;
+        to2 += offset() - o;
+    }
+    //qDebug() << "ResourceTransform::gesture: fr1" << from1 << "fr2" << from2;
+    //qDebug() << "ResourceTransform::gesture: to1" << to1 << "to2" << to2;
     emit changed(elements);
 }
 

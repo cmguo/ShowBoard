@@ -315,7 +315,7 @@ void ItemSelector::layoutToolbar()
     QSizeF size = toolBar()->size();
     qreal padding = dp(10);
     if (Control * canvasControl = Control::fromItem(parentItem())) {
-        padding *= canvasControl->resource()->transform().scale().m11();
+        padding *= canvasControl->resource()->transform().zoom();
     }
     boxRect.adjust(0, 0, 0, size.height() + padding);
     boxRect &= sceneRect;
