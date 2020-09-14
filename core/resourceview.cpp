@@ -276,16 +276,18 @@ ResourceView *ResourceView::paste(QMimeData const &data)
     }
     // we like urls
     if (data.hasUrls()) {
-        return ResourceManager::instance()->createResource(data.urls().first());
+        ResourceView * res = ResourceManager::instance()->createResource(data.urls().first());
+        res->setProperty("name", "链接");
+        return res;
     }
     for (auto f : data.formats()) {
-        qDebug() << f;
         int n = f.indexOf('/');
         QUrl url = n > 0 ? QUrl(f.left(n) + ":mimedata." + f.mid(n + 1))
                          : QUrl(f.left(n) + ":");
         if (ResourceManager::instance()->isExplitSupported(url)) {
             ResourceView * res = ResourceManager::instance()->createResource(url);
             QSharedPointer<QMimeData> cd(new CopyMimeData(data));
+
             res->setProperty("mimedata", QVariant::fromValue(cd));
             return res;
         }
