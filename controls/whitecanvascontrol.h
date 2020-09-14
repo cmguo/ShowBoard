@@ -81,6 +81,9 @@ private:
     PositionBar * posBar_ = nullptr;
     QGraphicsItem* toolBar_ = nullptr;
     QObject * pageSwitch_ = nullptr;
+    qreal adjustStartScale_ = 1.0;
+    QPointF adjustStartOffset_;
+    QPointF adjustOffset_;
 };
 
 #endif // WHITECANVASCONTROL_H

@@ -183,7 +183,11 @@ void WhiteCanvasControl::sizeChanged()
 void WhiteCanvasControl::adjusting(bool be)
 {
     Control::adjusting(be);
-    if (!be) {
+    if (be) {
+        adjustStartScale_ = res_->transform().zoom();
+        adjustStartOffset_ = res_->transform().offset();
+        adjustOffset_ = {0, 0};
+    } else {
         PageSwitchEndEvent e;
         e.setOriginEvent(whiteCanvas()->selector()->currentEvent());
         if (pageSwitch_)
@@ -209,15 +213,18 @@ void WhiteCanvasControl::gesture(const QPointF &from1, const QPointF &from2, QPo
     QPointF d = (to1 + to2 - from1 - from2) / 2;
     if (pageSwitchMove(d))
         return;
-    qreal s = res_->transform().scale().m11();
     Control::gesture(from1, from2, to1, to2);
     QPointF delta = (to1 + to2 - from1 - from2) / 2;
-    if (qFuzzyIsNull(delta.x()) && qFuzzyIsNull(delta.y()) && !qFuzzyIsNull(d.x())
-            && qFuzzyIsNull((s / res_->transform().scale().m11() - 1.0) / 1000.0)) {
+    if (adjustOffset_.x() > 30
+            && (res_->transform().offset().y() - adjustStartOffset_.y() < adjustOffset_.x() / 10)
+            && qAbs(res_->transform().zoom() / adjustStartScale_ - 1.0) < 0.05) {
         delta.setX(d.x());
         pageSwitchStart(delta);
+        to1 += delta;
+        to2 += delta;
     } else {
         d -= delta;
+        adjustOffset_ += d;
         to1 += d;
         to2 += d;
     }
@@ -244,10 +251,10 @@ void WhiteCanvasControl::getToolButtons(QList<ToolButton *> &buttons, ToolButton
 void WhiteCanvasControl::updateToolButton(ToolButton *button)
 {
     if (button->name() == "scaleUp()") {
-        button->setEnabled(resource()->transform().scale().m11() < 10);
+        button->setEnabled(resource()->transform().zoom() < 10);
         button->setVisible(flags_.testFlag(CanScale) && !flags_.testFlag(NoScaleButton));
     } else if (button->name() == "scaleDown()") {
-        button->setEnabled(resource()->transform().scale().m11() > 1.1);
+        button->setEnabled(resource()->transform().zoom() > 1.1);
         button->setVisible(flags_.testFlag(CanScale) && !flags_.testFlag(NoScaleButton));
     } else if (button->name() == "close()") {
         button->setVisible(res_->flags().testFlag(ResourceView::CanDelete));
@@ -270,7 +277,7 @@ void WhiteCanvasControl::updateTransform()
     //qDebug() << "WhiteCanvasControl" << transform.transform();
     QRectF srect = item_->scene()->sceneRect();
     QRectF crect = item_->boundingRect();
-    posBar_->update(srect, crect, transform.scale().m11(), transform.offset());
+    posBar_->update(srect, crect, transform.zoom(), transform.offset());
 }
 
 WhiteCanvas * WhiteCanvasControl::whiteCanvas()
