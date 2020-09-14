@@ -57,7 +57,8 @@ void ImageControl::attached()
 void ImageControl::copy(QMimeData &data)
 {
     Control::copy(data);
-    data.setImageData(data_->pixmap().toImage());
+    if (data_)
+        data.setImageData(data_->pixmap().toImage());
 }
 
 void ImageControl::setPixmap(const QPixmap &pixmap)
