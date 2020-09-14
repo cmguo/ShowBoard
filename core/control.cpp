@@ -849,6 +849,7 @@ void Control::loadStream()
         onStream(stream.get());
         loadFinished(true);
     }).fail([this, l](std::exception& e) {
+        if (l.isNull()) return;
         loadFinished(false, e.what());
     });
 }
@@ -861,6 +862,7 @@ void Control::loadData()
         onData(data);
         loadFinished(true);
     }).fail([this, l](std::exception& e) {
+        if (l.isNull()) return;
         loadFinished(false, e.what());
     });
 }
@@ -873,6 +875,7 @@ void Control::loadText()
         onText(text);
         loadFinished(true);
     }).fail([this, l](std::exception& e) {
+        if (l.isNull()) return;
         loadFinished(false, e.what());
     });
 }
