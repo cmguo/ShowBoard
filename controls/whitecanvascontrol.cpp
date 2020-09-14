@@ -68,9 +68,7 @@ WhiteCanvasControl::WhiteCanvasControl(ResourceView * view, QGraphicsItem * canv
     ResourceView * originResourView = view->page()->mainResource();
     QString toolbarPosition = originResourView->property("toolbarPosition").toString();
     if (toolbarPosition == "rightBottom") {
-        qreal right = rect.right() - dp(110);
-        offset = dp(80);
-        QPointF position(right - offset, rect.bottom() - offset);
+        QPointF position(rect.right() - dp(150), rect.bottom() - dp(120));
         toolBar_->setPos(position);
     } else {
         toolBar_->setPos(QPointF(0, rect.bottom() - offset));
