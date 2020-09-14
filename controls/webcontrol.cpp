@@ -1,4 +1,4 @@
-﻿#include "webcontrol.h"
+#include "webcontrol.h"
 #include "core/resource.h"
 #include "core/resourceview.h"
 #include "core/resourcetransform.h"
@@ -58,7 +58,7 @@ protected:
 private:
     QQuickWidget *hostWidget();
 private:
-    QQuickWidget* childWidget_ = nullptr;
+    QQuickWidget* hostWidget_ = nullptr;
     bool synthesizedMouse_ = false;
 };
 
@@ -385,9 +385,11 @@ WebView::WebView(QObject *settings)
     });
     connect(page(), &WebPage::loadFinished, this, [this]() {
          QObject::connect(hostWidget(), &QObject::destroyed, this, [this]() {
+             hostWidget_ = nullptr;
              reload();
          }, Qt::QueuedConnection);
          hostWidget()->installEventFilter(this);
+         hostWidget()->setFocus();
     });
 }
 
@@ -517,6 +519,9 @@ bool WebView::event(QEvent *event)
         return true;
     } else if (event->type() == QEvent::CursorChange) {
         graphicsProxyWidget()->setCursor(hostWidget()->cursor());
+    } else if (event->type() == QEvent::Show) {
+        if (hostWidget_)
+            hostWidget_->setFocus();
     }
     return QWebEngineView::event(event);
 }
@@ -558,13 +563,13 @@ QWebEngineView *WebView::createWindow(QWebEnginePage::WebWindowType)
 
 QQuickWidget *WebView::hostWidget()
 {
-    if (childWidget_)
-        return childWidget_;
+    if (hostWidget_)
+        return hostWidget_;
     const QByteArray hostClass = "QtWebEngineCore::RenderWidgetHostViewQtDelegateWidget";
     for (auto w: findChildren<QWidget*>()) {
         if (hostClass == w->metaObject()->className()) {
-            childWidget_ = qobject_cast<QQuickWidget*>(w);
-            return childWidget_;
+            hostWidget_ = qobject_cast<QQuickWidget*>(w);
+            return hostWidget_;
         }
     }
     Q_ASSERT(false);
