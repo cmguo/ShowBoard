@@ -24,6 +24,7 @@ QWidget *TextControl::createWidget(ResourceView *res)
     textEdit->setStyleSheet(QString("QTextEdit{background-color:#FFFFFFFF; border: 1px solid #FFFFFF; font: %1pt \"Microsoft YaHei UI\";}")
                         .arg(24));
     textEdit->resize(1024, 600);
+    textEdit->viewport()->setMouseTracking(false);
     textEdit->viewport()->installEventFilter(this);
     return textEdit;
 }
