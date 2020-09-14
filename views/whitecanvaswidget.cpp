@@ -76,9 +76,11 @@ WhiteCanvasWidget::WhiteCanvasWidget(QWidget *parent)
         // Control + Direction Arrows
         new QShortcut(QKeySequence(k | Qt::ControlModifier), this, SLOT(switchPage()));
     }
-    // Control + +/-
+    // Control + +=/-_
     new QShortcut(QKeySequence(Qt::Key_Plus | Qt::ControlModifier), this, SLOT(scaleSelection2()));
     new QShortcut(QKeySequence(Qt::Key_Minus | Qt::ControlModifier), this, SLOT(scaleSelection2()));
+    new QShortcut(QKeySequence(Qt::Key_Equal | Qt::ControlModifier), this, SLOT(scaleSelection2()));
+    new QShortcut(QKeySequence(Qt::Key_Underscore | Qt::ControlModifier), this, SLOT(scaleSelection2()));
     // Space, Backspace
     new QShortcut(QKeySequence(Qt::Key_Space), this, SLOT(switchPage()));
     new QShortcut(QKeySequence(Qt::Key_Backspace), this, SLOT(switchPage()));
@@ -276,9 +278,11 @@ void WhiteCanvasWidget::scaleSelection2()
     if (!c || !c->flags().testFlag(Control::CanScale))
         return;
     QShortcut* s = qobject_cast<QShortcut*>(sender());
-    if (s->key().matches(QKeySequence(Qt::Key_Minus | Qt::ControlModifier))) {
+    if (s->key().matches(QKeySequence(Qt::Key_Minus | Qt::ControlModifier))
+            || s->key().matches(QKeySequence(Qt::Key_Underscore | Qt::ControlModifier))) {
         delta = 1.0 / 1.2;
-    } else if (s->key().matches(QKeySequence(Qt::Key_Plus | Qt::ControlModifier))) {
+    } else if (s->key().matches(QKeySequence(Qt::Key_Plus | Qt::ControlModifier))
+               || s->key().matches(QKeySequence(Qt::Key_Equal | Qt::ControlModifier))) {
         delta = 1.2;
     }
     c->scale(c->item()->boundingRect().center(), delta);
