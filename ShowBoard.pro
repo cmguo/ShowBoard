@@ -40,6 +40,7 @@ include(tools/tools.pri)
 include(stroke/stroke.pri)
 include(views/views.pri)
 include(data/data.pri)
+include(web/web.pri)
 
 win32 {
     include(office/office.pri)

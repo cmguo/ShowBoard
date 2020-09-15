@@ -75,6 +75,8 @@ private:
 
     void scrollPositionChanged(const QPointF &pos);
 
+    void scaleChanged(qreal scale);
+
 private:
     QColor background_;
     int webViewSizeChangeIndex_ = 0;
