@@ -54,8 +54,9 @@ WhiteCanvasWidget::WhiteCanvasWidget(QWidget *parent)
     // Page Up, Page Down
     new QShortcut(QKeySequence::MoveToNextPage, this, SLOT(switchPage()));
     new QShortcut(QKeySequence::MoveToPreviousPage, this, SLOT(switchPage()));
-    // Control + C, Control + V
+    // Control + C, Control + X, Control + V
     new QShortcut(QKeySequence::Copy, this, SLOT(copyPaste()));
+    new QShortcut(QKeySequence::Cut, this, SLOT(copyPaste()));
     new QShortcut(QKeySequence::Paste, this, SLOT(copyPaste()));
     // Tab, Shift + Tab
     QObject::connect(new QShortcut(QKeySequence(Qt::Key_Tab), this), &QShortcut::activated,
@@ -318,13 +319,16 @@ void WhiteCanvasWidget::switchPage()
 void WhiteCanvasWidget::copyPaste()
 {
     QShortcut * s = qobject_cast<QShortcut*>(sender());
-    if (s->key().matches(QKeySequence::Copy)) {
+    if (s->key().matches(QKeySequence::Copy)
+            || s->key().matches(QKeySequence::Cut)) {
         Control * c = canvas_->selected();
         if (c) {
             QMimeData * data = new QMimeData;
             c->copy(*data);
             QApplication::clipboard()->setMimeData(data);
         }
+        if (s->key().matches(QKeySequence::Cut))
+            c->resource()->removeFromPage();
     } else {
         QMimeData const * data = QApplication::clipboard()->mimeData();
         if (data) {
