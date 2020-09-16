@@ -271,6 +271,8 @@ void Control::paste(QMimeData const & data, Control *control)
     QSharedPointer<LifeObject> life = data.property("OriginControl").value<QWeakPointer<LifeObject>>();
     if (life)
         qobject_cast<Control*>(life.get())->afterClone(control);
+    const_cast<QMimeData&>(data).setProperty(
+                "OriginControl", QVariant::fromValue(control->life()));
 }
 
 void Control::attaching()

@@ -55,6 +55,11 @@ ResourcePage *WhiteCanvas::page()
     return canvas_->page();
 }
 
+ResourcePage *WhiteCanvas::subPage()
+{
+    return canvas_->subPage();
+}
+
 void WhiteCanvas::showToolControl(const QString &typeOrUrl)
 {
     tools_->showToolControl(getToolControl(typeOrUrl));

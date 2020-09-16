@@ -229,23 +229,14 @@ ResourceView * ResourceView::clone() const
     return new ResourceView(*this);
 }
 
-static QList<QWeakPointer<LifeObject>> clipboardResources;
-
 void ResourceView::copy(QMimeData &data)
 {
     data.setUrls({res_->url()});
-    int n = clipboardResources.indexOf(QWeakPointer<LifeObject>());
-    if (n < 0) {
-        n = clipboardResources.size();
-        clipboardResources.append(life());
-    } else {
-        clipboardResources[n] = life();
-    }
     data.setText(res_->url().toString());
-    data.setData("Resource", QByteArray(reinterpret_cast<char*>(&n), sizeof(n)));
-    connect(&data, &QObject::destroyed, [n]() {
-        clipboardResources[n].clear();
-    });
+    data.setData("application/x-resource", QByteArray());
+    data.setProperty("OriginPage", QVariant::fromValue(page()));
+    ResourceView * res = clone();
+    res->setParent(&data);
 }
 
 class CopyMimeData : public QMimeData
@@ -261,17 +252,18 @@ public:
 
 ResourceView *ResourceView::paste(QMimeData const &data)
 {
-    QByteArray resId = data.data("Resource");
-    if (resId.length() == sizeof(int)) {
-        int n = 0;
-        memcpy(&n, resId.data(), sizeof(n));
-        if (n >= 0 && n < clipboardResources.size()) {
-            QSharedPointer<LifeObject> res = clipboardResources[n].toStrongRef();
-            if (res) {
-                ResourceView * res2 = qobject_cast<ResourceView*>(res.get())->clone();
-                res2->setParent(res->parent());
-                return res2;
+    if (data.hasFormat("application/x-resource")) {
+        ResourceView * res = data.findChild<ResourceView*>(nullptr, Qt::FindDirectChildrenOnly);
+        if (res) {
+            ResourcePage * po = data.property("OriginPage").value<ResourcePage*>();
+            ResourcePage * pt = data.property("TargetPage").value<ResourcePage*>();
+            if (po == pt) {
+                res->transform().translate({60, 60});
+            } else {
+                res->transform().translateTo({0, 0});
             }
+            const_cast<QMimeData&>(data).setProperty("OriginPage", QVariant::fromValue(pt));
+            return res->clone();
         }
     }
     // we like urls
@@ -287,7 +279,6 @@ ResourceView *ResourceView::paste(QMimeData const &data)
         if (ResourceManager::instance()->isExplitSupported(url)) {
             ResourceView * res = ResourceManager::instance()->createResource(url);
             QSharedPointer<QMimeData> cd(new CopyMimeData(data));
-
             res->setProperty("mimedata", QVariant::fromValue(cd));
             return res;
         }

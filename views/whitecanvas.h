@@ -51,7 +51,9 @@ public:
         return package_;
     }
 
-    ResourcePage* page();
+    ResourcePage * page();
+
+    ResourcePage * subPage();
 
     void setResourcePackage(ResourcePackage * pack);
 
