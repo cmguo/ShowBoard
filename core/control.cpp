@@ -605,6 +605,7 @@ void Control::initScale()
     QSizeF size = item_->boundingRect().size();
     if (res_->flags().testFlag(ResourceView::LargeCanvas)) {
         Control * canvasControl = fromItem(whiteCanvas());
+        canvasControl->flags_.setFlag(CanMove, flags_.testFlag(CanMove));
         canvasControl->flags_.setFlag(CanScale, flags_.testFlag(CanScale));
         canvasControl->flags_.setFlag(Touchable, flags_.testFlag(Touchable));
         flags_.setFlag(DefaultFlags, 0);
