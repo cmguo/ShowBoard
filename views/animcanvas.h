@@ -58,7 +58,7 @@ public:
     void stopAnimate();
 
 signals:
-    void animateFinished();
+    void animateFinished(bool finished);
 
 private:
     void initAnimate();

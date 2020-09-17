@@ -192,7 +192,7 @@ void PageCanvas::subPageChanged(ResourcePage *page)
 
 bool PageCanvas::hasSubCanvas(QGraphicsItem *canvas)
 {
-    return subCanvas_ == canvas
+    return canvas == this
             || (subCanvas_ && subCanvas_->hasSubCanvas(canvas));
 }
 

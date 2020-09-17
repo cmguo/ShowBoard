@@ -63,8 +63,11 @@ void AnimCanvas::startAnimate()
 
 void AnimCanvas::stopAnimate()
 {
-    killTimer(timer_);
-    timer_ = 0;
+    bool finished = timer_ == 0;
+    if (timer_) {
+        killTimer(timer_);
+        timer_ = 0;
+    }
     total_ = {0, 0};
     setRect(QRectF(), {0, 0});
     setPos({0, 0});
@@ -75,7 +78,7 @@ void AnimCanvas::stopAnimate()
                     canvasControl_, "setPosBarVisible", Q_ARG(bool,true));
         canvasControl_ = nullptr;
     }
-    emit animateFinished();
+    emit animateFinished(finished);
 }
 
 void AnimCanvas::updateCanvas()
@@ -313,7 +316,10 @@ void AnimCanvas::paint(QPainter *painter, const QStyleOptionGraphicsItem * optio
 void AnimCanvas::timerEvent(QTimerEvent *event)
 {
     (void) event;
-    if (animate())
+    if (animate()) {
+        killTimer(timer_);
+        timer_ = 0;
         stopAnimate();
+    }
 }
 

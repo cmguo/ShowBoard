@@ -303,7 +303,8 @@ void WhiteCanvasControl::pageSwitchStart(const QPointF &delta)
             pageSwitch_ = nullptr;
 #endif
     }
-    pageSwitchMove(delta);
+    if (pageSwitch_)
+        pageSwitchMove(delta);
 }
 
 bool WhiteCanvasControl::pageSwitchMove(const QPointF &delta)

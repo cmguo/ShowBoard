@@ -139,6 +139,8 @@ void WhiteCanvas::switchPage(ResourcePage * page)
 {
     loadingCount_ = 0;
     // handle animation & snapshot
+    if (animCanvas_ && !animCanvas_->afterPageSwitch())
+        animCanvas_->stopAnimate(); // will clear animCanvas_
     AnimCanvas* anim = nullptr;
     if (this->page() && !animCanvas_) {
         if (page && !this->page()->isVirtualPage()
@@ -194,8 +196,7 @@ AnimCanvas* WhiteCanvas::getDragAnimation(bool prev)
         if (animCanvas_->afterPageSwitch()
                 || animCanvas_->inAnimate())
             return nullptr;
-        delete animCanvas_;
-        animCanvas_ = nullptr;
+        animCanvas_->stopAnimate(); // will clear animCanvas_
     }
     ResourcePage * target = prev ? package_->prevPage(page()) : package_->nextPage(page());
     if (target == nullptr)
@@ -204,9 +205,9 @@ AnimCanvas* WhiteCanvas::getDragAnimation(bool prev)
     animCanvas_->setSnapshot(target->thumbnail());
     animCanvas_->setDirection(dir);
     animCanvas_->startAnimate();
-    connect(animCanvas_, &AnimCanvas::animateFinished, this, [this]() {
+    connect(animCanvas_, &AnimCanvas::animateFinished, this, [this](bool finished) {
         ResourcePage * target = nullptr;
-        if (animCanvas_->switchPage())
+        if (finished && animCanvas_->switchPage())
             target = animCanvas_->direction() == AnimCanvas::LeftToRight
                 ? package_->prevPage(page())
                 : package_->nextPage(page());
