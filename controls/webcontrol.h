@@ -79,7 +79,6 @@ private:
 
 private:
     QColor background_;
-    int webViewSizeChangeIndex_ = 0;
 };
 
 #endif // WEBCONTROL_H

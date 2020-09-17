@@ -125,8 +125,6 @@ void WebControl::loadSettings()
 #endif
 }
 
-static int WebViewSizeChangeArra[4]{1,-1,1,-1};
-
 void WebControl::attached()
 {
     if (++totalFront > MAX_WEB || !OomHandler::isMemoryAvailable(40 * 1024 * 1024)) {
@@ -155,10 +153,11 @@ void WebControl::attached()
         //#endif
         // TODO: handle backup loadFinished
         Control::loadFinished(true);
-        if(QQuickWindow::sceneGraphBackend() == "software"){
-            int diff = WebViewSizeChangeArra[webViewSizeChangeIndex_];
-            widget_->resize(widget_->size() + QSize(diff, diff));
-            webViewSizeChangeIndex_ = (++webViewSizeChangeIndex_) % 4;
+        if (QQuickWindow::sceneGraphBackend() == "software") {
+            int diff = property("ViewSizeChangeIndex").toInt();
+            diff = diff < 0 ? 1 : -1;
+            setProperty("ViewSizeChangeIndex", diff);
+            widget_->resize(widget_->size() + QSize(0, diff));
         }
         return;
     }
