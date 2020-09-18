@@ -231,7 +231,7 @@ public:
 
     virtual void copy(QMimeData & data);
 
-    static void paste(QMimeData const & data, Control * control);
+    static void paste(QMimeData const & data, WhiteCanvas * canvas);
 
 protected:
     /*

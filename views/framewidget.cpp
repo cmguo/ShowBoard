@@ -64,13 +64,23 @@ void FrameWidget::setArrowPosition(QPoint pos, int dir, int off)
     updateShape();
 }
 
+QPen shadowPen(QColor color, QRectF const & rect)
+{
+    return QPen();
+}
+
 void FrameWidget::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
     QStyleOption option;
     option.initFrom(content_);
     painter.setRenderHint(QPainter::Antialiasing);
-    painter.setPen(QPen(borderColor_, borderSize_));
+    if (borderSize_ == 0)
+        painter.setPen(Qt::NoPen);
+    else if (borderSize_ == 1)
+        painter.setPen(QPen(borderColor_, borderSize_));
+    else
+        painter.setPen(shadowPen(borderColor_, geometry()));
     if (flags_ & BackgroundSet)
         painter.setBrush(QBrush(backgroundColor_));
     else

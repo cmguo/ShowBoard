@@ -142,11 +142,8 @@ void WhiteCanvasWidget::dragMoveEvent(QDragMoveEvent *event)
 void WhiteCanvasWidget::dropEvent(QDropEvent *event)
 {
     QMimeData const * data = event->mimeData();
-    if (data) {
-        ResourceView * res = ResourceView::paste(*data);
-        if (res)
-            canvas()->addResource(res);
-    }
+    if (data)
+        Control::paste(*data, canvas());
     event->setDropAction(Qt::CopyAction);
 }
 
@@ -328,17 +325,10 @@ void WhiteCanvasWidget::copyPaste()
             QApplication::clipboard()->setMimeData(data);
         }
         if (s->key().matches(QKeySequence::Cut))
-            c->resource()->removeFromPage();
+            canvas()->removeResource(c);
     } else {
         QMimeData const * data = QApplication::clipboard()->mimeData();
-        if (data) {
-            const_cast<QMimeData&>(*data).setProperty(
-                        "TargetPage", QVariant::fromValue(canvas()->subPage()));
-            ResourceView * res = ResourceView::paste(*data);
-            if (res) {
-                Control * c = canvas()->addResource(res);
-                Control::paste(*data, c);
-            }
-        }
+        if (data)
+            Control::paste(*data, canvas());
     }
 }

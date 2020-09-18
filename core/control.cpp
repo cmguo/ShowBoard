@@ -9,6 +9,7 @@
 #include "views/qsshelper.h"
 #include "resourcetransform.h"
 #include "controltransform.h"
+#include "resourcepage.h"
 
 #include <QGraphicsItem>
 #include <QGraphicsProxyWidget>
@@ -264,15 +265,28 @@ void Control::copy(QMimeData &data)
     beforeClone();
     res_->copy(data);
     data.setProperty("OriginControl", QVariant::fromValue(life()));
+    data.setProperty("OriginPage", QVariant::fromValue(res_->page()));
 }
 
-void Control::paste(QMimeData const & data, Control *control)
+void Control::paste(QMimeData const & data, WhiteCanvas * canvas)
 {
+    ResourcePage * po = data.property("OriginPage").value<ResourcePage*>();
+    ResourcePage * pt = canvas->page();
+    ResourceView * res = ResourceView::paste(data, po != pt);
+    if (res == nullptr)
+        return;
+    const_cast<QMimeData&>(data).setProperty("OriginPage", QVariant::fromValue(pt));
+    Control * c = canvas->addResource(res);
     QSharedPointer<LifeObject> life = data.property("OriginControl").value<QWeakPointer<LifeObject>>();
     if (life)
-        qobject_cast<Control*>(life.get())->afterClone(control);
+        qobject_cast<Control*>(life.get())->afterClone(c);
+    if (po != pt && c->flags().testFlag(RestoreSession)) {
+        c->flags().setFlag(RestoreSession, false);
+        c->initPosition();
+        c->flags().setFlag(RestoreSession, true);
+    }
     const_cast<QMimeData&>(data).setProperty(
-                "OriginControl", QVariant::fromValue(control->life()));
+                "OriginControl", QVariant::fromValue(c->life()));
 }
 
 void Control::attaching()

@@ -234,7 +234,6 @@ void ResourceView::copy(QMimeData &data)
     data.setUrls({res_->url()});
     data.setText(res_->url().toString());
     data.setData("application/x-resource", QByteArray());
-    data.setProperty("OriginPage", QVariant::fromValue(page()));
     ResourceView * res = clone();
     res->setParent(&data);
 }
@@ -250,19 +249,15 @@ public:
     }
 };
 
-ResourceView *ResourceView::paste(QMimeData const &data)
+ResourceView *ResourceView::paste(QMimeData const &data, bool resetPosition)
 {
     if (data.hasFormat("application/x-resource")) {
         ResourceView * res = data.findChild<ResourceView*>(nullptr, Qt::FindDirectChildrenOnly);
         if (res) {
-            ResourcePage * po = data.property("OriginPage").value<ResourcePage*>();
-            ResourcePage * pt = data.property("TargetPage").value<ResourcePage*>();
-            if (po == pt) {
-                res->transform().translate({60, 60});
-            } else {
+            if (resetPosition)
                 res->transform().translateTo({0, 0});
-            }
-            const_cast<QMimeData&>(data).setProperty("OriginPage", QVariant::fromValue(pt));
+            else
+                res->transform().translate({60, 60});
             return res->clone();
         }
     }
