@@ -49,7 +49,7 @@ QtPromise::QPromise<QSharedPointer<ImageData>> ImageCache::getOrCreate(QObject *
     }
     QtPromise::QPromise<QSharedPointer<ImageData>> p =
             Resource::getData(context, url).then([this, url, mipmap](QByteArray data) {
-        if (data.size() < 500 * 1024) {
+        if (data.size() < 100 * 1024) {
             QPixmap pixmap;
             if (pixmap.loadFromData(data))
                 return QtPromise::resolve(put(url, pixmap, mipmap));
