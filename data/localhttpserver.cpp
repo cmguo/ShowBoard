@@ -52,14 +52,51 @@ void LocalHttpServer::addServePath2(const QByteArray &prefix, const QString &pat
     });
 }
 
+class StreamHttpRespone : public QHttpServerResponse
+{
+public:
+    StreamHttpRespone(QByteArray mimeType, QSharedPointer<QIODevice> stream)
+        : QHttpServerResponse(QHttpServerResponse::StatusCode::Ok)
+        , mimeType_(mimeType)
+        , stream_(stream)
+    {
+    }
+    StreamHttpRespone(QHttpServerResponse::StatusCode code)
+        : QHttpServerResponse(code)
+    {
+    }
+public:
+    virtual void write(QHttpServerResponder &&responder) const override
+    {
+        responder.writeStatusLine(statusCode());
+        if (!mimeType_.isNull())
+            responder.writeHeader("Content-Type", mimeType_);
+        if (stream_) {
+            responder.writeHeader("Content-Length",
+                                  QByteArray::number(stream_->bytesAvailable()));
+            QByteArray buf(4096, 0);
+            qint64 n = 0;
+            while ((n = stream_->read(buf.data(), buf.size())) > 0) {
+                responder.writeBody(buf.data(), n);
+            }
+        } else {
+            responder.writeHeader("Content-Length", "0");
+            responder.writeBody(QByteArray());
+        }
+    }
+private:
+    QByteArray mimeType_;
+    QSharedPointer<QIODevice> stream_;
+};
+
 void LocalHttpServer::addServeCache2(const QByteArray &prefix, FileCache *cache)
 {
     server_->route(prefix, [cache](QString const & subPath) {
-        const QByteArray data = cache->getData(subPath);
-        if (data.isNull())
-            return QHttpServerResponse(QHttpServerResponse::StatusCode::NotFound);
-        const QByteArray mimeType = QMimeDatabase().mimeTypeForFileNameAndData(subPath, data).name().toLocal8Bit();
-        return QHttpServerResponse(mimeType, data);
+        QSharedPointer<QIODevice> stream = cache->getStream(subPath);
+        if (stream.isNull())
+            return StreamHttpRespone(QHttpServerResponse::StatusCode::NotFound);
+        const QByteArray mimeType = QMimeDatabase().mimeTypeForFileNameAndData(subPath, "").name().toLocal8Bit();
+        return StreamHttpRespone(mimeType, stream);
     });
 }
 
