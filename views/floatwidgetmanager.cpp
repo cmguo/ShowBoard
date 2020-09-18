@@ -352,9 +352,11 @@ void FloatWidgetManager::relayout(QWidget *widget, Flags flags)
     }
 }
 
-void FloatWidgetManager::focusChanged(QWidget * old, QWidget *now)
+void FloatWidgetManager::focusChanged(QWidget * rold, QWidget * rnow)
 {
     //qDebug() << "FloatWidgetManager::focusChanged" << old << now;
+    QWidget * old = rold;
+    QWidget * now = rnow;
     while (old && !widgets_.contains(old))
         old = old->parentWidget();
     while (now && !widgets_.contains(now) && now != taskBar_)
@@ -370,7 +372,8 @@ void FloatWidgetManager::focusChanged(QWidget * old, QWidget *now)
     qDebug() << "FloatWidgetManager::focusChanged" << old << now;
     static QWidget * lastFocus = nullptr;
     static QElapsedTimer lastFocusTime;
-    if (old && widgetFlags_.value(old).testFlag(HideOnLostFocus)) {
+    // test rnow, not hide when clearFocus (rnow == null)
+    if (old && rnow && widgetFlags_.value(old).testFlag(HideOnLostFocus)) {
         if (lastFocus == old && !lastFocusTime.hasExpired(300)) {
             qDebug() << "FloatWidgetManager::focusChanged: ignore fast focus lost";
             old->setFocus();
