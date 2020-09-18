@@ -219,9 +219,11 @@ void WhiteCanvasControl::gesture(const QPointF &from1, const QPointF &from2, QPo
         return;
     Control::gesture(from1, from2, to1, to2);
     QPointF delta = (to1 + to2 - from1 - from2) / 2;
-    if (adjustOffset_.x() > 30
-            && (res_->transform().offset().y() - adjustStartOffset_.y() < adjustOffset_.x() / 10)
-            && qAbs(res_->transform().zoom() / adjustStartScale_ - 1.0) < 0.05) {
+    qreal dy = res_->transform().offset().y() - adjustStartOffset_.y();
+    //qDebug() << "WhiteCanvasControl::gesture" << adjustOffset_.x() << dy << res_->transform().zoom() / adjustStartScale_;
+    if (qAbs(adjustOffset_.x()) > 30
+            && (qAbs(dy) < qAbs(adjustOffset_.x()) / 10)
+            && qAbs(res_->transform().zoom() / adjustStartScale_ - 1.0) < 0.2) {
         delta.setX(d.x());
         pageSwitchStart(delta);
         to1 += delta;
