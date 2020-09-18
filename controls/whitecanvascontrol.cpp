@@ -188,11 +188,15 @@ void WhiteCanvasControl::adjusting(bool be)
         adjustStartOffset_ = res_->transform().offset();
         adjustOffset_ = {0, 0};
     } else {
-        PageSwitchEndEvent e;
-        e.setOriginEvent(whiteCanvas()->selector()->currentEvent());
-        if (pageSwitch_)
-            pageSwitch_->event(&e);
-        pageSwitch_ = nullptr;
+        // delay PageSwitchEndEvent event,
+        //  avoid lost InkStrokeControl's filter soon
+        QTimer::singleShot(0, this, [this] () {
+            PageSwitchEndEvent e;
+            e.setOriginEvent(whiteCanvas()->selector()->currentEvent());
+            if (pageSwitch_)
+                pageSwitch_->event(&e);
+            pageSwitch_ = nullptr;
+        });
     }
 }
 
