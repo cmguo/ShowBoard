@@ -131,6 +131,9 @@ void WhiteCanvasWidget::showEvent(QShowEvent *event)
 
 void WhiteCanvasWidget::dragEnterEvent(QDragEnterEvent *event)
 {
+    // Bugly: avoid unespect drag from web page
+    if (event->mimeData()->text().length() < 64)
+        return;
     event->accept();
 }
 
