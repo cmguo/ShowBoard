@@ -34,22 +34,36 @@ template <typename T, typename R>
 class AsyncEvent : public WorkEventBase
 {
 public:
-    AsyncEvent(T const & f, QtPromise::QPromiseResolve<R> r) : t_(f), r_(r) {}
-    virtual ~AsyncEvent() { r_(t_()); }
+    AsyncEvent(T const & f, QtPromise::QPromiseResolve<R> r,
+               QtPromise::QPromiseReject<R> j)
+        : t_(f), r_(r), j_(j) {}
+    virtual ~AsyncEvent()
+    {
+        try { r_(t_()); }
+        catch (...) { j_(std::current_exception()); }
+    }
 private:
     T t_;
     QtPromise::QPromiseResolve<R> r_;
+    QtPromise::QPromiseReject<R> j_;
 };
 
 template <typename T>
 class AsyncEvent<T, void> : public WorkEventBase
 {
 public:
-    AsyncEvent(T const & f, QtPromise::QPromiseResolve<void> r) : t_(f), r_(r) {}
-    virtual ~AsyncEvent() { t_(); r_(); }
+    AsyncEvent(T const & f, QtPromise::QPromiseResolve<void> r,
+               QtPromise::QPromiseReject<void> j)
+        : t_(f), r_(r), j_(j) {}
+    virtual ~AsyncEvent()
+    {
+        try { t_(); r_(); }
+        catch (...) { j_(std::current_exception()); }
+    }
 private:
     T t_;
     QtPromise::QPromiseResolve<void> r_;
+    QtPromise::QPromiseReject<void> j_;
 };
 
 class WorkThread : public QThread
@@ -100,8 +114,9 @@ public:
     inline static typename PromiseFunctor<Func>::PromiseType asyncWork(QObject* context, Func const & func)
     {
         typedef typename std::result_of<Func(void)>::type Result;
-        return QtPromise::QPromise<Result>([&] (QtPromise::QPromiseResolve<Result> resolve) {
-            postWork2(context, new AsyncEvent<Func, Result>(func, resolve));
+        return QtPromise::QPromise<Result>([&] (QtPromise::QPromiseResolve<Result> resolve
+                                           , QtPromise::QPromiseReject<Result> reject) {
+            postWork2(context, new AsyncEvent<Func, Result>(func, resolve, reject));
         });
     }
 

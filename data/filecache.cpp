@@ -230,14 +230,13 @@ void FileCache::load(std::function<bool (QString const & name)> filter)
             thread().asyncWork([al, f] () -> FileResource {
                 QFile file(f.filePath());
                 if (!file.open(QFile::ReadOnly)) {
-                    return FileResource{-1, nullptr};
+                    throw std::runtime_error(file.errorString().toUtf8());
                 }
                 QCryptographicHash hash(al);
                 hash.addData(&file);
                 return FileResource{f.size(), hash.result()};
             }).then([this, p = f.filePath().mid(n)] (FileResource const & f) {
-                if (f.size >= 0)
-                    base::update(p, f);
+                base::update(p, f);
             });
         }
         thread().asyncWork([] () {}).then([this] () { loaded(); });

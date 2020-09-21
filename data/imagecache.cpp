@@ -81,17 +81,13 @@ QSharedPointer<ImageData> ImageCache::put(const QUrl &url, const QPixmap &pixmap
 
 QtPromise::QPromise<QPixmap> ImageCache::load(QByteArray data)
 {
-    return QPromise<QPixmap>([data](
-                             const QPromiseResolve<QPixmap>& resolve,
-                             const QPromiseReject<QPixmap>& reject) {
+    return ::thread().asyncWork([data]() {
         OomHandler::ensureMemoryAvailable(50 * 1024 * 1024);
-        ::thread().postWork([=] {
-            QPixmap pixmap;
-            if (pixmap.loadFromData(data))
-                resolve(pixmap);
-            else
-                reject(std::runtime_error("图片加载失败"));
-        });
+        QPixmap pixmap;
+        if (pixmap.loadFromData(data))
+            return pixmap;
+        else
+            throw std::runtime_error("图片加载失败");
     });
 }
 
