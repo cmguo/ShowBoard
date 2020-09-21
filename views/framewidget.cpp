@@ -64,11 +64,6 @@ void FrameWidget::setArrowPosition(QPoint pos, int dir, int off)
     updateShape();
 }
 
-QPen shadowPen(QColor color, QRectF const & rect)
-{
-    return QPen();
-}
-
 void FrameWidget::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
@@ -77,10 +72,8 @@ void FrameWidget::paintEvent(QPaintEvent *event)
     painter.setRenderHint(QPainter::Antialiasing);
     if (borderSize_ == 0)
         painter.setPen(Qt::NoPen);
-    else if (borderSize_ == 1)
-        painter.setPen(QPen(borderColor_, borderSize_));
     else
-        painter.setPen(shadowPen(borderColor_, geometry()));
+        painter.setPen(QPen(borderColor_, borderSize_));
     if (flags_ & BackgroundSet)
         painter.setBrush(QBrush(backgroundColor_));
     else
@@ -130,7 +123,7 @@ void FrameWidget::updateShape()
             int off = arrowOff_ < 0 ? rf.height() / 2 : arrowOff_;
             polygon.insert(2, QPoint{rf.right(), off - arrowSize_.height() / 2});
             polygon.insert(3, QPoint{rf.right() + arrowSize_.width(), off});
-            polygon.insert(2, QPoint{rf.right(), off + arrowSize_.height() / 2});
+            polygon.insert(4, QPoint{rf.right(), off + arrowSize_.height() / 2});
             rf.adjust(0, 0, arrowSize_.width(), 0);
             go = rf.translated(go.right() - rf.width(), go.top() + go.width() / 2 - rf.width() / 2);
          } else if (arrowDir_ == 2) { // bottom
@@ -177,15 +170,20 @@ void FrameWidget::updateShape()
 
 QRegion FrameWidget::roundMask(QRect const & rect, int radius)
 {
-    QBitmap bitmap(rect.width(), rect.height());
-    bitmap.fill();
-    QPainter painter(&bitmap);
-    //painter.setRenderHint(QPainter::Antialiasing); // no effects
-    painter.setPen(Qt::NoPen);
-    painter.setBrush(Qt::black);
-    painter.drawRoundedRect(bitmap.rect(), radius, radius);
-    painter.end();
-    return QRegion(bitmap);
+    QSize sz(radius, radius);
+    QRect corners[] = {
+        QRect(rect.topLeft(), QSize(radius, radius)),
+        QRect(rect.topRight(), QSize(-radius, radius)),
+        QRect(rect.bottomRight(), QSize(-radius, -radius)),
+        QRect(rect.bottomLeft(), QSize(radius, -radius))
+    };
+    QRegion r(rect);
+    for (QRect & c : corners) {
+        r -= c.normalized();
+        c.setSize(c.size() * 2);
+        r += QRegion(c.normalized(), QRegion::Ellipse);
+    }
+    return r;
 }
 
 QPainterPath FrameWidget::toRoundPolygon(const QPolygonF &polygon, QVector<qreal> const & radiuses)
