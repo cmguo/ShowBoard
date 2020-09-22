@@ -281,9 +281,9 @@ void Control::paste(QMimeData const & data, WhiteCanvas * canvas)
     if (life)
         qobject_cast<Control*>(life.get())->afterClone(c);
     if (po != pt && c->flags().testFlag(RestoreSession)) {
-        c->flags().setFlag(RestoreSession, false);
+        c->flags_.setFlag(RestoreSession, false);
         c->initPosition();
-        c->flags().setFlag(RestoreSession, true);
+        c->flags_.setFlag(RestoreSession, true);
     }
     const_cast<QMimeData&>(data).setProperty(
                 "OriginControl", QVariant::fromValue(c->life()));
