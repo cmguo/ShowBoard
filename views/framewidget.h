@@ -8,6 +8,21 @@
 #include <QWidget>
 
 class ResourceView;
+class FrameWidget;
+
+class FrameWidgetShadow : public QWidget {
+    Q_OBJECT
+
+public:
+    FrameWidgetShadow(FrameWidget* parent);
+
+protected:
+    virtual void paintEvent(QPaintEvent *event) override;
+
+private:
+    FrameWidget* frameWidget_;
+};
+
 
 class SHOWBOARD_EXPORT FrameWidget : public QWidget
 {
@@ -27,8 +42,6 @@ public:
     void setArrowPosition(QPoint pos, int dir, int off);
 
 protected:
-    virtual void paintEvent(QPaintEvent *event) override;
-
     virtual bool eventFilter(QObject* watched, QEvent *event) override;
 
 private:
@@ -57,6 +70,12 @@ private:
     QPoint arrowPos_;
     int arrowDir_;
     int arrowOff_;
+
+    int shadowRadius_ = 24;
+
+    friend class FrameWidgetShadow;
+
+    FrameWidgetShadow* shadow_;
 };
 
 #endif // FRAMEWIDGET_H

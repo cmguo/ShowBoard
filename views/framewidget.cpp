@@ -4,6 +4,7 @@
 
 #include <QBitmap>
 #include <QEvent>
+#include <QGraphicsDropShadowEffect>
 #include <QMetaMethod>
 #include <QPainter>
 #include <QQuickWidget>
@@ -27,6 +28,14 @@ FrameWidget::FrameWidget(QWidget * content, QWidget *parent)
     content_->setParent(this);
     content_->setAttribute(Qt::WA_TranslucentBackground);
     content_->installEventFilter(this);
+
+    shadowRadius_ = dp(24);
+
+    shadow_ = new FrameWidgetShadow(this);
+    shadow_->setAttribute(Qt::WA_TranslucentBackground);
+    shadow_->lower();
+    shadow_->show();
+
     updateShape();
 }
 
@@ -62,24 +71,6 @@ void FrameWidget::setArrowPosition(QPoint pos, int dir, int off)
     arrowDir_ = dir;
     arrowOff_ = off;
     updateShape();
-}
-
-void FrameWidget::paintEvent(QPaintEvent *event)
-{
-    QPainter painter(this);
-    QStyleOption option;
-    option.initFrom(content_);
-    painter.setRenderHint(QPainter::Antialiasing);
-    if (borderSize_ == 0)
-        painter.setPen(Qt::NoPen);
-    else
-        painter.setPen(QPen(borderColor_, borderSize_));
-    if (flags_ & BackgroundSet)
-        painter.setBrush(QBrush(backgroundColor_));
-    else
-        painter.setBrush(option.palette.background());
-    painter.drawPath(path_);
-    QWidget::paintEvent(event);
 }
 
 bool FrameWidget::eventFilter(QObject *watched, QEvent *event)
@@ -146,15 +137,26 @@ void FrameWidget::updateShape()
         }
         QPoint arrowPos = polygon[arrowDir_ + 2].toPoint();
         if (arrowPos_.isNull()) {
+            go.adjust(-shadowRadius_, -shadowRadius_, shadowRadius_, shadowRadius_);
             setGeometry(go);
+            rf = go;
         } else {
             rf.translate(arrowPos_ - arrowPos);
+            rf.adjust(-shadowRadius_, -shadowRadius_, shadowRadius_, shadowRadius_);
             setGeometry(rf);
         }
+
+        polygon.translate(shadowRadius_, shadowRadius_);
+        rc.translate(shadowRadius_, shadowRadius_);
         content_->setGeometry(rc);
+
+        rf.moveTopLeft({0, 0});
+        shadow_->setGeometry(rf);
+
         if (qobject_cast<QQuickWidget*>(content_)
                 && QQuickWindow::sceneGraphBackend() != "software") {
             if (mask_.isNull()) {
+                rc.translate(-shadowRadius_, -shadowRadius_);
                 mask_ = roundMask(rc.adjusted(paddingSize_, paddingSize_,
                                               -paddingSize_, -paddingSize_), borderRadius_);
                 content_->setMask(mask_);
@@ -198,4 +200,35 @@ QPainterPath FrameWidget::toRoundPolygon(const QPolygonF &polygon, QVector<qreal
    }
    path.addPolygon(polygon);
    return path;
+}
+
+
+FrameWidgetShadow::FrameWidgetShadow(FrameWidget *parent) : QWidget(parent)
+{
+    this->frameWidget_ = parent;
+    QGraphicsDropShadowEffect *effect = new QGraphicsDropShadowEffect(this);
+    effect->setOffset(dp(0), dp(5));
+    effect->setColor(QColor(0, 0, 0, 100));
+    effect->setBlurRadius(frameWidget_->shadowRadius_);
+    setGraphicsEffect(effect);
+}
+
+void FrameWidgetShadow::paintEvent(QPaintEvent *event)
+{
+    QStyleOption option;
+    option.initFrom(frameWidget_->content_);
+
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
+    if (frameWidget_->borderSize_ == 0)
+        painter.setPen(Qt::NoPen);
+    else
+        painter.setPen(QPen(frameWidget_->borderColor_, frameWidget_->borderSize_));
+    if (frameWidget_->flags_ & frameWidget_->BackgroundSet)
+        painter.setBrush(QBrush(frameWidget_->backgroundColor_));
+    else
+        painter.setBrush(option.palette.background());
+
+    painter.drawPath(frameWidget_->path_);
+    QWidget::paintEvent(event);
 }
