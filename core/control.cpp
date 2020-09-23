@@ -266,16 +266,24 @@ void Control::copy(QMimeData &data)
     res_->copy(data);
     data.setProperty("OriginControl", QVariant::fromValue(life()));
     data.setProperty("OriginPage", QVariant::fromValue(res_->page()));
+    connect(res_->page(), &QObject::destroyed, &data, [&data] () {
+       data.setProperty("OriginPage", QVariant());
+    });
 }
 
 void Control::paste(QMimeData const & data, WhiteCanvas * canvas)
 {
     ResourcePage * po = data.property("OriginPage").value<ResourcePage*>();
-    ResourcePage * pt = canvas->page();
+    ResourcePage * pt = canvas->subPage();
     ResourceView * res = ResourceView::paste(data, po != pt);
     if (res == nullptr)
         return;
+    if (po)
+        po->disconnect(&data);
     const_cast<QMimeData&>(data).setProperty("OriginPage", QVariant::fromValue(pt));
+    connect(pt, &QObject::destroyed, &data, [&data] () {
+        const_cast<QMimeData&>(data).setProperty("OriginPage", QVariant());
+    });
     Control * c = canvas->addResource(res);
     QSharedPointer<LifeObject> life = data.property("OriginControl").value<QWeakPointer<LifeObject>>();
     if (life)
