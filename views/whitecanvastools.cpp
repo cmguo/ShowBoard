@@ -196,6 +196,7 @@ QWidget *WhiteCanvasTools::createPageList(ResourcePackage * package)
     widget->rootObject()->setVisible(false);
     widget->rootObject()->setProperty("sizeScale", dp(1.0));
     FrameWidget * frame = new FrameWidget(widget);
-    frame->setBorder("#E2E3E4", 1, dp(8), 1);
+    frame->setBorder("#CDCDCD", 1, dp(8), 1);
+    frame->setBackground("#FFFFFF");
     return frame;
 }
