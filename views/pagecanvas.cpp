@@ -60,12 +60,12 @@ void PageCanvas::relayout()
         subCanvas_->relayout();
 }
 
-ResourcePage *PageCanvas::subPage()
+ResourcePage *PageCanvas::subPage() const
 {
     return subCanvas_ ? subCanvas_->subPage() : page_;
 }
 
-QPixmap PageCanvas::thumbnail(QPixmap* snapshot)
+QPixmap PageCanvas::thumbnail(QPixmap* snapshot) const
 {
     QSizeF size = scene()->sceneRect().size();
     QSizeF size2 = snapshot ? size : size / size.height() * WhiteCanvas::THUMBNAIL_HEIGHT;
@@ -96,7 +96,7 @@ QPixmap PageCanvas::thumbnail(QPixmap* snapshot)
     }
 }
 
-Control * PageCanvas::findControl(ResourceView * res)
+Control * PageCanvas::findControl(ResourceView * res) const
 {
     int index = page_->resources().indexOf(res);
     if (index < 0) {
@@ -110,12 +110,12 @@ Control * PageCanvas::findControl(ResourceView * res)
     return Control::fromItem(item);
 }
 
-Control * PageCanvas::findControl(QUrl const & url)
+Control * PageCanvas::findControl(QUrl const & url) const
 {
     return findControl(page_->findResource(url));
 }
 
-Control * PageCanvas::topControl()
+Control * PageCanvas::topControl() const
 {
     if (subCanvas_)
         return subCanvas_->topControl();
@@ -190,7 +190,7 @@ void PageCanvas::subPageChanged(ResourcePage *page)
     }
 }
 
-bool PageCanvas::hasSubCanvas(QGraphicsItem *canvas)
+bool PageCanvas::hasSubCanvas(QGraphicsItem *canvas) const
 {
     return canvas == this
             || (subCanvas_ && subCanvas_->hasSubCanvas(canvas));

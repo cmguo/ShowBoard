@@ -345,19 +345,29 @@ Control *WhiteCanvas::selectableNext(Control * control)
         if (control->flags() & Control::CanSelect)
             return control;
     }
-    pc = pc == canvas_ ? globalCanvas_ : canvas_;
-    i = -1;
-    while (++i < pc->childItems().size()) {
-        QGraphicsItem * t = pc->childItems().at(i);
-        control = Control::fromItem(t);
-        if (control->flags() & Control::CanSelect)
-            return control;
+    int j = childItems().indexOf(pc);
+    while (true) {
+        if (++j == childItems().count())
+            j = 0;
+        QGraphicsItem * pc2 = childItems().at(j);
+        if (pc2 == pc)
+            break;
+        if (pc2->type() != PageCanvas::Type)
+            continue;
+        i = -1;
+        while (++i < pc2->childItems().size()) {
+            QGraphicsItem * t = pc2->childItems().at(i);
+            control = Control::fromItem(t);
+            if (control->flags() & Control::CanSelect)
+                return control;
+        }
     }
     if (item) {
-        pc = static_cast<PageCanvas*>(item->parentItem());
         i = -1;
         while (++i < pc->childItems().size()) {
             QGraphicsItem * t = pc->childItems().at(i);
+            if (t == item)
+                break;
             control = Control::fromItem(t);
             if (control->flags() & Control::CanSelect)
                 return control;
@@ -381,13 +391,22 @@ Control *WhiteCanvas::selectablePrev(Control * control)
         if (control->flags() & Control::CanSelect)
             return control;
     }
-    pc = pc == canvas_ ? globalCanvas_ : canvas_;
-    i = pc->childItems().size();
-    while (i > 0) {
-        QGraphicsItem * t = pc->childItems().at(--i);
-        control = Control::fromItem(t);
-        if (control->flags() & Control::CanSelect)
-            return control;
+    int j = childItems().indexOf(pc);
+    while (true) {
+        if (--j < 0)
+            j = childItems().count() - 1;
+        QGraphicsItem * pc2 = childItems().at(j);
+        if (pc2 == pc)
+            break;
+        if (pc2->type() != PageCanvas::Type)
+            continue;
+        i = pc2->childItems().size();
+        while (i > 0) {
+            QGraphicsItem * t = pc2->childItems().at(--i);
+            control = Control::fromItem(t);
+            if (control->flags() & Control::CanSelect)
+                return control;
+        }
     }
     if (item) {
         pc = static_cast<PageCanvas*>(item->parentItem());

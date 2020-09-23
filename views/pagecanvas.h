@@ -22,30 +22,30 @@ public:
     virtual int type() const override { return Type; }
 
 public:
-    void switchPage(ResourcePage * page);
+    Control * findControl(ResourceView * res) const;
 
-    Control * findControl(ResourceView * res);
-
-    Control * findControl(QUrl const & url);
+    Control * findControl(QUrl const & url) const;
 
     /*
      * get top most control
      */
-    Control * topControl();
+    Control * topControl() const;
+
+    ResourcePage * page() const { return page_; }
+
+    ResourcePage * subPage() const;
+
+    PageCanvas * subCanvas() const { return subCanvas_; }
+
+public:
+    void switchPage(ResourcePage * page);
 
     void relayout();
 
-    ResourcePage * page()
-    {
-        return page_;
-    }
-
-    ResourcePage * subPage();
-
 public:
-    QPixmap thumbnail(QPixmap* snapshot = nullptr);
+    QPixmap thumbnail(QPixmap* snapshot = nullptr) const;
 
-    bool hasSubCanvas(QGraphicsItem * canvas);
+    bool hasSubCanvas(QGraphicsItem * canvas) const;
 
 private:
     void resourceInserted(QModelIndex const &parent, int first, int last);
