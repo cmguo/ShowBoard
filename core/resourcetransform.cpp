@@ -333,73 +333,28 @@ void ResourceTransform::scaleKeepToCenter(const QRectF &border, QRectF &self, qr
     translate(rect.topLeft() - offset(), 4);
 }
 
-void ResourceTransform::gesture(const QPointF &from1, const QPointF &from2, QPointF &to1, QPointF &to2,
-                                bool translate, bool scale, bool rotate, qreal limitScale[2], qreal * scaleOut)
+void ResourceTransform::gesture(GestureContext *context, QPointF const &to1, QPointF const &to2)
 {
     // line1: from1 -- from2
     // line2: to1 -- to2
     // split into scale, rotate and translate
     //qDebug() << "ResourceTransform::gesture: fr1" << from1 << "fr2" << from2;
     //qDebug() << "ResourceTransform::gesture: to1" << to1 << "to2" << to2;
-    qreal s = length(to2 - to1) / length(from2 - from1);
-    qreal r = angle(to2 - to1) - angle(from2 - from1);
-    QPointF tc = (to2 + to1) / 2;
-    QPointF t0 = QPointF(translate_.dx(), translate_.dy());
-    //QPointF t1 = from1 - t0;
-    QPointF t2 = from2 - t0;
-    if (scale) {
-        qreal s0 = s;
-        if (limitScale[0] > 0 && s * zoom() < limitScale[0])
-            s = limitScale[0] / zoom();
-        else if (limitScale[1] > 0 && s * zoom() > limitScale[1])
-            s = limitScale[1] / zoom();
-        else if (s < 1.02 && s > 0.98)
-            s = 1.0;
-        else
-            limitScale = nullptr;
-        if (limitScale) {
-            to1 = (to1 - tc) * s / s0 + tc;
-            to2 = (to2 - tc) * s / s0 + tc;
-        }
-        if (scaleOut) {
-            *scaleOut = s;
-            scale = false;
-        } else {
-            scale_.scale(s, s);
-        }
-        if (translate) {
-            //t1 *= s;
-            t2 *= s;
-        }
-    } else {
-        to1 = (to1 - tc) / s + tc;
-        to2 = (to2 - tc) / s + tc;
-    }
-    if (rotate) {
-        qreal r1 = r;
+    context->push(to1, to2, offset());
+    bool scale = context->adjustScale(zoom2d());
+    if (scale)
+        scale_.scale(context->scale(), context->scale());
+    if (context->canRotate_) {
+        qreal r1 = context->rotate();
         bool adjusted = this->rotate(r1, false);
-        if (adjusted) {
-            r += r1;
-            QTransform tr; tr.rotate(r1);
-            to1 = tc + tr.map(to1 - tc);
-            to2 = tc + tr.map(to2 - tc);
-        }
-        if (translate) {
-            //t1 = QTransform().rotate(r).map(t1);
-            t2 = QTransform().rotate(r).map(t2);
-        }
+        context->adjustRotate(adjusted, r1);
     } else {
-        if (translate) {
-            QTransform tr; tr.rotate(-r);
-            to1 = tc + tr.map(to1 - tc);
-            to2 = tc + tr.map(to2 - tc);
-        }
+        context->adjustRotate(true, -context->rotate());
     }
-    if (translate) {
-        //t1 = to1 - t0 - t1;
-        t2 = to2 - t0 - t2;
+    if (context->canTranslate_) {
+        QPointF t = context->translate();
         //qDebug() << "ResourceTransform::gesture: translate" << t1 << t2;
-        translate_.translate(t2.x(), t2.y());
+        translate_.translate(t.x(), t.y());
     }
     //qDebug() << "ResourceTransform::gesture: scale" << s << "rotate" << r << "translate" << t2;
     //qDebug() << "ResourceTransform::gesture: fr1" << from1 << "fr2" << from2;
@@ -407,21 +362,19 @@ void ResourceTransform::gesture(const QPointF &from1, const QPointF &from2, QPoi
     scaleRotate_ = scale_ * rotate_;
     rotateTranslate_ = rotate_ * translate_;
     transform_ = scaleRotate_ * translate_;
-    int elements = (scale ? 4 : 0) + (rotate ? 2 : 0) + (translate ? 1 : 0);
+    int elements = (scale ? 4 : 0) + (context->canRotate_ ? 2 : 0) + (context->canTranslate_ ? 1 : 0);
     qreal z = zoom();
     QPointF o = offset();
     emit beforeChanged(elements);
     if (!qFuzzyIsNull(z / zoom() - 1.0)) {
-        to1 = tc + (to1 - tc) * zoom() / z;
-        to2 = tc + (to2 - tc) * zoom() / z;
+        context->adjustZoom(zoom() / z);
         o = o * zoom() / z;
     }
     //qDebug() << "ResourceTransform::gesture: zoom" << z << zoom();
     //qDebug() << "ResourceTransform::gesture: offset" << o << offset();
-    if (o != offset()) {
-        to1 += offset() - o;
-        to2 += offset() - o;
-    }
+    if (o != offset())
+        context->adjustOffset(offset() - o);
+    context->commit();
     //qDebug() << "ResourceTransform::gesture: fr1" << from1 << "fr2" << from2;
     //qDebug() << "ResourceTransform::gesture: to1" << to1 << "to2" << to2;
     emit changed(elements);
@@ -511,3 +464,119 @@ qreal ResourceTransform::length(QPointF const & vec)
 {
     return sqrt(QPointF::dotProduct(vec, vec));
 }
+
+GestureContext::GestureContext(const QPointF &start1, const QPointF &start2)
+    : from1_(start1)
+    , from2_(start2)
+{
+    len_ = ResourceTransform::length(start2 - start1);
+    agl_ = ResourceTransform::angle(start2 - start1);
+}
+
+void GestureContext::init(bool scale, bool rotate, bool translate, bool layoutScale)
+{
+    inited_ = true;
+    canScale_ = scale;
+    canRotate_ = rotate;
+    canTranslate_ = translate;
+    layoutScale_ = layoutScale;
+}
+
+void GestureContext::limitScales(qreal sw, qreal sh)
+{
+    limitScales_[0] = sw;
+    limitScales_[1] = sh;
+}
+
+void GestureContext::adjustOffsetAfterCommit(const QPointF &offset)
+{
+    from1_ += offset;
+    from2_ += offset;
+}
+
+void GestureContext::commit(const QPointF &to1, const QPointF &to2, const QPointF &off)
+{
+    push(to1, to2, off);
+    if (canRotate_)
+        t2_ = QTransform().rotate(rotate_).map(t2_);
+    commit();
+}
+
+void GestureContext::push(const QPointF &to1, const QPointF &to2, QPointF const & off)
+{
+    to1_ = to1;
+    to2_ = to2;
+    qreal l = ResourceTransform::length(to2 - to1);
+    qreal a = ResourceTransform::angle(to2 - to1);
+    scale_ = l / len_;
+    rotate_ = a - agl_;
+    tc_ = (to2 + to1) / 2;
+    if (canTranslate_) {
+        t0_ = off;
+        //t1 = from1_ - t0;
+        t2_ = (from2_ - t0_) * scale_;
+    }
+}
+
+bool GestureContext::adjustScale(QSizeF const & zoom2)
+{
+    qreal s0 = scale_;
+    if (!canScale_) {
+        adjustZoom(1 / s0);
+        return false;
+    }
+    bool a = false;
+    if (limitScales_[0] > 0 && scale_ * zoom2.width() < limitScales_[0]) {
+        scale_ = limitScales_[0] / zoom2.width();
+        a = true;
+    }
+    if (limitScales_[1] > 0 && scale_ * zoom2.height() > limitScales_[1]) {
+        scale_ = limitScales_[1] / zoom2.height();
+        a = true;
+    }
+    if (a)
+        adjustZoom(scale_ / s0);
+    return !layoutScale_;
+}
+
+void GestureContext::adjustRotate(bool adjusted, qreal r1)
+{
+    if (adjusted) {
+        rotate_ += r1;
+        QTransform tr; tr.rotate(r1);
+        to1_ = tc_ + tr.map(to1_ - tc_);
+        to2_ = tc_ + tr.map(to2_ - tc_);
+    }
+    if (canRotate_ && canTranslate_) {
+        //t1_ = QTransform().rotate(r).map(t1_);
+        t2_ = QTransform().rotate(rotate_).map(t2_);
+    }
+}
+
+QPointF GestureContext::translate()
+{
+    return to2_ - t0_ - t2_;
+}
+
+void GestureContext::adjustZoom(qreal zoom)
+{
+    to1_ = tc_ + (to1_ - tc_) * zoom;
+    to2_ = tc_ + (to2_ - tc_) * zoom;
+    if (canTranslate_)
+        t2_ *= zoom;
+}
+
+void GestureContext::adjustOffset(const QPointF &offset)
+{
+    to1_ += offset;
+    to2_ += offset;
+}
+
+void GestureContext::commit()
+{
+    from1_ = to1_;
+    from2_ = to2_;
+    len_ = ResourceTransform::length(to2_ - to1_);
+    agl_ = ResourceTransform::angle(to2_ - to1_);
+}
+

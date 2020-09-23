@@ -57,7 +57,7 @@ private:
 
     virtual void move(QPointF &delta) override;
 
-    virtual void gesture(const QPointF &from1, const QPointF &from2, QPointF &to1, QPointF &to2) override;
+    virtual void gesture(GestureContext *ctx, QPointF const &to1, QPointF const &to2) override;
 
 public:
     virtual void getToolButtons(QList<ToolButton *> &buttons, QList<ToolButton *> const & parents) override;

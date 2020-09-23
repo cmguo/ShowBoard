@@ -10,6 +10,8 @@ class SelectBox;
 class WhiteCanvas;
 class ToolbarWidget;
 class ControlTransform;
+class GestureContext;
+
 class QTouchEvent;
 
 class SHOWBOARD_EXPORT ItemSelector : public CanvasItem
@@ -126,6 +128,7 @@ private:
     QRectF direction_;
     QRectF rect_;
     SelectType type_;
+    GestureContext * gctx_;
 };
 
 #endif // ITEMSELECTOR_H

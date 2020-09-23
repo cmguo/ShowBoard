@@ -212,27 +212,26 @@ void WhiteCanvasControl::move(QPointF &delta)
     }
 }
 
-void WhiteCanvasControl::gesture(const QPointF &from1, const QPointF &from2, QPointF &to1, QPointF &to2)
+void WhiteCanvasControl::gesture(GestureContext *ctx, QPointF const &to1, QPointF const &to2)
 {
-    QPointF d = (to1 + to2 - from1 - from2) / 2;
-    if (pageSwitchMove(d))
+    QPointF d = (to1 + to2 - ctx->from1() - ctx->from2()) / 2;
+    if (pageSwitchMove(d)) {
+        ctx->commit(to1, to2, res_->transform().offset());
         return;
-    Control::gesture(from1, from2, to1, to2);
-    QPointF delta = (to1 + to2 - from1 - from2) / 2;
-    qreal dy = res_->transform().offset().y() - adjustStartOffset_.y();
+    }
+    Control::gesture(ctx, to1, to2);
+    QPointF delta = ctx->translate();
     //qDebug() << "WhiteCanvasControl::gesture" << adjustOffset_.x() << dy << res_->transform().zoom() / adjustStartScale_;
-    if (qAbs(adjustOffset_.x()) > 30
-            && (qAbs(dy) < qAbs(adjustOffset_.x()) / 10)
+    if (qFuzzyIsNull(delta.x()) && qAbs(adjustOffset_.x()) > 30
             && qAbs(res_->transform().zoom() / adjustStartScale_ - 1.0) < 0.2) {
-        delta.setX(d.x());
+        delta.setX(to1.x() - ctx->from1().x());
+        delta.setY(0);
         pageSwitchStart(delta);
-        to1 += delta;
-        to2 += delta;
+        ctx->adjustOffsetAfterCommit(delta);
     } else {
-        d -= delta;
-        adjustOffset_ += d;
-        to1 += d;
-        to2 += d;
+        delta = to1 - ctx->from1();
+        adjustOffset_ += delta;
+        ctx->adjustOffsetAfterCommit(delta);
     }
 }
 

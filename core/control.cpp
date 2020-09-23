@@ -760,22 +760,23 @@ bool Control::scale(const QPointF &center, qreal &delta)
     return true;
 }
 
-void Control::gesture(const QPointF &from1, const QPointF &from2, QPointF &to1, QPointF &to2)
+void Control::gesture(GestureContext *ctx, QPointF const &to1, QPointF const &to2)
 {
-    qreal layoutScale = 1.0;
-    qreal * pLayoutScale = (flags_ & LayoutScale) ? &layoutScale : nullptr;
-    qreal limitScale[] = {1.0, 10.0};
-    if (flags_ & CanScale) {
-        QSizeF size = item_->boundingRect().size();
-        limitScale[0] = qMax(minMaxSize_[0].width() / size.width(), minMaxSize_[0].height() / size.height());
-        limitScale[1] = qMin(minMaxSize_[1].width() / size.width(), minMaxSize_[1].height() / size.height());
+    if (!ctx->inited()) {
+        ctx->init(flags_ & CanScale, flags_ & CanRotate, flags_ & CanMove, flags_ & LayoutScale);
     }
-    res_->transform().gesture(from1, from2, to1, to2,
-                              flags_ & CanMove, flags_ & CanScale, flags_ & CanRotate, limitScale, pLayoutScale);
-    if (pLayoutScale) {
+    if (flags_ & CanScale) {
+        // size may changed
+        QSizeF size = item_->boundingRect().size();
+        ctx->limitScales(
+                    qMax(minMaxSize_[0].width() / size.width(), minMaxSize_[0].height() / size.height()),
+                    qMin(minMaxSize_[1].width() / size.width(), minMaxSize_[1].height() / size.height()));
+    }
+    res_->transform().gesture(ctx, to1, to2);
+    if (ctx->layoutScale()) {
         QRectF rect = realItem_->boundingRect();
-        rect.setWidth(rect.width() * layoutScale);
-        rect.setHeight(rect.height() * layoutScale);
+        rect.setWidth(rect.width() * ctx->scale());
+        rect.setHeight(rect.height() * ctx->scale());
         if (item_ != realItem_) {
             static_cast<ItemFrame *>(realItem_)->updateRectToChild(rect);
         }

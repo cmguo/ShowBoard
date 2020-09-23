@@ -10,6 +10,8 @@
 //   rotate
 //   translate
 
+class GestureContext;
+
 class SHOWBOARD_EXPORT ResourceTransform : public QObject
 {
     Q_OBJECT
@@ -136,8 +138,7 @@ public:
     /* adjust tranform by two fingers guesture
      *   scale is averaged in x/y aixs
      */
-    void gesture(QPointF const & from1, QPointF const & from2, QPointF & to1, QPointF & to2,
-                 bool translate, bool scale, bool rotate, qreal limitScale[2], qreal * scaleOut = nullptr);
+    void gesture(GestureContext * context, QPointF const & to1, QPointF const & to2);
 
     /* take other tranform to modify at same time,
      *    when attached, modify to one transform will affect another one, and keep
@@ -189,6 +190,8 @@ public:
 private:
     void translate(QPointF const & delta, int otherChanges);
 
+    friend class GestureContext;
+
     static qreal length(QPointF const & vec);
 
     static qreal angle(QPointF const & vec);
@@ -200,6 +203,76 @@ private:
     QTransform transform_;
     QTransform scaleRotate_;
     QTransform rotateTranslate_;
+};
+
+class GestureContext
+{
+public:
+    GestureContext(QPointF const & start1, QPointF const & start2);
+
+public:
+    bool inited() const { return inited_; }
+
+    void init(bool scale, bool rotate, bool translate, bool layoutScale);
+
+    void limitScales(qreal sw, qreal sh);
+
+    bool layoutScale() { return canScale_ && layoutScale_; }
+
+    void adjustOffsetAfterCommit(QPointF const & offset);
+
+    void commit(QPointF const & to1, QPointF const & to2, QPointF const & off);
+
+public:
+    qreal scale() const { return scale_; }
+
+    qreal rotate() const { return rotate_; }
+
+    QPointF translate();
+
+    QPointF from1() const { return from1_; }
+
+    QPointF from2() const { return from2_; }
+
+private:
+    friend class ResourceTransform;
+
+    void push(QPointF const & to1, QPointF const & to2, QPointF const & off);
+
+    bool adjustScale(QSizeF const & zoom2);
+
+    void adjustRotate(bool adjust, qreal r1);
+
+    void adjustZoom(qreal zoom);
+
+    void adjustOffset(QPointF const & offset);
+
+    void commit();
+
+private:
+    bool inited_ = false;
+    bool canTranslate_;
+    bool canScale_;
+    bool canRotate_;
+    bool layoutScale_;
+    qreal limitScales_[2];
+
+private:
+    QPointF from1_;
+    QPointF from2_;
+    qreal len_;
+    qreal agl_;
+
+    QPointF to1_;
+    QPointF to2_;
+    qreal scale_;
+    qreal rotate_;
+
+private:
+    QPointF tc_;
+    QPointF t0_;
+    //QPointF t1_;
+    QPointF t2_;
 };
 
 #endif // RESOURCETRANSFORM_H

@@ -36,6 +36,7 @@ ItemSelector::ItemSelector(QGraphicsItem * parent)
     , currentEvent_(nullptr)
     , currentEventSource_(nullptr)
     , type_(None)
+    , gctx_(nullptr)
 {
     setAcceptedMouseButtons(Qt::LeftButton);
 #if ENBALE_TOUCH
@@ -517,6 +518,7 @@ void ItemSelector::touchUpdate(QTouchEvent *event)
     for (QTouchEvent::TouchPoint const & point : event->touchPoints()) {
         positions[point.id()] = isCanvas ? point.scenePos() : point.pos();
     }
+    bool guesture = false;
     //qDebug() << positions;
     if (event->touchPoints().size() != 2 || type_ == Scale || type_ == Rotate) {
         QTouchEvent::TouchPoint const & point(event->touchPoints().first());
@@ -554,8 +556,10 @@ void ItemSelector::touchUpdate(QTouchEvent *event)
                 // qDebug() << lastPositions_[point1.id()] << lastPositions_[point2.id()] << "<->"
                 //        << positions[point1.id()] << positions[point2.id()];
             }
-            tempControl_->gesture(lastPositions_[point1.id()], lastPositions_[point2.id()],
-                    positions[point1.id()], positions[point2.id()]);
+            guesture = true;
+            if (gctx_ == nullptr)
+                gctx_ = new GestureContext(lastPositions_[point1.id()], lastPositions_[point2.id()]);
+            tempControl_->gesture(gctx_, positions[point1.id()], positions[point2.id()]);
             rect_ = tempControl_->boundRect();
             selBox_->setRect(rect_);
             if (type_ == TempNoMove || type_ == AgainNoMove)
@@ -566,6 +570,10 @@ void ItemSelector::touchUpdate(QTouchEvent *event)
                 layoutToolbar();
         }
     }
+    if (!guesture && gctx_) {
+        delete gctx_;
+        gctx_ = nullptr;
+    }
     lastPositions_.swap(positions);
 }
 
@@ -573,6 +581,10 @@ void ItemSelector::touchEnd(QTouchEvent *)
 {
     if (tempControl_ == nullptr)
         return;
+    if (gctx_) {
+        delete gctx_;
+        gctx_ = nullptr;
+    }
     //qDebug() << "touchEnd";
     lastPositions_.clear();
     selectRelease();

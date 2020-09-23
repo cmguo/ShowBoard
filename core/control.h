@@ -8,6 +8,7 @@
 #include <QRectF>
 
 class ResourceView;
+class GestureContext;
 class StateItem;
 class ToolButton;
 class ItemFrame;
@@ -173,7 +174,8 @@ public:
     /*
      * pinch scale/move/rotate this item, is saved at transform
      */
-    virtual void gesture(QPointF const & from1, QPointF const & from2, QPointF & to1, QPointF & to2);
+    virtual void gesture(GestureContext * ctx,
+                         QPointF const & to1, QPointF const & to2);
 
 public:
     /*
