@@ -268,6 +268,9 @@ private:
     qreal scale_;
     qreal rotate_;
 
+    QPointF st2_;
+    QPointF st_;
+
 private:
     QPointF tc_;
     QPointF t0_;

@@ -574,6 +574,19 @@ void GestureContext::adjustOffset(const QPointF &offset)
 
 void GestureContext::commit()
 {
+    if (canScale_ || canRotate_) {
+        st2_ += from2_ - t0_ - t2_;
+        st_ += to2_ - t0_ - t2_;
+        //qDebug() << "GestureContext::commit" << st2_ << st_;
+        qreal l = ResourceTransform::length(st_);
+        qreal l2 = ResourceTransform::length(st2_);
+        if (l > 9 && l > l2 * 4) {
+            //qDebug() << "GestureContext::commit disable scale & rotate";
+            canScale_ = canRotate_ = false;
+        } else if (l2 > 9) {
+            st_ = st2_ = QPointF();
+        }
+    }
     from1_ = to1_;
     from2_ = to2_;
     len_ = ResourceTransform::length(to2_ - to1_);
