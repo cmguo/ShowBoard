@@ -111,12 +111,17 @@ void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos, EventT
     if (selectControl_ && selBox_->isVisible()) {
         type_ = static_cast<SelectType>(
                     selBox_->hitTest(selBox_->mapFromItem(currentEventSource_, pos), direction_));
+#ifndef QT_DEBUG
+        if (eventType == Wheel
+                && !QApplication::keyboardModifiers().testFlag(Qt::ControlModifier))
+            type_ = None;
+#endif
         if (fastClone_ && type_ == Translate)
             type_ = FastClone;
-        if (type_ == None && eventType == Touch) { // maybe hit menu bar
+        if (type_ == None && eventType == Touch) // maybe hit menu bar
             return;
-        }
-        if (type_ == Translate && !selectControl_->flags().testFlag(Control::ShowSelectMask))
+        if (type_ == Translate && !selectControl_->flags()
+                .testFlag(Control::ShowSelectMask))
             type_ = None;
     }
     if (type_ == None) {
