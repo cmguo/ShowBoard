@@ -67,6 +67,8 @@ protected:
 
     virtual void detached() override;
 
+    virtual void sizeChanged() override;
+
 protected:
     virtual void loadFinished(bool ok);
 

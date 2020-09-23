@@ -127,10 +127,6 @@ void WebControl::loadSettings()
 
 void WebControl::attached()
 {
-    if (++totalFront > MAX_WEB || !OomHandler::isMemoryAvailable(40 * 1024 * 1024)) {
-        Control::loadFinished(false, "打开失败，内存不足");
-        return;
-    }
     if (res_->independent()) {
         ResourceCache::pause(this);
     }
@@ -159,6 +155,10 @@ void WebControl::attached()
             setProperty("ViewSizeChangeIndex", diff);
             widget_->resize(widget_->size() + QSize(0, diff));
         }
+        return;
+    }
+    if (++totalFront > MAX_WEB || !OomHandler::isMemoryAvailable(40 * 1024 * 1024)) {
+        Control::loadFinished(false, "打开失败，内存不足");
         return;
     }
     if (background_ != Qt::transparent) {
@@ -202,6 +202,15 @@ void WebControl::detached()
     --totalFront;
 }
 
+void WebControl::sizeChanged()
+{
+    // fix software graph backend
+    if (res_->flags().testFlag(ResourceView::LargeCanvas)
+            && flags_.testFlag(RestorePersisted))
+        return;
+    WidgetControl::sizeChanged();
+}
+
 void WebControl::loadFinished(bool ok)
 {
     if (!flags_.testFlag(Loading))
@@ -220,7 +229,9 @@ void WebControl::loadFinished(bool ok)
 
 void WebControl::contentsSizeChanged(const QSizeF &size)
 {
-    if (res_->flags().testFlag(ResourceView::LargeCanvas)) {
+    if (res_->flags().testFlag(ResourceView::LargeCanvas)
+            // fix software graph backend
+            && !flags_.testFlag(RestorePersisted)) {
         QWebEngineView * view = qobject_cast<QWebEngineView *>(widget_);
         WebControl * canvasControl = static_cast<WebControl*>(Control::fromItem(whiteCanvas()));
         canvasControl->resize(view->page()->contentsSize());
