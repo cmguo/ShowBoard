@@ -60,6 +60,7 @@ void DrawingTool::finishControl(Control * control)
 {
     whiteCanvas()->hideToolControl(this);
     emit drawFinished(control);
+    disconnect(SIGNAL(drawFinished(bool)));
 }
 
 bool DrawingTool::translucent() const
