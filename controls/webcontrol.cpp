@@ -15,7 +15,11 @@
 #include <QMimeData>
 
 #define LARGE_CANVAS_LINKAGE 1
-#define LARGE_CANVAS_LINKAGE_SCALE 0
+#ifdef QT_DEBUG
+# define LARGE_CANVAS_LINKAGE_SCALE 0
+#else
+# define LARGE_CANVAS_LINKAGE_SCALE 0
+#endif
 
 static char const * toolstr =
         "reload()|刷新|;"
@@ -50,9 +54,8 @@ WebControl::WebControl(ResourceView * res)
         flags_.setFlag(WithSelectBar, false);
     }
     if (res_->flags().testFlag(ResourceView::LargeCanvas)) {
-        flags_.setFlag(DefaultFlags, false);
-#if LARGE_CANVAS_LINKAGE_SCALE
-        flags_.setFlag(CanScale, true);
+#if !LARGE_CANVAS_LINKAGE_SCALE
+        flags_.setFlag(CanScale, false);
 #endif
 #if LARGE_CANVAS_LINKAGE
         flags_.setFlag(FixedOnCanvas, true);
@@ -171,18 +174,11 @@ void WebControl::attached()
         background->setFlag(QGraphicsItem::ItemStacksBehindParent);
     }
     item_->setFlag(QGraphicsItem::ItemIsFocusable);
-//#if LARGE_CANVAS_LINKAGE_SCALE
-//    if (res_->flags().testFlag(ResourceView::LargeCanvas)) {
-//        Control * canvasControl = Control::fromItem(whiteCanvas());
-//        connect(&canvasControl->resource()->transform(), &ResourceTransform::changed,
-//                this, [this, view]() {
-//            if (flags_.testFlag(Loading))
-//                return;
-//            qreal scale = qobject_cast<ResourceTransform*>(sender())->scale().m11();
-//            view->scaleTo(scale);
-//        });
-//    }
-//#endif
+    if (res_->flags().testFlag(ResourceView::LargeCanvas)) {
+        Control * canvasControl = Control::fromItem(whiteCanvas());
+        connect(&canvasControl->resource()->transform(), &ResourceTransform::changed,
+                this, &WebControl::canvasTransformChanged);
+    }
     if (auto data = res_->mimeData())
         view->setHtml(data->html());
     else
@@ -247,25 +243,51 @@ void WebControl::contentsSizeChanged(const QSizeF &size)
 void WebControl::scrollPositionChanged(const QPointF &pos)
 {
     Control * canvasControl = Control::fromItem(whiteCanvas());
+    if (canvasControl->flags().testFlag(Adjusting))
+        return;
     QRectF rect = canvasControl->boundRect();
     rect.moveCenter({0, 0});
     rect.setSize(item_->boundingRect().size());
     WebView * view = static_cast<WebView *>(widget_);
+    flags_.setFlag(Adjusting, true);
     canvasControl->resource()->transform()
             .translateTo(-rect.center() - pos * view->scale());
+    flags_.setFlag(Adjusting, false);
 }
 
 void WebControl::scaleChanged(qreal scale)
 {
     Control * canvasControl = Control::fromItem(whiteCanvas());
+    if (canvasControl->flags().testFlag(Adjusting))
+        return;
     QRectF rect = canvasControl->boundRect();
     rect.moveCenter({0, 0});
     rect.setSize(item_->boundingRect().size());
     QPointF pos = (canvasControl->resource()->transform().offset()
                    + rect.center()) / -canvasControl->resource()->transform().zoom();
+    flags_.setFlag(Adjusting, true);
     canvasControl->resource()->transform().scaleTo(scale);
     canvasControl->resource()->transform()
             .translateTo(-rect.center() - pos * scale);
+    flags_.setFlag(Adjusting, false);
+}
+
+void WebControl::canvasTransformChanged(int)
+{
+    if (flags_.testFlag(Loading) || flags_.testFlag(Adjusting))
+        return;
+    Control * canvasControl = Control::fromItem(whiteCanvas());
+    WebView * view = static_cast<WebView *>(widget_);
+    QRectF rect = canvasControl->boundRect();
+    rect.moveCenter({0, 0});
+    rect.setSize(item_->boundingRect().size());
+    QPointF off = canvasControl->resource()->transform().offset();
+    qDebug() << "WebControl::canvasTransformChanged" << off;
+    view->scrollTo((-off - rect.center()) / view->scale());
+#if LARGE_CANVAS_LINKAGE_SCALE
+    qreal scale = qobject_cast<ResourceTransform*>(sender())->scale().m11();
+    view->scaleTo(scale);
+#endif
 }
 
 void WebControl::reload()

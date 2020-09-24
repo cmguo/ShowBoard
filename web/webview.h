@@ -13,7 +13,13 @@ public:
 public:
     WebView(QObject * settings);
 
-    qreal scale() const;
+    qreal scale() const { return scale_; }
+
+    QPointF pos() const { return pos_; }
+
+    void scroll(QPointF const & delta);
+
+    void scrollTo(QPointF const & pos);
 
     void scale(qreal scale);
 
@@ -44,6 +50,7 @@ private:
     QSharedPointer<WebView> life_;
     QQuickWidget* hostWidget_ = nullptr;
     bool synthesizedMouse_ = false;
+    QPointF pos_;
     qreal scale_ = 1.0;
 };
 

@@ -79,6 +79,8 @@ private:
 
     void scaleChanged(qreal scale);
 
+    void canvasTransformChanged(int elem);
+
 private:
     QColor background_;
 };

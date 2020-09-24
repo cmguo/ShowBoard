@@ -5,6 +5,7 @@
 #include <QWebEngineSettings>
 #include <QWebEngineProfile>
 #include <QGraphicsProxyWidget>
+#include <QWebEngineScript>
 
 #include <views/whitecanvas.h>
 
@@ -83,14 +84,27 @@ WebView::WebView(QObject *settings)
          hostWidget()->installEventFilter(this);
          hostWidget()->setFocus();
     });
-    connect(page(), &WebPage::scrollPositionChanged, this, [this]() {
+    connect(page(), &WebPage::scrollPositionChanged, this, [this](QPointF const pos) {
+        pos_ = pos;
         updateScale();
     });
 }
 
-qreal WebView::scale() const
+void WebView::scroll(const QPointF &delta)
 {
-    return scale_;
+    QPoint p = delta.toPoint();
+    QString script = QString("window.scrollBy(%1, %2);")
+            .arg(p.x()).arg(p.y());
+    page()->runJavaScript(script, QWebEngineScript::ApplicationWorld);
+}
+
+void WebView::scrollTo(QPointF const & pos)
+{
+    QPoint p = pos.toPoint();
+    QString script = QString("window.scrollTo({left:%1,top:%2,behavior:'auto'});")
+            .arg(p.x()).arg(p.y());
+    qDebug() << "WebView::scrollTo" << pos << script;
+    page()->runJavaScript(script, QWebEngineScript::ApplicationWorld);
 }
 
 void WebView::scale(qreal scale)
@@ -158,7 +172,6 @@ void WebView::scale(qreal scale)
         event.setTouchPoints(touchPoints);
         QApplication::sendEvent(target, &event);
     }
-
 }
 
 void WebView::scaleTo(qreal scaleTo)
@@ -189,6 +202,7 @@ void WebView::dump()
     qDebug() << page()->profile()->httpCacheType();
     qDebug() << page()->profile()->cachePath();
     qDebug() << page()->profile()->httpCacheMaximumSize();
+    scrollTo({0, 100});
 }
 
 bool WebView::event(QEvent *event)
@@ -334,7 +348,7 @@ QWebEnginePage *WebPage::createWindow(QWebEnginePage::WebWindowType type)
     if (mode_ == InCurrent) {
         WebPage *page = new WebPage(this, nullptr);
         connect(page, &QWebEnginePage::urlChanged, this, [this](QUrl const & url) {
-            if(QWebEnginePage *page = qobject_cast<QWebEnginePage *>(sender())){
+            if (QWebEnginePage *page = qobject_cast<QWebEnginePage *>(sender())){
                 setUrl(url);
                 page->deleteLater();
             }
