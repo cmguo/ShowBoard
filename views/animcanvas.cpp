@@ -145,7 +145,7 @@ bool AnimCanvas::release()
     QPointF p = pos();
     qreal t = qAbs(p.x()) + qAbs(p.y());
     qreal T = qAbs(total_.x()) + qAbs(total_.y());
-    switchPage_ = t * 4.0 > T;
+    switchPage_ = t * 6.0 > T;
     timeLine_ = qFuzzyIsNull(t)
             ? static_cast<int>((1.0 - scale()) / 0.02)
             : (qFuzzyIsNull(t - T)

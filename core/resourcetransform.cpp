@@ -352,6 +352,7 @@ void ResourceTransform::gesture(GestureContext *context, QPointF const &to1, QPo
         context->adjustRotate(true, -context->rotate());
     }
     if (context->canTranslate_) {
+        context->adjustTranslate();
         QPointF t = context->translate();
         //qDebug() << "ResourceTransform::gesture: translate" << t1 << t2;
         translate_.translate(t.x(), t.y());
@@ -374,7 +375,7 @@ void ResourceTransform::gesture(GestureContext *context, QPointF const &to1, QPo
     //qDebug() << "ResourceTransform::gesture: offset" << o << offset();
     if (o != offset())
         context->adjustOffset(offset() - o);
-    context->commit();
+    context->commit(to1, to2);
     //qDebug() << "ResourceTransform::gesture: fr1" << from1 << "fr2" << from2;
     //qDebug() << "ResourceTransform::gesture: to1" << to1 << "to2" << to2;
     emit changed(elements);
@@ -499,7 +500,7 @@ void GestureContext::commit(const QPointF &to1, const QPointF &to2, const QPoint
     push(to1, to2, off);
     if (canRotate_)
         t2_ = QTransform().rotate(rotate_).map(t2_);
-    commit();
+    commit(to1, to2);
 }
 
 void GestureContext::push(const QPointF &to1, const QPointF &to2, QPointF const & off)
@@ -553,26 +554,31 @@ void GestureContext::adjustRotate(bool adjusted, qreal r1)
     }
 }
 
-QPointF GestureContext::translate()
+void GestureContext::adjustTranslate()
 {
-    return to2_ - t0_ - t2_;
+    translate_ = to2_ - t0_ - t2_;
 }
 
 void GestureContext::adjustZoom(qreal zoom)
 {
     to1_ = tc_ + (to1_ - tc_) * zoom;
     to2_ = tc_ + (to2_ - tc_) * zoom;
-    if (canTranslate_)
+    //qDebug() << "GestureContext::adjustZoom: to1" << to1_ << "to2" << to2_;
+    if (canTranslate_) {
         t2_ *= zoom;
+        translate_ *= zoom;
+    }
 }
 
 void GestureContext::adjustOffset(const QPointF &offset)
 {
     to1_ += offset;
     to2_ += offset;
+    translate_ += offset;
+    st_ += offset;
 }
 
-void GestureContext::commit()
+void GestureContext::commit(QPointF const & to1, QPointF const & to2)
 {
     if (canScale_ || canRotate_) {
         st2_ += from2_ - t0_ - t2_;
@@ -591,5 +597,7 @@ void GestureContext::commit()
     from2_ = to2_;
     len_ = ResourceTransform::length(to2_ - to1_);
     agl_ = ResourceTransform::angle(to2_ - to1_);
+    to1_ = to1;
+    to2_ = to2;
 }
 

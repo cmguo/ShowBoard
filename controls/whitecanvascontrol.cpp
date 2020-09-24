@@ -183,11 +183,7 @@ void WhiteCanvasControl::sizeChanged()
 void WhiteCanvasControl::adjusting(bool be)
 {
     Control::adjusting(be);
-    if (be) {
-        adjustStartScale_ = res_->transform().zoom();
-        adjustStartOffset_ = res_->transform().offset();
-        adjustOffset_ = {0, 0};
-    } else {
+    if (!be) {
         // delay PageSwitchEndEvent event,
         //  avoid lost InkStrokeControl's filter soon
         QTimer::singleShot(0, this, [this] () {
@@ -206,7 +202,7 @@ void WhiteCanvasControl::move(QPointF &delta)
         return;
     QPointF d = delta;
     Control::move(delta);
-    if (qFuzzyIsNull(delta.x()) && qFuzzyIsNull(delta.y()) && !qFuzzyIsNull(d.x())) {
+    if (qFuzzyIsNull(delta.x()) && qAbs(delta.y()) < qAbs(d.x()) && !qFuzzyIsNull(d.x())) {
         delta.setX(d.x());
         pageSwitchStart(delta);
     }
@@ -214,23 +210,19 @@ void WhiteCanvasControl::move(QPointF &delta)
 
 void WhiteCanvasControl::gesture(GestureContext *ctx, QPointF const &to1, QPointF const &to2)
 {
-    QPointF d = (to1 + to2 - ctx->from1() - ctx->from2()) / 2;
+    QPointF d = (to1 + to2 - ctx->to1() - ctx->to2()) / 2;
     if (pageSwitchMove(d)) {
         ctx->commit(to1, to2, res_->transform().offset());
         return;
     }
     Control::gesture(ctx, to1, to2);
     QPointF delta = ctx->translate();
-    //qDebug() << "WhiteCanvasControl::gesture" << adjustOffset_.x() << dy << res_->transform().zoom() / adjustStartScale_;
-    if (qFuzzyIsNull(delta.x()) && qAbs(adjustOffset_.x()) > 30
-            && qAbs(res_->transform().zoom() / adjustStartScale_ - 1.0) < 0.2) {
-        delta.setX(to1.x() - ctx->from1().x());
+    QPointF left = to1 - ctx->from1();
+    qDebug() << "WhiteCanvasControl::gesture" << d << delta << left;
+    if (qFuzzyIsNull(delta.x()) && qAbs(delta.y()) < qAbs(d.x())) {
+        delta.setX(left.x());
         delta.setY(0);
         pageSwitchStart(delta);
-        ctx->adjustOffsetAfterCommit(delta);
-    } else {
-        delta = to1 - ctx->from1();
-        adjustOffset_ += delta;
         ctx->adjustOffsetAfterCommit(delta);
     }
 }

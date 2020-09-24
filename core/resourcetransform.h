@@ -228,11 +228,15 @@ public:
 
     qreal rotate() const { return rotate_; }
 
-    QPointF translate();
+    QPointF translate() { return translate_; }
 
     QPointF from1() const { return from1_; }
 
     QPointF from2() const { return from2_; }
+
+    QPointF to1() const { return to1_; }
+
+    QPointF to2() const { return to2_; }
 
 private:
     friend class ResourceTransform;
@@ -243,11 +247,13 @@ private:
 
     void adjustRotate(bool adjust, qreal r1);
 
+    void adjustTranslate();
+
     void adjustZoom(qreal zoom);
 
     void adjustOffset(QPointF const & offset);
 
-    void commit();
+    void commit(QPointF const & to1, QPointF const & to2);
 
 private:
     bool inited_ = false;
@@ -265,8 +271,10 @@ private:
 
     QPointF to1_;
     QPointF to2_;
+
     qreal scale_;
     qreal rotate_;
+    QPointF translate_;
 
     QPointF st2_;
     QPointF st_;
