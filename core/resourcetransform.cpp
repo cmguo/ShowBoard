@@ -466,17 +466,28 @@ qreal ResourceTransform::length(QPointF const & vec)
     return sqrt(QPointF::dotProduct(vec, vec));
 }
 
-GestureContext::GestureContext(const QPointF &start1, const QPointF &start2)
-    : from1_(start1)
-    , from2_(start2)
+GestureContext::GestureContext()
 {
-    len_ = ResourceTransform::length(start2 - start1);
-    agl_ = ResourceTransform::angle(start2 - start1);
 }
 
-void GestureContext::init(bool scale, bool rotate, bool translate, bool layoutScale)
+void GestureContext::start(const QPointF &start1, const QPointF &start2)
 {
-    inited_ = true;
+    started_ = true;
+    from1_ = start1;
+    from2_ = start2;
+    len_ = ResourceTransform::length(start2 - start1);
+    agl_ = ResourceTransform::angle(start2 - start1);
+    st_ = st2_ = QPointF();
+}
+
+void GestureContext::pause()
+{
+    started_ = false;
+}
+
+void GestureContext::config(bool scale, bool rotate, bool translate, bool layoutScale)
+{
+    configged_ = true;
     canScale_ = scale;
     canRotate_ = rotate;
     canTranslate_ = translate;

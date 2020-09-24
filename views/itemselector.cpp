@@ -518,7 +518,7 @@ void ItemSelector::touchUpdate(QTouchEvent *event)
     for (QTouchEvent::TouchPoint const & point : event->touchPoints()) {
         positions[point.id()] = isCanvas ? point.scenePos() : point.pos();
     }
-    bool guesture = false;
+    bool gesture = false;
     //qDebug() << positions;
     if (event->touchPoints().size() != 2 || type_ == Scale || type_ == Rotate) {
         QTouchEvent::TouchPoint const & point(event->touchPoints().first());
@@ -556,9 +556,11 @@ void ItemSelector::touchUpdate(QTouchEvent *event)
                 // qDebug() << lastPositions_[point1.id()] << lastPositions_[point2.id()] << "<->"
                 //        << positions[point1.id()] << positions[point2.id()];
             }
-            guesture = true;
+            gesture = true;
             if (gctx_ == nullptr)
-                gctx_ = new GestureContext(lastPositions_[point1.id()], lastPositions_[point2.id()]);
+                gctx_ = new GestureContext;
+            if (!gctx_->started())
+                gctx_->start(lastPositions_[point1.id()], lastPositions_[point2.id()]);
             tempControl_->gesture(gctx_, positions[point1.id()], positions[point2.id()]);
             rect_ = tempControl_->boundRect();
             selBox_->setRect(rect_);
@@ -570,9 +572,8 @@ void ItemSelector::touchUpdate(QTouchEvent *event)
                 layoutToolbar();
         }
     }
-    if (!guesture && gctx_) {
-        delete gctx_;
-        gctx_ = nullptr;
+    if (!gesture && gctx_) {
+        gctx_->pause();
     }
     lastPositions_.swap(positions);
 }

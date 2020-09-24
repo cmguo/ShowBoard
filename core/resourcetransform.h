@@ -208,12 +208,19 @@ private:
 class GestureContext
 {
 public:
-    GestureContext(QPointF const & start1, QPointF const & start2);
+    GestureContext();
 
 public:
-    bool inited() const { return inited_; }
+    void start(QPointF const & start1, QPointF const & start2);
 
-    void init(bool scale, bool rotate, bool translate, bool layoutScale);
+    void pause();
+
+    bool started() { return started_; }
+
+public:
+    bool configged() const { return configged_; }
+
+    void config(bool scale, bool rotate, bool translate, bool layoutScale);
 
     void limitScales(qreal sw, qreal sh);
 
@@ -256,7 +263,7 @@ private:
     void commit(QPointF const & to1, QPointF const & to2);
 
 private:
-    bool inited_ = false;
+    bool configged_ = false;
     bool canTranslate_;
     bool canScale_;
     bool canRotate_;
@@ -264,6 +271,7 @@ private:
     qreal limitScales_[2];
 
 private:
+    bool started_ = false;
     QPointF from1_;
     QPointF from2_;
     qreal len_;

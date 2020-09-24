@@ -771,8 +771,8 @@ bool Control::scale(const QPointF &center, qreal &delta)
 
 void Control::gesture(GestureContext *ctx, QPointF const &to1, QPointF const &to2)
 {
-    if (!ctx->inited()) {
-        ctx->init(flags_ & CanScale, flags_ & CanRotate, flags_ & CanMove, flags_ & LayoutScale);
+    if (!ctx->configged()) {
+        ctx->config(flags_ & CanScale, flags_ & CanRotate, flags_ & CanMove, flags_ & LayoutScale);
     }
     if (flags_ & CanScale) {
         // size may changed
