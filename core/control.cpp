@@ -292,6 +292,7 @@ void Control::paste(QMimeData const & data, WhiteCanvas * canvas)
         c->flags_.setFlag(RestoreSession, false);
         c->initPosition();
         c->flags_.setFlag(RestoreSession, true);
+        canvas->selector()->updateSelect(c);
     }
     const_cast<QMimeData&>(data).setProperty(
                 "OriginControl", QVariant::fromValue(c->life()));
