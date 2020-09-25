@@ -157,7 +157,7 @@ void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos, EventT
                 force = false;
             if (!force) {
                 mode = ct->selectTest(children[i], item,
-                                      ct->item()->mapFromItem(currentEventSource_, pos),
+                                      mapToItem(ct->item(), pos),
                                       mode == Control::PassSelect2);
             }
             //qDebug() << force << ct->resource()->name() << mode;
@@ -452,7 +452,7 @@ void ItemSelector::mousePressEvent(QGraphicsSceneMouseEvent *event)
         CanvasItem::mousePressEvent(event);
         return;
     }
-    selectAt(event->pos(), event->scenePos(), Mouse);
+    selectAt(mapFromItem(currentEventSource_, event->pos()), event->scenePos(), Mouse);
     if (type_ == None || type_ == Implied) {
         CanvasItem::mousePressEvent(event);
     }
@@ -471,7 +471,7 @@ void ItemSelector::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         return;
     }
     //qDebug() << "mouseMove";
-    selectMove(event->pos(), event->scenePos());
+    selectMove(mapFromItem(currentEventSource_, event->pos()), event->scenePos());
 }
 
 void ItemSelector::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
@@ -494,7 +494,7 @@ void ItemSelector::touchBegin(QTouchEvent *event)
 {
     //qDebug() << "touchBegin";
     QTouchEvent::TouchPoint const & point(event->touchPoints().first());
-    selectAt(point.pos(), point.scenePos(), Touch);
+    selectAt(mapFromItem(currentEventSource_, point.pos()), point.scenePos(), Touch);
     if (type_ != None && type_ != Implied) {
         bool isCanvas = tempControl_->metaObject() == &WhiteCanvasControl::staticMetaObject
                 || (tempControl_->flags() & Control::FixedOnCanvas);
@@ -516,7 +516,9 @@ void ItemSelector::touchUpdate(QTouchEvent *event)
     bool isCanvas = tempControl_->metaObject() == &WhiteCanvasControl::staticMetaObject
             || (tempControl_->flags() & Control::FixedOnCanvas);
     for (QTouchEvent::TouchPoint const & point : event->touchPoints()) {
-        positions[point.id()] = isCanvas ? point.scenePos() : point.pos();
+        positions[point.id()] = isCanvas
+                ? point.scenePos()
+                : mapFromItem(currentEventSource_, point.pos());
     }
     bool gesture = false;
     //qDebug() << positions;
@@ -593,7 +595,7 @@ void ItemSelector::touchEnd(QTouchEvent *)
 
 void ItemSelector::wheelEvent(QGraphicsSceneWheelEvent *event)
 {
-    selectAt(event->pos(), event->scenePos(), Wheel);
+    selectAt(mapFromItem(currentEventSource_, event->pos()), event->scenePos(), Wheel);
     if (tempControl_) {
         if (event->modifiers().testFlag(Qt::KeyboardModifier::ControlModifier)) {
             qreal delta = event->delta() > 0 ? 1.2 : 1.0 / 1.2;

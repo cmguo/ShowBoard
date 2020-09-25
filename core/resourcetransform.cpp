@@ -354,7 +354,7 @@ void ResourceTransform::gesture(GestureContext *context, QPointF const &to1, QPo
     if (context->canTranslate_) {
         context->adjustTranslate();
         QPointF t = context->translate();
-        //qDebug() << "ResourceTransform::gesture: translate" << t1 << t2;
+        //qDebug() << "ResourceTransform::gesture: translate" << t;
         translate_.translate(t.x(), t.y());
     }
     //qDebug() << "ResourceTransform::gesture: scale" << s << "rotate" << r << "translate" << t2;
@@ -516,6 +516,7 @@ void GestureContext::commit(const QPointF &to1, const QPointF &to2, const QPoint
 
 void GestureContext::push(const QPointF &to1, const QPointF &to2, QPointF const & off)
 {
+    //qDebug() << "GestureContext::push: to1" << to1 << "to2" << to2 << "off" << off;
     to1_ = to1;
     to2_ = to2;
     qreal l = ResourceTransform::length(to2 - to1);
@@ -556,11 +557,14 @@ void GestureContext::adjustRotate(bool adjusted, qreal r1)
     if (adjusted) {
         rotate_ += r1;
         QTransform tr; tr.rotate(r1);
+        //qDebug() << "GestureContext::adjustRotate: to1" << to1_ << "to2" << to2_;
         to1_ = tc_ + tr.map(to1_ - tc_);
         to2_ = tc_ + tr.map(to2_ - tc_);
+        //qDebug() << "GestureContext::adjustRotate: to1" << to1_ << "to2" << to2_;
     }
     if (canRotate_ && canTranslate_) {
-        //t1_ = QTransform().rotate(r).map(t1_);
+        //qDebug() << "GestureContext::adjustRotate: rotate" << rotate_ << "t2" << t2_;
+        //t1_ = QTransform().rotate(rotate_).map(t1_);
         t2_ = QTransform().rotate(rotate_).map(t2_);
     }
 }
@@ -572,6 +576,7 @@ void GestureContext::adjustTranslate()
 
 void GestureContext::adjustZoom(qreal zoom)
 {
+    //qDebug() << "GestureContext::adjustZoom: zoom" << zoom << "to1" << to1_ << "to2" << to2_;
     to1_ = tc_ + (to1_ - tc_) * zoom;
     to2_ = tc_ + (to2_ - tc_) * zoom;
     //qDebug() << "GestureContext::adjustZoom: to1" << to1_ << "to2" << to2_;
@@ -604,6 +609,8 @@ void GestureContext::commit(QPointF const & to1, QPointF const & to2)
             st_ = st2_ = QPointF();
         }
     }
+    //qDebug() << "GestureContext::commit " << from1_ << to1_;
+    //qDebug() << "GestureContext::commit " << from2_ << to2_;
     from1_ = to1_;
     from2_ = to2_;
     len_ = ResourceTransform::length(to2_ - to1_);
