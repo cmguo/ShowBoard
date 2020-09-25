@@ -14,11 +14,7 @@ char const * const ResourceView::EXPORT_ATTR_FACTORY = "rfactory";
 
 static constexpr char const * SESSION_GROUP = "SESSION_GROUP";
 static constexpr char const * SESSION = "SESSION";
-#if QT_VERSION >= 0x050E00
-static constexpr int MAX_SESSION = 30;
-#else
-static constexpr int MAX_SESSION = 20;
-#endif
+static constexpr int MAX_SESSION = 10;
 
 ResourceView::ResourceView(Resource * res, Flags flags, Flags clearFlags)
     : res_(res)
@@ -147,7 +143,7 @@ static bool dropOneSession()
     QSharedPointer<ResourceSession> groupSession2 = groupSession.toStrongRef();
     if (groupSession2) {
         groupSession2->clear();
-        qDebug() << "ResourceView dropOneSession" << allSessions.size();
+        qWarning() << "ResourceView dropOneSession" << allSessions.size();
     }
     return true;
 }
