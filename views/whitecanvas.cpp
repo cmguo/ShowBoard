@@ -189,6 +189,14 @@ void WhiteCanvas::updateThunmbnail()
     }
 }
 
+void WhiteCanvas::showSubPages(bool show)
+{
+    int i = childItems().indexOf(canvas_);
+    while (++i < childItems().size() && childItems()[i] != globalCanvas_) {
+        childItems()[i]->setVisible(show);
+    }
+}
+
 AnimCanvas* WhiteCanvas::getDragAnimation(bool prev)
 {
     AnimCanvas::AnimateDirection dir = prev ? AnimCanvas::LeftToRight : AnimCanvas::RightToLeft;

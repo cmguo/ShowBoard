@@ -77,6 +77,8 @@ private:
 
     bool pageSwitchMove(QPointF const & delta);
 
+    bool pageSwitchEnd(bool cancel);
+
 private:
     PositionBar * posBar_ = nullptr;
     QGraphicsItem* toolBar_ = nullptr;

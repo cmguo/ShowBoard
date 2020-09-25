@@ -5,6 +5,7 @@
 #include "views/qsshelper.h"
 #include "views/itemselector.h"
 #include "views/animcanvas.h"
+#include "views/pageswitchevent.h"
 #include "core/resource.h"
 #include "core/resourceview.h"
 #include "core/resourcetransform.h"
@@ -12,14 +13,9 @@
 
 #include <QUrl>
 #include <QGraphicsScene>
-#include <QtMath>
-#include <QDebug>
 #include <QGraphicsProxyWidget>
-#include <QTimer>
-#include <QGuiApplication>
-#include <QScreen>
-
-#include <views/pageswitchevent.h>
+#include <QApplication>
+#include <QDebug>
 
 static QssHelper QSS(":/showboard/qss/canvastoolbar.qss");
 
@@ -184,15 +180,7 @@ void WhiteCanvasControl::adjusting(bool be)
 {
     Control::adjusting(be);
     if (!be) {
-        // delay PageSwitchEndEvent event,
-        //  avoid lost InkStrokeControl's filter soon
-        QTimer::singleShot(0, this, [this] () {
-            PageSwitchEndEvent e;
-            e.setOriginEvent(whiteCanvas()->selector()->currentEvent());
-            if (pageSwitch_)
-                pageSwitch_->event(&e);
-            pageSwitch_ = nullptr;
-        });
+        pageSwitchEnd(false);
     }
 }
 
@@ -293,6 +281,7 @@ void WhiteCanvasControl::pageSwitchStart(const QPointF &delta)
             ->findControl(res_->page()->mainResource());
     if (c && c->event(&e) && e.isAccepted()) {
         pageSwitch_ = c;
+        whiteCanvas()->showSubPages(false);
     } else {
 #ifdef QT_DEBUG
         pageSwitch_ = whiteCanvas();
@@ -310,7 +299,28 @@ bool WhiteCanvasControl::pageSwitchMove(const QPointF &delta)
         PageSwitchMoveEvent e(delta);
         e.setOriginEvent(whiteCanvas()->selector()->currentEvent());
         if (!pageSwitch_->event(&e) || !e.isAccepted())
-            pageSwitch_ = nullptr;
+            pageSwitchEnd(true);
     }
     return pageSwitch_ != nullptr;
+}
+
+bool WhiteCanvasControl::pageSwitchEnd(bool cancel)
+{
+    if (pageSwitch_ == nullptr)
+        return false;
+    if (pageSwitch_ != whiteCanvas())
+        whiteCanvas()->showSubPages(true);
+    QObject * ps = pageSwitch_;
+    pageSwitch_ = nullptr;
+    if (cancel) {
+        PageSwitchEndEvent e;
+        e.setOriginEvent(whiteCanvas()->selector()->currentEvent());
+        return ps->event(&e) && e.isAccepted();
+    } else {
+        PageSwitchEndEvent * e = new PageSwitchEndEvent;
+        // delay PageSwitchEndEvent event,
+        //  avoid lost InkStrokeControl's filter soon
+        QApplication::postEvent(ps, e);
+        return true;
+    }
 }

@@ -61,6 +61,8 @@ public:
 
     void updateThunmbnail();
 
+    void showSubPages(bool show);
+
 public:
     AnimCanvas * getDragAnimation(bool prev = false);
 
