@@ -147,6 +147,8 @@ static bool dropOneSession()
     if (groupSession2) {
         groupSession2->clear();
         qWarning() << "ResourceView dropOneSession" << allSessions.size();
+    } else {
+        allSessions.pop_front();
     }
     return true;
 }
@@ -159,10 +161,7 @@ QGraphicsItem *ResourceView::loadSession()
     QGraphicsItem * item = session ? session->detach() : nullptr;
     QByteArray group = sessionGroup();
     if (item && !group.isEmpty()) {
-        QWeakPointer<ResourceSession> groupSession = groupSessions.take(group);
-        QSharedPointer<ResourceSession> groupSession2 = groupSession.toStrongRef();
-        if (groupSession2)
-            groupSession2->clear();
+        groupSessions.remove(group);
     }
     allSessions.removeOne(session);
     return item;
@@ -207,7 +206,7 @@ void ResourceView::saveSession(QGraphicsItem *item)
 
 void ResourceView::clearSession()
 {
-    qWarning() << "ResourceView: clear session" << url();
+    qWarning() << "ResourceView: clear session" << name();
     delete loadSession();
 }
 
