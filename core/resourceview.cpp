@@ -107,6 +107,7 @@ public:
         : view_(view)
         , item_(item)
     {
+        priority_ = view->property("sessionPriority").toInt();
     }
     ~ResourceSession()
     {
@@ -118,6 +119,7 @@ public:
             view_->clearSession();
         // here this is detroyed
     }
+    int priority() const { return priority_; }
     QGraphicsItem* detach()
     {
         QGraphicsItem * item = item_;
@@ -128,6 +130,7 @@ public:
 private:
     ResourceView * view_;
     QGraphicsItem * item_;
+    int priority_ = 0;
 };
 
 Q_DECLARE_METATYPE(QSharedPointer<ResourceSession>)
@@ -184,7 +187,18 @@ void ResourceView::saveSession(QGraphicsItem *item)
         groupSessions.insert(group, session);
         allSessions.removeOne(groupSession);
     }
-    allSessions.append(session);
+    auto iter = std::upper_bound(allSessions.begin(), allSessions.end(),
+                                 session.toWeakRef(), [] (auto l , auto r) {
+        if (l.isNull())
+            return true;
+        if (r.isNull())
+            return false;
+        return l.data()->priority() < r.data()->priority();
+    });
+    if (iter == allSessions.end())
+        allSessions.append(session);
+    else
+        allSessions.insert(iter, session);
     qDebug() << "ResourceView saveSession" << allSessions.size();
     if (allSessions.size() > MAX_SESSION) {
         dropOneSession();
