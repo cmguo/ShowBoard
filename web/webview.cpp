@@ -181,10 +181,11 @@ void WebView::scaleTo(qreal scaleTo)
 
 void WebView::debug()
 {
-    QWebEngineView * web = new QWebEngineView();
+    QWebEngineView * web = new QWebEngineView(this);
     web->setWindowFlags(Qt::WindowStaysOnTopHint | Qt::Window);
     web->setMinimumSize(800, 450);
-    QWebEnginePage * devPage = new QWebEnginePage;
+    web->setAttribute(Qt::WA_DeleteOnClose);
+    QWebEnginePage * devPage = new QWebEnginePage(web);
     page()->setDevToolsPage(devPage);
     web->setPage(devPage);
     web->show();
