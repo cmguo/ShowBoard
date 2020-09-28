@@ -272,8 +272,9 @@ ResourceView *ResourceView::paste(QMimeData const &data, bool resetPosition)
         }
     }
     // we like urls
-    if (data.hasUrls()) {
-        ResourceView * res = ResourceManager::instance()->createResource(data.urls().first());
+    if (data.hasUrls() && !data.urls().isEmpty()) {
+        QUrl url = data.urls().first();
+        ResourceView * res = ResourceManager::instance()->createResource(url);
         res->setProperty("name", "链接");
         return res;
     }
