@@ -16,7 +16,7 @@
 
 #define LARGE_CANVAS_LINKAGE 1
 #ifdef QT_DEBUG
-# define LARGE_CANVAS_LINKAGE_SCALE 0
+# define LARGE_CANVAS_LINKAGE_SCALE 1
 #else
 # define LARGE_CANVAS_LINKAGE_SCALE 0
 #endif
@@ -24,8 +24,8 @@
 static char const * toolstr =
         "reload()|刷新|;"
         "debug()|调试|;"
-        "dump()|输出|;"
-        "hide()|隐藏|Checkable|;"
+        "capture()|截图|;"
+        "showHide()|隐藏|Checkable|;"
         "fitContent()|适合内容|;"
         "full()|全屏|Checkable|;"
         ;
@@ -144,7 +144,6 @@ void WebControl::attached()
         QObject::connect(view, &WebView::scaleChanged,
                          this, &WebControl::scaleChanged, Qt::QueuedConnection);
     }
-
     if (flags_.testFlag(RestorePersisted)) {
         widget_->setVisible(true);
         //#if QT_VERSION >= 0x050E00
@@ -205,6 +204,14 @@ void WebControl::sizeChanged()
             && flags_.testFlag(RestorePersisted))
         return;
     WidgetControl::sizeChanged();
+}
+
+bool WebControl::setOption(const QByteArray &key, QVariant value)
+{
+    WebView * view = static_cast<WebView *>(widget_);
+    if (view->metaObject()->invokeMethod(view, key.left(key.length() - 2)))
+        return true;
+    return WidgetControl::setOption(key, value);
 }
 
 void WebControl::loadFinished(bool ok)
@@ -290,17 +297,6 @@ void WebControl::canvasTransformChanged(int)
 #endif
 }
 
-void WebControl::reload()
-{
-    QWebEngineView * view = qobject_cast<QWebEngineView *>(widget_);
-    view->reload();
-}
-
-void WebControl::hide()
-{
-    item_->setVisible(!item_->isVisible());
-}
-
 void WebControl::full()
 {
     adjusting(true);
@@ -313,24 +309,3 @@ void WebControl::fitContent()
 {
     setFitToContent(!fitToContent());
 }
-
-void WebControl::debug()
-{
-    static_cast<WebView *>(widget_)->debug();
-}
-
-void WebControl::dump()
-{
-    static_cast<WebView *>(widget_)->dump();
-}
-
-void WebControl::scaleUp()
-{
-    static_cast<WebView *>(widget_)->scale(1.2);
-}
-
-void WebControl::scaleDown()
-{
-    static_cast<WebView *>(widget_)->scale(1.0 / 1.2);
-}
-

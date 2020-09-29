@@ -6,6 +6,7 @@
 #include <QWebEngineProfile>
 #include <QGraphicsProxyWidget>
 #include <QWebEngineScript>
+#include <QGraphicsScene>
 
 #include <views/whitecanvas.h>
 
@@ -72,6 +73,9 @@ WebView::WebView(QObject *settings)
     sinit();
     // make sure that touch events are delivered at all
     setAttribute(Qt::WA_AcceptTouchEvents);
+    setAttribute(Qt::WA_TranslucentBackground);
+    setAttribute(Qt::WA_PaintOnScreen);
+    setStyleSheet("background:transparent");
     setPage(new WebPage(this, settings));
     connect(page(), &WebPage::fullScreenRequested, this, [](QWebEngineFullScreenRequest fullScreenRequest) {
         fullScreenRequest.accept();
@@ -113,65 +117,24 @@ void WebView::scale(qreal scale)
     QWidget * target = hostWidget();
     // first point
     QList<QTouchEvent::TouchPoint> touchPoints;
-    QTouchEvent::TouchPoint touchPoint;
     QPointF c = target->geometry().center();
-    touchPoint.setId(10000001);
-    touchPoint.setState(Qt::TouchPointPressed);
-    touchPoint.setPos(c - QPointF{100, 100});
-    touchPoint.setScenePos(touchPoint.pos());
-    touchPoints.append(touchPoint);
-    { // TouchBegin
-        QTouchEvent event(QEvent::TouchBegin);
-        event.setTouchPoints(touchPoints);
-        QApplication::sendEvent(target, &event);
-    }
+    sendTouchEvent(QEvent::TouchBegin, touchPoints,
+                   10000001, Qt::TouchPointPressed, c - QPointF{100, 100});
     // add second point
-    touchPoints[0].setState(Qt::TouchPointStationary);
-    touchPoint.setId(10000002);
-    touchPoint.setPos(c + QPointF{100, 100});
-    touchPoint.setScenePos(touchPoint.pos());
-    touchPoints.append(touchPoint);
-    { // TouchUpdate
-        QTouchEvent event(QEvent::TouchUpdate);
-        event.setTouchPoints(touchPoints);
-        QApplication::sendEvent(target, &event);
-    }
-    // move one point
-    touchPoints[0].setState(Qt::TouchPointMoved);
-    touchPoints[0].setPos(c - QPointF{100, 100} * scale);
-    touchPoints[0].setScenePos(touchPoints[0].pos());
-//    touchPoints[1].setState(Qt::TouchPointStationary);
-//    { // TouchUpdate
-//        QTouchEvent event(QEvent::TouchUpdate);
-//        event.setTouchPoints(touchPoints);
-//        QApplication::sendEvent(target, &event);
-//    }
-//    // move another point
-//    touchPoints[0].setState(Qt::TouchPointStationary);
-    touchPoints[1].setState(Qt::TouchPointMoved);
-    touchPoints[1].setPos(c + QPointF{100, 100} * scale);
-    touchPoints[1].setScenePos(touchPoints[1].pos());
-    { // TouchUpdate
-        QTouchEvent event(QEvent::TouchUpdate);
-        event.setTouchPoints(touchPoints);
-        QApplication::sendEvent(target, &event);
-    }
+    sendTouchEvent(QEvent::TouchUpdate, touchPoints,
+                   10000002, Qt::TouchPointPressed, c + QPointF{100, 100});
+    // move first point
+    sendTouchEvent(QEvent::TouchUpdate, touchPoints,
+                   0, Qt::TouchPointMoved, c - QPointF{100, 100} * scale);
+    // move second point
+    sendTouchEvent(QEvent::TouchUpdate, touchPoints,
+                   1, Qt::TouchPointMoved, c + QPointF{100, 100} * scale);
     // release one point
-    touchPoints[0].setState(Qt::TouchPointReleased);
-    touchPoints[1].setState(Qt::TouchPointStationary);
-    { // TouchUpdate
-        QTouchEvent event(QEvent::TouchUpdate);
-        event.setTouchPoints(touchPoints);
-        QApplication::sendEvent(target, &event);
-    }
+    sendTouchEvent(QEvent::TouchUpdate, touchPoints,
+                   0, Qt::TouchPointReleased);
     // release another point
-    touchPoints.pop_front();
-    touchPoints[0].setState(Qt::TouchPointReleased);
-    { // TouchEnd
-        QTouchEvent event(QEvent::TouchEnd);
-        event.setTouchPoints(touchPoints);
-        QApplication::sendEvent(target, &event);
-    }
+    sendTouchEvent(QEvent::TouchUpdate, touchPoints,
+                   0, Qt::TouchPointReleased);
 }
 
 void WebView::scaleTo(qreal scaleTo)
@@ -196,14 +159,28 @@ void WebView::synthesizedMouseEvents()
     synthesizedMouse_ = true;
 }
 
-
-void WebView::dump()
+void WebView::capture()
 {
 //    dumpObjectTree();
     qDebug() << page()->profile()->httpCacheType();
     qDebug() << page()->profile()->cachePath();
     qDebug() << page()->profile()->httpCacheMaximumSize();
-    scrollTo({0, 100});
+    //scrollTo({0, 100});
+}
+
+void WebView::showHide()
+{
+    setVisible(!isVisible());
+}
+
+void WebView::scaleUp()
+{
+    scale(1.2);
+}
+
+void WebView::scaleDown()
+{
+    scale(1.0 / 1.2);
 }
 
 bool WebView::event(QEvent *event)
@@ -253,6 +230,12 @@ bool WebView::eventFilter(QObject *watched, QEvent *event)
     return false;
 }
 
+QPaintEngine *WebView::paintEngine() const
+{
+    static QPixmap backStore(1, 1);
+    return backStore.paintEngine();
+}
+
 QWebEngineView *WebView::createWindow(QWebEnginePage::WebWindowType)
 {
     WhiteCanvas * canvas = static_cast<WhiteCanvas*>(
@@ -272,6 +255,36 @@ void WebView::updateScale()
         qDebug() << "WebView::updateScale" << thiz->scale_;
         thiz->scaleChanged(thiz->scale_);
     });
+}
+
+void WebView::sendTouchEvent(QEvent::Type type, QList<QTouchEvent::TouchPoint> &points,
+                             int id, Qt::TouchPointState state, const QPointF &pos)
+{
+    int index = id;
+    if (state == Qt::TouchPointPressed) {
+        QTouchEvent::TouchPoint touchPoint;
+        touchPoint.setId(id);
+        touchPoint.setState(state);
+        touchPoint.setPos(pos);
+        touchPoint.setScenePos(pos);
+        index = points.size();
+        points.append(touchPoint);
+    } else {
+        points[index].setState(state);
+        if (state != Qt::TouchPointReleased) {
+            points[index].setPos(pos);
+            points[index].setScenePos(pos);
+        }
+    }
+    {
+        QTouchEvent event(type);
+        event.setTouchPoints(points);
+        QApplication::sendEvent(hostWidget_, &event);
+    }
+    points[index].setState(Qt::TouchPointStationary);
+    if (state == Qt::TouchPointReleased) {
+        points.removeAt(index);
+    }
 }
 
 QQuickWidget *WebView::hostWidget()

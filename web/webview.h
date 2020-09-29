@@ -25,11 +25,18 @@ public:
 
     void scaleTo(qreal scaleTo);
 
-    void debug();
-
     void synthesizedMouseEvents();
 
-    void dump();
+public slots:
+    void debug();
+
+    void capture();
+
+    void showHide();
+
+    void scaleUp();
+
+    void scaleDown();
 
 signals:
     void scaleChanged(qreal);
@@ -39,10 +46,15 @@ protected:
 
     virtual bool eventFilter(QObject * watched, QEvent * event) override;
 
+    virtual QPaintEngine * paintEngine() const override;
+
     virtual QWebEngineView * createWindow(QWebEnginePage::WebWindowType type) override;
 
 private:
     void updateScale();
+
+    void sendTouchEvent(QEvent::Type type, QList<QTouchEvent::TouchPoint> & points,
+                        int id, Qt::TouchPointState state, QPointF const & pos = {});
 
     QQuickWidget *hostWidget();
 

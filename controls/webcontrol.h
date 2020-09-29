@@ -42,21 +42,9 @@ public:
     void setWebBridges(QHash<QString, QObject*> const& bridges);
 
 public slots:
-    void reload();
-
-    void hide();
-
-    void full();
-
     void fitContent();
 
-    void debug();
-
-    void dump();
-
-    void scaleUp();
-
-    void scaleDown();
+    void full();
 
 protected:
     virtual QWidget * createWidget(ResourceView * res) override;
@@ -68,6 +56,8 @@ protected:
     virtual void detached() override;
 
     virtual void sizeChanged() override;
+
+    virtual bool setOption(QByteArray const & key, QVariant value) override;
 
 protected:
     virtual void loadFinished(bool ok);
