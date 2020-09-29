@@ -199,9 +199,13 @@ void ResourceView::saveSession(QGraphicsItem *item)
     else
         allSessions.insert(iter, session);
     qDebug() << "ResourceView saveSession" << allSessions.size();
+#ifndef QT_DEBUG
     if (allSessions.size() > MAX_SESSION) {
         dropOneSession();
     }
+#else
+    (void) MAX_SESSION;
+#endif
 }
 
 void ResourceView::clearSession()
