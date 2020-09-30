@@ -19,6 +19,11 @@ public:
 
     void setPlayRate(qreal v);
 
+public slots:
+    void play();
+
+    void stop();
+
 protected:
     virtual QGraphicsItem * create(ResourceView * res) override;
 
@@ -27,6 +32,8 @@ protected:
     virtual void detached() override;
 
     virtual void resize(const QSizeF &size) override;
+
+    virtual void updateToolButton(ToolButton * button) override;
 
 private:
     QMediaPlayer * player_;

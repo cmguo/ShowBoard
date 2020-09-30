@@ -6,8 +6,12 @@
 #include <QGraphicsVideoItem>
 #include <QMediaPlayer>
 
+#include <core/toolbutton.h>
+
 static constexpr char const * toolstr =
-        "playRate||OptionsGroup,Popup,NeedUpdate|;";
+        "play()|播放|NeedUpdate,Checkable|;"
+        "playRate||OptionsGroup,Popup,NeedUpdate|;"
+        "stop()|停止|;";
 
 VideoControl::VideoControl(ResourceView * res)
     : Control(res, {KeepAspectRatio, LayoutScale, Touchable, FixedOnCanvas})
@@ -23,6 +27,19 @@ qreal VideoControl::playRate() const
 void VideoControl::setPlayRate(qreal v)
 {
     player_->setPlaybackRate(v);
+}
+
+void VideoControl::play()
+{
+    if (player_->state() != QMediaPlayer::PlayingState)
+        player_->play();
+    else
+        player_->pause();
+}
+
+void VideoControl::stop()
+{
+    player_->stop();
 }
 
 QGraphicsItem * VideoControl::create(ResourceView *)
@@ -46,7 +63,6 @@ void VideoControl::attached()
     player->setMedia(res_->resource()->url());
     player->setVolume(50);
     player->setPlaybackRate(1);
-    player->play();
     player_ = player;
 }
 
@@ -63,6 +79,16 @@ void VideoControl::resize(const QSizeF &size)
     QGraphicsVideoItem * item = static_cast<QGraphicsVideoItem *>(item_);
     item->setSize(size);
     item->setOffset({size.width() / -2.0, size.height() / -2.0});
+}
+
+void VideoControl::updateToolButton(ToolButton *button)
+{
+    if (button->name() == "play()") {
+        bool playing = player_->state() == QMediaPlayer::PlayingState;
+        button->setChecked(playing);
+        button->setText(playing ? "暂停" : "播放");
+    }
+    Control::updateToolButton(button);
 }
 
 class PlayRateOptionButtons : public OptionToolButtons
