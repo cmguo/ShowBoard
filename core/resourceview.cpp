@@ -295,8 +295,20 @@ ResourceView *ResourceView::paste(QMimeData const &data, bool resetPosition)
     if (data.hasUrls() && !data.urls().isEmpty()) {
         QUrl url = data.urls().first();
         ResourceView * res = ResourceManager::instance()->createResource(url);
-        res->setProperty("name", "链接");
-        return res;
+        if (res) {
+            res->setProperty("name", "链接");
+            return res;
+        }
+    }
+    if (data.hasText()) {
+         QUrl url(data.text());
+         if (url.isValid()) {
+             ResourceView * res = ResourceManager::instance()->createResource(url);
+             if (res) {
+                 res->setProperty("name", "链接");
+                return res;
+             }
+         }
     }
     for (auto f : data.formats()) {
 #ifndef QT_DEBUG
