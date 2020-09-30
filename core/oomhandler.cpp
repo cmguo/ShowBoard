@@ -5,6 +5,7 @@
 #include <QMutex>
 #include <QThread>
 #include <QWaitCondition>
+#include <QDebug>
 
 #ifdef WIN32
 #include <Windows.h>
@@ -40,16 +41,24 @@ bool OomHandler::isMemoryAvailable(quint64 size)
     if (sizeof(void*) == 4) {
         PROCESS_MEMORY_COUNTERS c;
         BOOL b = ::GetProcessMemoryInfo(::GetCurrentProcess(), &c, sizeof (c));
-        if (!b || c.WorkingSetSize + size > 1024 * 1024 * 1024)
+        qDebug() << "OomHandler::isMemoryAvailable" << c.WorkingSetSize << size;
+        if (!b || c.WorkingSetSize + size > 1000 * 1024 * 1024) {
+            qWarning() << "OomHandler::isMemoryAvailable" << c.WorkingSetSize << size;
             return false;
+        }
     }
     MEMORYSTATUSEX s;
     s.dwLength = sizeof (s);
     BOOL b = ::GlobalMemoryStatusEx(&s);
-    return b && size <= s.ullAvailPageFile && size <= s.ullAvailVirtual;
-#else
-    return true;
+    qDebug() << "OomHandler::isMemoryAvailable" << s.ullAvailPageFile
+             << s.ullAvailVirtual << size;
+    if (!b || size > s.ullAvailPageFile || size > s.ullAvailVirtual) {
+        qWarning() << "OomHandler::isMemoryAvailable" << s.ullAvailPageFile
+                 << s.ullAvailVirtual << size;
+        return false;
+    }
 #endif
+    return true;
 }
 
 void OomHandler::ensureMemoryAvailable(quint64 size)
