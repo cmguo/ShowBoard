@@ -104,7 +104,7 @@ bool ToolButtonProvider::exec(QByteArray const & cmd, QStringList const & args)
 
 void ToolButtonProvider::setToolsString(const QString &tools)
 {
-    setProperty("toolsString", tools);
+    setProperty("toolsString", property("toolsString").toString() + tools);
 }
 
 void ToolButtonProvider::followTrigger(bool v)
