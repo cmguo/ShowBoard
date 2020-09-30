@@ -242,13 +242,30 @@ ResourceView * ResourceView::clone() const
     return new ResourceView(*this);
 }
 
+static constexpr char const * RESOURCE_FORMAT = "application/x-resource";
+
 void ResourceView::copy(QMimeData &data)
 {
     data.setUrls({res_->url()});
     data.setText(res_->url().toString());
-    data.setData("application/x-resource", QByteArray());
+    data.setData(RESOURCE_FORMAT, QByteArray());
     ResourceView * res = clone();
     res->setParent(&data);
+}
+
+bool ResourceView::canPaste(const QMimeData &data)
+{
+    if (data.hasFormat(RESOURCE_FORMAT))
+        return data.data(RESOURCE_FORMAT).isEmpty();
+    ResourceView * res = paste(data, false);
+    if (res) {
+        const_cast<QMimeData&>(data).setData(RESOURCE_FORMAT, QByteArray());
+        res->setParent(&const_cast<QMimeData&>(data));
+        return true;
+    } else {
+        const_cast<QMimeData&>(data).setData(RESOURCE_FORMAT, "X");
+        return false;
+    }
 }
 
 class CopyMimeData : public QMimeData
@@ -264,7 +281,7 @@ public:
 
 ResourceView *ResourceView::paste(QMimeData const &data, bool resetPosition)
 {
-    if (data.hasFormat("application/x-resource")) {
+    if (data.hasFormat(RESOURCE_FORMAT)) {
         ResourceView * res = data.findChild<ResourceView*>(nullptr, Qt::FindDirectChildrenOnly);
         if (res) {
             if (resetPosition)
@@ -282,6 +299,11 @@ ResourceView *ResourceView::paste(QMimeData const &data, bool resetPosition)
         return res;
     }
     for (auto f : data.formats()) {
+#ifndef QT_DEBUG
+        // Bugly: avoid unespect drag from web page
+        if (f.startsWith("text/") && data.text().length() < 64)
+            break;
+#endif
         int n = f.indexOf('/');
         QUrl url = n > 0 ? QUrl(f.left(n) + ":mimedata." + f.mid(n + 1))
                          : QUrl(f.left(n) + ":");

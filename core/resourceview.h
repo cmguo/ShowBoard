@@ -109,6 +109,8 @@ public:
 
     virtual void copy(QMimeData & data);
 
+    static bool canPaste(QMimeData const & data);
+
     static ResourceView * paste(QMimeData const & data, bool resetPosition);
 
     QMimeData const * mimeData();
