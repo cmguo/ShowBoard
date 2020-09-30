@@ -5,6 +5,7 @@
 
 #include <QVariant>
 #include <QList>
+#include <QVector>
 #include <QColor>
 
 class ToolButton;
@@ -15,8 +16,8 @@ class SHOWBOARD_EXPORT OptionToolButtons
 public:
     OptionToolButtons(QVariantList const & values, int column = 0);
 
-    template<typename T>
-    OptionToolButtons(QList<T> const & values, int column = 0)
+    template<typename List>
+    OptionToolButtons(List const & values, int column = 0)
         : OptionToolButtons(toVarList(values), column)
     {
     }
@@ -33,8 +34,8 @@ public:
     void updateParent(ToolButton * button, QVariant const & value);
 
 protected:
-    template<typename T>
-    static QVariantList toVarList(T const & list)
+    template<typename List>
+    static QVariantList toVarList(List const & list)
     {
         QVariantList vlist;
         for (auto i : list)
