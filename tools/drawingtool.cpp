@@ -5,6 +5,7 @@
 #include "core/resourceview.h"
 #include "core/resourcetransform.h"
 #include "core/resourcepage.h"
+#include "views/canvasitem.h"
 
 #include <QPen>
 #include <QGraphicsRectItem>

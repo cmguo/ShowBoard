@@ -89,6 +89,10 @@ WhiteCanvasWidget::WhiteCanvasWidget(QWidget *parent)
     new QShortcut(QKeySequence(Qt::Key_Space | Qt::ControlModifier), this, SLOT(switchPage()));
     new QShortcut(QKeySequence(Qt::Key_Backspace | Qt::ControlModifier), this, SLOT(switchPage()));
 
+    for (auto s : findChildren<QShortcut*>()) {
+        s->setContext(Qt::WidgetShortcut);
+    }
+
     mainInstance_ = this;
 }
 
