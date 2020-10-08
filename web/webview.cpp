@@ -30,7 +30,7 @@ void WebView::sinit()
                 " --disable-web-security"
                 " --touch-events=disabled"
                 " --register-pepper-plugins="
-                "./pepflashplayer64.dll;application/x-shockwave-flash";
+                "./pepflashplayer.dll;application/x-shockwave-flash";
         qputenv("QTWEBENGINE_CHROMIUM_FLAGS", flags);
         QWebEngineSettings::defaultSettings()->setAttribute(
                     QWebEngineSettings::PluginsEnabled, true);
