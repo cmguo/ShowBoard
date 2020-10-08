@@ -5,11 +5,15 @@
 
 #include "core/control.h"
 
+#include <QList>
+
 class SHOWBOARD_EXPORT WidgetControl : public Control
 {
     Q_OBJECT
 
     Q_PROPERTY(bool touchable READ touchable WRITE setTouchable)
+    Q_PROPERTY(QList<Qt::Key> overrideShotcuts MEMBER overrideShotcuts_)
+
 public:
     WidgetControl(ResourceView *res, Flags flags = None, Flags clearFlags = None);
 
@@ -19,6 +23,10 @@ public:
     bool touchable() const;
 
     void setTouchable(bool b);
+
+    QList<Qt::Key> overrideShotcuts() const { return overrideShotcuts_; }
+
+    void setOverrideShotcuts(QList<Qt::Key> const & keys);
 
     QWidget * widget();
 
@@ -38,6 +46,7 @@ protected:
 
 protected:
     QWidget * widget_;
+    QList<Qt::Key> overrideShotcuts_;
 };
 
 #endif // WIDGETCONTROL_H

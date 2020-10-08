@@ -5,11 +5,21 @@
 #include <QGraphicsItem>
 #include <QGraphicsProxyWidget>
 #include <QWidget>
+#include <QKeyEvent>
+#include <QMetaEnum>
 
 WidgetControl::WidgetControl(ResourceView *res, Flags flags, Flags clearFlags)
     : Control(res, flags, clearFlags)
     , widget_(nullptr)
 {
+    if (!QMetaType::hasRegisteredConverterFunction<QStringList, QList<Qt::Key>>())
+        QMetaType::registerConverter<QStringList, QList<Qt::Key>>([] (QStringList list) {
+            QList<Qt::Key> l;
+            for (auto & s : list) {
+                l.append(QVariant(s).value<Qt::Key>());
+            }
+            return l;
+        });
 }
 
 WidgetControl::~WidgetControl()
@@ -28,6 +38,11 @@ void WidgetControl::setTouchable(bool b)
 {
     flags_.setFlag(Touchable, b);
     item_->setAcceptTouchEvents(b);
+}
+
+void WidgetControl::setOverrideShotcuts(const QList<Qt::Key> &keys)
+{
+    overrideShotcuts_ = keys;
 }
 
 QWidget *WidgetControl::widget()
@@ -68,11 +83,18 @@ void WidgetControl::detached()
 
 bool WidgetControl::eventFilter(QObject *watched, QEvent *event)
 {
-    if (watched == widget_ && event->type() == QEvent::Resize) {
+    if (watched != widget_)
+        return false;
+    if (event->type() == QEvent::Resize) {
         QtPromise::resolve().then([l = life(), this]() {
             if (!l.isNull() && !flags_.testFlag(Adjusting))
                 sizeChanged();
         });
+    } else if (event->type() == QEvent::ShortcutOverride) {
+        if (overrideShotcuts_.contains(static_cast<Qt::Key>(static_cast<QKeyEvent*>(event)->key()))) {
+            event->accept();
+            return true;
+        }
     }
     return false;
 }
