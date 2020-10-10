@@ -10,6 +10,7 @@ HEADERS += \
     $$PWD/resourcemanager.h \
     $$PWD/resourcepackage.h \
     $$PWD/resourcepage.h \
+    $$PWD/resourcerecord.h \
     $$PWD/resourcetransform.h \
     $$PWD/resourceview.h \
     $$PWD/toolbutton.h \
@@ -28,6 +29,7 @@ SOURCES += \
     $$PWD/resourcemanager.cpp \
     $$PWD/resourcepackage.cpp \
     $$PWD/resourcepage.cpp \
+    $$PWD/resourcerecord.cpp \
     $$PWD/resourcetransform.cpp \
     $$PWD/resourceview.cpp \
     $$PWD/toolbutton.cpp \

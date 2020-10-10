@@ -7,6 +7,7 @@
 
 class ResourcePage;
 class ResourceView;
+class ResourceRecordSet;
 
 /*
  * ResourcePackage manages a collection of resource pages
@@ -83,6 +84,8 @@ public:
 
     QModelIndex currentModelIndex() const;
 
+    ResourceRecordSet * records() const { return records_; }
+
 signals:
     void pageCreated(ResourcePage* page);
 
@@ -157,6 +160,8 @@ public slots:
 protected:
     void addPage(int index, ResourcePage * page);
 
+    void removePage(int index);
+
     friend class ResourcePage;
     void pageChanged(ResourcePage* page);
 
@@ -179,6 +184,7 @@ private:
     QList<ResourcePage *> visiblePages_;
     QList<ResourcePage *> hiddenPages_;
     int current_;
+    ResourceRecordSet * records_;
 };
 
 #endif // RESOURCEPACKAGE_H

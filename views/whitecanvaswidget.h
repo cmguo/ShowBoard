@@ -54,8 +54,11 @@ private slots:
     // PageUp, PageDown, Space, Backspace
     void switchPage();
 
-    // Control + C/V
+    // Control + C/X/V
     void copyPaste();
+
+    // Control + X/Y
+    void undoRedo();
 
 private:
     virtual void resizeEvent(QResizeEvent *event) override;

@@ -3,6 +3,7 @@
 #include "qcomponentcontainer.h"
 #include "resourcemanager.h"
 #include "resourceview.h"
+#include "resourcerecord.h"
 
 #include <QBrush>
 
@@ -12,6 +13,7 @@ extern QComponentContainer & ShowBoard_containter();
 ResourcePackage::ResourcePackage(QObject *parent)
     : QAbstractItemModel(parent)
     , current_(-1)
+    , records_(new ResourceRecordSet(this))
 {
     globalPage_ = new ResourcePage(this);
 }
@@ -29,6 +31,7 @@ ResourcePage *ResourcePackage::globalPage() const
 
 ResourcePage * ResourcePackage::newPage(ResourceView * mainRes)
 {
+    RecordMergeScope rs(records_);
     if (mainRes && mainRes->flags().testFlag(ResourceView::VirtualPage))
         return newVirtualPage(mainRes);
     int index = current_ + 1;
@@ -39,7 +42,14 @@ ResourcePage * ResourcePackage::newPage(ResourceView * mainRes)
 
 ResourcePage *ResourcePackage::newPage(int index, ResourceView * mainRes)
 {
+    RecordMergeScope rs(records_);
     ResourcePage * page = new ResourcePage(mainRes, this);
+    rs.add(makeDestructRecord([this, page] (bool undo) {
+        if (undo) {
+            emit pageRemoved(page);
+            delete page;
+        }
+    }));
     emit pageCreated(page);
     addPage(index, page);
     return page;
@@ -53,11 +63,18 @@ ResourcePage * ResourcePackage::currentPage() const
 
 ResourcePage *ResourcePackage::newPage(const QUrl &mainUrl, QVariantMap const & settings)
 {
+    RecordMergeScope rs(records_);
     ResourcePage * page = new ResourcePage(mainUrl, settings, this);
+    rs.add(makeDestructRecord([this, page] (bool undo) {
+        if (undo) {
+            emit pageRemoved(page);
+            delete page;
+        }
+    }));
     emit pageCreated(page);
     if (page->isVirtualPage()) {
-        visiblePages_.push_back(page);
-        emit currentPageChanged(page);
+        hiddenPages_.push_back(page);
+        showVirtualPage(page);
     } else {
         int index = current_ + 1;
         addPage(index, page);
@@ -90,6 +107,7 @@ ResourcePage *ResourcePackage::findPage(const QUrl &mainUrl) const
 
 void ResourcePackage::removePage(ResourcePage *page)
 {
+    RecordMergeScope rs(records_);
     int index = pages_.indexOf(page);
     if (index < 0)
         return removeVirtualPage(page);
@@ -105,12 +123,13 @@ void ResourcePackage::removePage(ResourcePage *page)
             current_ = -1;
         switchPage(newIndex);
     }
-    beginRemoveRows(QModelIndex(), index, index);
-    pages_.removeAt(index);
-    endRemoveRows();
-    emit pageRemoved(page);
-    emit pageCountChanged(pages_.size());
-    delete page;
+    removePage(index);
+    rs.add(makeDestructRecord([this, page] (bool undo) {
+        if (!undo) {
+            emit pageRemoved(page);
+            delete page;
+        }
+    }));
     return;
 }
 
@@ -193,10 +212,16 @@ ResourcePage * ResourcePackage::findVirtualPage(const QUrl &mainUrl) const
 
 void ResourcePackage::showVirtualPage(ResourcePage *page, bool show)
 {
+    RecordMergeScope rs(records_);
     int idx1 = visiblePages_.indexOf(page);
     int idx2 = hiddenPages_.indexOf(page);
     if (idx1 < 0 && idx2 < 0)
         return;
+    if (rs)
+        rs.add(makeFunctionRecord(
+                          [this, page, show] () { showVirtualPage(page, !show); },
+                          [this, page, show] () { showVirtualPage(page, !show); }
+        ));
     if (show) {
         if (idx1 >= 0) {
             if (idx1 == visiblePages_.size() - 1)
@@ -222,6 +247,12 @@ void ResourcePackage::toggleVirtualPage(ResourcePage *page)
     int idx2 = hiddenPages_.indexOf(page);
     if (idx1 < 0 && idx2 < 0)
         return;
+    RecordMergeScope rs(records_);
+    if (rs)
+        rs.add(makeFunctionRecord(
+                          [this, page] () { toggleVirtualPage(page); },
+                          [this, page] () { toggleVirtualPage(page); }
+        ));
     if (idx1 >= 0) {
         visiblePages_.removeAt(idx1);
         hiddenPages_.push_back(page);
@@ -235,6 +266,18 @@ void ResourcePackage::toggleVirtualPage(ResourcePage *page)
 
 void ResourcePackage::hideAllVirtualPages()
 {
+    if (visiblePages_.empty())
+        return;
+    RecordMergeScope rs(records_);
+    if (rs)
+        rs.add(makeFunctionRecord(
+                          [this, n = hiddenPages_.size()] () {
+                                visiblePages_ = hiddenPages_.mid(n);
+                                hiddenPages_.erase(hiddenPages_.begin() + n, hiddenPages_.end());
+                                emit currentPageChanged(currentPage());
+                            },
+                          [this] () { hideAllVirtualPages(); }
+        ));
     hiddenPages_.append(visiblePages_);
     visiblePages_.clear();
     emit currentPageChanged(currentPage());
@@ -242,16 +285,32 @@ void ResourcePackage::hideAllVirtualPages()
 
 void ResourcePackage::removeVirtualPage(ResourcePage *page)
 {
+    RecordMergeScope rs(records_);
     showVirtualPage(page, false);
-    if (!hiddenPages_.contains(page))
+    if (!hiddenPages_.contains(page)) {
+        rs.drop();
         return;
+    }
     bool cancel = false;
     emit pageRemoving(page, &cancel);
     if (cancel)
         return;
+    if (rs)
+        rs.add(makeFunctionRecord(
+                          [this, n = hiddenPages_.size()] () {
+                                visiblePages_ = hiddenPages_.mid(n);
+                                hiddenPages_.erase(hiddenPages_.begin() + n, hiddenPages_.end());
+                                emit currentPageChanged(currentPage());
+                            },
+                          [this] () { hideAllVirtualPages(); }
+        ));
     hiddenPages_.removeOne(page);
-    emit pageRemoved(page);
-    delete page;
+    rs.add(makeDestructRecord([this, page] (bool undo) {
+        if (!undo) {
+            emit pageRemoved(page);
+            delete page;
+        }
+    }));
 }
 
 void ResourcePackage::showVirtualPage(const QUrl &mainUrl, bool show)
@@ -295,6 +354,12 @@ void ResourcePackage::switchPage(int page)
 {
     if (page == current_)
         return;
+    RecordMergeScope rs(records_);
+    if (rs)
+        rs.add(makeFunctionRecord(
+                          [this, page = current_] () { switchPage(page); },
+                          [this, page] () { switchPage(page); }
+        ));
     std::swap(current_, page);
     if (visiblePages_.empty())
         emit currentPageChanged(pages_[current_]);
@@ -302,6 +367,7 @@ void ResourcePackage::switchPage(int page)
 
 void ResourcePackage::switchPage(ResourcePage * page)
 {
+    RecordMergeScope rs(records_);
     int n = pages_.indexOf(page);
     if (n < 0) {
         showVirtualPage(page, true);
@@ -312,9 +378,31 @@ void ResourcePackage::switchPage(ResourcePage * page)
 
 void ResourcePackage::addPage(int index, ResourcePage * page)
 {
+    RecordMergeScope rs(records_);
+    if (rs)
+        rs.add(makeFunctionRecord(
+                          [this, index] () { removePage(index); },
+                          [this, index, page] () { addPage(index, page); }
+        ));
     beginInsertRows(QModelIndex(), index, index);
     pages_.insert(index, page);
     endInsertRows();
+    emit pageCountChanged(pages_.size());
+}
+
+void ResourcePackage::removePage(int index)
+{
+    RecordMergeScope rs(records_);
+    ResourcePage * page = pages_[index];
+    if (rs)
+        rs.add(makeFunctionRecord(
+                          [this, index] () { removePage(index); },
+                          [this, index, page] () { addPage(index, page); }
+        ));
+    beginRemoveRows(QModelIndex(), index, index);
+    pages_.removeAt(index);
+    endRemoveRows();
+    emit pageRemoved(page);
     emit pageCountChanged(pages_.size());
 }
 

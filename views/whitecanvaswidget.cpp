@@ -4,6 +4,7 @@
 #include "core/resourcepage.h"
 #include "core/resourcetransform.h"
 #include "core/control.h"
+#include "core/resourcerecord.h"
 
 #include <QGraphicsScene>
 #include <QSizePolicy>
@@ -58,6 +59,9 @@ WhiteCanvasWidget::WhiteCanvasWidget(QWidget *parent)
     new QShortcut(QKeySequence::Copy, this, SLOT(copyPaste()));
     new QShortcut(QKeySequence::Cut, this, SLOT(copyPaste()));
     new QShortcut(QKeySequence::Paste, this, SLOT(copyPaste()));
+    // Control + Z, Control + Y
+    new QShortcut(QKeySequence::Undo, this, SLOT(undoRedo()));
+    new QShortcut(QKeySequence::Redo, this, SLOT(undoRedo()));
     // Tab, Shift + Tab
     QObject::connect(new QShortcut(QKeySequence(Qt::Key_Tab), this), &QShortcut::activated,
                      this, [this]() { canvas_->selectNext(); });
@@ -336,5 +340,15 @@ void WhiteCanvasWidget::copyPaste()
         QMimeData const * data = QApplication::clipboard()->mimeData();
         if (data)
             Control::paste(*data, canvas());
+    }
+}
+
+void WhiteCanvasWidget::undoRedo()
+{
+    QShortcut * s = qobject_cast<QShortcut*>(sender());
+    if (s->key().matches(QKeySequence::Undo)) {
+       package()->records()->undo();
+    } else {
+        package()->records()->redo();
     }
 }

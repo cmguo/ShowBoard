@@ -3,6 +3,7 @@
 #include "resourcepackage.h"
 #include "resourceview.h"
 #include "resourcemanager.h"
+#include "resourcerecord.h"
 
 ResourcePage::ResourcePage(QObject *parent)
     : ResourcePage(nullptr, parent)
@@ -29,6 +30,15 @@ ResourcePage::ResourcePage(ResourceView* mainRes, QObject *parent)
     addResource(mainRes);
 }
 
+class RecordMergeScope2 : public RecordMergeScope
+{
+public:
+    RecordMergeScope2(ResourcePackage * pkg)
+        : RecordMergeScope(pkg ? pkg->records() : nullptr)
+    {
+    }
+};
+
 ResourceView * ResourcePage::addResource(QUrl const & url, QVariantMap const & settings)
 {
     ResourceView * rv = createResource(url, settings);
@@ -39,6 +49,14 @@ ResourceView * ResourcePage::addResource(QUrl const & url, QVariantMap const & s
     if (rv->flags().testFlag(ResourceView::Independent)) {
         qobject_cast<ResourcePackage*>(parent())->newPage(rv);
     } else {
+        RecordMergeScope2 rs(package());
+        if (rs) {
+            rs.add(makeDestructRecord([rv] (bool undo) {
+                if (undo) {
+                    delete rv;
+                }
+            }));
+        }
         addResource(rv);
     }
     return rv;
@@ -91,10 +109,8 @@ void ResourcePage::addResource(ResourceView * res)
     if (res->flags().testFlag(ResourceView::ListOfPages)) {
         currentSubPage_ = new ResourcePage(this);
         if (!resources_.empty()) {
-            QList<ResourceView*> resources;
-            beginRemoveRows(QModelIndex(), 0, resources_.size() - 1);
-            currentSubPage_->resources_.swap(resources_);
-            endRemoveRows();
+            currentSubPage_->resources_ = resources_;
+            removeResource(0, resources_);
         }
         subPages_.append(currentSubPage_);
         emit currentSubPageChanged(currentSubPage_);
@@ -103,20 +119,14 @@ void ResourcePage::addResource(ResourceView * res)
     while (index > 0 && (resources_[index - 1]->flags() & ResourceView::TopMost)) {
         --index;
     }
-    ResourceView * split = nullptr;
     if (index < resources_.size() && (resources_[index]->flags() & ResourceView::Splittable)) {
-        split = resources_[index]->clone();
+        ResourceView * split = resources_[index]->clone();
+        if (split) {
+            insertResource(index, {split, res});
+            return;
+        }
     }
-    beginInsertRows(QModelIndex(), index, index);
-    resources_.insert(index, res);
-    res->setParent(this);
-    endInsertRows();
-    if (split) {
-        beginInsertRows(QModelIndex(), index, index);
-        resources_.insert(index, split);
-        split->setParent(this);
-        endInsertRows();
-    }
+    insertResource(index, {res});
 }
 
 ResourceView * ResourcePage::copyResource(ResourceView * res)
@@ -149,14 +159,16 @@ void ResourcePage::removeResource(ResourceView * res)
         ++pos2;
     }
     QList<ResourceView*> list = resources_.mid(pos1, pos2 - pos1 + 1);
-    beginRemoveRows(QModelIndex(), pos1, pos2);
-    while (pos1 <= pos2) {
-        resources_.removeAt(pos1);
-        --pos2;
+    RecordMergeScope2 rs(package());
+    if (rs) {
+        rs.add(makeDestructRecord([list] (bool undo) {
+            if (!undo) {
+                for (ResourceView* res : list)
+                    delete res;
+            }
+        }));
     }
-    endRemoveRows();
-    for (ResourceView* res : list)
-        delete res;
+    removeResource(pos1, list);
 }
 
 void ResourcePage::moveResourceFront(ResourceView *res)
@@ -217,15 +229,9 @@ void ResourcePage::switchSubPage(int nPage)
         subPages_.resize(nPage + 1);
     if (subPages_[nPage] == nullptr) {
         subPages_[nPage] = new ResourcePage(this);
-        QObject* p = parent();
-        while (p) {
-            ResourcePackage * pkg = qobject_cast<ResourcePackage*>(p);
-            if (pkg) {
-                emit pkg->pageCreated(subPages_[nPage]);
-                break;
-            }
-            p = p->parent();
-        }
+        ResourcePackage * pkg = package();
+        if (pkg)
+            emit pkg->pageCreated(subPages_[nPage]);
     }
     switchSubPage(subPages_[nPage]);
 }
@@ -245,6 +251,19 @@ void ResourcePage::clearSubPages(bool exceptCurrent)
     if (n >= 0)
         subPages_.replace(n, currentSubPage_);
     subPages_.resize(n + 1);
+}
+
+ResourcePackage *ResourcePage::package() const
+{
+    QObject* p = parent();
+    while (p) {
+        ResourcePackage * pkg = qobject_cast<ResourcePackage*>(p);
+        if (pkg) {
+            return pkg;
+        }
+        p = p->parent();
+    }
+    return nullptr;
 }
 
 void ResourcePage::removeFromPackage()
@@ -297,6 +316,21 @@ void ResourcePage::setThumbnail(QPixmap thumb)
         pkg->pageChanged(this);
 }
 
+void ResourcePage::insertResource(int index, QList<ResourceView *> ress)
+{
+    RecordMergeScope2 rs(package());
+    if (rs && (canvasView_ == nullptr || !resources_.isEmpty())) // not undo/redo main resource
+        rs.add(makeFunctionRecord( // only undo/redo on last resource
+                   [this, index, ress] () { removeResource(index, {ress.last()}); },
+                   [this, index, ress] () { insertResource(index, {ress.last()}); }));
+    beginInsertRows(QModelIndex(), index, index + ress.size() - 1);
+    for (auto r : ress) {
+        resources_.insert(index++, r);
+        r->setParent(this);
+    }
+    endInsertRows();
+}
+
 void ResourcePage::moveResource(int pos, int newPos)
 {
     int pos1 = pos;
@@ -317,6 +351,11 @@ void ResourcePage::moveResource(int pos, int newPos)
         ++newPos;
     if (newPos >= pos1 && newPos <= pos2)
         return;
+    RecordMergeScope2 rs(package());
+    if (rs)
+        rs.add(makeFunctionRecord( // only support move one resource
+                   [this, pos, newPos] () { moveResource(newPos, pos); },
+                   [this, pos, newPos] () { moveResource(pos, newPos); }));
     int newPos2 = newPos > pos2 ? newPos + 1 : newPos; // ItemModel diffs from QList
     beginMoveRows(QModelIndex(), pos1, pos2, QModelIndex(), newPos2);
     while (pos2 >= pos1) {
@@ -324,6 +363,22 @@ void ResourcePage::moveResource(int pos, int newPos)
         --pos2;
     }
     endMoveRows();
+}
+
+void ResourcePage::removeResource(int index, QList<ResourceView *> ress)
+{
+    RecordMergeScope2 rs(package());
+    if (rs) {
+        rs.add(makeFunctionRecord(
+                   [this, index, ress] () { insertResource(index, ress); },
+                   [this, index, ress] () { removeResource(index, ress); }));
+    }
+    beginRemoveRows(QModelIndex(), index, index + ress.size() - 1);
+    for (auto r : ress) {
+        resources_.removeAt(index);
+        r->setParent(nullptr);
+    }
+    endRemoveRows();
 }
 
 void ResourcePage::switchSubPage(ResourcePage * subPage)

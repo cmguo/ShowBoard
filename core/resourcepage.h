@@ -8,6 +8,7 @@
 #include <QSizeF>
 
 class ResourceView;
+class ResourcePackage;
 
 /*
  * ResourcePage mananges a collection of resources (views)
@@ -111,6 +112,8 @@ public:
 
     void clearSubPages(bool exceptCurrent = false);
 
+    ResourcePackage * package() const;
+
     void removeFromPackage();
 
 public:
@@ -155,7 +158,11 @@ signals:
     void currentSubPageChanged(ResourcePage* page);
 
 private:
+    void insertResource(int index, QList<ResourceView *> ress);
+
     void moveResource(int pos, int newPos);
+
+    void removeResource(int index, QList<ResourceView *> ress);
 
     void switchSubPage(ResourcePage* subPage);
 
