@@ -60,7 +60,10 @@ Control::Control(ResourceView *res, Flags flags, Flags clearFlags)
     if (flags_.testFlag(FullLayout)) {
         flags_.setFlag(FixedOnCanvas, false);
     }
-    transform_ = new ControlTransform(res->transform());
+    transform_ = new ControlTransform(res->transform(), flags_.testFlag(LayoutScale)
+                                      ? ControlTransform::RotateTranslate
+                                      : ControlTransform::PureItem);
+    connect(&res->transform(), &ResourceTransform::changed, this, &Control::updateTransform);
     if (res_->flags() & ResourceView::SavedSession) {
         flags_ |= RestoreSession;
     }
@@ -664,6 +667,7 @@ void Control::initScale()
             ps.setWidth(ps.width() - padding.width());
             ps.setHeight(ps.height() - padding.height());
         }
+        res_->setProperty("originSize", size);
         while (size.width() > ps.width() || size.height() > ps.height()) {
             size /= 2.0;
             scale /= 2.0;
@@ -682,15 +686,16 @@ void Control::initScale()
     }
     if (qFuzzyCompare(scale, 1.0))
         return;
+    flags_.setFlag(Adjusting, true);
+    res_->transform().scale({scale, scale});
     if (flags_ & LayoutScale) {
         resize(size);
-    } else {
-        res_->transform().scale({scale, scale});
     }
     if (item_ != realItem_) {
         res_->transform().translate(
                     -static_cast<ItemFrame *>(realItem_)->padding().center());
     }
+    flags_.setFlag(Adjusting, false);
 }
 
 void Control::setSize(const QSizeF &size)
@@ -716,7 +721,7 @@ bool Control::scale(QRectF &rect, const QRectF &direction, QPointF &delta)
     if (realItem_ != item_)
         padding = itemFrame()->padding();
     bool result = res_->transform().scale(rect, direction, delta, padding,
-                            flags_ & KeepAspectRatio, flags_ & LayoutScale, minMaxSize_);
+                            flags_ & KeepAspectRatio, false, minMaxSize_);
     if (!result)
         return false;
     QRectF origin = rect;
@@ -752,7 +757,7 @@ bool Control::scale(const QPointF &center, qreal &delta)
     center2 -= item_->boundingRect().center();
     adjusting(true);
     bool result = res_->transform().scale(rect, center2,
-                                          delta, padding, flags_ & LayoutScale, minMaxSize_);
+                                          delta, padding, false, minMaxSize_);
     if (!result)
         return false;
     QRectF origin = rect;
@@ -772,7 +777,7 @@ bool Control::scale(const QPointF &center, qreal &delta)
 void Control::gesture(GestureContext *ctx, QPointF const &to1, QPointF const &to2)
 {
     if (!ctx->configged()) {
-        ctx->config(flags_ & CanScale, flags_ & CanRotate, flags_ & CanMove, flags_ & LayoutScale);
+        ctx->config(flags_ & CanScale, flags_ & CanRotate, flags_ & CanMove, false);
     }
     if (flags_ & CanScale) {
         // size may changed
@@ -819,9 +824,11 @@ QRectF Control::boundRect() const
     QRectF rect = realItem_->boundingRect();
     if (item_ == realItem_) {
         rect.moveCenter({0, 0});
-        QTransform const & scale = res_->transform().scale();
-        rect = QRectF(rect.x() * scale.m11(), rect.y() * scale.m22(),
-                      rect.width() * scale.m11(), rect.height() * scale.m22());
+        if (!flags_.testFlag(LayoutScale)) {
+            QTransform const & scale = res_->transform().scale();
+            rect = QRectF(rect.x() * scale.m11(), rect.y() * scale.m22(),
+                          rect.width() * scale.m11(), rect.height() * scale.m22());
+        }
     }
     if (!(flags_ & LoadFinished) && stateItem_) {
         rect |= stateItem_->boundingRect();

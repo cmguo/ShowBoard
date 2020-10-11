@@ -1,9 +1,9 @@
 #include "controltransform.h"
 #include "resourcetransform.h"
 
-ControlTransform::ControlTransform(ResourceTransform const & transform)
+ControlTransform::ControlTransform(ResourceTransform const & transform, ControlTransform::Type type)
     : transform_(&transform)
-    , type_(PureItem)
+    , type_(type)
 {
     QObject::connect(transform_, &ResourceTransform::changed,
                      this, &ControlTransform::update);
@@ -31,7 +31,7 @@ ControlTransform::ControlTransform(ControlTransform *parentTransform, bool noSca
 
 ControlTransform * ControlTransform::addFrameTransform()
 {
-    type_ = FrameItem;
+    type_ = static_cast<Type>(type_ & ~RotateTranslate);
     return new ControlTransform(this, Frame);
 }
 

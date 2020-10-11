@@ -37,7 +37,7 @@ public:
     };
 
 public:
-    ControlTransform(ResourceTransform const & transform);
+    ControlTransform(ResourceTransform const & transform, ControlTransform::Type type = PureItem);
 
     ControlTransform(ControlTransform * parentTransform, Type type);
 
