@@ -346,6 +346,8 @@ protected:
 private:
     Q_DISABLE_COPY(Control)
 
+    void updateTransform(int elem);
+
 protected:
     Flags flags_;
     ResourceView * res_;

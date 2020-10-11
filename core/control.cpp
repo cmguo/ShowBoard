@@ -10,6 +10,8 @@
 #include "resourcetransform.h"
 #include "controltransform.h"
 #include "resourcepage.h"
+#include "resourcerecord.h"
+#include "resourcepackage.h"
 
 #include <QGraphicsItem>
 #include <QGraphicsProxyWidget>
@@ -843,15 +845,44 @@ void Control::select(bool selected)
         static_cast<ItemFrame *>(realItem_)->setSelected(selected);
 }
 
+class TransformRecord : public ResourceRecord
+{
+public:
+    TransformRecord(ResourceTransform & transform) : transform_(transform), value_(transform) {}
+    virtual void undo() override { std::swap(transform_, value_); }
+    virtual void redo() override { std::swap(transform_, value_); }
+    void reset() { value_ = transform_; changed_ = false; }
+    void setChanged() { changed_ = true; }
+    bool changed() const { return changed_; }
+private:
+    ResourceTransform & transform_;
+    ResourceTransform value_;
+    bool changed_ = false;
+};
+
+Q_DECLARE_METATYPE(TransformRecord*)
+
 void Control::adjusting(bool be)
 {
     flags_.setFlag(Adjusting, be);
-    if (!be) {
+    TransformRecord * tr = property("transformRecord").value<TransformRecord*>();
+    if (be) {
+        if (tr) {
+            tr->reset();
+        } else {
+            tr = new TransformRecord(res_->transform());
+            setProperty("transformRecord", QVariant::fromValue(tr));
+        }
+    } else {
         QVariant delayResize = property("delayResize");
         if (delayResize.isValid()) {
             setProperty("delayResize", QVariant());
             resize(delayResize.toSizeF());
             sizeChanged();
+        }
+        if (tr && tr->changed()) {
+            res_->package()->records()->commit(tr);
+            setProperty("transformRecord", QVariant());
         }
     }
 }
@@ -982,6 +1013,27 @@ bool Control::handleToolButton(ToolButton *btn, const QStringList &args)
         return ToolButtonProvider::handleToolButton(btn, args);
     }
     return true;
+}
+
+void Control::updateTransform(int elem)
+{
+    if (flags_.testFlag(Adjusting)) {
+        TransformRecord * tr = property("transformRecord").value<TransformRecord*>();
+        if (tr)
+            tr->setChanged();
+        return;
+    }
+    if ((elem & 4) == 0)
+        return;
+    flags_.setFlag(Adjusting, true);
+    if (flags_.testFlag(LayoutScale)) {
+        QSizeF sz = res_->property("originSize").toSizeF();
+        QSizeF zm = res_->transform().zoom2d();
+        qDebug() << "Control::updateTransform" << sz << zm;
+        resize({sz.width() * zm.width(), sz.height() * zm.height()});
+    }
+    sizeChanged();
+    flags_.setFlag(Adjusting, false);
 }
 
 StateItem * Control::stateItem()

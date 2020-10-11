@@ -11,6 +11,7 @@
 class Resource;
 class ResourceTransform;
 class ResourcePage;
+class ResourcePackage;
 
 class QGraphicsItem;
 class QMimeData;
@@ -162,13 +163,15 @@ public:
 
     void removeFromPage();
 
-    ResourcePage* page();
+    ResourcePage * page();
+
+    ResourcePackage * package();
 
 protected:
     Resource * res_;
     Flags flags_;
     QString name_;
-    ResourceTransform* transform_;
+    ResourceTransform * transform_;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(ResourceView::Flags)

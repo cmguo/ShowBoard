@@ -358,6 +358,12 @@ ResourcePage *ResourceView::page()
     return qobject_cast<ResourcePage*>(parent());
 }
 
+ResourcePackage *ResourceView::package()
+{
+    ResourcePage * p = page();
+    return p ? p->package() : nullptr;
+}
+
 void ResourceView::setSaved()
 {
     flags_ |= SavedSession;

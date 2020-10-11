@@ -100,9 +100,9 @@ void ImageControl::setMipMapPixmap(const QPixmap &pixmap, QSizeF const & sizeHin
         loadFinished(true, property("finishIcon").toString());
     } else {
         res_->transform().scaleTo(sizeHint.width() / pixmap.width());
-        adjusting(true);
+        flags_.setFlag(Adjusting, true);
         sizeChanged();
-        adjusting(false);
+        flags_.setFlag(Adjusting, false);
     }
 }
 
