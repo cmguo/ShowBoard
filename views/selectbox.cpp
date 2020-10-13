@@ -19,6 +19,7 @@ public:
     {
         setPen(QPen(Qt::black, dp(2.0)));
         setBrush(QBrush(Qt::white));
+        setAcceptHoverEvents(true);
         static QPainterPath boxShape = circle(dp(BOX_RADIUS));
         setPath(boxShape);
     }
@@ -27,6 +28,8 @@ public:
     {
         setPath(circle(dp(BOX_RADIUS2)));
         setBrush(QBrush(QColor("#B4B2FF")));
+        setCursor(QCursor(QPixmap(":/showboard/icon/cursor-rotate.png")));
+        setAcceptHoverEvents(false);
         // line
         QGraphicsPathItem * handle = new QGraphicsPathItem(this);
         handle->setPen(QPen(QColor("#CC8D8BE9"), dp(LINE_WIDTH)));
@@ -42,14 +45,25 @@ private:
         static QPainterPath boxShape2 = circle(dp(BOX_RADIUS_TEST));
         return boxShape2;
     }
-
     virtual bool contains(const QPointF &point) const override
     {
         QSizeF size = parentItem()->boundingRect().size() / 4;
         return qAbs(point.x()) < size.width() && qAbs(point.y()) < size.height()
                 && shape().contains(point);
     }
-
+    virtual void hoverEnterEvent(QGraphicsSceneHoverEvent *) override
+    {
+        QPointF dir = parentItem()->mapToParent(pos())
+                - parentItem()->mapToParent(parentItem()->boundingRect().center());
+        dir /= sqrt(QPointF::dotProduct(dir, dir));
+        if (qFuzzyIsNull(rotate_ - dir.y()))
+            return;
+        rotate_ = dir.y();
+        QTransform tr(dir.x(), dir.y(), -dir.y(), dir.x(), 0, 0);
+        static QPixmap sizeh(":/showboard/icon/cursor-sizeh.png");
+        QCursor cs2(sizeh.transformed(tr, Qt::SmoothTransformation));
+        setCursor(cs2);
+    }
 private:
     static QPainterPath circle(qreal radius)
     {
@@ -58,34 +72,27 @@ private:
         path.addEllipse(rect);
         return path;
     }
+private:
+    qreal rotate_ = 10.0;
 };
 
 SelectBox::SelectBox(QGraphicsItem * parent)
     : QGraphicsRectItem(parent)
 {
     rotate_ = new BorderItem(0, this);
-    rotate_->setCursor(Qt::CrossCursor);
 
     //       4
     //    1     2
     //       8
     left_ = new BorderItem(this);
-    left_->setCursor(Qt::SizeHorCursor);
     right_ = new BorderItem(this);
-    right_->setCursor(Qt::SizeHorCursor);
     top_ = new BorderItem(this);
-    top_->setCursor(Qt::SizeVerCursor);
     bottom_ = new BorderItem(this);
-    bottom_->setCursor(Qt::SizeVerCursor);
 
     leftTop_ = new BorderItem(this);
-    leftTop_->setCursor(Qt::SizeFDiagCursor);
     rightBottom_ = new BorderItem(this);
-    rightBottom_->setCursor(Qt::SizeFDiagCursor);
     rightTop_ = new BorderItem(this);
-    rightTop_->setCursor(Qt::SizeBDiagCursor);
     leftBottom_ = new BorderItem(this);
-    leftBottom_->setCursor(Qt::SizeBDiagCursor);
 
     setPen(QPen(QColor("#CC7170E5"), dp(LINE_WIDTH)));
 }
