@@ -37,7 +37,6 @@
         <file>icon/loading2.svg</file>
         <file>qss/canvastoolbar.qss</file>
         <file>icon/drag.svg</file>
-        <file>icon/cursor-sizeh.png</file>
         <file>icon/cursor-rotate.png</file>
     </qresource>
 </RCC>
