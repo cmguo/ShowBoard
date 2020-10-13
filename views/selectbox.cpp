@@ -43,7 +43,7 @@ private:
         return boxShape2;
     }
 
-    bool contains(const QPointF &point) const override
+    virtual bool contains(const QPointF &point) const override
     {
         QSizeF size = parentItem()->boundingRect().size() / 4;
         return qAbs(point.x()) < size.width() && qAbs(point.y()) < size.height()
@@ -137,27 +137,26 @@ int SelectBox::hitTest(const QPointF &pos, QRectF &direction)
     }
     if (!leftTop_->isVisible())
         return contains(pos) ? 1 : 0;
-    QRectF rect = this->rect().adjusted(-BORDER_OFFSET, -BORDER_OFFSET,
-                                      BORDER_OFFSET, BORDER_OFFSET);
+    QRectF rect = this->rect();
     QPointF off1 = pos - rect.center();
     QPointF off2(qAbs(off1.x()), qAbs(off1.y()));
     QPointF off3 = rect.bottomRight() - rect.center();
     if (off2.x() > off3.x() / 2) {
         if (off2.y() > off3.y() / 2) {
-            direction = QRectF(pos.x() < 0 ? 1 : 0, pos.y() < 0 ? 1 : 0,
-                               pos.x() < 0 ? -1 : 1, pos.y() < 0 ? -1 : 1);
+            direction = QRectF(off1.x() < 0 ? 1 : 0, off1.y() < 0 ? 1 : 0,
+                               off1.x() < 0 ? -1 : 1, off1.y() < 0 ? -1 : 1);
         } else if (right_->isVisible()) {
             off3.setY(0); // right
-            direction = QRectF(pos.x() < 0 ? 1 : 0, 0,
-                               pos.x() < 0 ? -1 : 1, 0);
+            direction = QRectF(off1.x() < 0 ? 1 : 0, 0,
+                               off1.x() < 0 ? -1 : 1, 0);
         }
     } else if (bottom_->isVisible()) {
         off3.setX(0); // bottom
-        direction = QRectF(0, pos.y() < 0 ? 1 : 0,
-                           0, pos.y() < 0 ? -1 : 1);
+        direction = QRectF(0, off1.y() < 0 ? 1 : 0,
+                           0, off1.y() < 0 ? -1 : 1);
     }
     off1 = off2 - off3;
-    if (QPointF::dotProduct(off1, off1) <= BOX_RADIUS_TEST * BOX_RADIUS_TEST)
+    if (QPointF::dotProduct(off1, off1) <= dp(BOX_RADIUS_TEST) * dp(BOX_RADIUS_TEST))
         return 2;
     if (contains(pos)) {
         return 1;
