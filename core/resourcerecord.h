@@ -2,6 +2,7 @@
 #define RESOURCERECORD_H
 
 #include <QList>
+#include <QObject>
 
 class ResourceRecord
 {

@@ -8,6 +8,8 @@
 #include <QString>
 
 class QHttpServer;
+class QHttpServerResponse;
+class QHttpServerRequest;
 class FileCache;
 
 class SHOWBOARD_EXPORT LocalHttpServer : public QObject
@@ -18,6 +20,13 @@ public:
 
 public:
     static LocalHttpServer * instance();
+
+    class LocalProgram
+    {
+    public:
+        virtual ~LocalProgram() {}
+        virtual QHttpServerResponse handle(QHttpServerRequest const &);
+    };
 
 public:
     void setPort(ushort port);
@@ -31,6 +40,8 @@ signals:
 
     void addServeCache(QByteArray const & prefix, FileCache * cache);
 
+    void addServeProgram(QByteArray const & prefix, LocalProgram * program);
+
     void stop();
 
 private:
@@ -40,11 +51,15 @@ private:
 
     void addServeCache2(QByteArray const & prefix, FileCache * cache);
 
+    void addServeProgram2(QByteArray const & prefix, LocalProgram * program);
+
     void stop2();
 
 private:
     QHttpServer * server_ = nullptr;
     ushort port_ = 0;
 };
+
+Q_DECLARE_METATYPE(LocalHttpServer::LocalProgram)
 
 #endif // LOCALHTTPSERVER_H
