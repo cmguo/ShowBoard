@@ -181,3 +181,11 @@ int SelectBox::hitTest(const QPointF &pos, QRectF &direction)
     return 0;
 }
 
+QRectF SelectBox::boundRect() const
+{
+    QRectF rect = this->rect();
+    if (rotate_->isVisible())
+        rect.adjust(0, -dp(ROTATE_OFFSET), 0, 0);
+    return rect;
+}
+

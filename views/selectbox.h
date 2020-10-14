@@ -24,6 +24,8 @@ public:
 
     int hitTest(QPointF const & pos, QRectF & direction);
 
+    QRectF boundRect() const;
+
 private:
     QGraphicsPathItem * rotate_;
     QGraphicsPathItem * leftTop_;
