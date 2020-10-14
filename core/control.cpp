@@ -333,7 +333,7 @@ void Control::loadSettings()
     for (QByteArray & k : res_->dynamicPropertyNames()) {
         if (itemObj_ && (index = itemObj_->metaObject()->indexOfProperty(k)) >= count) {
             itemObj_->setProperty(k, res_->property(k));
-        } else {
+        } else if (metaObject()->indexOfProperty(k) >= 0) {
             setProperty(k, res_->property(k));
         }
     }
@@ -548,7 +548,7 @@ void Control::initPosition()
     if (flags_ & (FullLayout | RestoreSession))
         return;
     QGraphicsItem *parent = realItem_->parentItem();
-    QRectF rect = parent->boundingRect();
+    QRectF rect = whiteCanvas()->rect();
     // in large canvas, use visible rect of canvas
     Control * canvasControl = fromItem(whiteCanvas());
     if (canvasControl) {
@@ -563,6 +563,14 @@ void Control::initPosition()
     if (!(flags_ & AutoPosition)) {
         if (frame) {
             res_->transform().translate(-frame->padding().center());
+        }
+        QPointF posHint = res_->property("posHint").toPointF();
+        if (!posHint.isNull()) {
+            QSizeF sz(posHint.x(), posHint.y());
+            adjustSizeHint(sz, rect.size());
+            posHint.setX(sz.width());
+            posHint.setY(sz.height());
+            res_->transform().translate(posHint + rect.topLeft());
         }
         return;
     }

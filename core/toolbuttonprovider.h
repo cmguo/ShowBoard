@@ -39,9 +39,7 @@ public:
      */
     virtual bool handleToolButton(QList<ToolButton *> const & buttons);
 
-    QString overrideToolString() {
-        return overrideToolString_;
-    }
+    QString overrideToolString() { return overrideToolString_; }
 
     void setOverrideToolString(const QString&);
 

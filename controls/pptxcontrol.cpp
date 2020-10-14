@@ -102,7 +102,7 @@ void PptxControl::opened(int total)
     (void) total;
     bool first = (flags_ & LoadFinished) == 0;
     bool autoShow = !(flags_ & RestoreSession)
-            && property("autoShow").toBool();
+            && res_->property("autoShow").toBool();
     if (first) {
         QObject::connect(stateItem(), &StateItem::clicked, this, [this]() {
             show();
