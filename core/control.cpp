@@ -23,6 +23,7 @@
 #include <QApplication>
 #include <QScreen>
 #include <QMimeData>
+#include <QTimeLine>
 
 #include <map>
 
@@ -153,6 +154,26 @@ void Control::setExpandScale(bool b)
     flags_.setFlag(ExpandScale, b);
 }
 
+bool Control::enterAnimate() const
+{
+    return flags_.testFlag(EnterAnimate);
+}
+
+void Control::setEnterAnimate(bool b)
+{
+    flags_.setFlag(EnterAnimate, b);
+}
+
+bool Control::selectOnLoaded() const
+{
+    return flags_.testFlag(SelectOnLoaded);
+}
+
+void Control::setSelectOnLoaded(bool b)
+{
+    flags_.setFlag(SelectOnLoaded, b);
+}
+
 void Control::attachTo(QGraphicsItem * parent, QGraphicsItem * before)
 {
     bool fromPersist = false;
@@ -201,7 +222,15 @@ void Control::attachTo(QGraphicsItem * parent, QGraphicsItem * before)
     if (res_->flags().testFlag(ResourceView::Independent))
         canvasControl->attachSubProvider(this);
     if (flags_ & Loading) {
-        stateItem()->setLoading();
+        QTimer::singleShot(500, this, [this] {
+            if (flags_ & Loading)
+                stateItem()->setLoading();
+        });
+    } else if (!(flags_ & RestoreSession)) {
+        QTimer::singleShot(0, this, [this] {
+            if (flags_ & SelectOnLoaded)
+                whiteCanvas()->selector()->select(this);
+        });
     }
 }
 
@@ -622,6 +651,12 @@ void Control::loadFinished(bool ok, QString const & iconOrMsg)
         initScale();
         sizeChanged();
         flags_ |= LoadFinished;
+        if (!(flags_ & RestoreSession)) {
+            if ((flags_ & EnterAnimate))
+                doAnimate();
+            else if (flags_ & SelectOnLoaded)
+                whiteCanvas()->selector()->select(this);
+        }
     } else {
         if (flags_ & LoadFinished) {
             qWarning() << metaObject()->className() << iconOrMsg;
@@ -630,6 +665,8 @@ void Control::loadFinished(bool ok, QString const & iconOrMsg)
         stateItem()->setFailed(iconOrMsg);
         QObject::connect(stateItem(), &StateItem::clicked, this, &Control::reload);
         sizeChanged();
+        if ((flags_ & SelectOnLoaded) && !(flags_ & RestoreSession))
+            whiteCanvas()->selector()->select(this);
     }
     flags_ &= ~Loading;
     whiteCanvas()->onControlLoad(false);
@@ -980,6 +1017,28 @@ void Control::onText(QString text)
 {
     (void) text;
     throw std::runtime_error("Not implemets onText");
+}
+
+void Control::doAnimate()
+{
+    QTimeLine * tl = new QTimeLine(400, this);
+    QObject::connect(tl, &QTimeLine::finished, this, [=] () {
+        if (flags_ & SelectOnLoaded)
+            whiteCanvas()->selector()->select(this);
+        delete tl;
+    });
+    tl->setProperty("scale", 1.0);
+    realItem_->setOpacity(0);
+    QObject::connect(tl, &QTimeLine::valueChanged, this, [=] (qreal v) {
+        qreal scale = 1.06 - qAbs(v * 0.12 - 0.06);
+        qreal diff = scale / tl->property("scale").toReal();
+        tl->setProperty("scale", scale);
+        QTransform tr = realItem_->transform();
+        tr.scale(diff, diff);
+        realItem_->setTransform(tr);
+        realItem_->setOpacity(v);
+    });
+    tl->start();
 }
 
 void Control::getToolButtons(QList<ToolButton *> &buttons, ToolButton * parent)

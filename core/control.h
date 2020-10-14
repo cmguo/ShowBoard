@@ -32,6 +32,8 @@ class SHOWBOARD_EXPORT Control : public ToolButtonProvider
     Q_PROPERTY(bool keepAspectRatio READ keepAspectRatio WRITE setKeepAspectRatio)
     Q_PROPERTY(bool layoutScale READ layoutScale WRITE setLayoutScale)
     Q_PROPERTY(bool expandScale READ expandScale WRITE setExpandScale)
+    Q_PROPERTY(bool enterAnimate READ enterAnimate WRITE setEnterAnimate)
+    Q_PROPERTY(bool selectOnLoaded READ selectOnLoaded WRITE setSelectOnLoaded)
     Q_PROPERTY(Flags scaleMode READ scaleMode WRITE setScaleMode)
     Q_PROPERTY(Flags selectMode READ selectMode WRITE setSelectMode)
 
@@ -58,6 +60,8 @@ public:
         Touchable = 1 << 12,
         FixedOnCanvas = 1 << 13,
         ShowSelectMask = 1 << 14,
+        SelectOnLoaded = 1 << 15,
+        EnterAnimate = 1 << 16,
         // States
         Loading = 1 << 24,
         LoadFinished = 1 << 25,
@@ -121,7 +125,7 @@ public:
 public:
     bool withSelectBar() const;
 
-    void setWithSelectBar(bool b);
+    void setWithSelectBar(bool b = true);
 
     Flags scaleMode() const;
 
@@ -133,15 +137,23 @@ public:
 
     bool keepAspectRatio() const;
 
-    void setKeepAspectRatio(bool b);
+    void setKeepAspectRatio(bool b = true);
 
     bool layoutScale() const;
 
-    void setLayoutScale(bool b);
+    void setLayoutScale(bool b = true);
 
     bool expandScale() const;
 
-    void setExpandScale(bool b);
+    void setExpandScale(bool b = true);
+
+    bool selectOnLoaded() const;
+
+    void setSelectOnLoaded(bool b = true);
+
+    bool enterAnimate() const;
+
+    void setEnterAnimate(bool b = true);
 
 public:
     /*
@@ -334,6 +346,8 @@ protected:
     virtual void onData(QByteArray data);
 
     virtual void onText(QString text);
+
+    virtual void doAnimate();
 
 public:
     using ToolButtonProvider::getToolButtons;

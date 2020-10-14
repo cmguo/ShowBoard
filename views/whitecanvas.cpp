@@ -239,8 +239,7 @@ Control * WhiteCanvas::addResource(QUrl const & url, QVariantMap settings)
 {
     ResourceView * res = canvas_->page()->addResource(url, settings);
     Control * ct = canvas_->findControl(res);
-    if (ct && ct->flags().testFlag(Control::CanSelect))
-        selector_->select(ct);
+    ct->setSelectOnLoaded();
     return ct;
 }
 
@@ -248,8 +247,7 @@ Control *WhiteCanvas::addResource(ResourceView *res)
 {
     canvas_->page()->addResource(res);
     Control * ct = canvas_->findControl(res);
-    if (ct && ct->flags().testFlag(Control::CanSelect))
-        selector_->select(ct);
+    ct->setSelectOnLoaded();
     return ct;
 }
 
