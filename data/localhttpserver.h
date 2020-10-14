@@ -25,7 +25,8 @@ public:
     {
     public:
         virtual ~LocalProgram() {}
-        virtual QHttpServerResponse handle(QHttpServerRequest const &);
+        virtual QHttpServerResponse handle(QHttpServerRequest const & request);
+        virtual QByteArray handle(QUrl const & url, QByteArray const & body) { (void) url; (void) body; return ""; }
     };
 
 public:

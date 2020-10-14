@@ -135,3 +135,13 @@ void LocalHttpServer::stop2()
 }
 
 
+QHttpServerResponse LocalHttpServer::LocalProgram::handle(const QHttpServerRequest & request)
+{
+    QByteArray body = handle(request.url(), request.body());
+    try {
+        const QByteArray mimeType = QMimeDatabase().mimeTypeForFileNameAndData(request.url().path(), body).name().toLocal8Bit();
+        return QHttpServerResponse(mimeType, body);
+    } catch (...) {
+        return QHttpServerResponse(QHttpServerResponse::StatusCode::BadRequest);
+    }
+}
