@@ -3,17 +3,26 @@
 
 #include "core/control.h"
 
-class QPixmap;
 class ImageData;
+
+class QGraphicsPixmapItem;
+class QPixmap;
 
 class ImageControl : public Control
 {
     Q_OBJECT
 
-    Q_PROPERTY(qreal mipmap MEMBER mipmap_)
+    Q_PROPERTY(qreal mipmap READ mipmap WRITE setMipmap)
 
 public:
     Q_INVOKABLE ImageControl(ResourceView *res, Flags flags = None, Flags clearFlags = None);
+
+public:
+    qreal mipmap() const { return mipmap_; }
+
+    void setMipmap(qreal mipmap);
+
+    qreal mipScale() const { return mipScale_; }
 
 protected:
     virtual QGraphicsItem * create(ResourceView * res) override;
@@ -36,7 +45,9 @@ private:
     void adjustMipmap2(QSizeF const & sizeHint);
 
 private:
+    QGraphicsPixmapItem * image_;
     qreal mipmap_;
+    qreal mipScale_;
     QSharedPointer<ImageData> data_;
 };
 

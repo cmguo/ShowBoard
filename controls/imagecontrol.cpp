@@ -7,13 +7,20 @@
 
 #include <QPixmap>
 #include <QGraphicsPixmapItem>
+#include <QPen>
 #include <QMimeData>
 
 ImageControl::ImageControl(ResourceView * res, Flags flags, Flags clearFlags)
     : Control(res, flags | Flags{KeepAspectRatio, FullSelect, FixedOnCanvas}, clearFlags)
     , mipmap_(0)
+    , mipScale_(1.0)
 {
     setMinSize({0.1, 0});
+}
+
+void ImageControl::setMipmap(qreal mipmap)
+{
+    mipmap_ = mipmap;
 }
 
 QGraphicsItem * ImageControl::create(ResourceView * res)
@@ -24,9 +31,12 @@ QGraphicsItem * ImageControl::create(ResourceView * res)
         flags_ |= AutoPosition;
     }
 #endif
-    QGraphicsPixmapItem * item = new QGraphicsPixmapItem();
-    item->setShapeMode(QGraphicsPixmapItem::BoundingRectShape);
-    item->setTransformationMode(Qt::SmoothTransformation);
+    QGraphicsRectItem * item = new QGraphicsRectItem;
+    item->setFlag(QGraphicsItem::ItemHasNoContents);
+    item->setPen(Qt::NoPen);
+    image_ = new QGraphicsPixmapItem(item);
+    image_->setShapeMode(QGraphicsPixmapItem::BoundingRectShape);
+    image_->setTransformationMode(Qt::SmoothTransformation);
     return item;
 }
 
@@ -91,18 +101,21 @@ QPixmap ImageControl::pixmap() const
 
 void ImageControl::setMipMapPixmap(const QPixmap &pixmap, QSizeF const & sizeHint)
 {
-    QGraphicsPixmapItem * item = static_cast<QGraphicsPixmapItem*>(item_);
-    if (pixmap.cacheKey() == item->pixmap().cacheKey())
+    QGraphicsRectItem * item = static_cast<QGraphicsRectItem*>(item_);
+    if (pixmap.cacheKey() == image_->pixmap().cacheKey())
         return;
     qDebug() << "setMipMapPixmap" << sizeHint << pixmap.size();
-    item->setPixmap(pixmap);
+    image_->setPixmap(pixmap);
+    QSizeF size = pixmap.size();
+    image_->setOffset(-size.width() / 2, -size.height() / 2);
     if (!flags_.testFlag(LoadFinished)) {
+        item->setRect(image_->boundingRect());
         loadFinished(true, property("finishIcon").toString());
+        adjustMipmap();
     } else {
-        res_->transform().scaleTo(sizeHint.width() / pixmap.width());
-        flags_.setFlag(Adjusting, true);
-        sizeChanged();
-        flags_.setFlag(Adjusting, false);
+        QSizeF originSize = item_->boundingRect().size();
+        mipScale_ = originSize.width() / size.width();
+        image_->setTransform(QTransform::fromScale(mipScale_, mipScale_));
     }
 }
 
@@ -110,9 +123,9 @@ void ImageControl::adjustMipmap()
 {
     if (!data_)
         return;
-    qreal scale = res_->transform().zoom();
+    qreal scale = res_->transform().zoom() * mipScale_;
     if (scale >= 1 || scale <= 1 / mipmap_) {
-        adjustMipmap2(item_->boundingRect().size() * scale);
+        adjustMipmap2(image_->boundingRect().size() * scale);
     }
 }
 
