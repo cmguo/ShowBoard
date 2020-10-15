@@ -119,8 +119,10 @@ void ResourcePackage::removePage(ResourcePage *page)
         int newIndex = index;
         if (newIndex > 0)
             --newIndex;
-        else
+        else if (pages_.size() > 1)
             current_ = -1;
+        else
+            newIndex = -1;
         switchPage(newIndex);
     }
     removePage(index);
@@ -362,7 +364,7 @@ void ResourcePackage::switchPage(int page)
         ));
     std::swap(current_, page);
     if (visiblePages_.empty())
-        emit currentPageChanged(pages_[current_]);
+        emit currentPageChanged(current_ >= 0 ? pages_[current_] : nullptr);
 }
 
 void ResourcePackage::switchPage(ResourcePage * page)

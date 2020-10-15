@@ -38,11 +38,13 @@ WhiteCanvasWidget::WhiteCanvasWidget(QWidget *parent)
     scene_->addItem(canvas_);
     setSceneSize(sceneSize_);
 
+    setWindowFlag(Qt::FramelessWindowHint);
     setStyleSheet("border: 0px;");
     setRenderHint(QPainter::Antialiasing);
     setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    resize(sceneSize_.toSize());
     //setResizeAnchor(AnchorViewCenter);
     //setInteractive(true);
     //setTransformationAnchor(AnchorUnderMouse);
@@ -333,9 +335,9 @@ void WhiteCanvasWidget::copyPaste()
             QMimeData * data = new QMimeData;
             c->copy(*data);
             QApplication::clipboard()->setMimeData(data);
+            if (s->key().matches(QKeySequence::Cut))
+                canvas()->removeResource(c);
         }
-        if (s->key().matches(QKeySequence::Cut))
-            canvas()->removeResource(c);
     } else {
         QMimeData const * data = QApplication::clipboard()->mimeData();
         if (data)
