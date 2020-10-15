@@ -22,6 +22,8 @@ public:
 public slots:
     void play();
 
+    void fullScreen();
+
     void stop();
 
 protected:
@@ -37,6 +39,7 @@ protected:
 
 private:
     QMediaPlayer * player_;
+    QWidget * fullscreen_;
 };
 
 #endif // VIDEOCONTROL_H
