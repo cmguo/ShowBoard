@@ -17,7 +17,7 @@ class QTouchEvent;
 class SHOWBOARD_EXPORT ItemSelector : public CanvasItem
 {
 public:
-    ItemSelector(QGraphicsItem * parent = nullptr);
+    ItemSelector(CanvasView * parent = nullptr);
 
 public:
     void select(Control * control);
@@ -78,13 +78,16 @@ private:
     void layoutToolbar();
 
 private:
-    virtual QVariant itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value) override;
+#ifdef SHOWBOARD_QUICK
+#else
+    virtual QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
 
     virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
 
     virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
 
     virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
+#endif
 
     void touchBegin(QTouchEvent* event);
 
@@ -92,18 +95,24 @@ private:
 
     void touchEnd(QTouchEvent* event);
 
+#ifdef SHOWBOARD_QUICK
+#else
     virtual void wheelEvent(QGraphicsSceneWheelEvent *event) override;
 
     virtual bool sceneEvent(QEvent *event) override;
+#endif
 
 public:
     // for StylusGuestureHelper from TeachingTools
     // TODO:
+#ifdef SHOWBOARD_QUICK
+#else
     virtual bool sceneEventFilter(QGraphicsItem *watched, QEvent *event) override;
+#endif
 
 private:
     SelectBox * selBox_;
-    QGraphicsItem * toolBar_;
+    CanvasView * toolBar_;
 
 private:
     bool force_;
@@ -122,7 +131,7 @@ private:
 
 private:
     QEvent * currentEvent_;
-    QGraphicsItem * currentEventSource_;
+    CanvasView * currentEventSource_;
     QPointF start_;
     QMap<int, QPointF> lastPositions_;
     QRectF direction_;

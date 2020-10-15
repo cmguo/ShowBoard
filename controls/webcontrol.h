@@ -47,7 +47,7 @@ public slots:
     void full();
 
 protected:
-    virtual QWidget * createWidget(ResourceView * res) override;
+    virtual QWidget * createWidget(ControlView * parent) override;
 
     virtual void loadSettings() override;
 

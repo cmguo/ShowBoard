@@ -31,6 +31,7 @@ HEADERS += \
 RESOURCES += \
     res/ShowBoard.qrc
 
+#DEFINES += SHOWBOARD_QUICK
 
 include(core/core.pri)
 include(resources/resources.pri)
@@ -41,6 +42,8 @@ include(stroke/stroke.pri)
 include(views/views.pri)
 include(data/data.pri)
 include(web/web.pri)
+include(graphics/graphics.pri)
+include(quick/quick.pri)
 
 win32 {
     include(office/office.pri)

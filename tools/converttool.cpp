@@ -26,9 +26,9 @@ ConvertTool::ConvertTool(ResourceView *res)
 {
 }
 
-QGraphicsItem *ConvertTool::create(ResourceView *res)
+ControlView *ConvertTool::create(ControlView *parent)
 {
-    (void) res;
+    (void) parent;
     QGraphicsRectItem * item = new QGraphicsRectItem;
     item->setPen(Qt::NoPen);
     return item;

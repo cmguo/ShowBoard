@@ -481,7 +481,7 @@ QPointF ToolbarWidget::popupPosition(QPushButton *btn, QGraphicsProxyWidget *pop
         topLeft += QPointF(0, btn->height() + 15);
         break;
     }
-    QRectF bound = parent->mapFromScene(parent->scene()->sceneRect()).boundingRect();
+    QRectF bound = parent->mapRectFromScene(parent->scene()->sceneRect());
     QRectF bound2(topLeft, size);
     if (bound2.left() < bound.left())
         topLeft.setX(bound.left());

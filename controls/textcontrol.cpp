@@ -13,9 +13,9 @@ TextControl::TextControl(ResourceView * res)
     setMinSize({0.1, 0.1});
 }
 
-QWidget *TextControl::createWidget(ResourceView *res)
+QWidget *TextControl::createWidget(ControlView *parent)
 {
-    (void) res;
+    (void) parent;
     QTextEdit* textEdit = new QTextEdit;
     textEdit->setReadOnly(true);
     textEdit->setTextInteractionFlags(Qt::NoTextInteraction);

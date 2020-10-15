@@ -1,4 +1,4 @@
-﻿#include "widgetcontrol.h"
+#include "widgetcontrol.h"
 #include "core/resource.h"
 #include "core/resourceview.h"
 
@@ -50,12 +50,10 @@ QWidget *WidgetControl::widget()
     return widget_;
 }
 
-QGraphicsItem * WidgetControl::create(ResourceView *res)
+ControlView *WidgetControl::create(ControlView *parent)
 {
-    res_ = res;
-    widget_ = createWidget(res);
+    widget_ = createWidget(parent);
     QGraphicsProxyWidget * item = new QGraphicsProxyWidget();
-    item->setData(100000001,res->property("through").toInt());
     if (flags_.testFlag(Touchable))
         item->setAcceptTouchEvents(true);
     item->setAutoFillBackground(false);

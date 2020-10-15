@@ -23,14 +23,17 @@ void ImageControl::setMipmap(qreal mipmap)
     mipmap_ = mipmap;
 }
 
-QGraphicsItem * ImageControl::create(ResourceView * res)
+ControlView * ImageControl::create(ControlView * parent)
 {
-    (void)res;
+    (void)parent;
 #ifdef QT_DEBUG
     if (metaObject() == &staticMetaObject) {
         flags_ |= AutoPosition;
     }
 #endif
+#ifdef SHOWBOARD_QUICK
+    return nullptr;
+#else
     QGraphicsRectItem * item = new QGraphicsRectItem;
     item->setFlag(QGraphicsItem::ItemHasNoContents);
     item->setPen(Qt::NoPen);
@@ -38,6 +41,7 @@ QGraphicsItem * ImageControl::create(ResourceView * res)
     image_->setShapeMode(QGraphicsPixmapItem::BoundingRectShape);
     image_->setTransformationMode(Qt::SmoothTransformation);
     return item;
+#endif
 }
 
 void ImageControl::attached()
@@ -95,13 +99,16 @@ void ImageControl::setPixmap(const QPixmap &pixmap)
 
 QPixmap ImageControl::pixmap() const
 {
+#ifdef SHOWBOARD_QUICK
+    return QPixmap();
+#else
     return data_ ? data_->pixmap()
                  : static_cast<QGraphicsPixmapItem*>(item_)->pixmap();
+#endif
 }
 
 void ImageControl::setMipMapPixmap(const QPixmap &pixmap, QSizeF const & sizeHint)
 {
-    QGraphicsRectItem * item = static_cast<QGraphicsRectItem*>(item_);
     if (pixmap.cacheKey() == image_->pixmap().cacheKey())
         return;
     qDebug() << "setMipMapPixmap" << sizeHint << pixmap.size();
@@ -109,7 +116,11 @@ void ImageControl::setMipMapPixmap(const QPixmap &pixmap, QSizeF const & sizeHin
     QSizeF size = pixmap.size();
     image_->setOffset(-size.width() / 2, -size.height() / 2);
     if (!flags_.testFlag(LoadFinished)) {
+#ifdef SHOWBOARD_QUICK
+#else
+        QGraphicsRectItem * item = static_cast<QGraphicsRectItem*>(item_);
         item->setRect(image_->boundingRect());
+#endif
         loadFinished(true, property("finishIcon").toString());
         adjustMipmap();
     } else {

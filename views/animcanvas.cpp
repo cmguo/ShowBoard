@@ -9,7 +9,7 @@
 #include <QDebug>
 #include <QTimer>
 
-AnimCanvas::AnimCanvas(QGraphicsItem * parent)
+AnimCanvas::AnimCanvas(CanvasItem * parent)
     : CanvasItem(parent)
     , canvasControl_(nullptr)
     , timer_(0)
@@ -19,7 +19,7 @@ AnimCanvas::AnimCanvas(QGraphicsItem * parent)
     , switchPage_(false)
     , curve_(QEasingCurve::InOutQuart)
 {
-    setFlag(QGraphicsItem::ItemHasNoContents, false);
+    setFlag(ItemHasNoContents, false);
     initAnimate();
 }
 
@@ -167,8 +167,8 @@ void AnimCanvas::initAnimate()
     PageCanvas * canvas = static_cast<PageCanvas*>(parentItem()->childItems().first());
     canvas->setBrush(brush());
     canvas->setFlag(ItemHasNoContents, false);
-    for (QGraphicsItem * sibling : parentItem()->childItems()) {
-        if (!canvas->hasSubCanvas(sibling))
+    for (ControlView * sibling : parentItem()->childItems()) {
+        if (!canvas->hasSubCanvas(static_cast<CanvasItem*>(sibling)))
             break;
         sibling->setFlag(ItemClipsChildrenToShape, true);
     }
@@ -179,8 +179,8 @@ void AnimCanvas::termAnimate()
     PageCanvas * canvas = static_cast<PageCanvas*>(parentItem()->childItems().first());
     canvas->setBrush(QBrush());
     canvas->setFlag(ItemHasNoContents, true);
-    for (QGraphicsItem * sibling : parentItem()->childItems()) {
-        if (!canvas->hasSubCanvas(sibling))
+    for (ControlView * sibling : parentItem()->childItems()) {
+        if (!canvas->hasSubCanvas(static_cast<CanvasItem*>(sibling)))
             break;
         sibling->setFlag(ItemClipsChildrenToShape, false);
     }
@@ -209,7 +209,7 @@ void AnimCanvas::updateTransform()
     setPos(pos);
     //qDebug() << "AnimCanvas::updateTransform" << direction_ << r << total_;
     update();
-    for (QGraphicsItem * sibling : parentItem()->childItems()) {
+    for (ControlView * sibling : parentItem()->childItems()) {
         if (sibling == this)
             break;
         sibling->update();
@@ -243,10 +243,10 @@ void AnimCanvas::setRect(const QRectF &rect, QPointF const & off)
     setTransformOriginPoint(rect.center());
     QRectF r = rect.translated(off);
     //qDebug() << "AnimCanvas::setRect" << rect << r;
-    for (QGraphicsItem * sibling : parentItem()->childItems()) {
+    for (ControlView * sibling : parentItem()->childItems()) {
         if (sibling == this)
             break;
-        if (sibling->type() != PageCanvas::Type)
+        if (!PageCanvas::isPageCanvas(sibling))
             continue;
         static_cast<PageCanvas*>(sibling)->setRect(r);
         sibling->setTransformOriginPoint(r.center());
@@ -257,10 +257,10 @@ void AnimCanvas::setPos(const QPointF &pos)
 {
     //qDebug() << "AnimCanvas::setPos" << pos;
     CanvasItem::setPos(pos);
-    for (QGraphicsItem * sibling : parentItem()->childItems()) {
+    for (ControlView * sibling : parentItem()->childItems()) {
         if (sibling == this)
             break;
-        if (sibling->type() != PageCanvas::Type)
+        if (!PageCanvas::isPageCanvas(sibling))
             continue;
         sibling->setPos(pos);
     }
@@ -269,10 +269,10 @@ void AnimCanvas::setPos(const QPointF &pos)
 void AnimCanvas::setScale(qreal scale)
 {
     CanvasItem::setScale(scale);
-    for (QGraphicsItem * sibling : parentItem()->childItems()) {
+    for (ControlView * sibling : parentItem()->childItems()) {
         if (sibling == this)
             break;
-        if (sibling->type() != PageCanvas::Type)
+        if (!PageCanvas::isPageCanvas(sibling))
             continue;
         sibling->setScale(scale);
     }
@@ -282,7 +282,7 @@ QRectF AnimCanvas::animateRect(QPointF& off) const
 {
     QRectF r = scene()->sceneRect();
     if (canvasControl_) {
-        r = parentItem()->mapFromScene(scene()->sceneRect()).boundingRect();
+        r = parentItem()->mapRectFromScene(scene()->sceneRect());
     }
     if (direction_ & LeftToRight) // we are at right
         off.setX(r.width());
@@ -306,12 +306,18 @@ QRectF AnimCanvas::animateRect(QPointF& off) const
     }
 }
 
+#ifdef SHOWBOARD_QUICK
+
+#else
+
 void AnimCanvas::paint(QPainter *painter, const QStyleOptionGraphicsItem * option, QWidget * widget)
 {
     //qDebug() << "paint" << rect();
     CanvasItem::paint(painter, option, widget);
     painter->drawPixmap(rect(), snapshot_, QRectF());
 }
+
+#endif
 
 void AnimCanvas::timerEvent(QTimerEvent *event)
 {

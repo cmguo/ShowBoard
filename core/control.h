@@ -3,6 +3,7 @@
 
 #include "ShowBoard_global.h"
 #include "toolbuttonprovider.h"
+#include "controlview.h"
 
 #include <QSizeF>
 #include <QRectF>
@@ -13,10 +14,9 @@ class StateItem;
 class ToolButton;
 class ItemFrame;
 class WhiteCanvas;
+class ControlTransform;
 
-class QGraphicsTransform;
 class QIODevice;
-class QGraphicsItem;
 class QMimeData;
 
 class SHOWBOARD_EXPORT Control : public ToolButtonProvider
@@ -87,13 +87,19 @@ public:
     Q_ENUM(SelectMode)
 
 protected:
+#ifdef SHOWBOARD_QUICK
+    static constexpr char const * ITEM_KEY_CONTROL = "CONTROL";
+#else
     static constexpr int ITEM_KEY_CONTROL = 1000;
+#endif
 
 public:
     /*
      * Get control from item
      */
-    static Control * fromItem(QGraphicsItem const * item);
+    static Control * fromItem(ControlView const * item);
+
+    static void attachToItem(ControlView * item, Control * control);
 
 public:
     /*
@@ -114,7 +120,7 @@ public:
         return res_;
     }
 
-    QGraphicsItem * item() const
+    ControlView * item() const
     {
         return realItem_;
     }
@@ -162,12 +168,12 @@ public:
      * load from resource
      * be called when create, will call create(res)
      */
-    void attachTo(QGraphicsItem * parent, QGraphicsItem * before);
+    void attachTo(ControlView * parent, ControlView * before);
 
     /*
      * save to resource
      */
-    void detachFrom(QGraphicsItem * parent, QGraphicsItem * before);
+    void detachFrom(ControlView * parent, ControlView * before);
 
     /*
      * called when attached to canvas or canvas is resized
@@ -217,7 +223,7 @@ public:
 
     QRectF boundRect() const;
 
-    QGraphicsTransform* transform() const
+    ControlTransform* transform() const
     {
         return transform_;
     }
@@ -229,7 +235,7 @@ public:
      */
     virtual SelectMode selectTest(QPointF const & point);
 
-    virtual SelectMode selectTest(QGraphicsItem * child, QGraphicsItem * parent, QPointF const & point, bool onlyAssist);
+    virtual SelectMode selectTest(ControlView * child, ControlView * parent, QPointF const & point, bool onlyAssist);
 
     /*
      * set when select state change
@@ -253,7 +259,7 @@ protected:
     /*
      * override this to do really creation of item
      */
-    virtual QGraphicsItem * create(ResourceView * res) = 0;
+    virtual ControlView * create(ControlView * parent) = 0;
 
     /*
      * called when attached to canvas or canvas is resized
@@ -354,6 +360,8 @@ protected:
 public:
     using ToolButtonProvider::getToolButtons;
 
+    using ToolButtonProvider::handleToolButton;
+
 protected:
     virtual void getToolButtons(QList<ToolButton *> &buttons, ToolButton * parent) override;
 
@@ -367,10 +375,10 @@ private:
 protected:
     Flags flags_;
     ResourceView * res_;
-    QGraphicsTransform * transform_;
-    QGraphicsItem * item_;
+    ControlTransform * transform_;
+    ControlView * item_;
     QObject* itemObj_;
-    QGraphicsItem * realItem_;
+    ControlView * realItem_;
     StateItem * stateItem_;
     QSizeF minMaxSize_[2];
 };

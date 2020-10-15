@@ -10,6 +10,7 @@
 #include "core/resourceview.h"
 #include "core/resourcetransform.h"
 #include "core/resourcepage.h"
+#include "core/controltransform.h"
 
 #include <QUrl>
 #include <QGraphicsScene>
@@ -25,13 +26,14 @@ static constexpr char const * toolsStr =
         "|;"
         "close()||NeedUpdate|:/showboard/icon/close.svg;";
 
-WhiteCanvasControl::WhiteCanvasControl(ResourceView * view, QGraphicsItem * canvas)
+WhiteCanvasControl::WhiteCanvasControl(ResourceView * view, ControlView * canvas)
     : Control(view, {}, {CanSelect, CanScale, CanRotate})
 {
     setToolsString(toolsStr);
     item_ = canvas;
-    item_->setTransformations({transform_});
-    item_->setData(ITEM_KEY_CONTROL, QVariant::fromValue(this));
+    transform_ = new ControlTransform(res_->transform(), ControlTransform::PureItem);
+    transform_->appendToItem(item_);
+    attachToItem(item_, this);
     realItem_ = item_;
 
 #ifdef PROD_TEST
@@ -92,8 +94,8 @@ WhiteCanvasControl::~WhiteCanvasControl()
     delete posBar_;
     if (flags_ & (Selected | Adjusting))
         whiteCanvas()->selector()->unselect(this);
-    item_->setData(ITEM_KEY_CONTROL, QVariant());
-    item_->setTransformations({});
+    attachToItem(item_, nullptr);
+    ControlTransform::removeAllTransforms(item_);
     item_ = nullptr;
     realItem_ = nullptr;
 }
@@ -138,9 +140,9 @@ void WhiteCanvasControl::close()
     });
 }
 
-QGraphicsItem *WhiteCanvasControl::create(ResourceView *res)
+ControlView *WhiteCanvasControl::create(ControlView *parent)
 {
-    (void) res;
+    (void) parent;
     return nullptr;
 }
 

@@ -24,7 +24,7 @@ class ToolButton;
  *   SelectBox is one of them.
  */
 
-class SHOWBOARD_EXPORT WhiteCanvas : public QObject, public CanvasItem
+class SHOWBOARD_EXPORT WhiteCanvas : CANVAS_OBJECT public CanvasItem
 {
     Q_OBJECT
 public:
@@ -169,9 +169,13 @@ public:
     void setGeometry(QRectF const & rect);
 
 private:
-    virtual QVariant itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value) override;
+#ifdef SHOWBOARD_QUICK
+    virtual void itemChange(ItemChange change, const ItemChangeData &value) override;
+#else
+    virtual QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
 
     virtual bool sceneEvent(QEvent *event) override;
+#endif
 
     virtual bool event(QEvent *event) override;
 

@@ -3,6 +3,7 @@
 
 #include "ShowBoard_global.h"
 #include "toolbuttonprovider.h"
+#include "controlview.h"
 
 #include <qexport.h>
 
@@ -13,7 +14,6 @@ class ResourceTransform;
 class ResourcePage;
 class ResourcePackage;
 
-class QGraphicsItem;
 class QMimeData;
 
 class SHOWBOARD_EXPORT ResourceView : public ToolButtonProvider
@@ -100,9 +100,9 @@ public:
 
     void setSessionGroup(QByteArray const & session);
 
-    QGraphicsItem* loadSession();
+    ControlView* loadSession();
 
-    void saveSession(QGraphicsItem* item);
+    void saveSession(ControlView* item);
 
     void clearSession();
 

@@ -58,7 +58,7 @@ static constexpr char const * changeNames[] {
     "ItemEnabledHasChanged"      // value.boolValue
 };*/
 
-void QuickProxyItem::itemChange(QQuickItem::ItemChange change, const QQuickItem::ItemChangeData & value)
+void QuickProxyItem::itemChange(ItemChange change, const ItemChangeData & value)
 {
     //qDebug() << "QuickProxyItem" << objectName() << "itemChange" << changeNames[change];
     (void) value;

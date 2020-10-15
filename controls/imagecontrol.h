@@ -25,7 +25,7 @@ public:
     qreal mipScale() const { return mipScale_; }
 
 protected:
-    virtual QGraphicsItem * create(ResourceView * res) override;
+    virtual ControlView * create(ControlView * parent) override;
 
     virtual void attached() override;
 

@@ -38,7 +38,7 @@ void QmlControl::setImageProviders(const QVariantMap &providers)
         widget->engine()->addImageProvider(iter.key(), iter.value().value<QQuickImageProvider*>());
 }
 
-QWidget *QmlControl::createWidget(ResourceView *)
+QWidget *QmlControl::createWidget(ControlView *)
 {
     QQuickWidget * widget = new QQuickWidget;
     widget->setAttribute(Qt::WA_TranslucentBackground);

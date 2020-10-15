@@ -10,13 +10,22 @@
 #include <QGraphicsScene>
 #include <QPainter>
 
-PageCanvas::PageCanvas(QGraphicsItem * parent)
+PageCanvas::PageCanvas(CanvasItem * parent)
     : CanvasItem(parent)
     , page_(nullptr)
     , subCanvas_(nullptr)
 {
     resource_manager_ = ResourceManager::instance();
     control_manager_ = ControlManager::instance();
+}
+
+bool PageCanvas::isPageCanvas(ControlView *view)
+{
+#ifdef SHOWBOARD_QUICK
+    return qobject_cast<PageCanvas*>(view);
+#else
+    return view->type() == Type;
+#endif
 }
 
 void PageCanvas::switchPage(ResourcePage * page)
@@ -52,7 +61,7 @@ void PageCanvas::switchPage(ResourcePage * page)
 
 void PageCanvas::relayout()
 {
-    for (QGraphicsItem * item : childItems()) {
+    for (ControlView * item : childItems()) {
         Control * ct = Control::fromItem(item);
         ct->relayout();
     }
@@ -74,17 +83,17 @@ QPixmap PageCanvas::thumbnail(QPixmap* snapshot) const
     QPainter painter;
     painter.begin(&pixmap);
     painter.setRenderHint(QPainter::Antialiasing);
-    for (QGraphicsItem * sibling : parentItem()->childItems()) {
-        if (sibling != this && !hasSubCanvas(sibling))
-            sibling->hide();
+    for (ControlView * sibling : parentItem()->childItems()) {
+        if (sibling != this && !hasSubCanvas(static_cast<CanvasItem*>(sibling)))
+            sibling->setVisible(false);
     }
     QBrush br = scene()->backgroundBrush();
     scene()->setBackgroundBrush(Qt::transparent);
     scene()->render(&painter, QRectF(QPointF(0, 0), size2), scene()->sceneRect());
     scene()->setBackgroundBrush(br);
-    for (QGraphicsItem * sibling : parentItem()->childItems()) {
-        if (sibling != this && !hasSubCanvas(sibling))
-            sibling->show();
+    for (ControlView * sibling : parentItem()->childItems()) {
+        if (sibling != this && !hasSubCanvas(static_cast<CanvasItem*>(sibling)))
+            sibling->setVisible(true);
     }
     painter.end();
     if (snapshot) {
@@ -106,7 +115,7 @@ Control * PageCanvas::findControl(ResourceView * res) const
     }
     if (index >= childItems().size())
         return nullptr;
-    QGraphicsItem * item = childItems()[index];
+    ControlView * item = childItems()[index];
     return Control::fromItem(item);
 }
 
@@ -119,7 +128,7 @@ Control * PageCanvas::topControl() const
 {
     if (subCanvas_)
         return subCanvas_->topControl();
-    QGraphicsItem * item = childItems().isEmpty() ? nullptr : childItems().back();
+    ControlView * item = childItems().isEmpty() ? nullptr : childItems().back();
     return item ? Control::fromItem(item) : nullptr;
 }
 
@@ -148,17 +157,17 @@ void PageCanvas::resourceMoved(QModelIndex const &parent, int start, int end,
     (void) parent;
     (void) destination;
     if (row < start) {
-        QGraphicsItem * dest = childItems()[row];
+        ControlView * dest = childItems()[row];
         while (start <= end) {
-            QGraphicsItem * item = childItems()[start];
+            ControlView * item = childItems()[start];
             item->stackBefore(dest);
             ++start;
         }
         dest->update();
     } else if (row > end) {
-        QGraphicsItem * first = childItems()[start];
+        ControlView * first = childItems()[start];
         while (++end < row) {
-            QGraphicsItem * item = childItems()[end];
+            ControlView * item = childItems()[end];
             item->stackBefore(first);
         }
         first->update();
@@ -169,8 +178,8 @@ void PageCanvas::subPageChanged(ResourcePage *page)
 {
     if (page) {
         if (subCanvas_ == nullptr) {
-            subCanvas_ = new PageCanvas(parentItem());
-            QList<QGraphicsItem*> siblings = parentItem()->childItems();
+            subCanvas_ = new PageCanvas(static_cast<CanvasItem*>(parentItem()));
+            QList<ControlView*> siblings = parentItem()->childItems();
             subCanvas_->stackBefore(siblings[siblings.indexOf(this) + 1]);
         }
         subCanvas_->switchPage(page);
@@ -190,7 +199,7 @@ void PageCanvas::subPageChanged(ResourcePage *page)
     }
 }
 
-bool PageCanvas::hasSubCanvas(QGraphicsItem *canvas) const
+bool PageCanvas::hasSubCanvas(CanvasItem *canvas) const
 {
     return canvas == this
             || (subCanvas_ && subCanvas_->hasSubCanvas(canvas));

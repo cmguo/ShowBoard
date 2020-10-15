@@ -10,9 +10,9 @@ UnknownControl::UnknownControl(ResourceView *res)
 {
 }
 
-QGraphicsItem *UnknownControl::create(ResourceView *res)
+ControlView *UnknownControl::create(ControlView *parent)
 {
-    (void) res;
+    (void) parent;
     QGraphicsRectItem* item = new QGraphicsRectItem;
     item->setPen(Qt::NoPen);
     return item;

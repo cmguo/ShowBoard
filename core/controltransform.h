@@ -3,11 +3,19 @@
 
 #include "ShowBoard_global.h"
 
-#include <QGraphicsTransform>
+#ifdef SHOWBOARD_QUICK
+# include <QQuickTransform>
+#else
+# include <QGraphicsTransform>
+#endif
 
 class ResourceTransform;
 
+#ifdef SHOWBOARD_QUICK
+class SHOWBOARD_EXPORT ControlTransform : public QQuickTransform
+#else
 class SHOWBOARD_EXPORT ControlTransform : public QGraphicsTransform
+#endif
 {
 public:
     enum Type {
@@ -49,7 +57,22 @@ public:
 public:
     ControlTransform * addFrameTransform();
 
-    void attachTo(QGraphicsTransform * transform);
+    void attachTo(ControlTransform * transform);
+
+public:
+#ifdef SHOWBOARD_QUICK
+    static void removeAllTransforms(QQuickItem * item);
+
+    static void shiftLastTranform(QQuickItem * from, QQuickItem * to);
+#else
+    void appendToItem(QGraphicsItem * item);
+
+    void prependToItem(QGraphicsItem * item);
+
+    static void removeAllTransforms(QGraphicsItem * item);
+
+    static void shiftLastTranform(QGraphicsItem * from, QGraphicsItem * to);
+#endif
 
 protected:
     void update(int changes = 7);

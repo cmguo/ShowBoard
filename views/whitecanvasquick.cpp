@@ -58,7 +58,7 @@ void WhiteCanvasQuick::onGeometryChanged(const QRect &newGeometry)
 {
     if (mainControl_) {
         QRectF rect = canvas_->mapToScene(newGeometry).boundingRect();
-        rect = mainControl_->item()->parentItem()->mapFromScene(rect).boundingRect();
+        rect = mainControl_->item()->parentItem()->mapRectFromScene(rect);
         if (mainGeometryProperty_.isEmpty())
             mainControl_->setGeometry(rect);
         else

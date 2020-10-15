@@ -31,9 +31,9 @@ public:
     QWidget * widget();
 
 protected:
-    virtual QGraphicsItem * create(ResourceView * res) override;
+    virtual ControlView * create(ControlView * parent) override;
 
-    virtual QWidget * createWidget(ResourceView * res) = 0;
+    virtual QWidget * createWidget(ControlView * parent) = 0;
 
     virtual void attaching() override;
 

@@ -2,11 +2,12 @@
 #define TOOLCANVAS_H
 
 #include "pagecanvas.h"
+#include "core/controlview.h"
 
 class ToolCanvas : public PageCanvas
 {
 public:
-    ToolCanvas(QGraphicsItem * parent = nullptr);
+    ToolCanvas(CanvasItem * parent = nullptr);
 
 public:
     void showToolControl(Control * control);
@@ -16,14 +17,18 @@ public:
     Control * getToolControl(QString const & typeOrUrl);
 
 private:
-    void showItem(QGraphicsItem * item);
+    void showItem(ControlView * item);
 
-    void hideItem(QGraphicsItem * item);
+    void hideItem(ControlView * item);
 
-    virtual QVariant itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value) override;
+#ifdef SHOWBOARD_QUICK
+    virtual void itemChange(ItemChange change, const ItemChangeData &value) override;
+#else
+    virtual QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
+#endif
 
 private:
-    QGraphicsItem * shown_;
+    ControlView * shown_;
 };
 
 #endif // TOOLCANVAS_H

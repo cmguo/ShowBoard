@@ -32,9 +32,9 @@ bool MenuTool::eventFilter(QObject *, QEvent *event)
     return false;
 }
 
-QWidget * MenuTool::createWidget(ResourceView *res)
+QWidget *MenuTool::createWidget(ControlView *parent)
 {
-    (void) res;
+    (void) parent;
     ToolbarWidget * widget = new ToolbarWidget(false);
     return widget;
 }

@@ -78,7 +78,7 @@ void VideoControl::stop()
     player_->stop();
 }
 
-QGraphicsItem * VideoControl::create(ResourceView *)
+ControlView *VideoControl::create(ControlView *)
 {
     QGraphicsVideoItem * item = new QGraphicsVideoItem();
     item->setAspectRatioMode(Qt::KeepAspectRatio);

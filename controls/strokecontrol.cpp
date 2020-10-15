@@ -11,9 +11,9 @@ StrokeControl::StrokeControl(ResourceView * res)
 {
 }
 
-QWidget * StrokeControl::createWidget(ResourceView * res)
+QWidget *StrokeControl::createWidget(ControlView *parent)
 {
-    (void) res;
+    (void) parent;
     QWidget * widget = new GLStrokeWidget();
     widget->resize(720, 405);
     widget->setAttribute(Qt::WA_NoSystemBackground);

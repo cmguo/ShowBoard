@@ -318,7 +318,7 @@ void ItemSelector::layoutToolbar()
 {
     if (!toolBar_->isVisible())
         return;
-    QRectF boxRect = selBox_->mapToScene(selBox_->boundRect()).boundingRect();
+    QRectF boxRect = selBox_->mapRectToScene(selBox_->boundRect());
     QRectF sceneRect = scene()->sceneRect();
     QSizeF size = toolBar()->size();
     qreal padding = dp(10);

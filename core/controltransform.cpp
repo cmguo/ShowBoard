@@ -1,6 +1,12 @@
 #include "controltransform.h"
 #include "resourcetransform.h"
 
+#ifdef SHOWBOARD_QUICK
+# include <QMatrix4x4>
+#else
+# include <QGraphicsItem>
+#endif
+
 ControlTransform::ControlTransform(ResourceTransform const & transform, ControlTransform::Type type)
     : transform_(&transform)
     , type_(type)
@@ -38,12 +44,16 @@ ControlTransform * ControlTransform::addFrameTransform()
 void ControlTransform::update(int changes)
 {
     if (type_ & changes)
+#ifdef SHOWBOARD_QUICK
+        QQuickTransform::update();
+#else
         QGraphicsTransform::update();
+#endif
     for (QObject * c : children())
         static_cast<ControlTransform *>(c)->update(changes);
 }
 
-void ControlTransform::attachTo(QGraphicsTransform *transform)
+void ControlTransform::attachTo(ControlTransform *transform)
 {
     if (parent() == transform)
         return;
@@ -52,6 +62,67 @@ void ControlTransform::attachTo(QGraphicsTransform *transform)
     setParent(transform);
     update();
 }
+
+#ifdef SHOWBOARD_QUICK
+
+void ControlTransform::removeAllTransforms(QQuickItem *item)
+{
+    auto transforms = item->transform();
+    QList<QQuickTransform*> transforms2;
+    for (int i = 0; i < transforms.count(&transforms); ++i)
+        transforms2.append(transforms.at(&transforms, i));
+    transforms.clear(&transforms);
+    for (auto t : transforms2)
+        delete t;
+}
+
+void ControlTransform::shiftLastTranform(QQuickItem *from, QQuickItem *to)
+{
+    auto transforms = from->transform();
+    int n = transforms.count(&transforms);
+    if (n > 1) {
+        auto t = transforms.at(&transforms, n - 1);
+        t->appendToItem(to);
+    }
+}
+
+#else
+
+void ControlTransform::appendToItem(QGraphicsItem * item)
+{
+    QList<QGraphicsTransform*> transforms = item->transformations();
+    transforms.append(this);
+    item->setTransformations(transforms);
+}
+
+void ControlTransform::prependToItem(QGraphicsItem * item)
+{
+    QList<QGraphicsTransform*> transforms = item->transformations();
+    transforms.prepend(this);
+    item->setTransformations(transforms);
+}
+
+void ControlTransform::removeAllTransforms(QGraphicsItem *item)
+{
+    QList<QGraphicsTransform*> transforms = item->transformations();
+    item->setTransformations({});
+    for (auto t : transforms) {
+        delete t;
+    }
+}
+
+void ControlTransform::shiftLastTranform(QGraphicsItem *from, QGraphicsItem *to)
+{
+    QList<QGraphicsTransform*> transforms = from->transformations();
+    if (transforms.size() > 1) {
+        QList<QGraphicsTransform*> transforms2 = to->transformations();
+        transforms2.append(transforms.takeLast());
+        from->setTransformations(transforms);
+        to->setTransformations(transforms2);
+    }
+}
+
+#endif
 
 void ControlTransform::applyTo(QMatrix4x4 *matrix) const
 {
@@ -116,3 +187,4 @@ void ControlTransform::applyTo(QMatrix4x4 *matrix) const
         break;
     }
 }
+

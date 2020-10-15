@@ -190,7 +190,7 @@ void ItemFrame::update()
 
 void ItemFrame::updateRect()
 {
-    QRectF rect = item_->mapToParent(item_->boundingRect()).boundingRect();
+    QRectF rect = item_->mapRectToParent(item_->boundingRect());
     updateRectFromChild(rect);
 }
 

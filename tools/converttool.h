@@ -14,7 +14,7 @@ public:
     Q_INVOKABLE ConvertTool(ResourceView* res);
 
 protected:
-    virtual QGraphicsItem * create(ResourceView *res) override;
+    virtual ControlView * create(ControlView * parent) override;
 
     virtual void attached() override;
 

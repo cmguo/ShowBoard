@@ -21,7 +21,7 @@ public:
     void setImageProviders(QVariantMap const& providers);
 
 protected:
-    virtual QWidget * createWidget(ResourceView * res) override;
+    virtual QWidget * createWidget(ControlView * parent) override;
 
     virtual void attached() override;
 

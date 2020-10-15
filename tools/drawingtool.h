@@ -46,7 +46,7 @@ signals:
     void drawFinished(bool done);
 
 private:
-    virtual QGraphicsItem * create(ResourceView *res) override;
+    virtual ControlView * create(ControlView * parent) override;
 
     virtual void resize(const QSizeF &size) override;
 

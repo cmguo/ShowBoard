@@ -220,9 +220,9 @@ private:
     QGraphicsItem * finishItem_;
 };
 
-QGraphicsItem * DrawingTool::create(ResourceView *res)
+ControlView *DrawingTool::create(ControlView *parent)
 {
-    (void) res;
+    (void) parent;
     return new DrawingItem();
 }
 

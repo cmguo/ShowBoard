@@ -13,7 +13,7 @@ public:
     Q_INVOKABLE TextControl(ResourceView *res);
 
 protected:
-    virtual QWidget * createWidget(ResourceView * res) override;
+    virtual QWidget * createWidget(ControlView * parent) override;
 
     virtual void attached() override;
 

@@ -4,8 +4,12 @@
 #include "resourcepage.h"
 #include "resourcemanager.h"
 
-#include <QApplication>
+#ifdef SHOWBOARD_QUICK
+#include <QQuickItem>
+#else
 #include <QGraphicsItem>
+#endif
+#include <QApplication>
 #include <QMetaMethod>
 #include <QMimeData>
 #include <QVariant>
@@ -103,7 +107,7 @@ class ResourceSession
 {
 public:
     ResourceSession() : view_(nullptr), item_(nullptr) {}
-    ResourceSession(ResourceView * view, QGraphicsItem * item)
+    ResourceSession(ResourceView * view, ControlView * item)
         : view_(view)
         , item_(item)
     {
@@ -120,16 +124,16 @@ public:
         // here this is detroyed
     }
     int priority() const { return priority_; }
-    QGraphicsItem* detach()
+    ControlView* detach()
     {
-        QGraphicsItem * item = item_;
+        ControlView * item = item_;
         view_ = nullptr;
         item_ = nullptr;
         return item;
     }
 private:
     ResourceView * view_;
-    QGraphicsItem * item_;
+    ControlView * item_;
     int priority_ = 0;
 };
 
@@ -153,12 +157,12 @@ static bool dropOneSession()
     return true;
 }
 
-QGraphicsItem *ResourceView::loadSession()
+ControlView *ResourceView::loadSession()
 {
     QSharedPointer<ResourceSession> session =
             res_->property(SESSION).value<QSharedPointer<ResourceSession>>();
     res_->setProperty(SESSION, QVariant());
-    QGraphicsItem * item = session ? session->detach() : nullptr;
+    ControlView * item = session ? session->detach() : nullptr;
     QByteArray group = sessionGroup();
     if (item && !group.isEmpty()) {
         groupSessions.remove(group);
@@ -167,7 +171,7 @@ QGraphicsItem *ResourceView::loadSession()
     return item;
 }
 
-void ResourceView::saveSession(QGraphicsItem *item)
+void ResourceView::saveSession(ControlView *item)
 {
     static bool initOom = false;
     if (!initOom) {

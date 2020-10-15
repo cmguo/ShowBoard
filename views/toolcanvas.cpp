@@ -5,7 +5,7 @@
 
 #include <QUrl>
 
-ToolCanvas::ToolCanvas(QGraphicsItem * parent)
+ToolCanvas::ToolCanvas(CanvasItem * parent)
     : PageCanvas(parent)
     , shown_(nullptr)
 {
@@ -35,34 +35,47 @@ Control * ToolCanvas::getToolControl(const QString &typeOrUrl)
     return findControl(res);
 }
 
-void ToolCanvas::showItem(QGraphicsItem *item)
+void ToolCanvas::showItem(ControlView *item)
 {
     if (item == shown_)
         return;
     if (shown_)
-        shown_->hide();
+        shown_->setVisible(false);
     shown_ = item;
     if (shown_)
-        shown_->show();
+        shown_->setVisible(true);
 }
 
-void ToolCanvas::hideItem(QGraphicsItem *item)
+void ToolCanvas::hideItem(ControlView *item)
 {
     if (item == shown_) {
-        shown_->hide();
+        shown_->setVisible(false);
         shown_ = nullptr;
     }
 }
 
-QVariant ToolCanvas::itemChange(QGraphicsItem::GraphicsItemChange change,
-                                         const QVariant &value)
+#ifdef SHOWBOARD_QUICK
+void ToolCanvas::itemChange(ItemChange change, const ItemChangeData &value)
+#else
+QVariant ToolCanvas::itemChange(GraphicsItemChange change, const QVariant &value)
+#endif
 {
-    if (change == QGraphicsItem::ItemChildAddedChange) {
+    if (change == ItemChildAddedChange) {
+#ifdef SHOWBOARD_QUICK
+        value.item->setVisible(false);
+#else
         value.value<QGraphicsItem *>()->hide();
-    } else if (change == QGraphicsItem::ItemChildRemovedChange) {
+#endif
+    } else if (change == ItemChildRemovedChange) {
+#ifdef SHOWBOARD_QUICK
+        if (value.item == shown_)
+#else
         if (value.value<QGraphicsItem *>() == shown_)
+#endif
             shown_ = nullptr;
     }
+#ifndef SHOWBOARD_QUICK
     return value;
+#endif
 }
 

@@ -4,10 +4,11 @@
 #include "canvasitem.h"
 
 #include <QEasingCurve>
+#include <QPixmap>
 
 class Control;
 
-class AnimCanvas : public QObject, public CanvasItem
+class AnimCanvas : CANVAS_OBJECT public CanvasItem
 {
     Q_OBJECT
 public:
@@ -25,7 +26,7 @@ public:
 
     Q_ENUM(AnimateDirection)
 
-    AnimCanvas(QGraphicsItem * parent = nullptr);
+    AnimCanvas(CanvasItem * parent = nullptr);
 
     virtual ~AnimCanvas() override;
 
@@ -80,7 +81,10 @@ private:
     QRectF animateRect(QPointF& off) const;
 
 private:
+#ifdef SHOWBOARD_QUICK
+#else
     virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
+#endif
 
     virtual void timerEvent(QTimerEvent *event) override;
 

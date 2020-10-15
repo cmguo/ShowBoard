@@ -24,8 +24,7 @@
 int WhiteCanvas::THUMBNAIL_HEIGHT = 108;
 
 WhiteCanvas::WhiteCanvas(QObject * parent)
-    : QObject(parent)
-    , package_(nullptr)
+    : package_(nullptr)
     , animCanvas_(nullptr)
     , canvasControl_(nullptr)
     , loadingCount_(0)
@@ -33,6 +32,7 @@ WhiteCanvas::WhiteCanvas(QObject * parent)
     static int THUMBNAIL_HEIGHT2 = dp(THUMBNAIL_HEIGHT);
     THUMBNAIL_HEIGHT = THUMBNAIL_HEIGHT2;
 
+    setParent(parent);
     setObjectName("WhiteCanvas");
     setAcceptedMouseButtons(Qt::LeftButton);
     //setFlags(ItemIsMovable);
@@ -85,10 +85,18 @@ Control * WhiteCanvas::getToolControl(const QString &typeOrUrl)
     return tools_->getToolControl(typeOrUrl);
 }
 
-QVariant WhiteCanvas::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value)
+#ifdef SHOWBOARD_QUICK
+void WhiteCanvas::itemChange(ItemChange change, const ItemChangeData &value)
+#else
+QVariant WhiteCanvas::itemChange(GraphicsItemChange change, const QVariant &value)
+#endif
 {
     if (change == ItemSceneChange) {
+#ifdef SHOWBOARD_QUICK
+        if (value.window == nullptr)
+#else
         if (value.isNull()) {
+#endif
             tools_->switchPage(nullptr);
         }
     } else if (change == ItemSceneHasChanged) {
@@ -99,7 +107,9 @@ QVariant WhiteCanvas::itemChange(QGraphicsItem::GraphicsItemChange change, const
             tools_->switchPage(ResourcePackage::toolPage());
         }
     }
+#ifndef SHOWBOARD_QUICK
     return value;
+#endif
 }
 
 bool WhiteCanvas::sceneEvent(QEvent *event)

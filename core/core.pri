@@ -2,6 +2,7 @@ HEADERS += \
     $$PWD/control.h \
     $$PWD/controlmanager.h \
     $$PWD/controltransform.h \
+    $$PWD/controlview.h \
     $$PWD/lifeobject.h \
     $$PWD/oomhandler.h \
     $$PWD/optiontoolbuttons.h \

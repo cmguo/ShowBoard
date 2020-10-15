@@ -107,10 +107,10 @@ void WebControl::setWebBridges(const QHash<QString, QObject*> &bridges)
     view->page()->setWebChannel(channel);
 }
 
-QWidget * WebControl::createWidget(ResourceView * res)
+QWidget *WebControl::createWidget(ControlView *parent)
 {
-    (void)res;
-    WebView * view = new WebView(res);
+    (void)parent;
+    WebView * view = new WebView(res_);
     view->resize(1024, 576);
 #ifndef QT_DEBUG
     view->setContextMenuPolicy(Qt::NoContextMenu);

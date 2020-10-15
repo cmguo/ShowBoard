@@ -17,7 +17,7 @@ class WhiteCanvasControl : public Control
 public:
     static constexpr Flag NoScaleButton = CustomFlag;
 
-    WhiteCanvasControl(ResourceView * view, QGraphicsItem * canvas);
+    WhiteCanvasControl(ResourceView * view, ControlView * canvas);
 
     // fake canvas control
     WhiteCanvasControl(WhiteCanvas * canvas);
@@ -42,10 +42,10 @@ public slots:
 public:
     PositionBar * posBar() const { return posBar_; }
 
-    QGraphicsItem* toolBar() const { return toolBar_; }
+    ControlView * toolBar() const { return toolBar_; }
 
 private:
-    QGraphicsItem * create(ResourceView *res) override;
+    virtual ControlView * create(ControlView * parent) override;
 
     virtual void resize(const QSizeF &size) override;
 
@@ -81,7 +81,7 @@ private:
 
 private:
     PositionBar * posBar_ = nullptr;
-    QGraphicsItem* toolBar_ = nullptr;
+    ControlView * toolBar_ = nullptr;
     QObject * pageSwitch_ = nullptr;
 };
 

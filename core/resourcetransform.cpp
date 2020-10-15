@@ -313,7 +313,7 @@ void ResourceTransform::scaleKeepToCenter(const QRectF &border, QRectF &self, qr
     scale_.scale(scaleTo / scale_.m11(), scaleTo / scale_.m22());
     scaleRotate_ = scale_ * rotate_;
     transform_ = scale_ * rotateTranslate_;
-    QRectF rect = transform_.map(self).boundingRect();
+    QRectF rect = transform_.mapRect(self);
     center = rect.center() + border.center() - transform_.map(center);
     rect.moveCenter(center);
     if (rect.width() < border.width())
@@ -383,14 +383,14 @@ void ResourceTransform::gesture(GestureContext *context, QPointF const &to1, QPo
 
 void ResourceTransform::keepOuterOf(QRectF const &border, QRectF &self)
 {
-    QRectF crect = transform_.map(self).boundingRect();
+    QRectF crect = transform_.mapRect(self);
     //qDebug() << "before" << border << crect << transform_;
     if (border.width() > crect.width() || border.height() > crect.height()) {
         qreal s = qMax(border.width() / crect.width(), border.height() / crect.height());
         scale_.scale(s, s);
         scaleRotate_ = scale_ * rotate_;
         transform_ = scaleRotate_ * translate_;
-        crect = transform_.map(self).boundingRect();
+        crect = transform_.mapRect(self);
     }
     QPointF d;
     if (crect.left() > border.left())

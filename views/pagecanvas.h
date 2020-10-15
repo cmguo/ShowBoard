@@ -2,6 +2,7 @@
 #define PAGECANVAS_H
 
 #include "canvasitem.h"
+#include "core/controlview.h"
 
 #include <QObject>
 
@@ -11,15 +12,19 @@ class ResourceView;
 class ResourcePage;
 class Control;
 
-class PageCanvas : public QObject, public CanvasItem
+class PageCanvas : CANVAS_OBJECT public CanvasItem
 {
     Q_OBJECT
 public:
-    PageCanvas(QGraphicsItem * parent = nullptr);
+    PageCanvas(CanvasItem * parent = nullptr);
 
+#ifndef SHOWBOARD_QUICK
     enum { Type = UserType + 1 };
 
     virtual int type() const override { return Type; }
+#endif
+
+    static bool isPageCanvas(ControlView * view);
 
 public:
     Control * findControl(ResourceView * res) const;
@@ -45,7 +50,7 @@ public:
 public:
     QPixmap thumbnail(QPixmap* snapshot = nullptr) const;
 
-    bool hasSubCanvas(QGraphicsItem * canvas) const;
+    bool hasSubCanvas(CanvasItem * canvas) const;
 
 private:
     void resourceInserted(QModelIndex const &parent, int first, int last);

@@ -14,12 +14,17 @@
 #include "resourcepackage.h"
 #include "varianthelper.h"
 
+#ifdef SHOWBOARD_QUICK
+#include <QQuickItem>
+#include <QQuickTransform>
+#else
 #include <QGraphicsItem>
 #include <QGraphicsProxyWidget>
-#include <QWidget>
 #include <QGraphicsScene>
-#include <QTransform>
 #include <QGraphicsTransform>
+#endif
+#include <QWidget>
+#include <QTransform>
 #include <QMetaMethod>
 #include <QApplication>
 #include <QScreen>
@@ -33,9 +38,23 @@
 static qreal MIN_SIZE = 120.0;
 static qreal MAX_SIZE = 4320.0;
 
-Control * Control::fromItem(QGraphicsItem const * item)
+Control * Control::fromItem(ControlView const * item)
 {
+#ifdef SHOWBOARD_QUICK
+    return item->property(ITEM_KEY_CONTROL).value<Control *>();
+#else
     return item->data(ITEM_KEY_CONTROL).value<Control *>();
+#endif
+}
+
+void Control::attachToItem(ControlView * item, Control * control)
+{
+#ifdef SHOWBOARD_QUICK
+    item->setProperty(Control::ITEM_KEY_CONTROL, QVariant::fromValue(control));
+#else
+    item->setData(ITEM_KEY_CONTROL, QVariant::fromValue(control));
+#endif
+
 }
 
 static ToolButton btnTop = { "top", "置顶", ToolButton::Static, ":/showboard/icon/top.svg" };
@@ -64,9 +83,6 @@ Control::Control(ResourceView *res, Flags flags, Flags clearFlags)
     if (flags_.testFlag(FullLayout)) {
         flags_.setFlag(FixedOnCanvas, false);
     }
-    transform_ = new ControlTransform(res->transform(), flags_.testFlag(LayoutScale)
-                                      ? ControlTransform::RotateTranslate
-                                      : ControlTransform::PureItem);
     connect(&res->transform(), &ResourceTransform::changed, this, &Control::updateTransform);
     if (res_->flags() & ResourceView::SavedSession) {
         flags_ |= RestoreSession;
@@ -79,13 +95,6 @@ Control::Control(ResourceView *res, Flags flags, Flags clearFlags)
 Control::~Control()
 {
     attachSubProvider(nullptr, true);
-    if (transform_)
-        delete transform_;
-    if (realItem_)
-        delete realItem_;
-    realItem_ = nullptr;
-    item_ = nullptr;
-    transform_ = nullptr;
     res_ = nullptr;
 }
 
@@ -175,38 +184,42 @@ void Control::setSelectOnLoaded(bool b)
     flags_.setFlag(SelectOnLoaded, b);
 }
 
-void Control::attachTo(QGraphicsItem * parent, QGraphicsItem * before)
+void Control::attachTo(ControlView * parent, ControlView * before)
 {
     bool fromPersist = false;
     if (res_->flags().testFlag(ResourceView::PersistSession))
         item_ = res_->loadSession();
     if (item_ == nullptr) {
-        item_ = create(res_);
+        item_ = create(parent);
         if (flags_.testFlag(FullSelect) || flags_.testFlag(HalfSelect))
             item_->setCursor(Qt::SizeAllCursor);
     } else {
         fromPersist = true;
     }
-    itemObj_ = item_->toGraphicsObject();
-    if (transform_)
-        item_->setTransformations({transform_});
-    item_->setData(ITEM_KEY_CONTROL, QVariant::fromValue(this));
+    if (fromPersist)
+        flags_.setFlag(RestorePersisted);
     realItem_ = item_;
-    QVariant withSelectBar = res_->property("withSelectBar");
-    if (flags_.testFlag(WithSelectBar) && (!withSelectBar.isValid() || withSelectBar.toBool())) {
-        itemFrame()->addTopBar();
-    }
+    transform_ = new ControlTransform(res_->transform(), flags_.testFlag(LayoutScale)
+                                      ? ControlTransform::RotateTranslate
+                                      : ControlTransform::PureItem);
+    transform_->prependToItem(item_);
     Control * canvasControl = fromItem(parent->parentItem());
     if (canvasControl && flags_.testFlag(FixedOnCanvas)) {
         ControlTransform * t = new ControlTransform(
                     static_cast<ControlTransform*>(canvasControl->transform_), true, true, true);
-        QList<QGraphicsTransform*> transforms = realItem_->transformations();
-        transforms.append(t);
-        realItem_->setTransformations(transforms);
+        t->appendToItem(realItem_);
     }
-    if (fromPersist)
-        flags_.setFlag(RestorePersisted);
+    attachToItem(item_, this);
+#ifdef SHOWBOARD_QUICK
+    itemObj_ = item_;
+#else
+    itemObj_ = item_->toGraphicsObject();
+#endif
     attaching();
+    QVariant withSelectBar = res_->property("withSelectBar");
+    if (flags_.testFlag(WithSelectBar) && (!withSelectBar.isValid() || withSelectBar.toBool())) {
+        itemFrame()->addTopBar();
+    }
     realItem_->setParentItem(parent);
     if (before)
         realItem_->stackBefore(before);
@@ -235,7 +248,7 @@ void Control::attachTo(QGraphicsItem * parent, QGraphicsItem * before)
     }
 }
 
-void Control::detachFrom(QGraphicsItem *parent, QGraphicsItem *)
+void Control::detachFrom(ControlView *parent, ControlView *)
 {
     if (res_->flags().testFlag(ResourceView::Independent))
         fromItem(whiteCanvas())->attachSubProvider(nullptr);
@@ -247,18 +260,20 @@ void Control::detachFrom(QGraphicsItem *parent, QGraphicsItem *)
     (void) parent;
     if (flags_ & (Selected | Adjusting))
         whiteCanvas()->selector()->unselect(this);
+#ifdef SHOWBOARD_QUICK
+    realItem_->setParentItem(nullptr);
+#else
     realItem_->scene()->removeItem(realItem_);
-    QList<QGraphicsTransform*> transforms = realItem_->transformations();
-    if (transforms.size() > 1) {
-        delete transforms.takeLast();
-    }
-    realItem_->setTransformations({});
-    realItem_->setData(ITEM_KEY_CONTROL, QVariant());
-    if (item_ != realItem_) {
-        item_->setTransformations({});
-        item_->setData(ITEM_KEY_CONTROL, QVariant());
-    }
+#endif
     detached();
+    ControlTransform::removeAllTransforms(realItem_);
+    attachToItem(realItem_, nullptr);
+    if (item_ != realItem_) {
+        ControlTransform::removeAllTransforms(item_);
+        attachToItem(item_, nullptr);
+    }
+    transform_ = nullptr;
+    itemObj_ = nullptr;
     if (res_->flags().testFlag(ResourceView::PersistSession)
             && flags_.testFlag(LoadFinished)) {
 //        if (flags_.testFlag(Loading) && stateItem_) {
@@ -271,6 +286,11 @@ void Control::detachFrom(QGraphicsItem *parent, QGraphicsItem *)
         else
             item_->setParentItem(nullptr);
     }
+    if (realItem_)
+        delete realItem_;
+    realItem_ = nullptr;
+    item_ = nullptr;
+    transform_ = nullptr;
     //deleteLater();
     delete this;
 }
@@ -534,7 +554,7 @@ Control::SelectMode Control::selectTest(const QPointF &point)
     return NotSelect;
 }
 
-Control::SelectMode Control::selectTest(QGraphicsItem * child, QGraphicsItem * item, QPointF const & point, bool onlyAssist)
+Control::SelectMode Control::selectTest(ControlView * child, ControlView * item, QPointF const & point, bool onlyAssist)
 {
     if (item_ != realItem_ && item == realItem_) { // hit frame
         return static_cast<ItemFrame*>(realItem_)->hitTest(child, point) ? Select : NotSelect;
@@ -588,12 +608,12 @@ void Control::initPosition()
     }
     if (flags_ & (FullLayout | RestoreSession))
         return;
-    QGraphicsItem *parent = realItem_->parentItem();
+    ControlView *parent = realItem_->parentItem();
     QRectF rect = whiteCanvas()->rect();
     // in large canvas, use visible rect of canvas
     Control * canvasControl = fromItem(whiteCanvas());
     if (canvasControl) {
-        rect = parent->mapFromScene(parent->scene()->sceneRect()).boundingRect();
+        rect = parent->mapRectFromScene(parent->scene()->sceneRect());
         if (flags_.testFlag(FixedOnCanvas))
             rect.moveCenter({0, 0}); // center at scene
         if (!(flags_ & AutoPosition))
@@ -618,10 +638,10 @@ void Control::initPosition()
         return;
     }
     QPolygonF polygon;
-    for (QGraphicsItem * c : parent->childItems()) {
+    for (ControlView * c : parent->childItems()) {
         if (c == realItem_ || fromItem(c)->flags() & FullLayout)
             continue;
-        polygon = polygon.united(c->mapToParent(c->boundingRect()));
+        polygon = polygon.united(c->mapRectToItem(c->parentItem(), c->boundingRect()));
     }
     qreal dx = rect.width() / 3.0;
     qreal dy = rect.height() / 3.0;
@@ -650,10 +670,7 @@ void Control::loadFinished(bool ok, QString const & iconOrMsg)
     if (ok) {
         if (iconOrMsg.isNull()) {
             if (stateItem_) {
-                QList<QGraphicsTransform*> trs = stateItem_->transformations();
-                stateItem_->setTransformations({});
-                for (QGraphicsTransform* tr: trs)
-                    delete tr;
+                ControlTransform::removeAllTransforms(stateItem_);
                 delete stateItem_;
                 stateItem_ = nullptr;
             }
@@ -953,15 +970,10 @@ ItemFrame * Control::itemFrame()
     }
     ItemFrame * frame = new ItemFrame(item_);
     realItem_ = frame;
-    realItem_->setData(ITEM_KEY_CONTROL, QVariant::fromValue(this));
-    QList<QGraphicsTransform*> transforms2;
-    transforms2.append(static_cast<ControlTransform*>(transform_)->addFrameTransform());
-    QList<QGraphicsTransform*> transforms = item_->transformations();
-    if (transforms.size() > 1) {
-        transforms2.append(transforms.takeLast());
-        item_->setTransformations(transforms);
-    }
-    realItem_->setTransformations(transforms2);
+    attachToItem(realItem_, this);
+    ControlTransform * frameTransform = transform_->addFrameTransform();
+    frameTransform->appendToItem(realItem_);
+    ControlTransform::shiftLastTranform(item_, realItem_);
     return frame;
 }
 
@@ -1122,9 +1134,9 @@ StateItem * Control::stateItem()
     if (stateItem_)
         return stateItem_;
     stateItem_ = new StateItem(item_);
-    stateItem_->setData(ITEM_KEY_CONTROL, QVariant::fromValue(this));
+    attachToItem(stateItem_, this);
     ControlTransform * ct = new ControlTransform(static_cast<ControlTransform*>(transform_), true, false, false);
-    stateItem_->setTransformations({ct});
+    ct->appendToItem(stateItem_);
     return stateItem_;
 }
 

@@ -170,7 +170,7 @@ void StateItem::setSvg(QSvgRenderer * renderer)
     bool independent = control->resource()->flags().testFlag(ResourceView::Independent);
     if (independent && state_ == Failed)
         svgIcon->setScale(dp(4.0));
-    QRectF rect = svgIcon->mapToParent(svgIcon->boundingRect()).boundingRect();
+    QRectF rect = svgIcon->mapRectToParent(svgIcon->boundingRect());
     static_cast<QGraphicsRectItem*>(iconItem_)->setRect(rect);
 }
 
@@ -197,7 +197,7 @@ void StateItem::setMovie(QMovie *movie /* = loadingi_ */)
     });
     movie->start();
     movieIcon->show();
-    QRectF rect = movieIcon->mapToParent(movieIcon->boundingRect()).boundingRect();
+    QRectF rect = movieIcon->mapRectToParent(movieIcon->boundingRect());
     static_cast<QGraphicsRectItem*>(iconItem_)->setRect(rect);
 }
 

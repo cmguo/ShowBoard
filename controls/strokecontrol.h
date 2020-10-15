@@ -12,7 +12,7 @@ public:
     Q_INVOKABLE StrokeControl(ResourceView *res);
 
 protected:
-    virtual QWidget * createWidget(ResourceView * res);
+    virtual QWidget * createWidget(ControlView * parent) override;
 };
 
 #endif // STROKECONTROL_H

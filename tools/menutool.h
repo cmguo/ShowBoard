@@ -14,7 +14,7 @@ protected:
     virtual bool eventFilter(QObject *watched, QEvent *event) override;
 
 private:
-    virtual QWidget * createWidget(ResourceView *res) override;
+    virtual QWidget * createWidget(ControlView * parent) override;
 
     virtual void attaching() override;
 
