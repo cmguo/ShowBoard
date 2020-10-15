@@ -17,6 +17,8 @@ PageCanvas::PageCanvas(CanvasItem * parent)
 {
     resource_manager_ = ResourceManager::instance();
     control_manager_ = ControlManager::instance();
+#ifdef SHOWBOARD_QUICK
+#endif
 }
 
 bool PageCanvas::isPageCanvas(ControlView *view)
@@ -76,7 +78,7 @@ ResourcePage *PageCanvas::subPage() const
 
 QPixmap PageCanvas::thumbnail(QPixmap* snapshot) const
 {
-    QSizeF size = scene()->sceneRect().size();
+    QSizeF size = itemSceneRect(this).size();
     QSizeF size2 = snapshot ? size : size / size.height() * WhiteCanvas::THUMBNAIL_HEIGHT;
     QPixmap pixmap(size2.toSize());
     pixmap.fill(Qt::transparent);
@@ -87,10 +89,13 @@ QPixmap PageCanvas::thumbnail(QPixmap* snapshot) const
         if (sibling != this && !hasSubCanvas(static_cast<CanvasItem*>(sibling)))
             sibling->setVisible(false);
     }
+#ifdef SHOWBOARD_QUICK
+#else
     QBrush br = scene()->backgroundBrush();
     scene()->setBackgroundBrush(Qt::transparent);
     scene()->render(&painter, QRectF(QPointF(0, 0), size2), scene()->sceneRect());
     scene()->setBackgroundBrush(br);
+#endif
     for (ControlView * sibling : parentItem()->childItems()) {
         if (sibling != this && !hasSubCanvas(static_cast<CanvasItem*>(sibling)))
             sibling->setVisible(true);
@@ -219,7 +224,7 @@ void PageCanvas::insertResource(int layer)
 
 void PageCanvas::removeResource(int layer)
 {
-    QGraphicsItem * item = childItems()[layer++];
+    ControlView * item = childItems()[layer++];
     Control * ct = Control::fromItem(item);
     ct->detachFrom(this, layer < childItems().size() ? childItems()[layer] : nullptr);
 }

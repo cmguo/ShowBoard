@@ -1,9 +1,9 @@
-#include "qsshelper.h"
 #include "stateitem.h"
 #include "data/svgcache.h"
 #include "core/control.h"
 #include "core/resourceview.h"
 #include "core/resource.h"
+#include "widget/qsshelper.h"
 
 #include <QSvgRenderer>
 #include <QGraphicsSceneMouseEvent>

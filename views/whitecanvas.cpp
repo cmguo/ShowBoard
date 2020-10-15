@@ -1,22 +1,26 @@
-#include "animcanvas.h"
-#include "pageswitchevent.h"
-#include "qsshelper.h"
-#include "whitecanvas.h"
-
-#include "pagecanvas.h"
-#include "toolcanvas.h"
-#include "itemselector.h"
+#include "views/animcanvas.h"
+#include "views/pageswitchevent.h"
+#include "views/whitecanvas.h"
+#include "views/pagecanvas.h"
+#include "views/toolcanvas.h"
+#include "views/itemselector.h"
 #include "core/control.h"
 #include "core/resourceview.h"
 #include "core/resourcepage.h"
 #include "core/resourcepackage.h"
 #include "core/resourcetransform.h"
-#include "toolbarwidget.h"
+#include "widget/toolbarwidget.h"
+#include "widget/qsshelper.h"
 
 #include <QBrush>
 #include <QPen>
+
+#ifdef SHOWBOARD_QUICK
+#include <QQuickWindow>
+#else
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
+#endif
 #include <QGuiApplication>
 
 #include <controls/whitecanvascontrol.h>
@@ -86,17 +90,25 @@ Control * WhiteCanvas::getToolControl(const QString &typeOrUrl)
 }
 
 #ifdef SHOWBOARD_QUICK
-void WhiteCanvas::itemChange(ItemChange change, const ItemChangeData &value)
-#else
-QVariant WhiteCanvas::itemChange(GraphicsItemChange change, const QVariant &value)
-#endif
+
+void WhiteCanvas::itemChange(QQuickItem::ItemChange change, const QQuickItem::ItemChangeData &value)
 {
     if (change == ItemSceneChange) {
-#ifdef SHOWBOARD_QUICK
-        if (value.window == nullptr)
+        if (value.window == nullptr) {
+            tools_->switchPage(nullptr);
+        } else {
+            QRectF rect = itemSceneRect(this);
+            setGeometry(rect);
+        }
+    }
+}
+
 #else
+
+QVariant WhiteCanvas::itemChange(GraphicsItemChange change, const QVariant &value)
+{
+    if (change == ItemSceneChange) {
         if (value.isNull()) {
-#endif
             tools_->switchPage(nullptr);
         }
     } else if (change == ItemSceneHasChanged) {
@@ -107,9 +119,7 @@ QVariant WhiteCanvas::itemChange(GraphicsItemChange change, const QVariant &valu
             tools_->switchPage(ResourcePackage::toolPage());
         }
     }
-#ifndef SHOWBOARD_QUICK
     return value;
-#endif
 }
 
 bool WhiteCanvas::sceneEvent(QEvent *event)
@@ -124,6 +134,8 @@ bool WhiteCanvas::sceneEvent(QEvent *event)
     }
     return event->isAccepted();
 }
+
+#endif
 
 bool WhiteCanvas::event(QEvent *event)
 {
@@ -147,6 +159,8 @@ bool WhiteCanvas::event(QEvent *event)
 
 void WhiteCanvas::switchPage(ResourcePage * page)
 {
+    if (page == this->page())
+        return;
     loadingCount_ = 0;
     // handle animation & snapshot
     if (animCanvas_ && !animCanvas_->afterPageSwitch())
@@ -167,7 +181,7 @@ void WhiteCanvas::switchPage(ResourcePage * page)
     if (canvasControl_ != Control::fromItem(this))
         delete canvasControl_;
     canvas_->switchPage(nullptr);
-    setGeometry(scene()->sceneRect());
+    setGeometry(itemSceneRect(this));
     canvas_->switchPage(page);
     canvasControl_ = qobject_cast<WhiteCanvasControl*>(Control::fromItem(this));
     if (page && canvasControl_ == nullptr)
@@ -353,13 +367,13 @@ Control *WhiteCanvas::selectableNext(Control * control)
 {
     PageCanvas * pc = canvas_;
     int i = -1;
-    QGraphicsItem * item = control ? control->item() : nullptr;
+    ControlView * item = control ? control->item() : nullptr;
     if (item) {
          pc = static_cast<PageCanvas*>(item->parentItem());
          i = pc->childItems().indexOf(item);
     }
     while (++i < pc->childItems().size()) {
-        QGraphicsItem * t = pc->childItems().at(i);
+        ControlView * t = pc->childItems().at(i);
         control = Control::fromItem(t);
         if (control->flags() & Control::CanSelect)
             return control;
@@ -368,14 +382,17 @@ Control *WhiteCanvas::selectableNext(Control * control)
     while (true) {
         if (++j == childItems().count())
             j = 0;
-        QGraphicsItem * pc2 = childItems().at(j);
+        ControlView * pc2 = childItems().at(j);
         if (pc2 == pc)
             break;
+#ifdef SHOWBOARD_QUICK
+#else
         if (pc2->type() != PageCanvas::Type)
             continue;
+#endif
         i = -1;
         while (++i < pc2->childItems().size()) {
-            QGraphicsItem * t = pc2->childItems().at(i);
+            ControlView * t = pc2->childItems().at(i);
             control = Control::fromItem(t);
             if (control->flags() & Control::CanSelect)
                 return control;
@@ -384,7 +401,7 @@ Control *WhiteCanvas::selectableNext(Control * control)
     if (item) {
         i = -1;
         while (++i < pc->childItems().size()) {
-            QGraphicsItem * t = pc->childItems().at(i);
+            ControlView * t = pc->childItems().at(i);
             if (t == item)
                 break;
             control = Control::fromItem(t);
@@ -399,13 +416,13 @@ Control *WhiteCanvas::selectablePrev(Control * control)
 {
     PageCanvas * pc = globalCanvas_;
     int i = pc->childItems().size();
-    QGraphicsItem * item = control ? control->item() : nullptr;
+    ControlView * item = control ? control->item() : nullptr;
     if (item) {
          pc = static_cast<PageCanvas*>(item->parentItem());
          i = pc->childItems().indexOf(item);
     }
     while (i > 0) {
-        QGraphicsItem * t = pc->childItems().at(--i);
+        ControlView * t = pc->childItems().at(--i);
         control = Control::fromItem(t);
         if (control->flags() & Control::CanSelect)
             return control;
@@ -414,14 +431,17 @@ Control *WhiteCanvas::selectablePrev(Control * control)
     while (true) {
         if (--j < 0)
             j = childItems().count() - 1;
-        QGraphicsItem * pc2 = childItems().at(j);
+        ControlView * pc2 = childItems().at(j);
         if (pc2 == pc)
             break;
+#ifdef SHOWBOARD_QUICK
+#else
         if (pc2->type() != PageCanvas::Type)
             continue;
+#endif
         i = pc2->childItems().size();
         while (i > 0) {
-            QGraphicsItem * t = pc2->childItems().at(--i);
+            ControlView * t = pc2->childItems().at(--i);
             control = Control::fromItem(t);
             if (control->flags() & Control::CanSelect)
                 return control;
@@ -431,7 +451,7 @@ Control *WhiteCanvas::selectablePrev(Control * control)
         pc = static_cast<PageCanvas*>(item->parentItem());
         i = pc->childItems().size();
         while (i > 0) {
-            QGraphicsItem * t = pc->childItems().at(--i);
+            ControlView * t = pc->childItems().at(--i);
             control = Control::fromItem(t);
             if (control->flags() & Control::CanSelect)
                 return control;

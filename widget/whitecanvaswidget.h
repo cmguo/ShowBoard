@@ -3,15 +3,24 @@
 
 #include "ShowBoard_global.h"
 
+#ifdef SHOWBOARD_QUICK
+#include <QQuickWidget>
+#else
 #include <QGraphicsView>
+#endif
 
 class QGraphicsScene;
+class QQuickWindow;
 class WhiteCanvas;
 class ResourcePackage;
 class ResourcePage;
 class Control;
 
+#ifdef SHOWBOARD_QUICK
+class SHOWBOARD_EXPORT WhiteCanvasWidget : public QQuickWidget
+#else
 class SHOWBOARD_EXPORT WhiteCanvasWidget : public QGraphicsView
+#endif
 {
     Q_OBJECT
 public:
@@ -32,6 +41,8 @@ public:
     ResourcePackage * package();
 
     void setSceneSize(QSizeF size);
+
+    void setSceneBackgroundColor(QColor const & color);
 
     void setResourcePackage(ResourcePackage * pack);
 
@@ -84,7 +95,11 @@ private:
     bool onShotcut(Control * control);
 
 private:
+#ifdef SHOWBOARD_QUICK
+    QQuickItem * scene_;
+#else
     QGraphicsScene * scene_;
+#endif
     WhiteCanvas * canvas_;
     QSizeF sceneSize_;
     Control * shotcutControl_;

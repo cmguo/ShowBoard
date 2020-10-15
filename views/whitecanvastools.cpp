@@ -1,8 +1,8 @@
-#include "floatwidgetmanager.h"
-#include "framewidget.h"
-#include "qsshelper.h"
-#include "whitecanvas.h"
-#include "whitecanvastools.h"
+#include "views/whitecanvas.h"
+#include "views/whitecanvastools.h"
+#include "widget/floatwidgetmanager.h"
+#include "widget/framewidget.h"
+#include "widget/qsshelper.h"
 
 #include "core/resourcepage.h"
 #include "core/resourcepackage.h"
@@ -70,7 +70,10 @@ void WhiteCanvasTools::pageList()
         pageList_ = createPageList(canvas_->package());
         ToolButton* button = getStringButton(2);
         if (button->associatedWidgets().isEmpty()) {
+#ifdef SHOWBOARD_QUICK
+#else
             pageList_->setParent(canvas_->scene()->views().first()->parentWidget());
+#endif
             pageList_->move(200, 100);
         } else {
             QWidget* btn = button->associatedWidgets().first();

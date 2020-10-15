@@ -25,6 +25,7 @@ SOURCES += \
     $$PWD/controlmanager.cpp \
     $$PWD/controltransform.cpp \
     $$PWD/imagehelper.cpp \
+    $$PWD/controlview.cpp \
     $$PWD/lifeobject.cpp \
     $$PWD/oomhandler.cpp \
     $$PWD/optiontoolbuttons.cpp \

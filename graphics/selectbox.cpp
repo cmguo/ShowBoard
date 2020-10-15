@@ -1,5 +1,5 @@
-#include "qsshelper.h"
 #include "selectbox.h"
+#include "widget/qsshelper.h"
 
 #include <QPen>
 #include <QCursor>

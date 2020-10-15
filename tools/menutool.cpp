@@ -1,5 +1,5 @@
 #include "menutool.h"
-#include "views/toolbarwidget.h"
+#include "widget/toolbarwidget.h"
 #include "views/whitecanvas.h"
 
 #include <QGraphicsItem>
@@ -16,13 +16,20 @@ MenuTool::MenuTool(ResourceView *res)
 bool MenuTool::eventFilter(QObject *, QEvent *event)
 {
     if (event->type() == QEvent::Show) {
+#ifdef SHOWBOARD_QUICK
+#else
         whiteCanvas()->scene()->views().first()->setFocus();
+#endif
         widget_->show(); // sometimes not sync
         widget_->setFocus();
     }
     if (event->type() == QEvent::FocusOut) {
+#ifdef SHOWBOARD_QUICK
+        if (false) {
+#else
         if (QApplication::focusWidget() == whiteCanvas()->scene()->views().first()
                 && whiteCanvas()->scene()->focusItem() == item_) {
+#endif
             widget_->setFocus();
         } else {
             widget_->hide(); // sometimes not sync
@@ -47,7 +54,10 @@ void MenuTool::attaching()
 
 void MenuTool::attached()
 {
+#ifdef SHOWBOARD_QUICK
+#else
     item_->setFlag(QGraphicsItem::ItemIsFocusable);
+#endif
     ToolbarWidget * widget = static_cast<ToolbarWidget*>(widget_);
     widget->installEventFilter(this);
     loadFinished(true);

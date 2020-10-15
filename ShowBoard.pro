@@ -32,7 +32,6 @@ HEADERS += \
 RESOURCES += \
     res/ShowBoard.qrc
 
-#DEFINES += SHOWBOARD_QUICK
 SHOWBOARD_RECORD=$$(SHOWBOARD_RECORD)
 equals(SHOWBOARD_RECORD,): SHOWBOARD_RECORD=0
 DEFINES += SHOWBOARD_RECORD=$${SHOWBOARD_RECORD}
@@ -47,6 +46,7 @@ include(stroke/stroke.pri)
 include(views/views.pri)
 include(data/data.pri)
 include(graphics/graphics.pri)
+include(widget/widget.pri)
 include(quick/quick.pri)
 
 includes.files = $$PWD/*.h

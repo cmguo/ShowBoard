@@ -4,6 +4,7 @@
 #include "ShowBoard_global.h"
 
 #include "core/toolbutton.h"
+#include "core/controlview.h"
 
 #include <QFrame>
 #include <QMap>
@@ -14,7 +15,6 @@ class QLayout;
 class ToolButtonProvider;
 class QPushButton;
 class QssHelper;
-class QGraphicsItem;
 
 class SHOWBOARD_EXPORT QFrameEx : public QFrame
 {
@@ -64,7 +64,7 @@ public:
 
     QWidget * createPopup(QList<ToolButton *> const & buttons);
 
-    QGraphicsItem* toGraphicsProxy(QGraphicsItem * parent = nullptr, bool centerPos = false);
+    ControlView* toGraphicsProxy(ControlView * parent = nullptr, bool centerPos = false);
 
 public:
     void setToolButtons(QList<ToolButton *> const & buttons);

@@ -1,7 +1,7 @@
 #ifndef ANIMCANVAS_H
 #define ANIMCANVAS_H
 
-#include "canvasitem.h"
+#include "views/canvasitem.h"
 
 #include <QEasingCurve>
 #include <QPixmap>
@@ -72,18 +72,21 @@ private:
 
     bool animate();
 
-    void setRect(QRectF const & rect, QPointF const & off);
+    void setAnimRect(QRectF const & rect, QPointF const & off);
 
-    void setPos(QPointF const & pos);
+    void setAnimPos(QPointF const & pos);
 
-    void setScale(qreal scale);
+    void setAnimScale(qreal scale);
 
     QRectF animateRect(QPointF& off) const;
 
 private:
 #ifdef SHOWBOARD_QUICK
+
 #else
+
     virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
+
 #endif
 
     virtual void timerEvent(QTimerEvent *event) override;

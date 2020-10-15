@@ -2,8 +2,8 @@
 #define CONTROL_H
 
 #include "ShowBoard_global.h"
-#include "toolbuttonprovider.h"
-#include "controlview.h"
+#include "core/toolbuttonprovider.h"
+#include "core/controlview.h"
 
 #include <QSizeF>
 #include <QRectF>

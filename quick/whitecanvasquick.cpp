@@ -1,6 +1,6 @@
 #include "whitecanvasquick.h"
-#include "whitecanvaswidget.h"
-#include "whitecanvas.h"
+#include "widget/whitecanvaswidget.h"
+#include "views/whitecanvas.h"
 #include "whitecanvasquick.h"
 #include "core/resourcepackage.h"
 #include "core/control.h"

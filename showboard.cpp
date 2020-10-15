@@ -3,9 +3,12 @@
 #include "core/resource.h"
 #include "core/resourceview.h"
 #include "core/control.h"
-#include "views/qsshelper.h"
-#include "views/whitecanvasquick.h"
-#include "views/quickwidgetitem.h"
+#include "widget/qsshelper.h"
+#ifdef SHOWBOARD_QUICK
+#else
+#include "quick/whitecanvasquick.h"
+#include "quick/quickwidgetitem.h"
+#endif
 #include "views/whitecanvastools.h"
 #include "data/localhttpserver.h"
 #include "data/resourcecache.h"
@@ -35,8 +38,11 @@ void ShowBoard::init(QScreen * screen)
     qRegisterMetaType<Control*>();
     qRegisterMetaType<QHash<QString, QObject*>>();
     // qml types
+#ifdef SHOWBOARD_QUICK
+#else
     qmlRegisterType<WhiteCanvasQuick>("ShowBoard", 1, 0, "WhiteCanvasQuick");
     qmlRegisterType<QuickWidgetItem>("ShowBoard", 1, 0, "QuickWidgetItem");
+#endif
 
     qmlRegisterSingletonType<Destiny>("ShowBoard", 1, 0, "Destiny", [](QQmlEngine *, QJSEngine *) {
         return new Destiny();

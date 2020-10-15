@@ -1,19 +1,24 @@
 #include "drawingtool.h"
 #include "views/whitecanvas.h"
-#include "views/qsshelper.h"
-#include "views/toolbarwidget.h"
+#include "widget/qsshelper.h"
+#include "widget/toolbarwidget.h"
 #include "core/resourceview.h"
 #include "core/resourcetransform.h"
 #include "core/resourcepage.h"
 #include "views/canvasitem.h"
 
+#ifdef SHOWBOARD_QUICK
+#include <QQuickItem>
+#else
 #include <QPen>
+#include <QPainter>
+#include <QGraphicsView>
 #include <QGraphicsRectItem>
 #include <QGraphicsSceneMouseEvent>
-#include <QPushButton>
 #include <QGraphicsProxyWidget>
 #include <QGraphicsScene>
-#include <QGraphicsView>
+#endif
+#include <QPushButton>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QDebug>
@@ -66,12 +71,20 @@ void DrawingTool::finishControl(Control * control)
 
 bool DrawingTool::translucent() const
 {
+#ifdef SHOWBOARD_QUICK
+    return false;
+#else
     return item_->flags().testFlag(CanvasItem::ItemHasNoContents);
+#endif
 }
 
 void DrawingTool::setTranslucent(bool on)
 {
+    (void) on;
+#ifdef SHOWBOARD_QUICK
+#else
     item_->setFlag(CanvasItem::ItemHasNoContents, !on);
+#endif
 }
 
 class DrawingItem : public CanvasItem
@@ -83,8 +96,10 @@ public:
         setCursor(Qt::CrossCursor);
         setAcceptHoverEvents(true);
         setAcceptTouchEvents(true);
+#ifdef SHOWBOARD_QUICK
+#else
         setFlag(ItemIsFocusable);
-
+#endif
         QFrameEx* widget = new QFrameEx;
         widget->setObjectName("finishwidget");
         widget->setWindowFlag(Qt::FramelessWindowHint);
@@ -99,10 +114,12 @@ public:
             finish();
         });
         layout->addWidget(button);
-        QGraphicsProxyWidget * item = new QGraphicsProxyWidget(this);
-        item->setWidget(widget);
-        item->hide();
+        ControlView * item = itemFromWidget(widget, this);
+        item->setVisible(false);
+#ifdef SHOWBOARD_QUICK
+#else
         item->setFlag(ItemIsFocusable, false);
+#endif
         finishItem_ = item;
     }
 
@@ -123,7 +140,7 @@ private:
             }
             control_ = nullptr;
             finish_ = true;
-            finishItem_->hide();
+            finishItem_->setVisible(false);
             tool->finishControl(control);
         } else if (!finish_) {
             qDebug() << "DrawItem: draw canceled";
@@ -133,6 +150,10 @@ private:
     }
 
 protected:
+
+#ifdef SHOWBOARD_QUICK
+#else
+
     virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) override
     {
         QBrush old = painter->brush();
@@ -213,11 +234,13 @@ protected:
         return CanvasItem::itemChange(change, variant);
     }
 
+#endif
+
 private:
     Control * control_;
     bool finish_ = false;
     bool inSetFocus_ = false;
-    QGraphicsItem * finishItem_;
+    ControlView * finishItem_;
 };
 
 ControlView *DrawingTool::create(ControlView *parent)

@@ -1,5 +1,5 @@
 #include "whitecanvaswidget.h"
-#include "whitecanvas.h"
+#include "views/whitecanvas.h"
 #include "core/resourcepackage.h"
 #include "core/resourcepage.h"
 #include "core/resourcetransform.h"
@@ -17,6 +17,7 @@
 #include <QMimeData>
 #include <QClipboard>
 #include <QGraphicsSceneMouseEvent>
+#include <QPainter>
 
 static WhiteCanvasWidget * mainInstance_ = nullptr;
 
@@ -30,33 +31,47 @@ class Scene : public QGraphicsScene
 public:
     Scene(QRectF rect) : QGraphicsScene(rect) {}
     // fix drop
-    void dropEvent(QGraphicsSceneDragDropEvent *event) override{
+    void dropEvent(QGraphicsSceneDragDropEvent *event) override
+    {
         event->setAccepted(false);
         QGraphicsScene::dropEvent(event);
     }
 };
 
 WhiteCanvasWidget::WhiteCanvasWidget(QWidget *parent)
+#ifdef SHOWBOARD_QUICK
+    : QQuickWidget(parent)
+#else
     : QGraphicsView(parent)
+#endif
     , sceneSize_(QApplication::primaryScreen()->geometry().size())
     , shotcutControl_(nullptr)
     , dragAccept_(false)
 {
     QRectF rect(QPointF(0, 0), sceneSize_);
     rect.moveCenter({0, 0});
+    canvas_ = new WhiteCanvas;
+#ifdef SHOWBOARD_QUICK
+    setSource(QUrl("qrc:/showboard/qml/WhiteCanvas.qml"));
+    scene_ = rootObject();
+    canvas_->setParentItem(scene_);
+#else
     scene_ = new Scene(rect);
     scene_->setBackgroundBrush(QBrush());
     setScene(scene_);
-    canvas_ = new WhiteCanvas;
     scene_->addItem(canvas_);
+#endif
     setSceneSize(sceneSize_);
 
     setWindowFlag(Qt::FramelessWindowHint);
     setStyleSheet("border: 0px;");
+#ifdef SHOWBOARD_QUICK
+#else
     setRenderHint(QPainter::Antialiasing);
     setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+#endif
     resize(sceneSize_.toSize());
     //setResizeAnchor(AnchorViewCenter);
     //setInteractive(true);
@@ -116,17 +131,24 @@ WhiteCanvasWidget::WhiteCanvasWidget(QWidget *parent)
 }
 
 WhiteCanvasWidget::WhiteCanvasWidget(WhiteCanvasWidget *mainView, QWidget *parent)
+#ifdef SHOWBOARD_QUICK
+    : QQuickWidget(parent)
+#else
     : QGraphicsView(mainView->scene_, parent)
     , scene_(mainView->scene_)
+#endif
     , canvas_(mainView->canvas_)
     , shotcutControl_(nullptr)
 {
     setStyleSheet("border: 0px;");
     setAttribute(Qt::WA_AcceptDrops);
+#ifdef SHOWBOARD_QUICK
+#else
     setRenderHint(QPainter::Antialiasing);
     setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+#endif
 }
 
 WhiteCanvasWidget::~WhiteCanvasWidget()
@@ -144,7 +166,11 @@ static ResourcePage * CurrentPage = reinterpret_cast<ResourcePage*>(1);
 void WhiteCanvasWidget::resizeEvent(QResizeEvent *event)
 {
     qDebug() << "WhiteCanvasWidget resizeEvent" << event->size();
+#ifdef SHOWBOARD_QUICK
+    QQuickWidget::resizeEvent(event);
+#else
     QGraphicsView::resizeEvent(event);
+#endif
     onPageChanged(CurrentPage);
 }
 
@@ -174,6 +200,7 @@ void WhiteCanvasWidget::dragLeaveEvent(QDragLeaveEvent *event)
     QGraphicsView::dragLeaveEvent(event);
 }
 
+
 void WhiteCanvasWidget::dropEvent(QDropEvent *event)
 {
     QGraphicsView::dropEvent(event);
@@ -182,7 +209,11 @@ void WhiteCanvasWidget::dropEvent(QDropEvent *event)
     QMimeData const * data = event->mimeData();
     if (data) {
         const_cast<QMimeData*>(data)->setProperty(
+#ifdef SHOWBOARD_QUICK
+                    "DropOffset", event->pos());
+#else
                     "DropOffset", mapToScene(event->pos()));
+#endif
         Control::paste(*data, canvas());
         const_cast<QMimeData*>(data)->setProperty(
                     "DropOffset", QVariant());
@@ -205,7 +236,11 @@ void WhiteCanvasWidget::keyReleaseEvent(QKeyEvent *event)
         shotcutControl_->adjustEnd(Control::Keyboard);
         shotcutControl_ = nullptr;
     }
+#ifdef SHOWBOARD_QUICK
+    QQuickWidget::keyReleaseEvent(event);
+#else
     QGraphicsView::keyReleaseEvent(event);
+#endif
 }
 
 void WhiteCanvasWidget::onPageChanged(ResourcePage *page)
@@ -216,9 +251,13 @@ void WhiteCanvasWidget::onPageChanged(ResourcePage *page)
         return;
     QRectF rect(QPointF(0, 0), newLarge ? size() : sceneSize_);
     rect.moveCenter({0, 0});
+#ifdef SHOWBOARD_QUICK
+    scene_->setSize(rect.size());
+#else
     scene_->setSceneRect(rect);
     setTransform(newLarge ? QTransform()
                           : QTransform::fromScale(width() / scene_->width(), height() / scene_->height()));
+#endif
 }
 
 bool WhiteCanvasWidget::onShotcut(Control *control)
@@ -251,8 +290,20 @@ void WhiteCanvasWidget::setSceneSize(QSizeF size)
     painter.end();
     ResourcePackage::toolPage()->setThumbnail(thumb);
     onPageChanged(CurrentPage);
+#ifdef SHOWBOARD_QUICK
+#else
     if (canvas_->page() && !canvas_->page()->isLargePage())
         canvas_->setGeometry(scene()->sceneRect());
+#endif
+}
+
+void WhiteCanvasWidget::setSceneBackgroundColor(QColor const & color)
+{
+#ifdef SHOWBOARD_QUICK
+    scene_->setProperty("color", QVariant::fromValue(color));
+#else
+    scene_->setBackgroundBrush(color);
+#endif
 }
 
 void WhiteCanvasWidget::setResourcePackage(ResourcePackage * pack)

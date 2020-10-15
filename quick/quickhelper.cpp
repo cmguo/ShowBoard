@@ -16,7 +16,7 @@ QObject * QuickHelper::createObject(QObject *context, const char *className, con
     }
     QByteArray qml = QByteArray("import ") + module + " " + version + "; "
             + className + " {}";
-    QQmlComponent qc(QQmlEngine::contextForObject(context)->engine());
+    QQmlComponent qc(qmlEngine(context));
     qc.setData(qml, QUrl("qrc:"));
     if (!qc.isReady())
         qWarning() << "QuickHelper::createObject" << qml << qc.errorString();
@@ -28,7 +28,7 @@ void QuickHelper::appendChild(QObject *parent, QObject *child)
     int idef = parent->metaObject()->indexOfClassInfo("DefaultProperty");
     if (idef >= 0) {
         char const * def = parent->metaObject()->classInfo(idef).value();
-        QQmlListReference data(parent, def, QQmlEngine::contextForObject(parent)->engine());
+        QQmlListReference data(parent, def, qmlEngine(parent));
         if (data.isValid())
             data.append(child);
     }

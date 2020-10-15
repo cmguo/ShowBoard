@@ -1,5 +1,4 @@
 #include "unknowncontrol.h"
-#include "views/stateitem.h"
 
 #include <QGraphicsRectItem>
 #include <QPen>
@@ -13,8 +12,12 @@ UnknownControl::UnknownControl(ResourceView *res)
 ControlView *UnknownControl::create(ControlView *parent)
 {
     (void) parent;
+#ifdef SHOWBOARD_QUICK
+    QQuickItem * item = nullptr;
+#else
     QGraphicsRectItem* item = new QGraphicsRectItem;
     item->setPen(Qt::NoPen);
+#endif
     return item;
 }
 

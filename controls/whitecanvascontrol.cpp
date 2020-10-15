@@ -1,8 +1,12 @@
 #include "whitecanvascontrol.h"
 #include "views/whitecanvas.h"
-#include "views/positionbar.h"
-#include "views/toolbarwidget.h"
-#include "views/qsshelper.h"
+#ifdef SHOWBOARD_QUICK
+#include "quick/positionbar.h"
+#else
+#include "graphics/positionbar.h"
+#endif
+#include "widget/toolbarwidget.h"
+#include "widget/qsshelper.h"
 #include "views/itemselector.h"
 #include "views/animcanvas.h"
 #include "views/pageswitchevent.h"
@@ -56,14 +60,18 @@ WhiteCanvasControl::WhiteCanvasControl(ResourceView * view, ControlView * canvas
     toolbar->setObjectName("canvastoolbar");
     toolbar->setStyleSheet(QSS);
     toolbar->setDragable();
+#ifdef SHOWBOARD_QUICK
+#else
     toolBar_ = toolbar->toGraphicsProxy(nullptr, true);
+#endif
     toolbar->attachProvider(this);
     loadSettings();
     // adjust to scene, this is done before attaching transform
     res_->transform().translate(QPointF(0, 0));
     qDebug() << "WhiteCanvasControl" << res_->transform().transform();
+#ifdef SHOWBOARD_QUICK
+#else
     item_->scene()->addItem(toolBar_);
-
     int offset = dp(60);
     QRectF rect = item_->scene()->sceneRect();
     ResourceView * originResourView = view->page()->mainResource();
@@ -74,6 +82,7 @@ WhiteCanvasControl::WhiteCanvasControl(ResourceView * view, ControlView * canvas
     } else {
         toolBar_->setPos(QPointF(0, rect.bottom() - offset));
     }
+#endif
     flags_.setFlag(LoadFinished);
 }
 
@@ -105,8 +114,7 @@ WhiteCanvasControl::~WhiteCanvasControl()
 
 void WhiteCanvasControl::setToolBarStyles(const QString &stylesheet)
 {
-    qobject_cast<ToolbarWidget*>(static_cast<QGraphicsProxyWidget*>(toolBar_)->widget())
-            ->setStyleSheet(QssHelper(stylesheet));
+    widgetFromItem(toolBar_)->setStyleSheet(QssHelper(stylesheet));
 }
 
 void WhiteCanvasControl::setNoScaleButton(bool b)
@@ -154,7 +162,7 @@ void WhiteCanvasControl::resize(const QSizeF &size)
     if (res_->flags().testFlag(ResourceView::LargeCanvas)) {
         qDebug() << "WhiteCanvasControl resize" << size;
         QRectF old = item_->boundingRect();
-        QRectF srect = item_->scene()->sceneRect();
+        QRectF srect = itemSceneRect(item_);
         QRectF rect(QPointF(0, 0), size);
         rect.moveCenter(QPointF(0, 0));
         rect |= srect;
@@ -256,7 +264,7 @@ void WhiteCanvasControl::updateToolButton(ToolButton *button)
 void WhiteCanvasControl::updatingTransform()
 {
     ResourceTransform & transform = res_->transform();
-    QRectF srect = item_->scene()->sceneRect();
+    QRectF srect = itemSceneRect(item_);
     QRectF crect = item_->boundingRect();
     transform.keepOuterOf(srect, crect);
 }
@@ -265,7 +273,7 @@ void WhiteCanvasControl::updateTransform()
 {
     ResourceTransform & transform = res_->transform();
     //qDebug() << "WhiteCanvasControl" << transform.transform();
-    QRectF srect = item_->scene()->sceneRect();
+    QRectF srect = itemSceneRect(item_);
     QRectF crect = item_->boundingRect();
     posBar_->update(srect, crect, transform.zoom(), transform.offset());
 }

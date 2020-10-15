@@ -8,12 +8,15 @@
 #include "views/whitecanvas.h"
 #include "views/stateitem.h"
 
-#include <QGraphicsRectItem>
-#include <QGraphicsScene>
-#include <QMetaMethod>
-#include <QPainter>
 #include <qcomponentcontainer.h>
 
+#ifdef SHOWBOARD_QUICK
+#else
+#include <QGraphicsRectItem>
+#include <QGraphicsScene>
+#include <QPainter>
+#endif
+#include <QMetaMethod>
 
 static WorkThread& convThread() {
     static WorkThread thread("ConvertTool");
@@ -29,14 +32,18 @@ ConvertTool::ConvertTool(ResourceView *res)
 ControlView *ConvertTool::create(ControlView *parent)
 {
     (void) parent;
+#ifdef SHOWBOARD_QUICK
+    QQuickItem * item = nullptr;
+#else
     QGraphicsRectItem * item = new QGraphicsRectItem;
     item->setPen(Qt::NoPen);
+#endif
     return item;
 }
 
 void ConvertTool::attached()
 {
-    item_->show();
+    item_->setVisible(true);
     if (whiteCanvas()->getToolControl(res_->url().toString()) != this) {
         loadFinished(false, "当前文档正在转换，请稍后重试");
         startTimer(3000);
@@ -90,7 +97,7 @@ void ConvertTool::onImage(const QString &path, int nPage, int total)
     ResourcePage * page = whiteCanvas()->package()->newPage(startPage_ + nPage);
     page->addResource(QUrl::fromLocalFile(path), settings_);
     stateItem()->setLoading(QString("正在转换 %1/%2").arg(nPage).arg(total));
-    QRectF rect = item_->scene()->sceneRect();
+    QRectF rect = itemSceneRect(item_);
     convThread().postWork([path, page, rect]() {
         QPixmap pixmap(path);
         QSizeF size = (rect.size() * WhiteCanvas::THUMBNAIL_HEIGHT / rect.height());
@@ -99,9 +106,12 @@ void ConvertTool::onImage(const QString &path, int nPage, int total)
         rect2.moveCenter(QPointF(size.width() / 2, size.height() / 2));
         QPixmap thumb(size.toSize());
         thumb.fill(Qt::transparent);
+#ifdef SHOWBOARD_QUICK
+#else
         QPainter painter(&thumb);
         painter.drawPixmap(rect2, pixmap, QRectF(0, 0, pixmap.width(), pixmap.height()));
         painter.end();
+#endif
         WorkThread::postWork(page, [page, thumb] () {
             page->setThumbnail(thumb);
         });

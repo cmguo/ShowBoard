@@ -3,10 +3,15 @@
 #include "resourceview.h"
 #include "toolbutton.h"
 #include "views/whitecanvas.h"
-#include "views/stateitem.h"
-#include "views/itemframe.h"
+#ifdef SHOWBOARD_QUICK
+#include "quick/stateitem.h"
+#include "quick/itemframe.h"
+#else
+#include "graphics/stateitem.h"
+#include "graphics/itemframe.h"
+#endif
 #include "views/itemselector.h"
-#include "views/qsshelper.h"
+#include "widget/qsshelper.h"
 #include "resourcetransform.h"
 #include "controltransform.h"
 #include "resourcepage.h"
@@ -485,13 +490,20 @@ void Control::sizeChanged()
             QPointF offset = (flags_.testFlag(LayoutScale)
                               ? res_->transform().rotate()
                               : res_->transform().scaleRotate()).map(
+#ifdef SHOWBOARD_QUICK
+                        center);
+#else
                         item_->transform().map(center));
+#endif
             move(offset);
         }
         if (res_->flags().testFlag(ResourceView::LargeCanvas))
             fromItem(whiteCanvas())->resize(rect.size());
     }
+#ifdef SHOWBOARD_QUICK
+#else
     item_->setTransform(QTransform::fromTranslate(-center.x(), -center.y()));
+#endif
     if (realItem_ != item_)
         static_cast<ItemFrame *>(realItem_)->updateRect();
     if (stateItem_) {
@@ -525,7 +537,7 @@ void Control::setSizeHint(QSizeF const & size)
         QSizeF size2 = size;
         Control * canvasControl = fromItem(whiteCanvas());
         QSizeF size1 = (canvasControl
-                ? item_->scene()->sceneRect()
+                ? itemSceneRect(item_)
                 : whiteCanvas()->rect()).size();
         if (item_ != realItem_) {
             QRectF padding(static_cast<ItemFrame *>(realItem_)->padding());
@@ -683,7 +695,7 @@ void Control::initPosition()
     // in large canvas, use visible rect of canvas
     Control * canvasControl = fromItem(whiteCanvas());
     if (canvasControl) {
-        rect = parent->mapRectFromScene(parent->scene()->sceneRect());
+        rect = parent->mapRectFromScene(itemSceneRect(parent));
         if (flags_.testFlag(FixedOnCanvas))
             rect.moveCenter({0, 0}); // center at scene
         if (!(flags_ & AutoPosition))
@@ -834,7 +846,7 @@ void Control::initScale()
     if (!(flags_ & RestoreSession)) {
         Control * canvasControl = fromItem(whiteCanvas());
         if (canvasControl) {
-            ps = item_->scene()->sceneRect().size();
+            ps = itemSceneRect(item_).size();
         }
         if (item_ != realItem_) {
             QRectF padding(static_cast<ItemFrame *>(realItem_)->padding());
@@ -1168,9 +1180,13 @@ void Control::doAnimate()
         qreal scale = 1.06 - qAbs(v * 0.12 - 0.06);
         qreal diff = scale / tl->property("scale").toReal();
         tl->setProperty("scale", scale);
+#ifdef SHOWBOARD_QUICK
+        (void) diff;
+#else
         QTransform tr = realItem_->transform();
         tr.scale(diff, diff);
         realItem_->setTransform(tr);
+#endif
         realItem_->setOpacity(v);
     });
     tl->start();

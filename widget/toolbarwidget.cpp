@@ -2,6 +2,7 @@
 #include "toolbarwidget.h"
 #include "core/toolbutton.h"
 #include "core/toolbuttonprovider.h"
+#include "core/controlview.h"
 
 #include <QHBoxLayout>
 #include <QVBoxLayout>
@@ -113,19 +114,20 @@ QWidget *ToolbarWidget::createPopup(const QList<ToolButton *> &buttons)
     return popup;
 }
 
-QGraphicsItem *ToolbarWidget::toGraphicsProxy(QGraphicsItem * parent, bool centerPos)
+ControlView *ToolbarWidget::toGraphicsProxy(ControlView * parent, bool centerPos)
 {
-    QGraphicsProxyWidget * proxy = new QGraphicsProxyWidget(parent);
-    proxy->setAcceptTouchEvents(true);
-    proxy->setWidget(this);
+    ControlView * item = itemFromWidget(this, parent);
     if (centerPos) {
-        QObject::connect(this, &ToolbarWidget::sizeChanged, proxy, [proxy](){
-            QPointF pos = -proxy->boundingRect().center();
-            proxy->setTransform(QTransform::fromTranslate(pos.x(), pos.y()));
-            proxy->setTransformOriginPoint(-pos);
+#ifdef SHOWBOARD_QUICK
+#else
+        QObject::connect(this, &ToolbarWidget::sizeChanged, static_cast<QGraphicsProxyWidget*>(item), [item](){
+            QPointF pos = -item->boundingRect().center();
+            item->setTransform(QTransform::fromTranslate(pos.x(), pos.y()));
+            item->setTransformOriginPoint(-pos);
         });
+#endif
     }
-    return proxy;
+    return item;
 }
 
 void ToolbarWidget::setToolButtons(QList<ToolButton *> const & buttons)

@@ -3,10 +3,14 @@
 #include "core/resourceview.h"
 #include "core/controltransform.h"
 #include "core/resourcetransform.h"
-#include "toolbarwidget.h"
-#include "whitecanvas.h"
-#include "selectbox.h"
-#include "qsshelper.h"
+#include "widget/toolbarwidget.h"
+#include "views/whitecanvas.h"
+#ifdef SHOWBOARD_QUICK
+#include "quick/selectbox.h"
+#else
+#include "graphics/selectbox.h"
+#endif
+#include "widget/qsshelper.h"
 #include "controls/whitecanvascontrol.h"
 
 #include <QPen>
@@ -20,7 +24,7 @@
 
 #define ENBALE_TOUCH 1
 
-ItemSelector::ItemSelector(QGraphicsItem * parent)
+ItemSelector::ItemSelector(CanvasView * parent)
     : CanvasItem(parent)
     , force_(false)
     , autoTop_(false)
@@ -45,15 +49,20 @@ ItemSelector::ItemSelector(QGraphicsItem * parent)
     setRect(QRectF(-1, -1, 1, 1));
 
     selBox_ = new SelectBox(this);
-    selBox_->hide();
-    selBox_->setTransformations({selBoxTransform_, selBoxCanvasTransform_});
+    selBox_->setVisible(false);
+    selBoxTransform_->appendToItem(selBox_);
+    selBoxCanvasTransform_->appendToItem(selBox_);
 
     ToolbarWidget * toolBar = new ToolbarWidget();
+#ifdef SHOWBOARD_QUICK
+    QQuickItem * proxy = new QQuickItem(this);
+#else
     QGraphicsProxyWidget * proxy = new QGraphicsProxyWidget(this);
     proxy->setWidget(toolBar);
+#endif
     toolBar_ = proxy;
-    toolBar_->setTransformations({toolBarTransform_});
-    toolBar_->hide();
+    toolBarTransform_->appendToItem(toolBar_);
+    toolBar_->setVisible(false);
     QObject::connect(toolBar, &ToolbarWidget::sizeChanged, [this]() {
         layoutToolbar();
     });
@@ -84,8 +93,8 @@ void ItemSelector::selectImplied(Control * control)
 {
     if (control != selectControl_)
         select2(control);
-    selBox_->hide();
-    toolBar_->hide();
+    selBox_->setVisible(false);
+    toolBar_->setVisible(false);
 }
 
 void ItemSelector::updateSelect(Control * control)
@@ -129,14 +138,18 @@ void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos, EventT
             type_ = None;
     }
     if (type_ == None) {
+#ifdef SHOWBOARD_QUICK
+        QList<QQuickItem*> items;
+#else
         QList<QGraphicsItem*> items = scene()->items(scenePos);
-        QVector<QGraphicsItem*> children(items.size(), nullptr); // first child
+#endif
+        QVector<ControlView*> children(items.size(), nullptr); // first child
         Control::SelectMode mode = Control::PassSelect;
         for (int i = 0; i < items.size(); ++i) {
-            QGraphicsItem * item = items[i];
+            ControlView * item = items[i];
             if (children[i] == nullptr)
                 children[i] = item;
-            QGraphicsItem * parent = item->parentItem();
+            ControlView * parent = item->parentItem();
             while (parent) {
                 int j = items.indexOf(parent, i + 1);
                 if (j > i && children[j] == nullptr)
@@ -224,8 +237,11 @@ void ItemSelector::selectMove(QPointF const & pos, QPointF const & scenePos)
     if (tempControl_->metaObject() == &WhiteCanvasControl::staticMetaObject
             || (tempControl_->flags() & Control::FixedOnCanvas))
         pt = scenePos;
+#ifdef SHOWBOARD_QUICK
+#else
     if (!scene()->sceneRect().contains(scenePos))
         return;
+#endif
     QPointF d = pt - start_;
     switch (type_) {
     case Translate:
@@ -272,7 +288,7 @@ void ItemSelector::selectMove(QPointF const & pos, QPointF const & scenePos)
         break;
     }
     if (hideMenu_)
-        toolBar_->hide();
+        toolBar_->setVisible(false);
     else
         layoutToolbar();
     start_ = pt;
@@ -330,7 +346,11 @@ void ItemSelector::layoutToolbar()
     if (!toolBar_->isVisible())
         return;
     QRectF boxRect = selBox_->mapRectToScene(selBox_->boundRect());
+#ifdef SHOWBOARD_QUICK
+    QRectF sceneRect;
+#else
     QRectF sceneRect = scene()->sceneRect();
+#endif
     QSizeF size = toolBar()->size();
     qreal padding = dp(10);
     if (Control * canvasControl = Control::fromItem(parentItem())) {
@@ -345,20 +365,27 @@ void ItemSelector::layoutToolbar()
         pos.setX(sceneRect.right() - size.width());
     if (pos.y() < sceneRect.top())
         pos.setY(sceneRect.top());
+#ifdef SHOWBOARD_QUICK
+#else
     toolBar_->setPos(mapFromScene(pos));
+#endif
 }
 
 ToolbarWidget * ItemSelector::toolBar()
 {
+#ifdef SHOWBOARD_QUICK
+    return nullptr;
+#else
     return static_cast<ToolbarWidget*>(
                 static_cast<QGraphicsProxyWidget*>(toolBar_)->widget());
+#endif
 }
 
 void ItemSelector::select2(Control *control)
 {
     if (control == selectControl_) {
         if (control && !selBox_->isVisible()) {
-            toolBar_->show();
+            toolBar_->setVisible(true);
             layoutToolbar();
             selBox_->setVisible(true,
                                 control->flags() & Control::CanScale,
@@ -383,7 +410,7 @@ void ItemSelector::select2(Control *control)
             canvasControl->resource()->transform().disconnect(toolBar());
         }
         selBox_->setVisible(false);
-        toolBar_->hide();
+        toolBar_->setVisible(false);
         toolBar()->attachProvider(nullptr);
         fastClone_ = false;
         cloneControl_ = nullptr;
@@ -415,7 +442,7 @@ void ItemSelector::select2(Control *control)
                 layoutToolbar();
         });
         toolBar()->attachProvider(selectControl_);
-        toolBar_->show();
+        toolBar_->setVisible(true);
         selBox_->setVisible(true,
                             selectControl_->flags() & Control::CanScale,
                             !(selectControl_->flags() & Control::KeepAspectRatio),
@@ -444,6 +471,10 @@ void ItemSelector::unselectOnDeactive(bool enable)
 {
     autoUnselect_ = enable;
 }
+
+#ifdef SHOWBOARD_QUICK
+
+#else
 
 QVariant ItemSelector::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value)
 {
@@ -509,6 +540,8 @@ void ItemSelector::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     selectRelease(Mouse);
 }
 
+#endif
+
 void ItemSelector::touchBegin(QTouchEvent *event)
 {
     //qDebug() << "touchBegin";
@@ -565,8 +598,12 @@ void ItemSelector::touchUpdate(QTouchEvent *event)
     } else {
         QTouchEvent::TouchPoint const & point1(event->touchPoints().at(0));
         QTouchEvent::TouchPoint const & point2(event->touchPoints().at(1));
+#ifdef SHOWBOARD_QUICK
+        {
+#else
         if (scene()->sceneRect().contains(point1.scenePos())
                 && scene()->sceneRect().contains(point2.scenePos())) {
+#endif
             if (!lastPositions_.contains(point1.id())) {
                 lastPositions_[point1.id()] = positions[point1.id()];
                 // qDebug() << lastPositions_[point1.id()] << lastPositions_[point2.id()] << "<->"
@@ -588,7 +625,7 @@ void ItemSelector::touchUpdate(QTouchEvent *event)
             if (type_ == TempNoMove || type_ == AgainNoMove)
                 type_ = static_cast<SelectType>(type_ + 1);
             if (hideMenu_)
-                toolBar_->hide();
+                toolBar_->setVisible(false);
             else
                 layoutToolbar();
         }
@@ -611,6 +648,10 @@ void ItemSelector::touchEnd(QTouchEvent *)
     lastPositions_.clear();
     selectRelease(Touch);
 }
+
+#ifdef SHOWBOARD_QUICK
+
+#else
 
 void ItemSelector::wheelEvent(QGraphicsSceneWheelEvent *event)
 {
@@ -714,3 +755,5 @@ bool ItemSelector::sceneEventFilter(QGraphicsItem *watched, QEvent *event)
     // for touch events, return value is used, we can't cover here
     return mouse && event->isAccepted();
 }
+
+#endif

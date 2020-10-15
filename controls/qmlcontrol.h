@@ -5,7 +5,11 @@
 
 #include "controls/widgetcontrol.h"
 
+#ifdef SHOWBOARD_QUICK
+class SHOWBOARD_EXPORT QmlControl : public Control
+#else
 class SHOWBOARD_EXPORT QmlControl : public WidgetControl
+#endif
 {
     Q_OBJECT
 
@@ -21,8 +25,15 @@ public:
     void setImageProviders(QVariantMap const& providers);
 
 protected:
+#ifdef SHOWBOARD_QUICK
+
+    virtual ControlView * create(ControlView * parent) override;
+
+#else
+
     virtual QWidget * createWidget(ControlView * parent) override;
 
+#endif
     virtual void attached() override;
 
 private slots:

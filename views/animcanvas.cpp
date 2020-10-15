@@ -19,7 +19,10 @@ AnimCanvas::AnimCanvas(CanvasItem * parent)
     , switchPage_(false)
     , curve_(QEasingCurve::InOutQuart)
 {
+#ifdef SHOWBOARD_QUICK
+#else
     setFlag(ItemHasNoContents, false);
+#endif
     initAnimate();
 }
 
@@ -56,7 +59,7 @@ void AnimCanvas::startAnimate()
     updateCanvas();
     initTranform();
     if (afterPageSwitch_) {
-        setPos(-total_);
+        setAnimPos(-total_);
         timer_ = startTimer(20);
     }
 }
@@ -69,8 +72,8 @@ void AnimCanvas::stopAnimate()
         timer_ = 0;
     }
     total_ = {0, 0};
-    setRect(QRectF(), {0, 0});
-    setPos({0, 0});
+    setAnimRect(QRectF(), {0, 0});
+    setAnimPos({0, 0});
     snapshot_ = QPixmap();
     if (canvasControl_) {
         canvasControl_->resource()->transform().disconnect(this);
@@ -98,7 +101,8 @@ void AnimCanvas::updateCanvas()
 bool AnimCanvas::move(QPointF const & offset)
 {
     assert(!afterPageSwitch_);
-    QPointF p = parentItem()->mapToScene(pos());
+    QPointF pos = itemPosition(this);
+    QPointF p = parentItem()->mapToScene(pos);
     bool valid = false;
     if (direction_ & (LeftToRight | RightToLeft) && !qFuzzyIsNull(offset.x())) {
         p.setX(p.x() + offset.x());
@@ -132,17 +136,17 @@ bool AnimCanvas::move(QPointF const & offset)
         q.setX(0);
     if ((q.y() < 0 && total_.y() > 0) || (q.y() > 0 && total_.y() < 0))
         q.setY(0);
-    if (qFuzzyIsNull(q.x() - pos().x()) && qFuzzyIsNull(q.y() - pos().y()) && qFuzzyIsNull(s - scale()))
+    if (qFuzzyIsNull(q.x() - pos.x()) && qFuzzyIsNull(q.y() - pos.y()) && qFuzzyIsNull(s - scale()))
         return false;
-    setScale(s);
-    setPos(q);
+    setAnimScale(s);
+    setAnimPos(q);
     return true;
 }
 
 bool AnimCanvas::release()
 {
     assert(!afterPageSwitch_);
-    QPointF p = pos();
+    QPointF p = itemPosition(this);
     qreal t = qAbs(p.x()) + qAbs(p.y());
     qreal T = qAbs(total_.x()) + qAbs(total_.y());
     switchPage_ = t * 6.0 > T;
@@ -162,11 +166,14 @@ bool AnimCanvas::release()
 
 void AnimCanvas::initAnimate()
 {
+    PageCanvas * canvas = static_cast<PageCanvas*>(parentItem()->childItems().first());
+#ifdef SHOWBOARD_QUICK
+#else
     setBrush(scene()->backgroundBrush());
     scene()->setBackgroundBrush(QBrush());
-    PageCanvas * canvas = static_cast<PageCanvas*>(parentItem()->childItems().first());
     canvas->setBrush(brush());
     canvas->setFlag(ItemHasNoContents, false);
+#endif
     for (ControlView * sibling : parentItem()->childItems()) {
         if (!canvas->hasSubCanvas(static_cast<CanvasItem*>(sibling)))
             break;
@@ -177,14 +184,20 @@ void AnimCanvas::initAnimate()
 void AnimCanvas::termAnimate()
 {
     PageCanvas * canvas = static_cast<PageCanvas*>(parentItem()->childItems().first());
+#ifdef SHOWBOARD_QUICK
+#else
     canvas->setBrush(QBrush());
     canvas->setFlag(ItemHasNoContents, true);
+#endif
     for (ControlView * sibling : parentItem()->childItems()) {
         if (!canvas->hasSubCanvas(static_cast<CanvasItem*>(sibling)))
             break;
         sibling->setFlag(ItemClipsChildrenToShape, false);
     }
+#ifdef SHOWBOARD_QUICK
+#else
     scene()->setBackgroundBrush(brush());
+#endif
 }
 
 void AnimCanvas::initTranform()
@@ -192,7 +205,7 @@ void AnimCanvas::initTranform()
     QPointF off;
     QRectF r = animateRect(off);
     //qDebug() << "AnimCanvas::initTranform" << direction_ << r << off;
-    setRect(r, afterPageSwitch_ ? -off : off);
+    setAnimRect(r, afterPageSwitch_ ? -off : off);
     total_ = off;
 }
 
@@ -203,10 +216,10 @@ void AnimCanvas::updateTransform()
     QRectF old = rect();
     initTranform();
     QRectF r = rect();
-    QPointF pos = this->pos();
+    QPointF pos = itemPosition(this);
     pos *= r.width() / old.width();
     total_ *= r.width() / old.width();
-    setPos(pos);
+    setAnimPos(pos);
     //qDebug() << "AnimCanvas::updateTransform" << direction_ << r << total_;
     update();
     for (ControlView * sibling : parentItem()->childItems()) {
@@ -223,21 +236,21 @@ bool AnimCanvas::animate()
     else
         --timeLine_;
     if (timeLine_ <= 5) {
-        setScale(1 - 0.02 * timeLine_);
+        setAnimScale(1 - 0.02 * timeLine_);
         if (!switchPage_ && timeLine_ == 5)
-            setPos({0, 0});
+            setAnimPos({0, 0});
     } else if (timeLine_ <= 25) {
         qreal v = curve_.valueForProgress((timeLine_ - 5) / 20.0);
-        setPos(total_ * (afterPageSwitch_ ? (v - 1) : v));
+        setAnimPos(total_ * (afterPageSwitch_ ? (v - 1) : v));
         if (!switchPage_ && timeLine_ == 25)
-            setScale(0.9);
+            setAnimScale(0.9);
     } else if (timeLine_ <= 30) {
-        setScale(1 - 0.02 * (30 - timeLine_));
+        setAnimScale(1 - 0.02 * (30 - timeLine_));
     }
     return timeLine_ == 0 || timeLine_ == 30;
 }
 
-void AnimCanvas::setRect(const QRectF &rect, QPointF const & off)
+void AnimCanvas::setAnimRect(const QRectF &rect, QPointF const & off)
 {
     CanvasItem::setRect(rect);
     setTransformOriginPoint(rect.center());
@@ -253,20 +266,20 @@ void AnimCanvas::setRect(const QRectF &rect, QPointF const & off)
     }
 }
 
-void AnimCanvas::setPos(const QPointF &pos)
+void AnimCanvas::setAnimPos(const QPointF &pos)
 {
-    //qDebug() << "AnimCanvas::setPos" << pos;
-    CanvasItem::setPos(pos);
+    //qDebug() << "AnimCanvas::setAnimPos" << pos;
+    setItemPosition(this, pos);
     for (ControlView * sibling : parentItem()->childItems()) {
         if (sibling == this)
             break;
         if (!PageCanvas::isPageCanvas(sibling))
             continue;
-        sibling->setPos(pos);
+        setItemPosition(sibling, pos);
     }
 }
 
-void AnimCanvas::setScale(qreal scale)
+void AnimCanvas::setAnimScale(qreal scale)
 {
     CanvasItem::setScale(scale);
     for (ControlView * sibling : parentItem()->childItems()) {
@@ -280,9 +293,9 @@ void AnimCanvas::setScale(qreal scale)
 
 QRectF AnimCanvas::animateRect(QPointF& off) const
 {
-    QRectF r = scene()->sceneRect();
+    QRectF r = itemSceneRect(this);
     if (canvasControl_) {
-        r = parentItem()->mapRectFromScene(scene()->sceneRect());
+        r = parentItem()->mapRectFromScene(itemSceneRect(this));
     }
     if (direction_ & LeftToRight) // we are at right
         off.setX(r.width());

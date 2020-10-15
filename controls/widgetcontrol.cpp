@@ -2,12 +2,17 @@
 #include "core/resource.h"
 #include "core/resourceview.h"
 
+#ifdef SHOWBOARD_QUICK
+#include <QQuickItem>
+#else
 #include <QGraphicsItem>
 #include <QGraphicsProxyWidget>
+#endif
 #include <QWidget>
 #include <QKeyEvent>
 #include <QMetaEnum>
 #include <QApplication>
+#include <QQuickPaintedItem>
 
 WidgetControl::WidgetControl(ResourceView *res, Flags flags, Flags clearFlags)
     : Control(res, flags, clearFlags)
@@ -66,13 +71,18 @@ QWidget *WidgetControl::widget()
 ControlView *WidgetControl::create(ControlView *parent)
 {
     widget_ = createWidget(parent);
-    QGraphicsProxyWidget * item = new QGraphicsProxyWidget();
+    ControlView * item = itemFromWidget(widget_);
     if (flags_.testFlag(Touchable)) {
         widget_->setAttribute(Qt::WA_AcceptTouchEvents);
+#ifdef SHOWBOARD_QUICK
+#else
         item->setAcceptTouchEvents(true);
+#endif
     }
-    item->setAutoFillBackground(false);
-    item->setWidget(widget_);
+#ifdef SHOWBOARD_QUICK
+#else
+    static_cast<QGraphicsProxyWidget *>(item)->setAutoFillBackground(false);
+#endif
     //resize(widget_->size());
     return item;
 }
@@ -80,7 +90,7 @@ ControlView *WidgetControl::create(ControlView *parent)
 void WidgetControl::attaching()
 {
     if (!widget_) // restore from persist session
-        widget_ = static_cast<QGraphicsProxyWidget*>(item_)->widget();
+        widget_ = widgetFromItem(item_);
     itemObj_ = widget_;
     widget_->installEventFilter(this);
 }
@@ -91,7 +101,11 @@ void WidgetControl::detached()
     if (res_->flags().testFlag(ResourceView::PersistSession))
         widget_ = nullptr;
     else
+#ifdef SHOWBOARD_QUICK
+        (void)0;
+#else
         static_cast<QGraphicsProxyWidget*>(item_)->setWidget(nullptr);
+#endif
 }
 
 void WidgetControl::bindTouchEventToChild(QWidget *child)
@@ -131,6 +145,10 @@ void WidgetControl::resize(QSizeF const & size)
     if (delayApplySize() && !flags_.testFlag(Loading)
             && !flags_.testFlag(LoadFinished))
         return Control::resize(size);
+#ifdef SHOWBOARD_QUICK
+    item_->setSize(size);
+#else
     QGraphicsProxyWidget * item = static_cast<QGraphicsProxyWidget*>(item_);
     item->resize(size);
+#endif
 }
