@@ -62,6 +62,7 @@ public:
         ShowSelectMask = 1 << 14,
         SelectOnLoaded = 1 << 15,
         EnterAnimate = 1 << 16,
+        CustomFlag = 1 << 17,
         // States
         Loading = 1 << 24,
         LoadFinished = 1 << 25,
@@ -69,6 +70,7 @@ public:
         Selected = 1 << 27,
         Adjusting = 1 << 28,
         RestorePersisted = 1 << 29,
+        CustomState = 1 << 30,
     };
 
     Q_DECLARE_FLAGS(Flags, Flag)

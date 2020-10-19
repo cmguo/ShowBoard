@@ -54,15 +54,16 @@ public:
         //  this resource will be split into two and new resourcbei'songe is insert between
         //  special used for stroke writen
         Splittable = 1 << 8,
-        DrawAttach = 1 << 9, // attach to when drawing
-        Independent = BottomMost | (1 << 10), // standalone page
-        VirtualPage = Independent | (1 << 11),
-        LargeCanvas = Independent | (1 << 12),
-        ListOfPages = Independent | (1 << 13),
-        PersistSession = 1 << 14,
+        Independent = BottomMost | (1 << 9), // standalone page
+        VirtualPage = Independent | (1 << 10),
+        LargeCanvas = Independent | (1 << 11),
+        ListOfPages = Independent | (1 << 12),
+        PersistSession = 1 << 13,
+        CustomFlag = 1 << 16,
         // States
         SavedSession = 1 << 24,
         DrawFinised = 1 << 25,
+        CustomState = 1 << 30,
     };
 
     Q_DECLARE_FLAGS(Flags, Flag)

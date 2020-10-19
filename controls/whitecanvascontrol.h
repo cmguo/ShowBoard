@@ -15,7 +15,7 @@ class WhiteCanvasControl : public Control
     Q_PROPERTY(bool noScaleButton WRITE setNoScaleButton)
 
 public:
-    static constexpr Flag NoScaleButton = static_cast<Flag>(1 << 16);
+    static constexpr Flag NoScaleButton = CustomFlag;
 
     WhiteCanvasControl(ResourceView * view, QGraphicsItem * canvas);
 
