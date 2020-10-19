@@ -398,8 +398,8 @@ void ResourcePackage::removePage(int index)
     ResourcePage * page = pages_[index];
     if (rs)
         rs.add(makeFunctionRecord(
-                          [this, index] () { removePage(index); },
-                          [this, index, page] () { addPage(index, page); }
+                          [this, index, page] () { addPage(index, page); },
+                          [this, index] () { removePage(index); }
         ));
     beginRemoveRows(QModelIndex(), index, index);
     pages_.removeAt(index);
