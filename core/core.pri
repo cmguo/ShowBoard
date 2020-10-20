@@ -15,6 +15,7 @@ HEADERS += \
     $$PWD/resourceview.h \
     $$PWD/toolbutton.h \
     $$PWD/toolbuttonprovider.h \
+    $$PWD/varianthelper.h \
     $$PWD/workthread.h
 
 SOURCES += \
@@ -34,4 +35,5 @@ SOURCES += \
     $$PWD/resourceview.cpp \
     $$PWD/toolbutton.cpp \
     $$PWD/toolbuttonprovider.cpp \
+    $$PWD/varianthelper.cpp \
     $$PWD/workthread.cpp

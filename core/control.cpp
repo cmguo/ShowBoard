@@ -12,6 +12,7 @@
 #include "resourcepage.h"
 #include "resourcerecord.h"
 #include "resourcepackage.h"
+#include "varianthelper.h"
 
 #include <QGraphicsItem>
 #include <QGraphicsProxyWidget>
@@ -359,11 +360,20 @@ void Control::loadSettings()
         count = meta->propertyCount();
     }
     int index;
+    QObject * obj = nullptr;
     for (QByteArray & k : res_->dynamicPropertyNames()) {
         if (itemObj_ && (index = itemObj_->metaObject()->indexOfProperty(k)) >= count) {
-            itemObj_->setProperty(k, res_->property(k));
-        } else if (metaObject()->indexOfProperty(k) >= 0) {
-            setProperty(k, res_->property(k));
+            obj = itemObj_;
+        } else if ((index = metaObject()->indexOfProperty(k)) >= 0) {
+            obj = this;
+        } else {
+            obj = nullptr;
+        }
+        if (obj) {
+            QMetaProperty prop = obj->metaObject()->property(index);
+            QVariant v = res_->property(k);
+            VariantHelper::convert2(v, prop.userType());
+            prop.write(obj, v);
         }
     }
     setOverrideToolString(res_->overrideToolString());
@@ -595,13 +605,15 @@ void Control::initPosition()
         if (frame) {
             res_->transform().translate(-frame->padding().center());
         }
-        QPointF posHint = res_->property("posHint").toPointF();
+        QVariant posHint = res_->property("posHint");
+        VariantHelper::convert2(posHint, QMetaType::QPointF);
         if (!posHint.isNull()) {
-            QSizeF sz(posHint.x(), posHint.y());
+            QPointF pos = posHint.toPointF();
+            QSizeF sz(pos.x(), pos.y());
             adjustSizeHint(sz, rect.size());
-            posHint.setX(sz.width());
-            posHint.setY(sz.height());
-            res_->transform().translate(posHint + rect.topLeft());
+            pos.setX(sz.width());
+            pos.setY(sz.height());
+            res_->transform().translate(pos + rect.topLeft());
         }
         return;
     }

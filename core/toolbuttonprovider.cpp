@@ -1,6 +1,7 @@
 #include "toolbuttonprovider.h"
 #include "toolbutton.h"
 #include "optiontoolbuttons.h"
+#include "varianthelper.h"
 
 #include <QVariant>
 #include <QMetaMethod>
@@ -353,8 +354,7 @@ bool ToolButtonProvider::setOption(QByteArray const & key, QVariant value)
         return false;
     // fix convert
     QMetaProperty p = metaObject()->property(i);
-    if (!value.canConvert(p.type()))
-        value.convert(QMetaType::QString);
+    VariantHelper::convert2(value, p.userType());
     LifeObject::setProperty(key, value);
     return true;
 }
