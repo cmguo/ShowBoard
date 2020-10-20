@@ -130,12 +130,12 @@ QPromise<QByteArray> Resource::getData(QUrl const & url)
     return getData(nullptr, url);
 }
 
-static QString fromMulticode(QByteArray bytes);
+static QString fromMulticode(QByteArray const & bytes, QString const & charset);
 
 QtPromise::QPromise<QString> Resource::getText(QObject *context, const QUrl &url)
 {
-    return getData(context, url).then([](QByteArray data) {
-        return fromMulticode(data);
+    return getData(context, url).then([context](QByteArray data) {
+        return fromMulticode(data, context->property("charset").toString());
     });
 }
 
@@ -144,8 +144,11 @@ QPromise<QString> Resource::getText(QUrl const & url)
     return getText(nullptr, url);
 }
 
-static QString fromMulticode(QByteArray bytes)
+static QString fromMulticode(QByteArray const & bytes, QString const & charset)
 {
+    if (!charset.isEmpty()) {
+        return QTextCodec::codecForName(charset.toUtf8())->toUnicode(bytes);
+    }
     QTextCodec::ConverterState state;
     QTextCodec *codec = QTextCodec::codecForName("UTF-8");
     QString text = codec->toUnicode(bytes.constData(), bytes.size(), &state);

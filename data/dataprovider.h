@@ -66,6 +66,8 @@ signals:
 private:
     void onError(QNetworkReply::NetworkError);
 
+    void onReadyRead();
+
     void onFinished();
 
     void reopen();

@@ -1,5 +1,6 @@
 SOURCES += \
     $$PWD/dataprovider.cpp \
+    $$PWD/dataurlcodec.cpp \
     $$PWD/filecache.cpp \
     $$PWD/imagecache.cpp \
     $$PWD/localhttpserver.cpp \
@@ -11,6 +12,7 @@ SOURCES += \
 
 HEADERS += \
     $$PWD/dataprovider.h \
+    $$PWD/dataurlcodec.h \
     $$PWD/filecache.h \
     $$PWD/imagecache.h \
     $$PWD/localhttpserver.h \

@@ -65,19 +65,28 @@ void ResourceManager::onComposition()
     }
 }
 
-static constexpr char DATA_SCHEME_SEP[] = { ';', ',' };
-
 QByteArray ResourceManager::findType(QUrl const & uri, QByteArray& originType, QLazy *&lazy, QPair<int, int> const *&flags) const
 {
     std::map<QByteArray, QLazy*>::const_iterator iter = resources_.end();
     std::map<QByteArray, QPair<int, int>>::const_iterator iter2 = commonResources_.end();
     QByteArray type;
     if (uri.scheme() == "data") {
-        int n = uri.path().indexOf(DATA_SCHEME_SEP);
-        originType = uri.path().left(n).toUtf8().toLower();
-        type = mapTypes_.value(originType, originType);
-        iter = resources_.find(type);
-        iter2 = commonResources_.find(type);
+        QByteArray url = uri.toEncoded();
+        int n = url.indexOf(';', 5);
+        if (n < 0) n = url.indexOf(',', 5);
+        if (n > 0) {
+            QList<QByteArray> types = url.mid(5, n - 5).toLower().split('/');
+            originType = types.back();
+            type = mapTypes_.value(originType, originType);
+            iter = resources_.find(type);
+            iter2 = commonResources_.find(type);
+            if (iter == resources_.end() && iter2 == commonResources_.end()) {
+                originType = types.front();
+                type = mapTypes_.value(originType, originType);
+                iter = resources_.find(type);
+                iter2 = commonResources_.find(type);
+            }
+        }
     } else {
         originType = uri.scheme().toUtf8().toLower();
         type = mapTypes_.value(originType, originType);

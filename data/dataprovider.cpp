@@ -1,10 +1,12 @@
 #include "dataprovider.h"
+#include "dataurlcodec.h"
 #include "resourcecache.h"
 #include <showboard.h>
 
 #include <qexport.h>
 #include <qlazy.h>
 #include <qcomponentcontainer.h>
+#include <QBuffer>
 
 #include <QFile>
 #include <QNetworkReply>
@@ -50,11 +52,19 @@ DataDataProvider::DataDataProvider(QObject *parent)
 {
 }
 
-QtPromise::QPromise<QSharedPointer<QIODevice> > DataDataProvider::getStream(QObject *, const QUrl &url, bool all)
+QtPromise::QPromise<QSharedPointer<QIODevice> > DataDataProvider::getStream(QObject * context, const QUrl &url, bool)
 {
-    (void) url;
-    (void) all;
-    return QPromise<QSharedPointer<QIODevice>>::resolve(nullptr);
+    auto data = DataUrlCodec::decodeDataUrl(url.toEncoded());
+    QBuffer * buf(new QBuffer);
+    buf->setData(data.data);
+    buf->open(QIODevice::ReadOnly);
+    if (context) {
+        if (!data.mimeTypeName.isEmpty())
+            context->setProperty("mimeType", data.mimeTypeName);
+        if (!data.charset.isEmpty())
+            context->setProperty("charset", data.charset);
+    }
+    return QPromise<QSharedPointer<QIODevice>>::resolve(QSharedPointer<QIODevice>(buf));
 }
 
 /* FileDataProvider */
@@ -133,6 +143,7 @@ HttpStream::HttpStream(QObject * context, QNetworkReply *reply)
             QObject:: connect(life, &ResourceCacheLife::resume,
                               this, &HttpStream::resume);
         }
+        setProperty("context", QVariant::fromValue(context));
     }
     reopen();
     if (qobject_cast<Resource*>(context))
@@ -199,6 +210,22 @@ void HttpStream::onError(QNetworkReply::NetworkError e)
     emit error(e);
 }
 
+void HttpStream::onReadyRead()
+{
+    if (auto context = property("context").value<QObject*>()) {
+        QVariant ct = reply_->header(QNetworkRequest::ContentTypeHeader);
+        if (ct.isValid()) {
+            auto format = DataUrlCodec::decodeDataUrl(
+                        QByteArray("data:") + ct.toByteArray() + ",");
+            if (!format.mimeTypeName.isEmpty())
+                context->setProperty("mimeType", format.mimeTypeName);
+            if (!format.charset.isEmpty())
+                context->setProperty("charset", format.charset);
+        }
+        setProperty("context", QVariant());
+    }
+}
+
 void HttpStream::onFinished()
 {
     qDebug() << "HttpStream onFinished" << this;
@@ -216,7 +243,7 @@ void HttpStream::onFinished()
 void HttpStream::reopen()
 {
     QObject::connect(reply_, &QNetworkReply::finished, this, &HttpStream::onFinished);
-    QObject::connect(reply_, &QNetworkReply::readyRead, this, &HttpStream::readyRead);
+    QObject::connect(reply_, &QNetworkReply::readyRead, this, &HttpStream::onReadyRead);
     void (QNetworkReply::*p)(QNetworkReply::NetworkError) = &QNetworkReply::error;
     QObject::connect(reply_, p, this, &HttpStream::onError);
     //pos_ = 0;
@@ -286,7 +313,7 @@ qint64 HttpStream::writeData(const char *, qint64)
 
 void HttpStream::timerEvent(QTimerEvent *)
 {
-    qint64 pos = this->pos();
+    qint64 pos = this->pos() + reply_->bytesAvailable();
     qint64 diff = pos - lastPos_;
     speed_ = speed_ /2 + diff;
     lastPos_ = pos;
