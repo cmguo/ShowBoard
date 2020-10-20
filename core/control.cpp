@@ -406,7 +406,9 @@ void Control::sizeChanged()
     if (flags_ & LoadFinished) {
         if (!(flags_ & (Adjusting | FullLayout))) {
             // keep top left, assume top left not change
-            QPointF offset = res_->transform().scaleRotate().map(
+            QPointF offset = (flags_.testFlag(LayoutScale)
+                              ? res_->transform().rotate()
+                              : res_->transform().scaleRotate()).map(
                         item_->transform().map(center));
             move(offset);
         }
