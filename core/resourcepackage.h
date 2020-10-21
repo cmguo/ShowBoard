@@ -24,6 +24,8 @@ class SHOWBOARD_EXPORT ResourcePackage : public QAbstractItemModel
 public:
     explicit ResourcePackage(QObject *parent = nullptr);
 
+    virtual ~ResourcePackage() override;
+
 public:
     static ResourcePage* toolPage();
 
@@ -91,7 +93,7 @@ signals:
 
     void pageRemoving(ResourcePage* page, bool * cancel);
 
-    void pageRemoved(ResourcePage* page);
+    void pageDestroyed(ResourcePage* page);
 
     void currentPageChanged(ResourcePage* page);
 

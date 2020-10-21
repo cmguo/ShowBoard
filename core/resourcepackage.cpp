@@ -18,6 +18,12 @@ ResourcePackage::ResourcePackage(QObject *parent)
     globalPage_ = new ResourcePage(this);
 }
 
+ResourcePackage::~ResourcePackage()
+{
+    // emit pageDestroyed early, or will cause crash
+    delete records_;
+}
+
 ResourcePage *ResourcePackage::toolPage()
 {
     static ResourcePage p;
@@ -46,7 +52,7 @@ ResourcePage *ResourcePackage::newPage(int index, ResourceView * mainRes)
     ResourcePage * page = new ResourcePage(mainRes, this);
     rs.add(makeDestructRecord([this, page] (bool undo) {
         if (undo) {
-            emit pageRemoved(page);
+            emit pageDestroyed(page);
             delete page;
         }
     }));
@@ -67,7 +73,7 @@ ResourcePage *ResourcePackage::newPage(const QUrl &mainUrl, QVariantMap const & 
     ResourcePage * page = new ResourcePage(mainUrl, settings, this);
     rs.add(makeDestructRecord([this, page] (bool undo) {
         if (undo) {
-            emit pageRemoved(page);
+            emit pageDestroyed(page);
             delete page;
         }
     }));
@@ -128,7 +134,7 @@ void ResourcePackage::removePage(ResourcePage *page)
     removePage(index);
     rs.add(makeDestructRecord([this, page] (bool undo) {
         if (!undo) {
-            emit pageRemoved(page);
+            emit pageDestroyed(page);
             delete page;
         }
     }));
@@ -309,7 +315,7 @@ void ResourcePackage::removeVirtualPage(ResourcePage *page)
     hiddenPages_.removeOne(page);
     rs.add(makeDestructRecord([this, page] (bool undo) {
         if (!undo) {
-            emit pageRemoved(page);
+            emit pageDestroyed(page);
             delete page;
         }
     }));
@@ -404,7 +410,7 @@ void ResourcePackage::removePage(int index)
     beginRemoveRows(QModelIndex(), index, index);
     pages_.removeAt(index);
     endRemoveRows();
-    emit pageRemoved(page);
+    // page is still child of package, that is has parent package
     emit pageCountChanged(pages_.size());
 }
 
