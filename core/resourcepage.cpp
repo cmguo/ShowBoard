@@ -4,6 +4,9 @@
 #include "resourceview.h"
 #include "resourcemanager.h"
 #include "resourcerecord.h"
+#include "varianthelper.h"
+
+#include <QMetaProperty>
 
 ResourcePage::ResourcePage(QObject *parent)
     : ResourcePage(nullptr, parent)
@@ -435,13 +438,13 @@ ResourceView *ResourcePage::createResource(const QUrl &url, const QVariantMap &s
     QVariant type = settings.value("resourceType");
     ResourceView * rv = ResourceManager::instance()
             ->createResource(url, type.isValid() ? type.toByteArray().toLower() : nullptr);
-    for (QString const & k : settings.keys()) {
+    for (QString const & k1 : settings.keys()) {
+        QByteArray k = k1.toUtf8();
         QVariant v = settings.value(k);
-        if (!rv->setProperty(k.toUtf8(), v)
-                && v.type() != QVariant::String) {
-            v.convert(QVariant::String);
-            rv->setProperty(k.toUtf8(), v);
-        }
+        int i = rv->metaObject()->indexOfProperty(k);
+        if (i >= 0)
+            VariantHelper::convert2(v, rv->metaObject()->property(i).type());
+        rv->setProperty(k, v);
     }
     return rv;
 }
