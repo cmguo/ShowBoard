@@ -8,9 +8,7 @@ ResourceRecordSet::ResourceRecordSet(QObject * parent, int capacity)
 
 ResourceRecordSet::~ResourceRecordSet()
 {
-    for (int i = 0; i < records_.size(); ++i)
-        delete records_[i];
-    records_.clear();
+    clear();
 }
 
 void ResourceRecordSet::commit(ResourceRecord *record)
@@ -85,6 +83,13 @@ bool ResourceRecordSet::inOperation() const
     return operation_ != nullptr;
 }
 
+void ResourceRecordSet::clear()
+{
+    for (int i = records_.size() - 1; i >= 0; --i)
+        delete records_[i];
+    records_.clear();
+}
+
 MergeRecord::MergeRecord(QList<ResourceRecord *> const & records)
     : records_(records)
 {
@@ -114,13 +119,26 @@ void MergeRecord::redo()
         records_[i]->redo();
 }
 
-RecordMergeScope::operator bool() const
+RecordMergeScope::RecordMergeScope(ResourceRecordSet *set)
+    : set_(set)
 {
-    return set_ && !set_->inOperation();
+    if (set_)
+        set_->prepare();
+}
+
+RecordMergeScope::~RecordMergeScope()
+{
+    if (set_)
+        set_->commit(drop_);
 }
 
 void RecordMergeScope::add(ResourceRecord *record)
 {
     if (set_)
         set_->add(record);
+}
+
+RecordMergeScope::operator bool() const
+{
+    return set_ && !set_->inOperation();
 }

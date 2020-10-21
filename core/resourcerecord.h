@@ -1,10 +1,12 @@
 #ifndef RESOURCERECORD_H
 #define RESOURCERECORD_H
 
+#include "ShowBoard_global.h"
+
 #include <QList>
 #include <QObject>
 
-class ResourceRecord
+class SHOWBOARD_EXPORT ResourceRecord
 {
 public:
     virtual ~ResourceRecord() {}
@@ -77,7 +79,7 @@ private:
     QList<ResourceRecord*> records_;
 };
 
-class ResourceRecordSet : public QObject
+class SHOWBOARD_EXPORT ResourceRecordSet : public QObject
 {
 public:
     ResourceRecordSet(QObject * parent = nullptr, int capacity = 100);
@@ -99,6 +101,8 @@ public:
 
     bool inOperation() const;
 
+    void clear();
+
 private:
     QList<ResourceRecord*> records_;
     int prepare_ = 0;
@@ -110,24 +114,16 @@ private:
     ResourceRecord * operation_ = nullptr;
 };
 
-class RecordMergeScope
+class SHOWBOARD_EXPORT RecordMergeScope
 {
 public:
-    RecordMergeScope(ResourceRecordSet * set)
-        : set_(set)
-    {
-        if (set_)
-            set_->prepare();
-    }
-    ~RecordMergeScope()
-    {
-        if (set_)
-            set_->commit(drop_);
-    }
+    RecordMergeScope(ResourceRecordSet * set);
+    ~RecordMergeScope();
     operator bool() const;
     void add(ResourceRecord * record);
     void drop() { drop_ = true; }
 private:
+    Q_DISABLE_COPY(RecordMergeScope)
     ResourceRecordSet * set_;
     bool drop_ = false;
 };
