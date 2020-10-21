@@ -224,6 +224,7 @@ void HttpStream::onReadyRead()
         }
         setProperty("context", QVariant());
     }
+    emit readyRead();
 }
 
 void HttpStream::onFinished()
