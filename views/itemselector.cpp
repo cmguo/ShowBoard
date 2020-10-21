@@ -61,7 +61,7 @@ ItemSelector::ItemSelector(QGraphicsItem * parent)
 
 void ItemSelector::select(Control * control)
 {
-    if (!control->flags().testFlag(Control::CanSelect))
+    if (control && !control->flags().testFlag(Control::CanSelect))
         return;
     qInfo() << "select" << (control ? control->resource()->url().toEncoded() : "null");
     select2(control);
