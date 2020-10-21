@@ -306,7 +306,7 @@ ResourceView *ResourceView::paste(QMimeData const &data, bool resetPosition)
     }
     if (data.hasText()) {
          QUrl url(data.text());
-         if (url.isValid()) {
+         if (url.isValid() && !url.scheme().isEmpty()) {
              ResourceView * res = ResourceManager::instance()->createResource(url);
              if (res) {
                  res->setProperty("name", "链接");

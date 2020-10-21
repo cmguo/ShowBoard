@@ -324,8 +324,8 @@ void ResourcePage::insertResource(int index, QList<ResourceView *> ress)
     RecordMergeScope2 rs(package());
     if (rs && (canvasView_ == nullptr || !resources_.isEmpty())) // not undo/redo main resource
         rs.add(makeFunctionRecord( // only undo/redo on last resource
-                   [this, index, ress] () { removeResource(index, {ress.last()}); },
-                   [this, index, ress] () { insertResource(index, {ress.last()}); }));
+                   [this, index, ress] () { removeResource(index + ress.size() - 1, {ress.last()}); },
+                   [this, index, ress] () { insertResource(index + ress.size() - 1, {ress.last()}); }));
     beginInsertRows(QModelIndex(), index, index + ress.size() - 1);
     for (auto r : ress) {
         resources_.insert(index++, r);

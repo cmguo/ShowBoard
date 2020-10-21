@@ -35,6 +35,7 @@ public:
 
 signals:
     void start();
+
     void started();
 
     void addServePath(QByteArray const & prefix, QString const & path);

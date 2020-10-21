@@ -345,7 +345,7 @@ void Control::paste(QMimeData const & data, WhiteCanvas * canvas)
         qobject_cast<Control*>(life.get())->afterClone(c);
     if (po != pt && c->flags().testFlag(RestoreSession)) {
         c->flags_.setFlag(RestoreSession, false);
-        c->initPosition();
+        c->initPosition(); // TODO: feedback to origin resourceview
         c->flags_.setFlag(RestoreSession, true);
         canvas->selector()->updateSelect(c);
     }

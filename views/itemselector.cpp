@@ -74,6 +74,7 @@ void ItemSelector::unselect(Control * control)
         select2(nullptr);
     }
     if (control == tempControl_) {
+        qInfo() << "unselect cancel";
         type_ = None;
         tempControl_ = nullptr;
     }
