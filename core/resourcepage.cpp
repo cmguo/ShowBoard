@@ -1,4 +1,4 @@
-﻿#include "resourcepage.h"
+#include "resourcepage.h"
 #include "resource.h"
 #include "resourcepackage.h"
 #include "resourceview.h"
@@ -436,7 +436,12 @@ ResourceView *ResourcePage::createResource(const QUrl &url, const QVariantMap &s
     ResourceView * rv = ResourceManager::instance()
             ->createResource(url, type.isValid() ? type.toByteArray().toLower() : nullptr);
     for (QString const & k : settings.keys()) {
-        rv->setProperty(k.toUtf8(), settings.value(k));
+        QVariant v = settings.value(k);
+        if (!rv->setProperty(k.toUtf8(), v)
+                && v.type() != QVariant::String) {
+            v.convert(QVariant::String);
+            rv->setProperty(k.toUtf8(), v);
+        }
     }
     return rv;
 }
