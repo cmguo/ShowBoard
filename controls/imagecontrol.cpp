@@ -102,8 +102,7 @@ QPixmap ImageControl::pixmap() const
 #ifdef SHOWBOARD_QUICK
     return QPixmap();
 #else
-    return data_ ? data_->pixmap()
-                 : static_cast<QGraphicsPixmapItem*>(item_)->pixmap();
+    return data_ ? data_->pixmap() : image_->pixmap();
 #endif
 }
 

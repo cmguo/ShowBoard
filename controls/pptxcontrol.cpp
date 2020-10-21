@@ -232,11 +232,10 @@ void PptxControl::hide()
 void PptxControl::close()
 {
     if (flags_ & LoadFinished) {
-        QGraphicsPixmapItem * item = static_cast<QGraphicsPixmapItem *>(item_);
-        if (!item->pixmap().isNull()) {
+        if (!image()->pixmap().isNull()) {
             QBuffer buf;
             buf.open(QIODevice::WriteOnly);
-            item->pixmap().save(&buf, "jpg");
+            image()->pixmap().save(&buf, "jpg");
             QUrl thumbUrl = getThumbUrl(res_->property("localUrl").toUrl(), powerpoint_->thumbNumber());
             buf.seek(0);
             Resource::getCache().remove(thumbUrl);
@@ -261,13 +260,9 @@ void PptxControl::detached()
 
 void PptxControl::sizeChanged()
 {
-    QGraphicsPixmapItem * item = static_cast<QGraphicsPixmapItem *>(item_);
-    if (!item->pixmap().isNull()) {
-        QPointF off(item->pixmap().width(), item->pixmap().height());
-        qreal scale = off.x() / pixmap().width();
-        off /= 2;
-        item->setOffset(-off);
-        stateItem()->setPos(off - QPointF(100, 100) * scale);
+    if (!pixmap().isNull()) {
+        QRectF rect = item_->boundingRect();
+        stateItem()->setPos(rect.bottomRight() - QPointF(100, 100));
     }
     Control::sizeChanged();
 }

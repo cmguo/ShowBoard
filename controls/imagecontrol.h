@@ -32,6 +32,8 @@ protected:
     virtual void copy(QMimeData &data) override;
 
 protected:
+    QGraphicsPixmapItem * image() const { return image_; }
+
     void setPixmap(QPixmap const & pixmap);
 
     QPixmap pixmap() const;
