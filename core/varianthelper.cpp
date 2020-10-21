@@ -52,6 +52,7 @@ bool VariantHelper::convert2(QVariant &v, int type)
         v = c(v.toString());
         return true;
     }
+    t = v;
     if (t.userType() != QMetaType::QString && v.convert(type))
         return true;
     v = t;
