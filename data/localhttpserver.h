@@ -6,7 +6,6 @@
 #include <QMap>
 #include <QObject>
 #include <QString>
-
 class QHttpServer;
 class QHttpServerResponse;
 class QHttpServerRequest;
@@ -21,7 +20,7 @@ public:
 public:
     static LocalHttpServer * instance();
 
-    class LocalProgram
+    class SHOWBOARD_EXPORT LocalProgram
     {
     public:
         virtual ~LocalProgram() {}
@@ -36,6 +35,7 @@ public:
 
 signals:
     void start();
+    void started();
 
     void addServePath(QByteArray const & prefix, QString const & path);
 

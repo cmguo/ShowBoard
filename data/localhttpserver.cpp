@@ -31,6 +31,7 @@ LocalHttpServer::LocalHttpServer(QObject * parent)
     connect(this, &LocalHttpServer::start, this, &LocalHttpServer::start2);
     connect(this, &LocalHttpServer::addServePath, this, &LocalHttpServer::addServePath2);
     connect(this, &LocalHttpServer::addServeCache, this, &LocalHttpServer::addServeCache2);
+    connect(this, &LocalHttpServer::addServeProgram, this, &LocalHttpServer::addServeProgram2);
     connect(this, &LocalHttpServer::stop, this, &LocalHttpServer::stop2);
     //addServePath("/", QDir::currentPath() + "/");
 }
@@ -126,6 +127,7 @@ void LocalHttpServer::start2()
         qWarning() << "LocalServer: failed to listen on a port.";
     } else {
         qInfo() << "LocalServer started at" << port_;
+        started();
     }
 }
 
