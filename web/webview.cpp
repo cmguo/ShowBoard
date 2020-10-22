@@ -144,7 +144,9 @@ void WebView::scaleTo(qreal scaleTo)
 
 void WebView::debug()
 {
-    QWebEngineView * web = new QWebEngineView(this);
+    QWebEngineView * web = new QWebEngineView;
+    Control * ctrl = Control::fromItem(graphicsProxyWidget());
+    connect(ctrl, &QObject::destroyed, web, &QObject::deleteLater);
     web->setWindowFlags(Qt::WindowStaysOnTopHint | Qt::Window);
     web->setMinimumSize(800, 450);
     web->setAttribute(Qt::WA_DeleteOnClose);
