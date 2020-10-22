@@ -330,7 +330,7 @@ void Control::paste(QMimeData const & data, WhiteCanvas * canvas)
 {
     ResourcePage * po = data.property("OriginPage").value<ResourcePage*>();
     ResourcePage * pt = canvas->subPage();
-    ResourceView * res = ResourceView::paste(data, po != pt);
+    ResourceView * res = ResourceView::paste(data);
     if (res == nullptr)
         return;
     if (po)
@@ -339,6 +339,13 @@ void Control::paste(QMimeData const & data, WhiteCanvas * canvas)
     connect(pt, &QObject::destroyed, &data, [&data] () {
         const_cast<QMimeData&>(data).setProperty("OriginPage", QVariant());
     });
+    QPointF offset = data.property("Offset").toPointF();
+    if (pt == po) {
+        offset += QPointF(60, 60);
+    } else {
+        offset = -res->transform().offset();
+    }
+    res->transform().translate(offset);
     Control * c = canvas->addResource(res);
     QSharedPointer<LifeObject> life = data.property("OriginControl").value<QWeakPointer<LifeObject>>();
     if (life)
@@ -348,7 +355,9 @@ void Control::paste(QMimeData const & data, WhiteCanvas * canvas)
         c->initPosition(); // TODO: feedback to origin resourceview
         c->flags_.setFlag(RestoreSession, true);
         canvas->selector()->updateSelect(c);
+        offset += res->transform().offset();
     }
+    const_cast<QMimeData&>(data).setProperty("Offset", offset);
     const_cast<QMimeData&>(data).setProperty(
                 "OriginControl", QVariant::fromValue(c->life()));
 }

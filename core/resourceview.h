@@ -113,7 +113,7 @@ public:
 
     static bool canPaste(QMimeData const & data);
 
-    static ResourceView * paste(QMimeData const & data, bool resetPosition);
+    static ResourceView * paste(QMimeData const & data);
 
     QMimeData const * mimeData();
 

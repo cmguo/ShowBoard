@@ -261,7 +261,7 @@ bool ResourceView::canPaste(const QMimeData &data)
 {
     if (data.hasFormat(RESOURCE_FORMAT))
         return data.data(RESOURCE_FORMAT).isEmpty();
-    ResourceView * res = paste(data, false);
+    ResourceView * res = paste(data);
     if (res) {
         const_cast<QMimeData&>(data).setData(RESOURCE_FORMAT, QByteArray());
         res->setParent(&const_cast<QMimeData&>(data));
@@ -283,17 +283,13 @@ public:
     }
 };
 
-ResourceView *ResourceView::paste(QMimeData const &data, bool resetPosition)
+ResourceView *ResourceView::paste(QMimeData const &data)
 {
     if (data.hasFormat(RESOURCE_FORMAT)) {
-        ResourceView * res = data.findChild<ResourceView*>(nullptr, Qt::FindDirectChildrenOnly);
-        if (res) {
-            if (resetPosition)
-                res->transform().translateTo({0, 0});
-            else
-                res->transform().translate({60, 60});
+        ResourceView * res = data.findChild<ResourceView*>(
+                    nullptr /* aName */, Qt::FindDirectChildrenOnly);
+        if (res)
             return res->clone();
-        }
     }
     // we like urls
     if (data.hasUrls() && !data.urls().isEmpty()) {
@@ -321,7 +317,7 @@ ResourceView *ResourceView::paste(QMimeData const &data, bool resetPosition)
             break;
 #endif
         int n = f.indexOf('/');
-        QUrl url = n > 0 ? QUrl(f.left(n) + ":mimedata." + f.mid(n + 1))
+        QUrl url = n > 0 ? QUrl(f.mid(n + 1) + ":mimedata." + f.left(n))
                          : QUrl(f.left(n) + ":");
         if (ResourceManager::instance()->isExplitSupported(url)) {
             ResourceView * res = ResourceManager::instance()->createResource(url);
