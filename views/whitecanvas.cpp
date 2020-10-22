@@ -268,7 +268,7 @@ Control *WhiteCanvas::copyResource(Control *control)
     Control* copy = canvas_->findControl(res);
     control->afterClone(copy);
     if (control == selector_->selected() && !(control->flags() & Control::Adjusting)) {
-        selector_->select(nullptr);
+        selector_->unselect(control);
         copy->resource()->transform().translate({60, 60});
     }
     return copy;

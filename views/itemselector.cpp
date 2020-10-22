@@ -63,7 +63,7 @@ void ItemSelector::select(Control * control)
 {
     if (control && !control->flags().testFlag(Control::CanSelect))
         return;
-    qInfo() << "select" << (control ? control->resource()->url().toEncoded() : "null");
+    qInfo() << "select" << (control ? control->resource()->url() : QUrl());
     select2(control);
 }
 
