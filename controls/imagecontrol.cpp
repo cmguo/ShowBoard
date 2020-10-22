@@ -35,7 +35,8 @@ ControlView * ImageControl::create(ControlView * parent)
     return nullptr;
 #else
     QGraphicsRectItem * item = new QGraphicsRectItem;
-    item->setFlag(QGraphicsItem::ItemHasNoContents);
+    // TODO: fix not update on z-order changed
+    //item->setFlag(QGraphicsItem::ItemHasNoContents);
     item->setPen(Qt::NoPen);
     image_ = new QGraphicsPixmapItem(item);
     image_->setShapeMode(QGraphicsPixmapItem::BoundingRectShape);
