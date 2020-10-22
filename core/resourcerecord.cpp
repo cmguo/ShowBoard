@@ -8,6 +8,9 @@ ResourceRecordSet::ResourceRecordSet(QObject * parent, int capacity)
     : QObject(parent)
     , capacity_(capacity)
 {
+#if !SHOWBOARD_RECORD
+    capacity_ = 0;
+#endif
 }
 
 ResourceRecordSet::~ResourceRecordSet()

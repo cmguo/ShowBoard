@@ -42,7 +42,11 @@ private:
 template <typename U, typename R>
 inline FunctionRecord<U, R> * makeFunctionRecord(U u, R r)
 {
+#if SHOWBOARD_RECORD
     return new FunctionRecord<U, R>(u, r);
+#else
+    return nullptr;
+#endif
 }
 
 template <typename D>
@@ -62,7 +66,12 @@ private:
 template <typename D>
 inline DestructRecord<D> * makeDestructRecord(D d)
 {
+#if SHOWBOARD_RECORD
     return new DestructRecord<D>(d);
+#else
+    d(false);
+    return nullptr;
+#endif
 }
 
 class MergeRecord : public ResourceRecord

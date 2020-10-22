@@ -154,6 +154,7 @@ void ResourcePage::removeResource(ResourceView * res)
     }
     QList<ResourceView*> list = resources_.mid(pos1, pos2 - pos1 + 1);
     RecordMergeScope rs(this);
+    removeResource(pos1, list);
     if (rs) {
         rs.add(makeDestructRecord([list] (bool undo) {
             if (!undo) {
@@ -162,7 +163,6 @@ void ResourcePage::removeResource(ResourceView * res)
             }
         }));
     }
-    removeResource(pos1, list);
 }
 
 void ResourcePage::moveResourceFront(ResourceView *res)
