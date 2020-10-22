@@ -33,15 +33,6 @@ ResourcePage::ResourcePage(ResourceView* mainRes, QObject *parent)
     addResource(mainRes);
 }
 
-class RecordMergeScope2 : public RecordMergeScope
-{
-public:
-    RecordMergeScope2(ResourcePackage * pkg)
-        : RecordMergeScope(pkg ? pkg->records() : nullptr)
-    {
-    }
-};
-
 ResourceView * ResourcePage::addResource(QUrl const & url, QVariantMap const & settings)
 {
     ResourceView * rv = createResource(url, settings);
@@ -52,7 +43,7 @@ ResourceView * ResourcePage::addResource(QUrl const & url, QVariantMap const & s
     if (rv->flags().testFlag(ResourceView::Independent)) {
         qobject_cast<ResourcePackage*>(parent())->newPage(rv);
     } else {
-        RecordMergeScope2 rs(package());
+        RecordMergeScope rs(this);
         if (rs) {
             rs.add(makeDestructRecord([rv] (bool undo) {
                 if (undo) {
@@ -162,7 +153,7 @@ void ResourcePage::removeResource(ResourceView * res)
         ++pos2;
     }
     QList<ResourceView*> list = resources_.mid(pos1, pos2 - pos1 + 1);
-    RecordMergeScope2 rs(package());
+    RecordMergeScope rs(this);
     if (rs) {
         rs.add(makeDestructRecord([list] (bool undo) {
             if (!undo) {
@@ -228,6 +219,9 @@ ResourceView * ResourcePage::nextNormalResource(ResourceView *res) const
 
 void ResourcePage::switchSubPage(int nPage)
 {
+    RecordMergeScope rs(this);
+    if (rs.atTop())
+        rs.drop();
     if (subPages_.size() <= nPage)
         subPages_.resize(nPage + 1);
     if (subPages_[nPage] == nullptr) {
@@ -247,6 +241,7 @@ void ResourcePage::clearSubPages(bool exceptCurrent)
     int n = subPages_.indexOf(currentSubPage_);
     if (n >= 0)
         subPages_.replace(n, nullptr);
+    // TODO: save for undo
     for (ResourcePage *& sp : subPages_) {
         delete sp;
         sp = nullptr;
@@ -321,7 +316,7 @@ void ResourcePage::setThumbnail(QPixmap thumb)
 
 void ResourcePage::insertResource(int index, QList<ResourceView *> ress)
 {
-    RecordMergeScope2 rs(package());
+    RecordMergeScope rs(this);
     if (rs && (canvasView_ == nullptr || !resources_.isEmpty())) // not undo/redo main resource
         rs.add(makeFunctionRecord( // only undo/redo on last resource
                    [this, index, ress] () { removeResource(index + ress.size() - 1, {ress.last()}); },
@@ -354,7 +349,7 @@ void ResourcePage::moveResource(int pos, int newPos)
         ++newPos;
     if (newPos >= pos1 && newPos <= pos2)
         return;
-    RecordMergeScope2 rs(package());
+    RecordMergeScope rs(this);
     if (rs)
         rs.add(makeFunctionRecord( // only support move one resource
                    [this, pos, newPos] () { moveResource(newPos, pos); },
@@ -370,7 +365,7 @@ void ResourcePage::moveResource(int pos, int newPos)
 
 void ResourcePage::removeResource(int index, QList<ResourceView *> ress)
 {
-    RecordMergeScope2 rs(package());
+    RecordMergeScope rs(this);
     if (rs) {
         rs.add(makeFunctionRecord(
                    [this, index, ress] () { insertResource(index, ress); },

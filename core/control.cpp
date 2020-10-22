@@ -47,6 +47,17 @@ Control * Control::fromItem(ControlView const * item)
 #endif
 }
 
+Control *Control::fromChildItem(const ControlView *item)
+{
+    while (item) {
+        Control * ctrl = fromItem(item);
+        if (ctrl)
+            return ctrl;
+        item = item->parentItem();
+    }
+    return nullptr;
+}
+
 void Control::attachToItem(ControlView * item, Control * control)
 {
 #ifdef SHOWBOARD_QUICK
@@ -54,7 +65,6 @@ void Control::attachToItem(ControlView * item, Control * control)
 #else
     item->setData(ITEM_KEY_CONTROL, QVariant::fromValue(control));
 #endif
-
 }
 
 static ToolButton btnTop = { "top", "置顶", ToolButton::Static, ":/showboard/icon/top.svg" };

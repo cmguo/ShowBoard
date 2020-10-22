@@ -99,6 +99,8 @@ public:
      */
     static Control * fromItem(ControlView const * item);
 
+    static Control * fromChildItem(ControlView const * item);
+
     static void attachToItem(ControlView * item, Control * control);
 
 public:

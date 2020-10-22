@@ -220,16 +220,10 @@ ResourcePage * ResourcePackage::findVirtualPage(const QUrl &mainUrl) const
 
 void ResourcePackage::showVirtualPage(ResourcePage *page, bool show)
 {
-    RecordMergeScope rs(records_);
     int idx1 = visiblePages_.indexOf(page);
     int idx2 = hiddenPages_.indexOf(page);
     if (idx1 < 0 && idx2 < 0)
         return;
-    if (rs)
-        rs.add(makeFunctionRecord(
-                          [this, page, show] () { showVirtualPage(page, !show); },
-                          [this, page, show] () { showVirtualPage(page, !show); }
-        ));
     if (show) {
         if (idx1 >= 0) {
             if (idx1 == visiblePages_.size() - 1)
@@ -239,14 +233,19 @@ void ResourcePackage::showVirtualPage(ResourcePage *page, bool show)
             hiddenPages_.removeAt(idx2);
         }
         visiblePages_.push_back(page);
-        emit currentPageChanged(page);
     } else {
         if (idx2 >= 0)
             return;
         visiblePages_.removeAt(idx1);
         hiddenPages_.push_back(page);
-        emit currentPageChanged(currentPage());
     }
+    RecordMergeScope rs(records_);
+    if (rs)
+        rs.add(makeFunctionRecord(
+                          [this, page, show] () { showVirtualPage(page, !show); },
+                          [this, page, show] () { showVirtualPage(page, !show); }
+        ));
+    emit currentPageChanged(currentPage());
 }
 
 void ResourcePackage::toggleVirtualPage(ResourcePage *page)
@@ -295,22 +294,16 @@ void ResourcePackage::removeVirtualPage(ResourcePage *page)
 {
     RecordMergeScope rs(records_);
     showVirtualPage(page, false);
-    if (!hiddenPages_.contains(page)) {
-        rs.drop();
+    if (!hiddenPages_.contains(page))
         return;
-    }
     bool cancel = false;
     emit pageRemoving(page, &cancel);
     if (cancel)
         return;
     if (rs)
         rs.add(makeFunctionRecord(
-                          [this, n = hiddenPages_.size()] () {
-                                visiblePages_ = hiddenPages_.mid(n);
-                                hiddenPages_.erase(hiddenPages_.begin() + n, hiddenPages_.end());
-                                emit currentPageChanged(currentPage());
-                            },
-                          [this] () { hideAllVirtualPages(); }
+                          [this, page] () { hiddenPages_.append(page); },
+                          [this] () { hiddenPages_.takeLast(); }
         ));
     hiddenPages_.removeOne(page);
     rs.add(makeDestructRecord([this, page] (bool undo) {

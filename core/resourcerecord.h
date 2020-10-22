@@ -2,6 +2,7 @@
 #define RESOURCERECORD_H
 
 #include "ShowBoard_global.h"
+#include "controlview.h"
 
 #include <QList>
 #include <QObject>
@@ -9,12 +10,16 @@
 class SHOWBOARD_EXPORT ResourceRecord
 {
 public:
+    ResourceRecord() {}
     virtual ~ResourceRecord() {}
 
 public:
     virtual void undo() = 0;
 
     virtual void redo() = 0;
+
+private:
+    Q_DISABLE_COPY(ResourceRecord)
 };
 
 template <typename U, typename R>
@@ -91,6 +96,8 @@ public:
 
     void prepare();
 
+    int prepareLevel() const { return prepare_; }
+
     void add(ResourceRecord * record);
 
     void commit(bool drop = false);
@@ -114,14 +121,25 @@ private:
     ResourceRecord * operation_ = nullptr;
 };
 
+class ResourcePackage;
+class ResourcePage;
+class ResourceView;
+class Control;
+
 class SHOWBOARD_EXPORT RecordMergeScope
 {
 public:
     RecordMergeScope(ResourceRecordSet * set);
+    RecordMergeScope(ResourcePackage * pkg);
+    RecordMergeScope(ResourcePage * page);
+    RecordMergeScope(ResourceView * res);
+    RecordMergeScope(Control * ctrl);
+    RecordMergeScope(ControlView * view);
     ~RecordMergeScope();
     operator bool() const;
     void add(ResourceRecord * record);
-    void drop() { drop_ = true; }
+    void drop();
+    bool atTop() const;
 private:
     Q_DISABLE_COPY(RecordMergeScope)
     ResourceRecordSet * set_;

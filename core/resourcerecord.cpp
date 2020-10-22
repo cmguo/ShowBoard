@@ -1,4 +1,8 @@
+#include "control.h"
+#include "resourcepackage.h"
+#include "resourcepage.h"
 #include "resourcerecord.h"
+#include "resourceview.h"
 
 ResourceRecordSet::ResourceRecordSet(QObject * parent, int capacity)
     : QObject(parent)
@@ -48,7 +52,6 @@ void ResourceRecordSet::commit(bool drop)
     drop_ |= drop;
     if (--prepare_ == 0 && record_) {
         if (drop_) {
-            record_->undo();
             delete record_;
         } else {
             commit(record_);
@@ -126,6 +129,31 @@ RecordMergeScope::RecordMergeScope(ResourceRecordSet *set)
         set_->prepare();
 }
 
+RecordMergeScope::RecordMergeScope(ResourcePackage * pkg)
+: RecordMergeScope(pkg ? pkg->records() : nullptr)
+{
+}
+
+RecordMergeScope::RecordMergeScope(ResourcePage *page)
+    : RecordMergeScope(page ? page->package() : nullptr)
+{
+}
+
+RecordMergeScope::RecordMergeScope(ResourceView *res)
+    : RecordMergeScope(res ? res->page() : nullptr)
+{
+}
+
+RecordMergeScope::RecordMergeScope(Control *ctrl)
+    : RecordMergeScope(ctrl ? ctrl->resource() : nullptr)
+{
+}
+
+RecordMergeScope::RecordMergeScope(ControlView *view)
+    : RecordMergeScope(Control::fromChildItem(view))
+{
+}
+
 RecordMergeScope::~RecordMergeScope()
 {
     if (set_)
@@ -136,6 +164,16 @@ void RecordMergeScope::add(ResourceRecord *record)
 {
     if (set_)
         set_->add(record);
+}
+
+void RecordMergeScope::drop()
+{
+    drop_ = true;
+}
+
+bool RecordMergeScope::atTop() const
+{
+    return set_ && set_->prepareLevel() == 1;
 }
 
 RecordMergeScope::operator bool() const
