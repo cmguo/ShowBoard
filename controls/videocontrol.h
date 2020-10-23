@@ -22,6 +22,8 @@ public:
 public slots:
     void play();
 
+    void seek();
+
     void fullScreen();
 
     void stop();

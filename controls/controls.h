@@ -15,8 +15,8 @@
 
 REGISTER_CONTROL(ImageControl, "image,bmp,gif,jpg,jpeg,png,svg")
 #ifdef QT_DEBUG
-REGISTER_CONTROL(VideoControl, "video,mp4,wmv,ts,flv,m3u8,asf,avi,"
-                               "audio,mp3,wma,wav,"
+REGISTER_CONTROL(VideoControl, "video,mp4,wmv,webm,ts,flv,m3u8,asf,avi,"
+                               "audio,mp3,wma,wav,m4a,"
                                "rtsp,rtmp,rtp")
 REGISTER_CONTROL(StrokeControl, "glstroke")
 #endif

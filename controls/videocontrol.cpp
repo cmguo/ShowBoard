@@ -11,10 +11,13 @@
 
 #include <QGraphicsVideoItem>
 #include <QMediaPlayer>
+#include <QMediaService>
+#include <QVideoRendererControl>
 #include <QWindow>
 
 static constexpr char const * toolstr =
         "play()|播放|NeedUpdate,Checkable|;"
+        "seek()|拖动||;"
         "playRate||OptionsGroup,Popup,NeedUpdate|;"
         "fullScreen()|全屏|;"
         "stop()|停止|;";
@@ -43,6 +46,11 @@ void VideoControl::play()
         player_->play();
     else
         player_->pause();
+}
+
+void VideoControl::seek()
+{
+    player_->setPosition(player_->position() + 10000);
 }
 
 void VideoControl::fullScreen()
@@ -95,6 +103,8 @@ void VideoControl::attached()
             resize(size);
         loadFinished(true);
         sender()->disconnect(this);
+        player_->play();
+        player_->pause();
     });
     player_ = res_->property("player").value<QMediaPlayer*>();
     if (player_ == nullptr) {
@@ -107,6 +117,12 @@ void VideoControl::attached()
     player_->setVideoOutput(item);
     QObject::connect(player_, &QMediaPlayer::stateChanged, this, [this] () {
         raiseButtonsChanged();
+    });
+    QObject::connect(player_, &QMediaPlayer::videoAvailableChanged, this, [this] (bool available) {
+        if (!available && flags_.testFlag(Loading)) {
+            resize({100, 100});
+            loadFinished(true);
+        }
     });
 }
 
