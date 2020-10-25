@@ -103,31 +103,40 @@ public:
 public:
     void commit(ResourceRecord * record);
 
-    void prepare();
-
-    int prepareLevel() const { return prepare_; }
-
-    void add(ResourceRecord * record);
-
-    void commit(bool drop = false);
-
     void undo();
 
     void redo();
 
     bool inOperation() const;
 
-    void clear();
+    void clear(int keep = 0);
+
+public:
+    /* merge operations */
+
+    void prepare(bool blocked);
+
+    int prepareLevel() const { return prepare_; }
+
+    bool blocked() const { return block_ >= 0 && prepare_ > block_; }
+
+    void add(ResourceRecord * record);
+
+    void commit(bool drop = false);
 
 private:
     QList<ResourceRecord*> records_;
-    int prepare_ = 0;
-    bool drop_ = false;
-    ResourceRecord * record_ = nullptr;
-    MergeRecord * mergeRecord_ = nullptr;
     int capacity_;
     int undo_ = 0;
     ResourceRecord * operation_ = nullptr;
+
+private:
+    /* merge states */
+    int prepare_ = 0;
+    bool drop_ = false;
+    int block_ = -1;
+    ResourceRecord * record_ = nullptr;
+    MergeRecord * mergeRecord_ = nullptr;
 };
 
 class ResourcePackage;
@@ -138,12 +147,12 @@ class Control;
 class SHOWBOARD_EXPORT RecordMergeScope
 {
 public:
-    RecordMergeScope(ResourceRecordSet * set);
-    RecordMergeScope(ResourcePackage * pkg);
-    RecordMergeScope(ResourcePage * page);
-    RecordMergeScope(ResourceView * res);
-    RecordMergeScope(Control * ctrl);
-    RecordMergeScope(ControlView * view);
+    RecordMergeScope(ResourceRecordSet * set, bool block = false);
+    RecordMergeScope(ResourcePackage * pkg, bool block = false);
+    RecordMergeScope(ResourcePage * page, bool block = false);
+    RecordMergeScope(ResourceView * res, bool block = false);
+    RecordMergeScope(Control * ctrl, bool block = false);
+    RecordMergeScope(ControlView * view, bool block = false);
     ~RecordMergeScope();
     operator bool() const;
     void add(ResourceRecord * record);

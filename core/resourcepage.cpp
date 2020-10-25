@@ -21,13 +21,14 @@ ResourcePage::ResourcePage(const QUrl &mainUrl, QVariantMap const & settings, QO
 ResourcePage::ResourcePage(ResourceView* mainRes, QObject *parent)
     : QAbstractItemModel(parent)
     , canvasView_(nullptr)
-    , currentSubPage_(nullptr)
+    , currentSubPage_(-1)
     , thumbnailVersion_(0)
 {
     if (parent)
         thumbnail_ = ResourcePackage::toolPage()->thumbnail();
     if (mainRes == nullptr)
         return;
+    RecordMergeScope rs(this, true); // block
     canvasView_ = new ResourceView(mainRes);
     canvasView_->setParent(this);
     addResource(mainRes);
@@ -58,7 +59,7 @@ ResourceView * ResourcePage::addResource(QUrl const & url, QVariantMap const & s
 
 ResourceView * ResourcePage::addResourceOrBringTop(QUrl const & url, QVariantMap const & settings)
 {
-    ResourcePage * page = currentSubPage_ ? currentSubPage_ : this;
+    ResourcePage * page = currentSubPage_ >= 0 ? subPages_[currentSubPage_] : this;
     ResourceView * rv = page->findResource(url);
     if (rv) {
         rv->page()->moveResourceBack(rv);
@@ -78,8 +79,8 @@ ResourceView * ResourcePage::findResource(QUrl const & url) const
         if (res->url() == url)
             return res;
     }
-    if (currentSubPage_)
-        return currentSubPage_->findResource(url);
+    if (currentSubPage_ >= 0)
+        return subPages_[currentSubPage_]->findResource(url);
     return nullptr;
 }
 
@@ -89,25 +90,26 @@ ResourceView *ResourcePage::findResource(const QByteArray &type) const
         if (res->resource()->type() == type)
             return res;
     }
-    if (currentSubPage_)
-        return currentSubPage_->findResource(type);
+    if (currentSubPage_ >= 0)
+        return subPages_[currentSubPage_]->findResource(type);
     return nullptr;
 }
 
 void ResourcePage::addResource(ResourceView * res)
 {
-    if (currentSubPage_) {
-        currentSubPage_->addResource(res);
+    if (currentSubPage_ >= 0) {
+        subPages_[currentSubPage_]->addResource(res);
         return;
     }
     if (res->flags().testFlag(ResourceView::ListOfPages)) {
-        currentSubPage_ = new ResourcePage(this);
+        ResourcePage * subPage = new ResourcePage(this);
         if (!resources_.empty()) {
-            currentSubPage_->resources_ = resources_;
+            subPage->resources_ = resources_;
             removeResource(0, resources_);
         }
-        subPages_.append(currentSubPage_);
-        emit currentSubPageChanged(currentSubPage_);
+        currentSubPage_ = subPages_.count();
+        subPages_.append(subPage);
+        emit currentSubPageChanged(subPage);
     }
     int index = resources_.size();
     while (index > 0 && (resources_[index - 1]->flags() & ResourceView::TopMost)) {
@@ -138,8 +140,8 @@ void ResourcePage::removeResource(ResourceView * res)
         return;
     int index = resources_.indexOf(res);
     if (index < 0) {
-        if (currentSubPage_)
-            currentSubPage_->removeResource(res);
+        if (currentSubPage_ >= 0)
+            subPages_[currentSubPage_]->removeResource(res);
         return;
     }
     int pos1 = index;
@@ -219,36 +221,68 @@ ResourceView * ResourcePage::nextNormalResource(ResourceView *res) const
 
 void ResourcePage::switchSubPage(int nPage)
 {
-    RecordMergeScope rs(this);
-    if (rs.atTop())
-        rs.drop();
+	if (nPage == currentSubPage_)
+		return;
+    qDebug() << "ResourcePage::switchSubPage " << nPage;
+    RecordMergeScope rs(this, true);
     if (subPages_.size() <= nPage)
         subPages_.resize(nPage + 1);
     if (subPages_[nPage] == nullptr) {
-        subPages_[nPage] = new ResourcePage(this);
+        ResourcePage * subPage = new ResourcePage(this);
         ResourcePackage * pkg = package();
+        if (rs) {
+            rs.add(makeDestructRecord(
+                       [this, subPage, nPage] (bool undo) {
+                if (undo) {
+                    qDebug() << "ResourcePage::switchSubPage destroy " << nPage << subPage;
+                    subPages_[nPage] = nullptr;
+                    ResourcePackage * pkg = package();
+                    if (pkg)
+                        emit pkg->pageDestroyed(subPage);
+                    delete subPage;
+                }
+            }));
+        }
+        qDebug() << "ResourcePage::switchSubPage create " << nPage << subPage;
         if (pkg)
-            emit pkg->pageCreated(subPages_[nPage]);
+            emit pkg->pageCreated(subPage);
+        subPages_[nPage] = subPage;
     }
-    switchSubPage(subPages_[nPage]);
+    if (rs) {
+        rs.add(makeFunctionRecord(
+                   [this, page = currentSubPage_] () { switchSubPage(page); },
+                   [this, nPage] () { switchSubPage(nPage); }));
+    }
+    currentSubPage_ = nPage;
+    onSubPageChanged(subPages_[currentSubPage_]);
+    // special, may changed in signal, subsequence receiver will get wrong page, so re-emit
+    if (currentSubPage_ != nPage)
+        onSubPageChanged(subPages_[currentSubPage_]);
+}
+
+ResourcePage *ResourcePage::currentSubPage() const
+{
+    return currentSubPage_ >= 0 ? subPages_[currentSubPage_] : nullptr;
 }
 
 void ResourcePage::clearSubPages(bool exceptCurrent)
 {
-    if (!exceptCurrent && currentSubPage_) {
-        switchSubPage(nullptr);
+    if (!exceptCurrent && currentSubPage_ >= 0) {
+        switchSubPage(-1);
     }
-    int n = subPages_.indexOf(currentSubPage_);
-    if (n >= 0)
-        subPages_.replace(n, nullptr);
+    ResourcePage * currentSubPage = nullptr;
+    if (currentSubPage_ >= 0) {
+        currentSubPage = subPages_[currentSubPage_];
+        subPages_.replace(currentSubPage_, nullptr);
+    }
     // TODO: save for undo
     for (ResourcePage *& sp : subPages_) {
         delete sp;
         sp = nullptr;
     }
-    if (n >= 0)
-        subPages_.replace(n, currentSubPage_);
-    subPages_.resize(n + 1);
+    if (currentSubPage_ >= 0)
+        subPages_.replace(currentSubPage_, currentSubPage);
+    subPages_.resize(currentSubPage_ + 1);
 }
 
 ResourcePackage *ResourcePage::package() const
@@ -291,7 +325,7 @@ bool ResourcePage::isLargePage() const
 
 bool ResourcePage::hasSubPage() const
 {
-    return currentSubPage_ != nullptr;
+    return currentSubPage_ >= 0;
 }
 
 bool ResourcePage::isSubPage() const
@@ -317,7 +351,7 @@ void ResourcePage::setThumbnail(QPixmap thumb)
 void ResourcePage::insertResource(int index, QList<ResourceView *> ress)
 {
     RecordMergeScope rs(this);
-    if (rs && (canvasView_ == nullptr || !resources_.isEmpty())) // not undo/redo main resource
+    if (rs)
         rs.add(makeFunctionRecord( // only undo/redo on last resource
                    [this, index, ress] () { removeResource(index + ress.size() - 1, {ress.last()}); },
                    [this, index, ress] () { insertResource(index + ress.size() - 1, {ress.last()}); }));
@@ -379,25 +413,22 @@ void ResourcePage::removeResource(int index, QList<ResourceView *> ress)
     endRemoveRows();
 }
 
-void ResourcePage::switchSubPage(ResourcePage * subPage)
+void ResourcePage::onSubPageChanged(ResourcePage * subPage)
 {
-    if (currentSubPage_ == subPage)
-        return;
-    currentSubPage_ = subPage;
-    emit currentSubPageChanged(currentSubPage_);
+    emit currentSubPageChanged(subPage);
     ResourcePage * page = this;
     while (page) {
         ResourcePackage * pkg = qobject_cast<ResourcePackage*>(page->parent());
         if (pkg) {
             if (pkg->currentPage() == page) {
                 if (subPage)
-                    while (subPage->currentSubPage_) subPage = subPage->currentSubPage_;
+                    while (subPage->currentSubPage()) subPage = subPage->currentSubPage();
                 emit pkg->currentSubPageChanged(subPage);
             }
             break;
         } else {
             ResourcePage * pge = qobject_cast<ResourcePage*>(page->parent());
-            if (pge->currentSubPage_ != page)
+            if (pge->currentSubPage() != page)
                 break;
             page = pge;
         }

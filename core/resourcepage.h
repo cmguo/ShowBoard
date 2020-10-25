@@ -105,10 +105,9 @@ public:
 public:
     void switchSubPage(int nPage);
 
-    ResourcePage* currentSubPage() const
-    {
-        return currentSubPage_;
-    }
+    ResourcePage* currentSubPage() const;
+
+    int currentSubNumber() const { return currentSubPage_; }
 
     void clearSubPages(bool exceptCurrent = false);
 
@@ -164,7 +163,7 @@ private:
 
     void removeResource(int index, QList<ResourceView *> ress);
 
-    void switchSubPage(ResourcePage* subPage);
+    void onSubPageChanged(ResourcePage* subPage);
 
 private:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
@@ -183,7 +182,7 @@ private:
 private:
     ResourceView* canvasView_;
     QList<ResourceView *> resources_;
-    ResourcePage* currentSubPage_;
+    int currentSubPage_;
     QVector<ResourcePage*> subPages_;
     QPixmap thumbnail_;
     int thumbnailVersion_;

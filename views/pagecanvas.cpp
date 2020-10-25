@@ -174,8 +174,11 @@ void PageCanvas::resourceMoved(QModelIndex const &parent, int start, int end,
     }
 }
 
+#include <QDebug>
+
 void PageCanvas::subPageChanged(ResourcePage *page)
 {
+    qDebug() << "PageCanvas::subPageChanged" << page;
     if (page) {
         if (subCanvas_ == nullptr) {
             subCanvas_ = new PageCanvas(static_cast<CanvasItem*>(parentItem()));
