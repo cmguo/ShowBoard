@@ -105,11 +105,10 @@ void LocalHttpServer::addServeProgram2(const QByteArray &prefix, LocalHttpServer
 {
     server_->route(prefix, [program](QHttpServerRequest const & request) {
         QHttpServerResponse response = program->handle(request);
-        QVariant origin = request.headers().value("Origin");
-        if (!origin.isNull()) {
-            response.addHeader("Access-Control-Allow-Origin", origin.toByteArray());
+        {
+            response.addHeader("Access-Control-Allow-Origin", "*");
             response.addHeader("Access-Control-Allow-Methods", "*");
-            response.addHeader("Access-Control-Allow-Headers", "X-Requested-With");
+            response.addHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
         }
         return response;
     });
