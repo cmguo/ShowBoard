@@ -32,7 +32,7 @@ RESOURCES += \
     res/ShowBoard.qrc
 
 #DEFINES += SHOWBOARD_QUICK
-DEFINES += SHOWBOARD_RECORD=1
+DEFINES += SHOWBOARD_RECORD=0
 
 include(core/core.pri)
 include(resources/resources.pri)
