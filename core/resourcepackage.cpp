@@ -50,7 +50,7 @@ ResourcePage *ResourcePackage::newPage(int index, ResourceView * mainRes)
 {
     RecordMergeScope rs(records_);
     ResourcePage * page = new ResourcePage(mainRes, this);
-    rs.add(makeDestructRecord([this, page] (bool undo) {
+    rs.add(MakeDestructRecord([this, page] (bool undo) {
         if (undo) {
             emit pageDestroyed(page);
             delete page;
@@ -71,7 +71,7 @@ ResourcePage *ResourcePackage::newPage(const QUrl &mainUrl, QVariantMap const & 
 {
     RecordMergeScope rs(records_);
     ResourcePage * page = new ResourcePage(mainUrl, settings, this);
-    rs.add(makeDestructRecord([this, page] (bool undo) {
+    rs.add(MakeDestructRecord([this, page] (bool undo) {
         if (undo) {
             emit pageDestroyed(page);
             delete page;
@@ -132,7 +132,7 @@ void ResourcePackage::removePage(ResourcePage *page)
         switchPage(newIndex);
     }
     removePage(index);
-    rs.add(makeDestructRecord([this, page] (bool undo) {
+    rs.add(MakeDestructRecord([this, page] (bool undo) {
         if (!undo) {
             emit pageDestroyed(page);
             delete page;
@@ -241,7 +241,7 @@ void ResourcePackage::showVirtualPage(ResourcePage *page, bool show)
     }
     RecordMergeScope rs(records_);
     if (rs)
-        rs.add(makeFunctionRecord(
+        rs.add(MakeFunctionRecord(
                           [this, page, show] () { showVirtualPage(page, !show); },
                           [this, page, show] () { showVirtualPage(page, !show); }
         ));
@@ -256,7 +256,7 @@ void ResourcePackage::toggleVirtualPage(ResourcePage *page)
         return;
     RecordMergeScope rs(records_);
     if (rs)
-        rs.add(makeFunctionRecord(
+        rs.add(MakeFunctionRecord(
                           [this, page] () { toggleVirtualPage(page); },
                           [this, page] () { toggleVirtualPage(page); }
         ));
@@ -277,7 +277,7 @@ void ResourcePackage::hideAllVirtualPages()
         return;
     RecordMergeScope rs(records_);
     if (rs)
-        rs.add(makeFunctionRecord(
+        rs.add(MakeFunctionRecord(
                           [this, n = hiddenPages_.size()] () {
                                 visiblePages_ = hiddenPages_.mid(n);
                                 hiddenPages_.erase(hiddenPages_.begin() + n, hiddenPages_.end());
@@ -301,12 +301,12 @@ void ResourcePackage::removeVirtualPage(ResourcePage *page)
     if (cancel)
         return;
     if (rs)
-        rs.add(makeFunctionRecord(
+        rs.add(MakeFunctionRecord(
                           [this, page] () { hiddenPages_.append(page); },
                           [this] () { hiddenPages_.takeLast(); }
         ));
     hiddenPages_.removeOne(page);
-    rs.add(makeDestructRecord([this, page] (bool undo) {
+    rs.add(MakeDestructRecord([this, page] (bool undo) {
         if (!undo) {
             emit pageDestroyed(page);
             delete page;
@@ -357,7 +357,7 @@ void ResourcePackage::switchPage(int page)
         return;
     RecordMergeScope rs(records_);
     if (rs)
-        rs.add(makeFunctionRecord(
+        rs.add(MakeFunctionRecord(
                           [this, page = current_] () { switchPage(page); },
                           [this, page] () { switchPage(page); }
         ));
@@ -381,7 +381,7 @@ void ResourcePackage::addPage(int index, ResourcePage * page)
 {
     RecordMergeScope rs(records_);
     if (rs)
-        rs.add(makeFunctionRecord(
+        rs.add(MakeFunctionRecord(
                           [this, index] () { removePage(index); },
                           [this, index, page] () { addPage(index, page); }
         ));
@@ -396,7 +396,7 @@ void ResourcePackage::removePage(int index)
     RecordMergeScope rs(records_);
     ResourcePage * page = pages_[index];
     if (rs)
-        rs.add(makeFunctionRecord(
+        rs.add(MakeFunctionRecord(
                           [this, index, page] () { addPage(index, page); },
                           [this, index] () { removePage(index); }
         ));

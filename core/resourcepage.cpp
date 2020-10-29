@@ -46,7 +46,7 @@ ResourceView * ResourcePage::addResource(QUrl const & url, QVariantMap const & s
     } else {
         RecordMergeScope rs(this);
         if (rs) {
-            rs.add(makeDestructRecord([rv] (bool undo) {
+            rs.add(MakeDestructRecord([rv] (bool undo) {
                 if (undo) {
                     delete rv;
                 }
@@ -158,7 +158,7 @@ void ResourcePage::removeResource(ResourceView * res)
     RecordMergeScope rs(this);
     removeResource(pos1, list);
     if (rs) {
-        rs.add(makeDestructRecord([list] (bool undo) {
+        rs.add(MakeDestructRecord([list] (bool undo) {
             if (!undo) {
                 for (ResourceView* res : list)
                     delete res;
@@ -231,7 +231,7 @@ void ResourcePage::switchSubPage(int nPage)
         ResourcePage * subPage = new ResourcePage(this);
         ResourcePackage * pkg = package();
         if (rs) {
-            rs.add(makeDestructRecord(
+            rs.add(MakeDestructRecord(
                        [this, subPage, nPage] (bool undo) {
                 if (undo) {
                     qDebug() << "ResourcePage::switchSubPage destroy " << nPage << subPage;
@@ -249,7 +249,7 @@ void ResourcePage::switchSubPage(int nPage)
         subPages_[nPage] = subPage;
     }
     if (rs) {
-        rs.add(makeFunctionRecord(
+        rs.add(MakeFunctionRecord(
                    [this, page = currentSubPage_] () { switchSubPage(page); },
                    [this, nPage] () { switchSubPage(nPage); }));
     }
@@ -352,7 +352,7 @@ void ResourcePage::insertResource(int index, QList<ResourceView *> ress)
 {
     RecordMergeScope rs(this);
     if (rs)
-        rs.add(makeFunctionRecord( // only undo/redo on last resource
+        rs.add(MakeFunctionRecord( // only undo/redo on last resource
                    [this, index, ress] () { removeResource(index + ress.size() - 1, {ress.last()}); },
                    [this, index, ress] () { insertResource(index + ress.size() - 1, {ress.last()}); }));
     beginInsertRows(QModelIndex(), index, index + ress.size() - 1);
@@ -385,7 +385,7 @@ void ResourcePage::moveResource(int pos, int newPos)
         return;
     RecordMergeScope rs(this);
     if (rs)
-        rs.add(makeFunctionRecord( // only support move one resource
+        rs.add(MakeFunctionRecord( // only support move one resource
                    [this, pos, newPos] () { moveResource(newPos, pos); },
                    [this, pos, newPos] () { moveResource(pos, newPos); }));
     int newPos2 = newPos > pos2 ? newPos + 1 : newPos; // ItemModel diffs from QList
@@ -401,7 +401,7 @@ void ResourcePage::removeResource(int index, QList<ResourceView *> ress)
 {
     RecordMergeScope rs(this);
     if (rs) {
-        rs.add(makeFunctionRecord(
+        rs.add(MakeFunctionRecord(
                    [this, index, ress] () { insertResource(index, ress); },
                    [this, index, ress] () { removeResource(index, ress); }));
     }

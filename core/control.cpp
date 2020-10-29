@@ -943,7 +943,12 @@ void Control::select(bool selected)
 class TransformRecord : public ResourceRecord
 {
 public:
-    TransformRecord(ResourceTransform & transform) : transform_(transform), value_(transform) {}
+    TransformRecord(ResourceTransform & transform)
+        : transform_(transform)
+        , value_(transform)
+    {
+        setInfo("TransformRecord");
+    }
     virtual void undo() override { std::swap(transform_, value_); }
     virtual void redo() override { std::swap(transform_, value_); }
     void reset() { value_ = transform_; changed_ = false; }

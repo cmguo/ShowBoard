@@ -11,6 +11,7 @@ class SHOWBOARD_EXPORT ResourceRecord
 {
 public:
     ResourceRecord() {}
+
     virtual ~ResourceRecord() {}
 
 public:
@@ -18,8 +19,14 @@ public:
 
     virtual void redo() = 0;
 
+    virtual void dump();
+
+public:
+    void setInfo(char const * info) { info_ = info; }
+
 private:
     Q_DISABLE_COPY(ResourceRecord)
+    char const * info_ = nullptr;
 };
 
 template <typename U, typename R>
@@ -42,11 +49,7 @@ private:
 template <typename U, typename R>
 inline FunctionRecord<U, R> * makeFunctionRecord(U u, R r)
 {
-#if SHOWBOARD_RECORD
     return new FunctionRecord<U, R>(u, r);
-#else
-    return nullptr;
-#endif
 }
 
 template <typename D>
@@ -66,13 +69,22 @@ private:
 template <typename D>
 inline DestructRecord<D> * makeDestructRecord(D d)
 {
-#if SHOWBOARD_RECORD
     return new DestructRecord<D>(d);
-#else
-    d(false);
-    return nullptr;
-#endif
 }
+
+inline ResourceRecord * setRecordInfo(ResourceRecord * record, char const * info)
+{
+    if (record)
+        record->setInfo(info);
+    return record;
+}
+#define SHOWBOARD_TOSTRING2(x) #x
+#define SHOWBOARD_TOSTRING(x) SHOWBOARD_TOSTRING2(x)
+#define SHOWBOARD_CODE_INFO __FUNCTION__ ": " __FILE__ "(" SHOWBOARD_TOSTRING(__LINE__) ")"
+#define MakeFunctionRecord(...) \
+    setRecordInfo(makeFunctionRecord(__VA_ARGS__), SHOWBOARD_CODE_INFO)
+#define MakeDestructRecord(...) \
+    setRecordInfo(makeDestructRecord(__VA_ARGS__), SHOWBOARD_CODE_INFO)
 
 class MergeRecord : public ResourceRecord
 {
@@ -89,6 +101,8 @@ public:
 
     virtual void redo() override;
 
+    virtual void dump() override;
+
 private:
     QList<ResourceRecord*> records_;
 };
@@ -99,6 +113,8 @@ public:
     ResourceRecordSet(QObject * parent = nullptr, int capacity = 100);
 
     virtual ~ResourceRecordSet() override;
+
+    static ResourceRecord * merge(ResourceRecord * dest, MergeRecord *& merge, ResourceRecord * record);
 
 public:
     void commit(ResourceRecord * record);
