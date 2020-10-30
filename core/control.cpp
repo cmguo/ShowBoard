@@ -82,6 +82,7 @@ Control::Control(ResourceView *res, Flags flags, Flags clearFlags)
     , itemObj_(nullptr)
     , realItem_(nullptr)
     , stateItem_(nullptr)
+    , adjustSources_(0)
 {
     if (res_->flags().testFlag(ResourceView::LargeCanvas)) {
         //flags_.setFlag(FullLayout, true);
@@ -811,6 +812,7 @@ void Control::move(QPointF & delta)
     res_->transform().translate(delta);
 }
 
+// from Selector
 bool Control::scale(QRectF &rect, const QRectF &direction, QPointF &delta)
 {
     QRectF padding;
@@ -831,18 +833,20 @@ bool Control::scale(QRectF &rect, const QRectF &direction, QPointF &delta)
     return true;
 }
 
+// from Keyboard
 bool Control::scale(const QRectF &direction, QPointF &delta)
 {
+    assert(adjustSources_);
     QRectF rect = boundRect();
-    adjusting(true);
     scale(rect, direction, delta);
-    adjusting(false);
     whiteCanvas()->selector()->updateSelect(this);
     return true;
 }
 
+// from Wheel
 bool Control::scale(const QPointF &center, qreal &delta)
 {
+    assert(adjustSources_);
     QRectF rect = boundRect();
     QRectF padding;
     QPointF center2 = center;
@@ -851,7 +855,6 @@ bool Control::scale(const QPointF &center, qreal &delta)
         center2 = item_->mapFromItem(realItem_, center2);
     }
     center2 -= item_->boundingRect().center();
-    adjusting(true);
     bool result = res_->transform().scale(rect, center2,
                                           delta, padding, false, minMaxSize_);
     if (!result)
@@ -864,12 +867,12 @@ bool Control::scale(const QPointF &center, qreal &delta)
         resize(origin.size());
         sizeChanged();
     }
-    adjusting(false);
     if (realItem_->parentItem()) // maybe scaling canvas
         whiteCanvas()->selector()->updateSelect(this);
     return true;
 }
 
+// from Selector
 void Control::gesture(GestureContext *ctx, QPointF const &to1, QPointF const &to2)
 {
     if (!ctx->configged()) {
@@ -897,6 +900,7 @@ void Control::gesture(GestureContext *ctx, QPointF const &to1, QPointF const &to
     }
 }
 
+// from Selector
 void Control::rotate(QPointF const & from, QPointF & to)
 {
     res_->transform().rotate(from, to);
@@ -961,28 +965,38 @@ private:
 
 Q_DECLARE_METATYPE(TransformRecord*)
 
-void Control::adjusting(bool be)
+void Control::adjustStart(int source)
 {
-    flags_.setFlag(Adjusting, be);
+    if ((adjustSources_ & source) != 0)
+        return;
     TransformRecord * tr = property("transformRecord").value<TransformRecord*>();
-    if (be) {
-        if (tr) {
+    if (tr) {
+        if (adjustSources_ == 0)
             tr->reset();
-        } else {
-            tr = new TransformRecord(res_->transform());
-            setProperty("transformRecord", QVariant::fromValue(tr));
-        }
     } else {
-        QVariant delayResize = property("delayResize");
-        if (delayResize.isValid()) {
-            setProperty("delayResize", QVariant());
-            resize(delayResize.toSizeF());
-            sizeChanged();
-        }
-        if (tr && tr->changed()) {
-            res_->package()->records()->commit(tr);
-            setProperty("transformRecord", QVariant());
-        }
+        tr = new TransformRecord(res_->transform());
+        setProperty("transformRecord", QVariant::fromValue(tr));
+    }
+    adjustSources_ |= source;
+    flags_.setFlag(Adjusting, adjustSources_);
+}
+
+void Control::adjustEnd(int source)
+{
+    if ((adjustSources_ & source) == 0)
+        return;
+    adjustSources_ &= ~source;
+    flags_.setFlag(Adjusting, adjustSources_);
+    TransformRecord * tr = property("transformRecord").value<TransformRecord*>();
+    QVariant delayResize = property("delayResize");
+    if (delayResize.isValid()) {
+        setProperty("delayResize", QVariant());
+        resize(delayResize.toSizeF());
+        sizeChanged();
+    }
+    if (tr && adjustSources_ == 0 && tr->changed()) {
+        res_->package()->records()->commit(tr);
+        setProperty("transformRecord", QVariant());
     }
 }
 

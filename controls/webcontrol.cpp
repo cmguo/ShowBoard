@@ -250,33 +250,33 @@ void WebControl::contentsSizeChanged(const QSizeF &size)
 void WebControl::scrollPositionChanged(const QPointF &pos)
 {
     Control * canvasControl = Control::fromItem(whiteCanvas());
-    if (canvasControl->flags().testFlag(Adjusting))
+    if (flags_.testFlag(Adjusting2))
         return;
     QRectF rect = canvasControl->boundRect();
     rect.moveCenter({0, 0});
     rect.setSize(item_->boundingRect().size());
     WebView * view = static_cast<WebView *>(widget_);
-    flags_.setFlag(Adjusting, true);
+    flags_.setFlag(Adjusting2, true);
     canvasControl->resource()->transform()
             .translateTo(-rect.center() - pos * view->scale());
-    flags_.setFlag(Adjusting, false);
+    flags_.setFlag(Adjusting2, false);
 }
 
 void WebControl::scaleChanged(qreal scale)
 {
     Control * canvasControl = Control::fromItem(whiteCanvas());
-    if (canvasControl->flags().testFlag(Adjusting))
+    if (flags_.testFlag(Adjusting2))
         return;
     QRectF rect = canvasControl->boundRect();
     rect.moveCenter({0, 0});
     rect.setSize(item_->boundingRect().size());
     QPointF pos = (canvasControl->resource()->transform().offset()
                    + rect.center()) / -canvasControl->resource()->transform().zoom();
-    flags_.setFlag(Adjusting, true);
+    flags_.setFlag(Adjusting2, true);
     canvasControl->resource()->transform().scaleTo(scale);
     canvasControl->resource()->transform()
             .translateTo(-rect.center() - pos * scale);
-    flags_.setFlag(Adjusting, false);
+    flags_.setFlag(Adjusting2, false);
 }
 
 void WebControl::canvasTransformChanged(int)
@@ -299,10 +299,10 @@ void WebControl::canvasTransformChanged(int)
 
 void WebControl::full()
 {
-    adjusting(true);
+    adjustStart(InnerLogic);
     resize(whiteCanvas()->rect().size());
     sizeChanged();
-    adjusting(false);
+    adjustEnd(InnerLogic);
 }
 
 void WebControl::fitContent()

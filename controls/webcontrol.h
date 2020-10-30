@@ -20,6 +20,7 @@ class SHOWBOARD_EXPORT WebControl : public WidgetControl
 public:
     static constexpr Flag FitToContent = CustomFlag;
     static constexpr Flag Debugable = static_cast<Flag>(CustomFlag << 1);
+    static constexpr Flag Adjusting2 = CustomState;
 
     static void init();
 

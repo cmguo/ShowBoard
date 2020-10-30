@@ -178,12 +178,10 @@ void WhiteCanvasControl::sizeChanged()
     // do nothing
 }
 
-void WhiteCanvasControl::adjusting(bool be)
+void WhiteCanvasControl::adjustEnd(int source)
 {
-    Control::adjusting(be);
-    if (!be) {
-        pageSwitchEnd(false);
-    }
+    Control::adjustEnd(source);
+    pageSwitchEnd(false);
 }
 
 void WhiteCanvasControl::move(QPointF &delta)

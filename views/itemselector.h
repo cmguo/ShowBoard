@@ -73,7 +73,7 @@ private:
 
     void selectMove(QPointF const & pos, QPointF const & scenePos);
 
-    void selectRelease();
+    void selectRelease(EventType eventType);
 
     void layoutToolbar();
 

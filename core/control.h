@@ -86,6 +86,15 @@ public:
 
     Q_ENUM(SelectMode)
 
+    enum AdjustSource
+    {
+        Mouse = 1,
+        Touch = 2,
+        Wheel = 4,
+        Keyboard = 8,
+        InnerLogic = 16,
+    };
+
 protected:
 #ifdef SHOWBOARD_QUICK
     static constexpr char const * ITEM_KEY_CONTROL = "CONTROL";
@@ -247,7 +256,9 @@ public:
     /*
      * set when adjusting state change
      */
-    virtual void adjusting(bool be);
+    virtual void adjustStart(int source);
+
+    virtual void adjustEnd(int source);
 
     virtual void beforeClone();
 
@@ -383,6 +394,7 @@ protected:
     ControlView * realItem_;
     StateItem * stateItem_;
     QSizeF minMaxSize_[2];
+    int adjustSources_;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(Control::Flags)

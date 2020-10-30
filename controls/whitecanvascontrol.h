@@ -53,7 +53,7 @@ private:
 
     virtual void sizeChanged() override;
 
-    virtual void adjusting(bool be) override;
+    virtual void adjustEnd(int source) override;
 
     virtual void move(QPointF &delta) override;
 

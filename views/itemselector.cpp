@@ -214,7 +214,7 @@ void ItemSelector::selectAt(const QPointF &pos, QPointF const & scenePos, EventT
                 || (tempControl_->flags() & Control::FixedOnCanvas))
             start_ = scenePos;
         qInfo() << "selectAt" << type_ << tempControl_->resource()->url();
-        tempControl_->adjusting(true);
+        tempControl_->adjustStart(1 << eventType);
     }
 }
 
@@ -278,11 +278,11 @@ void ItemSelector::selectMove(QPointF const & pos, QPointF const & scenePos)
     start_ = pt;
 }
 
-void ItemSelector::selectRelease()
+void ItemSelector::selectRelease(EventType eventType)
 {
     if (type_ == None)
         return;
-    tempControl_->adjusting(false);
+    tempControl_->adjustEnd(1 << eventType);
     switch (type_) {
     case AgainNoMove:
         select2(tempControl_); // leave Implied Select
@@ -496,7 +496,7 @@ void ItemSelector::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
         return;
     }
     //qDebug() << "mouseRelease";
-    selectRelease();
+    selectRelease(Mouse);
 }
 
 void ItemSelector::touchBegin(QTouchEvent *event)
@@ -599,7 +599,7 @@ void ItemSelector::touchEnd(QTouchEvent *)
     }
     //qDebug() << "touchEnd";
     lastPositions_.clear();
-    selectRelease();
+    selectRelease(Touch);
 }
 
 void ItemSelector::wheelEvent(QGraphicsSceneWheelEvent *event)
@@ -618,7 +618,7 @@ void ItemSelector::wheelEvent(QGraphicsSceneWheelEvent *event)
             }
             tempControl_->move(d);
         }
-        selectRelease();
+        selectRelease(Wheel);
     } else {
         event->ignore();
     }
