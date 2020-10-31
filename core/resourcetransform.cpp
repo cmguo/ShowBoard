@@ -85,19 +85,19 @@ qreal ResourceTransform::angle() const
 
 void ResourceTransform::translateTo(const QPointF &offset)
 {
-    translate(offset - this->offset(), 0);
+    QPointF delta = offset - this->offset();
+    translate(delta, 0);
 }
 
 void ResourceTransform::translate(QPointF const & delta)
 {
-    translate(delta, 0);
+    QPointF delta2 = delta;
+    translate(delta2, 0);
 }
 
 void ResourceTransform::translate(QPointF & delta)
 {
-    QPointF o = offset();
     translate(delta, 0);
-    delta = offset() - o;
 }
 
 void ResourceTransform::rotate(QPointF const & from, QPointF & to)
@@ -212,11 +212,13 @@ bool ResourceTransform::scale(QRectF & rect, QPointF const & center, qreal & del
     }
     if (layoutScale) {
         scaleRotate_ = rotate_;
-        translate(c1 - rotate_.map(center * delta), 4);
+        QPointF delta2 = c1 - rotate_.map(center * delta);
+        translate(delta2, 4);
     } else {
         scale_.scale(delta, delta);
         scaleRotate_ = scale_ * rotate_;
-        translate(c1 - scaleRotate_.map(center), 4);
+        QPointF delta2 = c1 - scaleRotate_.map(center);
+        translate(delta2, 4);
     }
     result.moveCenter({0, 0});
     result.adjust(padding.x(), padding.y(), padding.right(), padding.bottom());
@@ -344,7 +346,8 @@ void ResourceTransform::scaleKeepToCenter(const QRectF &border, QRectF &self, qr
         center.setY(center.y() + border.bottom() - rect.bottom());
     rect.moveCenter(center);
     self = rect;
-    translate(rect.topLeft() - offset(), 4);
+    QPointF delta = rect.topLeft() - offset();
+    translate(delta, 4);
 }
 
 void ResourceTransform::gesture(GestureContext *context, QPointF const &to1, QPointF const &to2)
@@ -415,7 +418,7 @@ void ResourceTransform::keepOuterOf(QRectF const &border, QRectF &self)
         d.setY(border.top() - crect.top());
     else if (crect.bottom() < border.bottom())
         d.setY(border.bottom() - crect.bottom());
-    if (!d.isNull()) {
+    if (!qFuzzyIsNull(d.x()) || !qFuzzyIsNull(d.y())) {
         crect.translate(d.x(), d.y());
         translate_.translate(d.x(), d.y());
         transform_ = scaleRotate_ * translate_;
@@ -432,13 +435,20 @@ void ResourceTransform::keepAtOrigin()
     translate_.reset();
 }
 
-void ResourceTransform::translate(const QPointF &delta, int otherChanges)
+void ResourceTransform::translate(QPointF &delta, int otherChanges)
 {
+    QPointF o = offset();
     translate_.translate(delta.x(), delta.y());
     rotateTranslate_ = rotate_ * translate_;
     transform_ = scaleRotate_ * translate_;
     emit beforeChanged(otherChanges | 1);
-    emit changed(otherChanges | 1);
+    delta = offset() - o;
+    if (!qFuzzyIsNull(delta.x()) || !qFuzzyIsNull(delta.y()))
+        otherChanges |= 1;
+    else
+        delta = QPointF();
+    if (otherChanges)
+        emit changed(otherChanges);
 }
 
 void ResourceTransform::attachTransform(ResourceTransform *other)

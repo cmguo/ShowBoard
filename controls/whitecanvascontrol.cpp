@@ -35,6 +35,9 @@ WhiteCanvasControl::WhiteCanvasControl(ResourceView * view, ControlView * canvas
     transform_->appendToItem(item_);
     attachToItem(item_, this);
     realItem_ = item_;
+    connect(&res_->transform(), &ResourceTransform::changed, this, [this] (int elem) {
+        Control::updateTransform(elem);
+    });
 
 #ifdef PROD_TEST
     setParent(whiteCanvas()); // for testbed
@@ -190,7 +193,9 @@ void WhiteCanvasControl::move(QPointF &delta)
         return;
     QPointF d = delta;
     Control::move(delta);
-    if (qFuzzyIsNull(delta.x()) && qAbs(delta.y()) < qAbs(d.x()) && !qFuzzyIsNull(d.x())) {
+    // may from keyboard input, then not anim switch
+    QEvent * oe = whiteCanvas()->selector()->currentEvent();
+    if (oe && qFuzzyIsNull(delta.x()) && qAbs(delta.y()) < qAbs(d.x()) && !qFuzzyIsNull(d.x())) {
         delta.setX(d.x());
         pageSwitchStart(delta);
     }

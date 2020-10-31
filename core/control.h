@@ -362,6 +362,8 @@ protected:
 
     void reload();
 
+    void updateTransform(int elem);
+
     virtual void onStream(QIODevice* stream);
 
     virtual void onData(QByteArray data);
@@ -382,8 +384,6 @@ protected:
 
 private:
     Q_DISABLE_COPY(Control)
-
-    void updateTransform(int elem);
 
 protected:
     Flags flags_;

@@ -260,6 +260,7 @@ void WhiteCanvasWidget::moveSelection()
     if (!c) { c = Control::fromItem(canvas_); delta = -20; }
 #endif
     QPointF d;
+    Control * sc = shotcutControl_;
     if (c && c->flags().testFlag(Control::CanMove)) {
         QShortcut* s = qobject_cast<QShortcut*>(sender());
         if (s->key().matches(Qt::Key_Left)) {
@@ -274,7 +275,11 @@ void WhiteCanvasWidget::moveSelection()
         if (onShotcut(c))
             c->move(d);
     }
-    if (d.isNull()) {
+    if (sc == nullptr && d.isNull()) {
+        if (!shotcutControl_) {
+            shotcutControl_->adjustEnd(Control::Keyboard);
+            shotcutControl_ = nullptr;
+        }
         switchPage();
     }
 }

@@ -188,7 +188,7 @@ public:
     }
 
 private:
-    void translate(QPointF const & delta, int otherChanges);
+    void translate(QPointF & delta, int otherChanges);
 
     friend class GestureContext;
 
