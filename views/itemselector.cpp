@@ -282,7 +282,17 @@ void ItemSelector::selectRelease(EventType eventType)
 {
     if (type_ == None)
         return;
-    tempControl_->adjustEnd(1 << eventType);
+    if (eventType == Wheel) {
+        Control * c = tempControl_;
+        int id = c->property("wheelId").toInt() + 1;
+        c->setProperty("wheelId", id);
+        QTimer::singleShot(1000, c, [c, id] () {
+            if (id == c->property("wheelId").toInt())
+                c->adjustEnd(1 << Wheel);
+        });
+    } else {
+        tempControl_->adjustEnd(1 << eventType);
+    }
     switch (type_) {
     case AgainNoMove:
         select2(tempControl_); // leave Implied Select
