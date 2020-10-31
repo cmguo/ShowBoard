@@ -43,14 +43,28 @@ ResourceTransform::ResourceTransform(const QTransform &o, QObject *parent)
 
 ResourceTransform &ResourceTransform::operator=(const ResourceTransform &o)
 {
-    scale_ = o.scale_;
-    rotate_ = o.rotate_;
-    translate_ = o.translate_;
-    scaleRotate_ = o.scaleRotate_;
-    rotateTranslate_ = o.rotateTranslate_;
-    transform_ = o.transform_;
-    emit beforeChanged(7);
-    emit changed(7);
+    int change = 7;
+    if (zoom2d() != o.zoom2d()) {
+        scale_ = o.scale_;
+        change |= 4;
+    }
+    if (rotate_ != o.rotate_) {
+        rotate_ = o.rotate_;
+        change |= 2;
+    }
+    if (offset() != o.offset()) {
+        translate_ = o.translate_;
+        change |= 1;
+    }
+    if (change & 6)
+        scaleRotate_ = o.scaleRotate_;
+    if (change & 3)
+        rotateTranslate_ = o.rotateTranslate_;
+    if (change) {
+        transform_ = o.transform_;
+        emit beforeChanged(change);
+        emit changed(change);
+    }
     return *this;
 }
 

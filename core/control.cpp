@@ -93,7 +93,6 @@ Control::Control(ResourceView *res, Flags flags, Flags clearFlags)
     if (flags_.testFlag(FullLayout)) {
         flags_.setFlag(FixedOnCanvas, false);
     }
-    connect(&res->transform(), &ResourceTransform::changed, this, &Control::updateTransform);
     if (res_->flags() & ResourceView::SavedSession) {
         flags_ |= RestoreSession;
     }
@@ -233,6 +232,7 @@ void Control::attachTo(ControlView * parent, ControlView * before)
     realItem_->setParentItem(parent);
     if (before)
         realItem_->stackBefore(before);
+    connect(&res_->transform(), &ResourceTransform::changed, this, &Control::updateTransform);
     loadSettings();
     sizeChanged();
     initPosition();

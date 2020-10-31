@@ -363,6 +363,7 @@ void ItemSelector::select2(Control *control)
     if (selectControl_) {
         selectControl_->select(false);
         selectControl_->disconnect(selBoxTransform_);
+        selectControl_->resource()->transform().disconnect(toolBar());
         selBoxTransform_->attachTo(nullptr);
         selBoxCanvasTransform_->attachTo(nullptr);
         toolBarTransform_->attachTo(nullptr);
@@ -398,14 +399,19 @@ void ItemSelector::select2(Control *control)
             qWarning() << "destroyed without unselect!!";
             unselect(control);
         });
+        QObject::connect(&selectControl_->resource()->transform(), &ResourceTransform::changed, toolBar(),
+                                 [this](int elem) {
+            if (elem < 4) // if scale changed, not do here, control will updateSelect
+                layoutToolbar();
+        });
         toolBar()->attachProvider(selectControl_);
         toolBar_->show();
-        layoutToolbar();
         selBox_->setVisible(true,
                             selectControl_->flags() & Control::CanScale,
                             !(selectControl_->flags() & Control::KeepAspectRatio),
                             selectControl_->flags() & Control::CanRotate,
                             selectControl_->flags() & Control::ShowSelectMask);
+        layoutToolbar();
         if (autoTop_) {
             selectControl_->resource()->moveTop();
         }
