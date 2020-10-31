@@ -9,6 +9,7 @@ class QGraphicsScene;
 class WhiteCanvas;
 class ResourcePackage;
 class ResourcePage;
+class Control;
 
 class SHOWBOARD_EXPORT WhiteCanvasWidget : public QGraphicsView
 {
@@ -73,13 +74,18 @@ private:
 
     virtual bool eventFilter(QObject *watched, QEvent *event) override;
 
+    virtual void keyReleaseEvent(QKeyEvent *event) override;
+
 private:
     void onPageChanged(ResourcePage* page);
+
+    bool onShotcut(Control * control);
 
 private:
     QGraphicsScene * scene_;
     WhiteCanvas * canvas_;
     QSizeF sceneSize_;
+    Control * shotcutControl_;
 };
 
 #endif // WHITECANVASWIDGET_H

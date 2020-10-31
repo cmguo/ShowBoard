@@ -27,6 +27,7 @@ WhiteCanvasWidget * WhiteCanvasWidget::mainInstance()
 WhiteCanvasWidget::WhiteCanvasWidget(QWidget *parent)
     : QGraphicsView(parent)
     , sceneSize_(QApplication::primaryScreen()->geometry().size())
+    , shotcutControl_(nullptr)
 {
     QRectF rect(QPointF(0, 0), sceneSize_);
     rect.moveCenter({0, 0});
@@ -105,6 +106,7 @@ WhiteCanvasWidget::WhiteCanvasWidget(WhiteCanvasWidget *mainView, QWidget *paren
     : QGraphicsView(mainView->scene_, parent)
     , scene_(mainView->scene_)
     , canvas_(mainView->canvas_)
+    , shotcutControl_(nullptr)
 {
     setStyleSheet("border: 0px;");
     setAttribute(Qt::WA_AcceptDrops);
@@ -167,6 +169,15 @@ bool WhiteCanvasWidget::eventFilter(QObject *watched, QEvent *event)
     return false;
 }
 
+void WhiteCanvasWidget::keyReleaseEvent(QKeyEvent *event)
+{
+    if (!event->isAutoRepeat() && shotcutControl_) {
+        shotcutControl_->adjustEnd(Control::Keyboard);
+        shotcutControl_ = nullptr;
+    }
+    QGraphicsView::keyReleaseEvent(event);
+}
+
 void WhiteCanvasWidget::onPageChanged(ResourcePage *page)
 {
     bool oldLarge = canvas_->page() && canvas_->page()->isLargePage();
@@ -178,6 +189,18 @@ void WhiteCanvasWidget::onPageChanged(ResourcePage *page)
     scene_->setSceneRect(rect);
     setTransform(newLarge ? QTransform()
                           : QTransform::fromScale(width() / scene_->width(), height() / scene_->height()));
+}
+
+bool WhiteCanvasWidget::onShotcut(Control *control)
+{
+    if (shotcutControl_ == control)
+        return true;
+    if (shotcutControl_)
+        return false;
+    //setFocus();
+    shotcutControl_ = control;
+    control->adjustStart(Control::Keyboard);
+    return true;
 }
 
 ResourcePackage * WhiteCanvasWidget::package()
@@ -233,7 +256,9 @@ void WhiteCanvasWidget::moveSelection()
 {
     Control * c = canvas_->selected();
     qreal delta = 10;
-    //if (!c) { c = Control::fromItem(canvas_); delta = -20; }
+#ifdef QT_DEBUG
+    if (!c) { c = Control::fromItem(canvas_); delta = -20; }
+#endif
     QPointF d;
     if (c && c->flags().testFlag(Control::CanMove)) {
         QShortcut* s = qobject_cast<QShortcut*>(sender());
@@ -246,7 +271,8 @@ void WhiteCanvasWidget::moveSelection()
         } else if (s->key().matches(Qt::Key_Down)) {
             d.setY(delta);
         }
-        c->move(d);
+        if (onShotcut(c))
+            c->move(d);
     }
     if (d.isNull()) {
         switchPage();
@@ -276,7 +302,8 @@ void WhiteCanvasWidget::scaleSelection()
     } else {
         t.setWidth(1);
     }
-    c->scale(t, d);
+    if (onShotcut(c))
+        c->scale(t, d);
 }
 
 void WhiteCanvasWidget::scaleSelection2()
@@ -294,7 +321,8 @@ void WhiteCanvasWidget::scaleSelection2()
                || s->key().matches(QKeySequence(Qt::Key_Equal | Qt::ControlModifier))) {
         delta = 1.2;
     }
-    c->scale(c->item()->boundingRect().center(), delta);
+    if (onShotcut(c))
+        c->scale(c->item()->boundingRect().center(), delta);
 }
 
 void WhiteCanvasWidget::switchPage()
