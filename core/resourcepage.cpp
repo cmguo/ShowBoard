@@ -469,7 +469,7 @@ ResourceView *ResourcePage::createResource(const QUrl &url, const QVariantMap &s
         QVariant v = settings.value(k);
         int i = rv->metaObject()->indexOfProperty(k);
         if (i >= 0)
-            VariantHelper::convert2(v, rv->metaObject()->property(i).type());
+            VariantHelper::convert2(v, rv->metaObject()->property(i).userType());
         rv->setProperty(k, v);
     }
     return rv;

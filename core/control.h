@@ -23,7 +23,7 @@ class SHOWBOARD_EXPORT Control : public ToolButtonProvider
 {
     Q_OBJECT
 
-    Q_PROPERTY(Flags flags READ flags())
+    Q_PROPERTY(Control::Flags flags READ flags())
     Q_PROPERTY(ResourceView * resource READ resource)
     Q_PROPERTY(QRectF boundRect READ boundRect)
     Q_PROPERTY(QObject* itemObj READ itemObj)
@@ -34,8 +34,8 @@ class SHOWBOARD_EXPORT Control : public ToolButtonProvider
     Q_PROPERTY(bool expandScale READ expandScale WRITE setExpandScale)
     Q_PROPERTY(bool enterAnimate READ enterAnimate WRITE setEnterAnimate)
     Q_PROPERTY(bool selectOnLoaded READ selectOnLoaded WRITE setSelectOnLoaded)
-    Q_PROPERTY(Flags scaleMode READ scaleMode WRITE setScaleMode)
-    Q_PROPERTY(Flags selectMode READ selectMode WRITE setSelectMode)
+    Q_PROPERTY(Control::Flags scaleMode READ scaleMode WRITE setScaleMode)
+    Q_PROPERTY(Control::Flags selectMode READ selectMode WRITE setSelectMode)
 
     Q_PROPERTY(QSizeF sizeHint READ sizeHint WRITE setSizeHint)
     Q_PROPERTY(QSizeF minSize READ minSize WRITE setMinSize)
@@ -74,7 +74,7 @@ public:
     };
 
     Q_DECLARE_FLAGS(Flags, Flag)
-    Q_FLAGS(Flags)
+    Q_FLAG(Flags)
 
     enum SelectMode
     {

@@ -3,6 +3,7 @@
 #include <QMap>
 #include <QSizeF>
 #include <QPointF>
+#include <QMetaEnum>
 
 static QVariant stringToSize(QString const & str)
 {
@@ -39,11 +40,15 @@ bool VariantHelper::convert2(QVariant &v, int type)
         converters[QMetaType::QSizeF] = stringToSize;
         converters[QMetaType::QPointF] = stringToPos;
     }
+    if (v.userType() == type)
+        return true;
     QVariant t = v;
     if (v.canConvert(type) && v.convert(type))
         return true;
     v = t;
-    if (v.userType() != QMetaType::QString
+    // QColor, QEnum can only convert from QString
+    // Qt take QString as Enum names, we must not convert other type like int to QString
+    if (v.userType() == QMetaType::QByteArray
             && !v.convert(QMetaType::QString)) {
         v = t;
         return false;
