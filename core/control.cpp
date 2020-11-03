@@ -645,8 +645,8 @@ void Control::initPosition()
             res_->transform().translate(-frame->padding().center());
         }
         QVariant posHint = res_->property("posHint");
-        VariantHelper::convert2(posHint, QMetaType::QPointF);
         if (!posHint.isNull()) {
+            VariantHelper::convert2(posHint, QMetaType::QPointF);
             QPointF pos = posHint.toPointF();
             QSizeF sz(pos.x(), pos.y());
             adjustSizeHint(sz, rect.size());
@@ -751,8 +751,7 @@ void Control::initScale()
             scale = 1.0;
         else
             size = size * scale * 0.999999;
-        delaySizeHint.clear();
-        setProperty("delaySizeHint", delaySizeHint);
+        setProperty("delaySizeHint", QVariant());
     }
     if (!(flags_ & RestoreSession)) {
         Control * canvasControl = fromItem(whiteCanvas());
@@ -769,7 +768,7 @@ void Control::initScale()
             size /= 2.0;
             scale /= 2.0;
         }
-        if (flags_ & ExpandScale) {
+        if (flags_.testFlag(ExpandScale) && !res_->property("sizeHint").isValid()) {
             while (size.width() * 2.0 < ps.width() && size.height() * 2.0 < ps.height()) {
                 size *= 2.0;
                 scale *= 2.0;
