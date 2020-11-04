@@ -170,6 +170,8 @@ void StateItem::setSvg(QSvgRenderer * renderer)
     bool independent = control->resource()->flags().testFlag(ResourceView::Independent);
     if (independent && state_ == Failed)
         svgIcon->setScale(dp(4.0));
+    else
+        svgIcon->setScale(1.0);
     QRectF rect = svgIcon->mapRectToParent(svgIcon->boundingRect());
     static_cast<QGraphicsRectItem*>(iconItem_)->setRect(rect);
 }
