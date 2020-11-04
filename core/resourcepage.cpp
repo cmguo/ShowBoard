@@ -227,7 +227,7 @@ void ResourcePage::switchSubPage(int nPage)
     RecordMergeScope rs(this, true);
     if (subPages_.size() <= nPage)
         subPages_.resize(nPage + 1);
-    if (subPages_[nPage] == nullptr) {
+    if (nPage >= 0 && subPages_[nPage] == nullptr) {
         ResourcePage * subPage = new ResourcePage(this);
         ResourcePackage * pkg = package();
         if (rs) {
@@ -254,10 +254,10 @@ void ResourcePage::switchSubPage(int nPage)
                    [this, nPage] () { switchSubPage(nPage); }));
     }
     currentSubPage_ = nPage;
-    onSubPageChanged(subPages_[currentSubPage_]);
+    onSubPageChanged(currentSubPage());
     // special, may changed in signal, subsequence receiver will get wrong page, so re-emit
     if (currentSubPage_ != nPage)
-        onSubPageChanged(subPages_[currentSubPage_]);
+        onSubPageChanged(currentSubPage());
 }
 
 ResourcePage *ResourcePage::currentSubPage() const
