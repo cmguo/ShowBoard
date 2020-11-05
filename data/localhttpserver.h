@@ -6,10 +6,13 @@
 #include <QMap>
 #include <QObject>
 #include <QString>
+
+class FileCache;
+
 class QHttpServer;
 class QHttpServerResponse;
 class QHttpServerRequest;
-class FileCache;
+class QWebSocket;
 
 class SHOWBOARD_EXPORT LocalHttpServer : public QObject
 {
@@ -23,9 +26,22 @@ public:
     class SHOWBOARD_EXPORT LocalProgram
     {
     public:
+        LocalProgram() {}
         virtual ~LocalProgram() {}
         virtual QHttpServerResponse handle(QHttpServerRequest const & request);
         virtual QByteArray handle(QUrl const & url, QByteArray const & body) { (void) url; (void) body; return ""; }
+    private:
+        Q_DISABLE_COPY(LocalProgram)
+    };
+
+    class SHOWBOARD_EXPORT LocalWebSocketProgram
+    {
+    public:
+        LocalWebSocketProgram() {}
+        virtual ~LocalWebSocketProgram() {}
+        virtual void handle(QWebSocket * socket) = 0;
+    private:
+        Q_DISABLE_COPY(LocalWebSocketProgram)
     };
 
 public:
@@ -44,6 +60,8 @@ signals:
 
     void addServeProgram(QByteArray const & prefix, LocalProgram * program);
 
+    void addWebSocketProgram(QByteArray const & prefix, LocalWebSocketProgram * program);
+
     void stop();
 
 private:
@@ -55,13 +73,17 @@ private:
 
     void addServeProgram2(QByteArray const & prefix, LocalProgram * program);
 
+    void addWebSocketProgram2(QByteArray const & prefix, LocalWebSocketProgram * program);
+
     void stop2();
 
 private:
     QHttpServer * server_ = nullptr;
     ushort port_ = 0;
+    QMap<QByteArray, LocalWebSocketProgram*> webSocketPrograms_;
 };
 
-Q_DECLARE_METATYPE(LocalHttpServer::LocalProgram)
+Q_DECLARE_METATYPE(LocalHttpServer::LocalProgram*)
+Q_DECLARE_METATYPE(LocalHttpServer::LocalWebSocketProgram*)
 
 #endif // LOCALHTTPSERVER_H

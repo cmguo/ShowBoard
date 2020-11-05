@@ -1,5 +1,5 @@
 QT += widgets network multimediawidgets webenginewidgets \
-    svg quick quickwidgets qml concurrent
+    svg quick quickwidgets qml concurrent websockets
 
 win32 { QT += axcontainer }
 

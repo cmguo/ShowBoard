@@ -32,6 +32,7 @@ LocalHttpServer::LocalHttpServer(QObject * parent)
     connect(this, &LocalHttpServer::addServePath, this, &LocalHttpServer::addServePath2);
     connect(this, &LocalHttpServer::addServeCache, this, &LocalHttpServer::addServeCache2);
     connect(this, &LocalHttpServer::addServeProgram, this, &LocalHttpServer::addServeProgram2);
+    connect(this, &LocalHttpServer::addWebSocketProgram, this, &LocalHttpServer::addWebSocketProgram2);
     connect(this, &LocalHttpServer::stop, this, &LocalHttpServer::stop2);
     //addServePath("/", QDir::currentPath() + "/");
 }
@@ -112,6 +113,23 @@ void LocalHttpServer::addServeProgram2(const QByteArray &prefix, LocalHttpServer
         }
         return response;
     });
+}
+
+void LocalHttpServer::addWebSocketProgram2(const QByteArray &prefix, LocalHttpServer::LocalWebSocketProgram *program)
+{
+    if (webSocketPrograms_.isEmpty()) {
+        connect(server_, &QHttpServer::newWebSocketConnection, this, [this] () {
+            QWebSocket * socket = server_->nextPendingWebSocketConnection();
+            QByteArray path = socket->requestUrl().path().toUtf8();
+            for (QByteArray p : webSocketPrograms_.keys()) {
+                if (path.startsWith(p)) {
+                    webSocketPrograms_[p]->handle(socket);
+                    return;
+                }
+            }
+        });
+    }
+    webSocketPrograms_[prefix] = program;
 }
 
 void LocalHttpServer::start2()
