@@ -13,7 +13,11 @@ extern QComponentContainer & ShowBoard_containter();
 ResourcePackage::ResourcePackage(QObject *parent)
     : QAbstractItemModel(parent)
     , current_(-1)
+#if SHOWBOARD_RECORD_PER_PAGE
+    , records_(new ResourceRecordSet(this, 0))
+#else
     , records_(new ResourceRecordSet(this))
+#endif
 {
     globalPage_ = new ResourcePage(this);
 }

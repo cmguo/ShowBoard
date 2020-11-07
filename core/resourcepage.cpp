@@ -21,9 +21,14 @@ ResourcePage::ResourcePage(const QUrl &mainUrl, QVariantMap const & settings, QO
 ResourcePage::ResourcePage(ResourceView* mainRes, QObject *parent)
     : QAbstractItemModel(parent)
     , canvasView_(nullptr)
+    , records_(nullptr)
     , currentSubPage_(-1)
     , thumbnailVersion_(0)
 {
+#if SHOWBOARD_RECORD_PER_PAGE
+    if (qobject_cast<ResourcePackage*>(parent))
+        records_ = new ResourceRecordSet(this, 20);
+#endif
     if (parent)
         thumbnail_ = ResourcePackage::toolPage()->thumbnail();
     if (mainRes == nullptr)
@@ -32,6 +37,11 @@ ResourcePage::ResourcePage(ResourceView* mainRes, QObject *parent)
     canvasView_ = new ResourceView(mainRes);
     canvasView_->setParent(this);
     addResource(mainRes);
+}
+
+ResourcePage::~ResourcePage()
+{
+    delete records_;
 }
 
 ResourceView * ResourcePage::addResource(QUrl const & url, QVariantMap const & settings)
@@ -309,6 +319,17 @@ void ResourcePage::removeFromPackage()
     ResourcePackage * pkg = qobject_cast<ResourcePackage*>(parent());
     if (pkg)
         pkg->removePage(this);
+}
+
+ResourceRecordSet *ResourcePage::records()
+{
+    if (records_)
+        return records_;
+    ResourcePage * parentPage = qobject_cast<ResourcePage*>(parent());
+    if (parentPage)
+        return parentPage->records();
+    ResourcePackage * parentPackage = qobject_cast<ResourcePackage*>(parent());
+    return parentPackage ? parentPackage->records() : nullptr;
 }
 
 bool ResourcePage::isIndependentPage() const

@@ -381,9 +381,10 @@ void WhiteCanvasWidget::copyPaste()
 void WhiteCanvasWidget::undoRedo()
 {
     QShortcut * s = qobject_cast<QShortcut*>(sender());
+    auto records = canvas()->page() ? canvas()->page()->records() : package()->records();
     if (s->key().matches(QKeySequence::Undo)) {
-       package()->records()->undo();
+        records->undo();
     } else {
-        package()->records()->redo();
+        records->redo();
     }
 }

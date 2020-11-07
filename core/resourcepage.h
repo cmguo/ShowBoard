@@ -9,6 +9,7 @@
 
 class ResourceView;
 class ResourcePackage;
+class ResourceRecordSet;
 
 /*
  * ResourcePage mananges a collection of resources (views)
@@ -26,9 +27,11 @@ class SHOWBOARD_EXPORT ResourcePage : public QAbstractItemModel
 public:
     explicit ResourcePage(QObject *parent = nullptr);
 
-    explicit ResourcePage(QUrl const & mainUrl, QVariantMap const & settings, QObject *parent = nullptr);
+    ResourcePage(QUrl const & mainUrl, QVariantMap const & settings, QObject *parent = nullptr);
 
-    explicit ResourcePage(ResourceView* mainRes, QObject *parent = nullptr);
+    ResourcePage(ResourceView* mainRes, QObject *parent = nullptr);
+
+    virtual ~ResourcePage() override;
 
 public:
     /*
@@ -115,6 +118,8 @@ public:
 
     void removeFromPackage();
 
+    ResourceRecordSet * records();
+
 public:
     bool isIndependentPage() const;
 
@@ -182,6 +187,7 @@ private:
 private:
     ResourceView* canvasView_;
     QList<ResourceView *> resources_;
+    ResourceRecordSet * records_;
     int currentSubPage_;
     QVector<ResourcePage*> subPages_;
     QPixmap thumbnail_;

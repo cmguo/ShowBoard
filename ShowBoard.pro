@@ -36,6 +36,8 @@ SHOWBOARD_RECORD=$$(SHOWBOARD_RECORD)
 equals(SHOWBOARD_RECORD,): SHOWBOARD_RECORD=0
 DEFINES += SHOWBOARD_RECORD=$${SHOWBOARD_RECORD}
 
+DEFINES += SHOWBOARD_RECORD_PER_PAGE=0
+
 include(core/core.pri)
 include(resources/resources.pri)
 include(controls/controls.pri)

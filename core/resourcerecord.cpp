@@ -197,12 +197,12 @@ RecordMergeScope::RecordMergeScope(ResourceRecordSet *set, bool block)
 }
 
 RecordMergeScope::RecordMergeScope(ResourcePackage * pkg, bool block)
-: RecordMergeScope(pkg ? pkg->records() : nullptr, block)
+    : RecordMergeScope(pkg ? pkg->records() : nullptr, block)
 {
 }
 
 RecordMergeScope::RecordMergeScope(ResourcePage *page, bool block)
-    : RecordMergeScope(page ? page->package() : nullptr, block)
+    : RecordMergeScope(page ? page->records() : nullptr, block)
 {
 }
 
