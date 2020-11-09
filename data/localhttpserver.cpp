@@ -104,14 +104,8 @@ void LocalHttpServer::addServeCache2(const QByteArray &prefix, FileCache *cache)
 
 void LocalHttpServer::addServeProgram2(const QByteArray &prefix, LocalHttpServer::LocalProgram *program)
 {
-    server_->route(prefix, [program](QHttpServerRequest const & request) {
-        QHttpServerResponse response = program->handle(request);
-        {
-            response.addHeader("Access-Control-Allow-Origin", "*");
-            response.addHeader("Access-Control-Allow-Methods", "*");
-            response.addHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-        }
-        return response;
+    server_->route(prefix, [program](QHttpServerRequest const & request, QHttpServerResponder &&responder) {
+        program->handle(request, responder);
     });
 }
 
@@ -154,7 +148,18 @@ void LocalHttpServer::stop2()
 }
 
 
-QHttpServerResponse LocalHttpServer::LocalProgram::handle(const QHttpServerRequest & request)
+void LocalHttpServer::LocalProgram::handle(const QHttpServerRequest & request, QHttpServerResponder &responder)
+{
+    QHttpServerResponse response = handle(request);
+    {
+        response.addHeader("Access-Control-Allow-Origin", "*");
+        response.addHeader("Access-Control-Allow-Methods", "*");
+        response.addHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    }
+    response.write(std::move(responder));
+}
+
+QHttpServerResponse LocalHttpServer::LocalProgram::handle(const QHttpServerRequest &request)
 {
     QByteArray body = handle(request.url(), request.body());
     try {
@@ -163,4 +168,21 @@ QHttpServerResponse LocalHttpServer::LocalProgram::handle(const QHttpServerReque
     } catch (...) {
         return QHttpServerResponse(QHttpServerResponse::StatusCode::BadRequest);
     }
+}
+
+LocalHttpServer::HttpStreamResponse::HttpStreamResponse(QByteArray const & mimeType, QHttpServerResponder &responder)
+    : responder_(responder)
+{
+    responder.writeStatusLine(QHttpServerResponse::StatusCode::Ok);
+    if (!mimeType.isNull())
+        responder.writeHeader("Content-Type", mimeType);
+    responder.writeHeader("Transfer-Encoding", "chunked");
+}
+
+void LocalHttpServer::HttpStreamResponse::writeBodyBlock(const QByteArray &block)
+{
+    QByteArray head = QByteArray::number(block.size(), 16) + "\r\n";
+    responder_.writeBody(head);
+    responder_.writeBody(block);
+    responder_.writeBody("\r\n");
 }

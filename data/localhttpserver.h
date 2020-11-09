@@ -12,6 +12,7 @@ class FileCache;
 class QHttpServer;
 class QHttpServerResponse;
 class QHttpServerRequest;
+class QHttpServerResponder;
 class QWebSocket;
 
 class SHOWBOARD_EXPORT LocalHttpServer : public QObject
@@ -23,11 +24,23 @@ public:
 public:
     static LocalHttpServer * instance();
 
+    class SHOWBOARD_EXPORT HttpStreamResponse
+    {
+    public:
+        HttpStreamResponse(QByteArray const & mimeType, QHttpServerResponder &responder);
+    protected:
+        // write null to finish
+        void writeBodyBlock(QByteArray const & block);
+    private:
+        QHttpServerResponder &responder_;
+    };
+
     class SHOWBOARD_EXPORT LocalProgram
     {
     public:
         LocalProgram() {}
         virtual ~LocalProgram() {}
+        virtual void handle(QHttpServerRequest const & request, QHttpServerResponder &responder);
         virtual QHttpServerResponse handle(QHttpServerRequest const & request);
         virtual QByteArray handle(QUrl const & url, QByteArray const & body) { (void) url; (void) body; return ""; }
     private:
