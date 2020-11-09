@@ -56,20 +56,20 @@ template <typename D>
 class DestructRecord : public ResourceRecord
 {
 public:
-    DestructRecord(D d) : d_(d) { }
-    virtual ~DestructRecord() override { d_(undo_); }
+    DestructRecord(bool destroy, D d) : destroy_(destroy), d_(d) { }
+    virtual ~DestructRecord() override { if (destroy_) d_(); }
 public:
-    virtual void undo() override { undo_ = true; }
-    virtual void redo() override { undo_ = false; }
+    virtual void undo() override { destroy_ = !destroy_; }
+    virtual void redo() override { destroy_ = !destroy_; }
 private:
-    bool undo_ = false;
+    bool destroy_ = false;
     D d_;
 };
 
 template <typename D>
-inline DestructRecord<D> * makeDestructRecord(D d)
+inline DestructRecord<D> * makeDestructRecord(bool undo, D d)
 {
-    return new DestructRecord<D>(d);
+    return new DestructRecord<D>(undo, d);
 }
 
 inline ResourceRecord * setRecordInfo(ResourceRecord * record, char const * info)
@@ -83,8 +83,8 @@ inline ResourceRecord * setRecordInfo(ResourceRecord * record, char const * info
 #define SHOWBOARD_CODE_INFO __FUNCTION__ ": " __FILE__ "(" SHOWBOARD_TOSTRING(__LINE__) ")"
 #define MakeFunctionRecord(...) \
     setRecordInfo(makeFunctionRecord(__VA_ARGS__), SHOWBOARD_CODE_INFO)
-#define MakeDestructRecord(...) \
-    setRecordInfo(makeDestructRecord(__VA_ARGS__), SHOWBOARD_CODE_INFO)
+#define MakeDestructRecord(destroy, ...) \
+    setRecordInfo(makeDestructRecord(destroy, __VA_ARGS__), SHOWBOARD_CODE_INFO)
 
 class MergeRecord : public ResourceRecord
 {

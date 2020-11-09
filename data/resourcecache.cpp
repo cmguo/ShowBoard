@@ -116,11 +116,11 @@ void ResourceCacheBase::loadNext()
                     .tapFail([](std::exception & e) {
                 qWarning() << "ResourceCache error:" << workUrl << e.what();
             }).finally([] () {
-                qDebug() << "ResourceCache finish" << workUrl;
+                //qDebug() << "ResourceCache finish" << workUrl;
                 workCache = nullptr;
                 loadNext();
             });
-            qDebug() << "ResourceCache load" << workUrl;
+            //qDebug() << "ResourceCache load" << workUrl;
             return;
         }
     }
