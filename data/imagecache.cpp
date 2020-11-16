@@ -116,7 +116,7 @@ ImageData::ImageData(const QPixmap pixmap, qreal mipmap)
             size /= 2;
         }
         if (size != pixmap.size()) {
-            qDebug() << "ImageData downsize" << pixmap.size() << "->" << size;
+            //qDebug() << "ImageData downsize" << pixmap.size() << "->" << size;
             pixmap_ = pixmap.scaled(size);
         }
     } else {

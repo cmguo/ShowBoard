@@ -12,13 +12,31 @@
 #define SHOWBOARD_RECORD_DUMP 0
 #endif
 
+static bool sEnable = SHOWBOARD_RECORD;
+static bool sEnableDump = SHOWBOARD_RECORD_DUMP;
+
+static void initConfig()
+{
+    static bool inited = false;
+    if (!inited) {
+        QString record = qEnvironmentVariable("SHOWBOARD_RECORD");
+        if (!record.isEmpty())
+            sEnable = sEnableDump = QVariant(record).toBool();
+        QString recordDump = qEnvironmentVariable("SHOWBOARD_RECORD_DUMP");
+        if (!recordDump.isEmpty())
+            sEnableDump = QVariant(record).toBool();
+    }
+}
+
+/* ResourceRecordSet */
+
 ResourceRecordSet::ResourceRecordSet(QObject * parent, int capacity)
     : QObject(parent)
     , capacity_(capacity)
 {
-#if !SHOWBOARD_RECORD
-    capacity_ = 0;
-#endif
+    initConfig();
+    if (!sEnable)
+        capacity_ = 0;
 }
 
 ResourceRecordSet::~ResourceRecordSet()
@@ -125,6 +143,8 @@ void ResourceRecordSet::clear(int keep)
     records_.erase(records_.begin() + keep, records_.end());
 }
 
+/* MergeRecord */
+
 MergeRecord::MergeRecord(QList<ResourceRecord *> const & records)
     : records_(records)
 {
@@ -156,19 +176,18 @@ void MergeRecord::redo()
 
 void ResourceRecord::dump()
 {
-#if SHOWBOARD_RECORD_DUMP
-    qDebug() << info_;
-#endif
+    if (sEnableDump)
+        qDebug() << info_;
 }
 
 void MergeRecord::dump()
 {
-#if SHOWBOARD_RECORD_DUMP
-    for (int i = 0; i < records_.size(); ++i)
-        records_[i]->dump();
-#endif
+    if (sEnableDump)
+        for (int i = 0; i < records_.size(); ++i)
+            records_[i]->dump();
 }
 
+/* RecordMergeScope */
 
 RecordMergeScope::RecordMergeScope(ResourceRecordSet *set, bool block)
     : set_(set)
@@ -210,11 +229,9 @@ RecordMergeScope::~RecordMergeScope()
 
 void RecordMergeScope::add(ResourceRecord *record)
 {
-#if SHOWBOARD_RECORD
-    if (set_)
+    if (sEnable && set_)
         set_->add(record);
     else
-#endif
         delete record;
 }
 
@@ -230,9 +247,5 @@ bool RecordMergeScope::atTop() const
 
 RecordMergeScope::operator bool() const
 {
-#if SHOWBOARD_RECORD
-    return set_ && !set_->inOperation() && !set_->blocked();
-#else
-    return false;
-#endif
+    return sEnable && set_ && !set_->inOperation() && !set_->blocked();
 }

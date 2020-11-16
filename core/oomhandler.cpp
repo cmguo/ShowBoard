@@ -41,7 +41,7 @@ bool OomHandler::isMemoryAvailable(quint64 size)
     if (sizeof(void*) == 4) {
         PROCESS_MEMORY_COUNTERS c;
         BOOL b = ::GetProcessMemoryInfo(::GetCurrentProcess(), &c, sizeof (c));
-        qDebug() << "OomHandler::isMemoryAvailable" << c.WorkingSetSize << size;
+        //qDebug() << "OomHandler::isMemoryAvailable" << c.WorkingSetSize << size;
         if (!b || c.WorkingSetSize + size > 1000 * 1024 * 1024) {
             qWarning() << "OomHandler::isMemoryAvailable" << c.WorkingSetSize << size;
             return false;
@@ -50,8 +50,8 @@ bool OomHandler::isMemoryAvailable(quint64 size)
     MEMORYSTATUSEX s;
     s.dwLength = sizeof (s);
     BOOL b = ::GlobalMemoryStatusEx(&s);
-    qDebug() << "OomHandler::isMemoryAvailable" << s.ullAvailPageFile
-             << s.ullAvailVirtual << size;
+    //qDebug() << "OomHandler::isMemoryAvailable" << s.ullAvailPageFile
+    //         << s.ullAvailVirtual << size;
     if (!b || size > s.ullAvailPageFile || size > s.ullAvailVirtual) {
         qWarning() << "OomHandler::isMemoryAvailable" << s.ullAvailPageFile
                  << s.ullAvailVirtual << size;
