@@ -137,6 +137,7 @@ private:
     QMetaObject const * template_;
     QSize iconSize_;
     bool dragable_;
+    bool requestVisible_;
     //
     QLayout * layout_;
     QMap<QWidget *, ToolButton *> buttons_;

@@ -25,6 +25,7 @@ ToolbarWidget::ToolbarWidget(bool horizontal, QWidget *parent)
     : QFrameEx(parent)
     , template_(nullptr)
     , dragable_(false)
+    , requestVisible_(true)
     , popupPosition_(BottomRight)
     , popUp_(nullptr)
     , provider_(nullptr)
@@ -42,7 +43,7 @@ ToolbarWidget::ToolbarWidget(bool horizontal, QWidget *parent)
         layout_->setSpacing(dp(8));
     }
     setLayout(layout_);
-    hide();
+    QFrameEx::setVisible(false);
 }
 
 ToolbarWidget::~ToolbarWidget()
@@ -130,6 +131,7 @@ QGraphicsItem *ToolbarWidget::toGraphicsProxy(QGraphicsItem * parent, bool cente
 void ToolbarWidget::setToolButtons(QList<ToolButton *> const & buttons)
 {
     setButtons(layout_, buttons, buttons_);
+    QFrameEx::setVisible(requestVisible_ && !buttons.empty());
 }
 
 void ToolbarWidget::updateButton(ToolButton *button)
@@ -152,6 +154,7 @@ void ToolbarWidget::updateToolButtons()
 void ToolbarWidget::showPopupButtons(const QList<ToolButton *> &buttons)
 {
     setButtons(popUp_->layout(), buttons, popupButtons_);
+    popUp_->setVisible(!popupButtons_.isEmpty());
 }
 
 static int row = 0;
@@ -180,7 +183,7 @@ void ToolbarWidget::attachProvider(ToolButtonProvider *provider)
         updateProvider();
     } else {
         clear();
-        setVisible(false);
+        QFrameEx::setVisible(false);
     }
 }
 
@@ -342,7 +345,6 @@ void ToolbarWidget::setButtons(QLayout *layout, const QList<ToolButton *> &butto
     if (proxy) {
         proxy->resize(container->minimumSize());
     }
-    container->setVisible(!buttons.empty());
 }
 
 void ToolbarWidget::clearButtons(QLayout *layout, QMap<QWidget *, ToolButton *> &buttons)
@@ -421,7 +423,6 @@ void ToolbarWidget::buttonClicked(QWidget * widget)
             QPoint pos = btn->mapTo(popUp_->parentWidget(), QPoint(0, btn->height() + 10));
             popUp_->move(pos);
         }
-        popUp_->show();
     } else {
         if (btn) {
             for (QAction* a : btn->actions())
@@ -535,7 +536,9 @@ bool ToolbarWidget::event(QEvent *event)
     return QFrameEx::event(event);
 }
 
-void ToolbarWidget::setVisible(bool visible) {
+void ToolbarWidget::setVisible(bool visible)
+{
+    requestVisible_ = visible;
     visible &= !buttons_.empty();
     QFrame::setVisible(visible);
     if (!visible && popUp_) {
