@@ -10,6 +10,8 @@ class WebView : public QWebEngineView
 public:
     static void sinit();
 
+    static void sinit2();
+
 public:
     WebView(QObject * settings);
 

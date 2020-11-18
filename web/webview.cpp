@@ -32,6 +32,15 @@ void WebView::sinit()
                 " --register-pepper-plugins="
                 "./pepflashplayer.dll;application/x-shockwave-flash";
         qputenv("QTWEBENGINE_CHROMIUM_FLAGS", flags);
+        init = true;
+    }
+}
+
+void WebView::sinit2()
+{
+    static bool init = false;
+    if (!init) {
+        sinit();
         QWebEngineSettings::defaultSettings()->setAttribute(
                     QWebEngineSettings::PluginsEnabled, true);
         QWebEngineSettings::defaultSettings()->setAttribute(
@@ -70,7 +79,7 @@ static void nop_del(WebView*) {}
 WebView::WebView(QObject *settings)
 {
     life_.reset(this, nop_del);
-    sinit();
+    sinit2();
     // make sure that touch events are delivered at all
     setAttribute(Qt::WA_AcceptTouchEvents);
     setAttribute(Qt::WA_TranslucentBackground);
