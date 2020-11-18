@@ -52,10 +52,10 @@ void WordControl::open()
             return;
         res_->setProperty("localUrl", url);
         open(url);
-    }).fail([this, life](std::exception & e) {
+    }, [this, life](std::exception &) {
         if (life.isNull())
             return;
-        loadFinished(false, e.what());
+        loadFailed();
     });
 }
 

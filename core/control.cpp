@@ -242,7 +242,7 @@ void Control::attachTo(ControlView * parent, ControlView * before)
 #ifdef PROD_TEST
     setParent(whiteCanvas()); // for testbed
 #endif
-    whiteCanvas()->onControlLoad(true);
+    whiteCanvas()->onControlLoading(this, true);
     attached();
     if (res_->flags().testFlag(ResourceView::Independent))
         canvasControl->attachSubProvider(this);
@@ -265,7 +265,7 @@ void Control::detachFrom(ControlView *parent, ControlView *)
         fromItem(whiteCanvas())->attachSubProvider(nullptr);
     detaching();
     if (flags_ & Loading)
-        whiteCanvas()->onControlLoad(false);
+        whiteCanvas()->onControlLoading(this, false);
     if (flags_ & LoadFinished)
         saveSettings();
     (void) parent;
@@ -685,7 +685,7 @@ void Control::initPosition()
     res_->transform().translate(pos);
 }
 
-void Control::loadFinished(bool ok, QString const & iconOrMsg)
+void Control::loadFinished2(bool ok, QString const & iconOrMsg)
 {
     if (ok) {
         if (iconOrMsg.isNull()) {
@@ -720,7 +720,25 @@ void Control::loadFinished(bool ok, QString const & iconOrMsg)
             whiteCanvas()->selector()->select(this);
     }
     flags_ &= ~Loading;
-    whiteCanvas()->onControlLoad(false);
+    whiteCanvas()->onControlLoading(this, false);
+}
+
+void Control::loadFinished(bool ok, const QString &iconOrMsg)
+{
+    loadFinished2(ok, iconOrMsg);
+    if (!ok)
+        whiteCanvas()->onControlLoadFailed(
+                    this, std::make_exception_ptr(std::runtime_error(iconOrMsg.toUtf8())));
+}
+
+void Control::loadFailed()
+{
+    try {
+        throw;
+    } catch (std::exception & e) {
+        loadFinished2(false, e.what());
+    }
+    whiteCanvas()->onControlLoadFailed(this, std::current_exception());
 }
 
 void Control::initScale()
@@ -1021,9 +1039,9 @@ void Control::loadStream()
         if (l.isNull()) return;
         onStream(stream.get());
         loadFinished(true);
-    }).fail([this, l](std::exception& e) {
+    }, [this, l](std::exception &) {
         if (l.isNull()) return;
-        loadFinished(false, e.what());
+        loadFailed();
     });
 }
 
@@ -1034,9 +1052,9 @@ void Control::loadData()
         if (l.isNull()) return;
         onData(data);
         loadFinished(true);
-    }).fail([this, l](std::exception& e) {
+    }, [this, l](std::exception &) {
         if (l.isNull()) return;
-        loadFinished(false, e.what());
+        loadFailed();
     });
 }
 
@@ -1047,9 +1065,9 @@ void Control::loadText()
         if (l.isNull()) return;
         onText(text);
         loadFinished(true);
-    }).fail([this, l](std::exception& e) {
+    }, [this, l](std::exception &) {
         if (l.isNull()) return;
-        loadFinished(false, e.what());
+        loadFailed();
     });
 }
 
@@ -1059,7 +1077,7 @@ void Control::reload()
     if (!(flags_ & LoadFinished)) {
         flags_ |= Loading;
         stateItem()->setLoading();
-        whiteCanvas()->onControlLoad(true);
+        whiteCanvas()->onControlLoading(this, true);
         attached(); // reload
     }
 }

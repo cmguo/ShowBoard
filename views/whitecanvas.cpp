@@ -462,14 +462,20 @@ bool WhiteCanvas::loading()
     return loadingCount_;
 }
 
-void WhiteCanvas::onControlLoad(bool startOrFinished)
+void WhiteCanvas::onControlLoading(Control * control, bool startOrFinished)
 {
+    emit controlLoading(control, startOrFinished);
     if (startOrFinished) {
         if (++loadingCount_ == 1)
             emit loadingChanged(true);
     } else if (--loadingCount_ == 0) {
         emit loadingChanged(false);
     }
+}
+
+void WhiteCanvas::onControlLoadFailed(Control *control, std::exception_ptr exception)
+{
+    emit controlFailed(control, exception);
 }
 
 void WhiteCanvas::setGeometry(QRectF const & rect)

@@ -38,6 +38,10 @@ public:
 signals:
     void loadingChanged(bool loading);
 
+    void controlLoading(Control * control, bool loading);
+
+    void controlFailed(Control * control, std::exception_ptr exception);
+
     // include sub page
     void currentPageChanged(ResourcePage* page);
 
@@ -160,7 +164,9 @@ public:
 
     bool loading();
 
-    void onControlLoad(bool startOrFinished);
+    void onControlLoading(Control * control, bool startOrFinished);
+
+    void onControlLoadFailed(Control * control, std::exception_ptr exception);
 
 public:
     /*
@@ -195,5 +201,7 @@ private:
     int loadingCount_;
     int lastPage_;
 };
+
+Q_DECLARE_METATYPE(std::exception_ptr)
 
 #endif // WHITECANVAS_H

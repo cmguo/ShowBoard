@@ -327,6 +327,9 @@ protected:
      */
     void loadFinished(bool ok, QString const & iconOrMsg = QString());
 
+    // can only be called from catch block
+    void loadFailed();
+
     void initScale();
 
     /*
@@ -383,6 +386,8 @@ protected:
     virtual bool handleToolButton(ToolButton *button, const QStringList &args) override;
 
 private:
+    void loadFinished2(bool ok, QString const & iconOrMsg);
+
     Q_DISABLE_COPY(Control)
 
 protected:

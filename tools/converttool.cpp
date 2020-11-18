@@ -51,9 +51,9 @@ void ConvertTool::attached()
     res_->resource()->getLocalUrl().then([l, this] (QUrl url) {
         if (!l.isNull())
             convert(url);
-    }, [l, this] (std::exception & e) {
+    }, [l, this] (std::exception &) {
         if (!l.isNull()) {
-            loadFinished(false, e.what());
+            loadFailed();
             startTimer(3000);
         }
     });

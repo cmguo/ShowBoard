@@ -63,9 +63,9 @@ void ImageControl::attached()
         if (l.isNull()) return;
         data_ = data;
         adjustMipmap2(whiteCanvas()->rect().size());
-    }, [this, l = life()](std::exception & e) {
+    }, [this, l = life()](std::exception &) {
         if (l.isNull()) return;
-        loadFinished(false, e.what());
+        loadFailed();
     });
 }
 
