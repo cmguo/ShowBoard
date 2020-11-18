@@ -1,4 +1,4 @@
-#include "whitecanvaswidget.h"
+﻿#include "whitecanvaswidget.h"
 #include "whitecanvas.h"
 #include "core/resourcepackage.h"
 #include "core/resourcepage.h"
@@ -17,7 +17,7 @@
 #include <QMimeData>
 #include <QClipboard>
 
-static WhiteCanvasWidget * mainInstance_;
+static WhiteCanvasWidget * mainInstance_ = nullptr;
 
 WhiteCanvasWidget * WhiteCanvasWidget::mainInstance()
 {
@@ -98,8 +98,8 @@ WhiteCanvasWidget::WhiteCanvasWidget(QWidget *parent)
     //for (auto s : findChildren<QShortcut*>()) {
     //    s->setContext(Qt::WidgetShortcut);
     //}
-
-    mainInstance_ = this;
+    if(!mainInstance_)
+       mainInstance_ = this;
 }
 
 WhiteCanvasWidget::WhiteCanvasWidget(WhiteCanvasWidget *mainView, QWidget *parent)
@@ -118,7 +118,8 @@ WhiteCanvasWidget::WhiteCanvasWidget(WhiteCanvasWidget *mainView, QWidget *paren
 
 WhiteCanvasWidget::~WhiteCanvasWidget()
 {
-    mainInstance_ = nullptr;
+    if(this == mainInstance_)
+        mainInstance_ = nullptr;
     delete canvas_;
     canvas_ = nullptr;
     delete scene_;

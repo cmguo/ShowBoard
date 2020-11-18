@@ -1,18 +1,17 @@
-#include "videocontrol.h"
+﻿#include "videocontrol.h"
 #include "core/resourceview.h"
 #include "core/resource.h"
 #include "core/optiontoolbuttons.h"
+#include "media/mediaplayer.h"
 
 #include <core/resourcepackage.h>
 #include <core/resourcepage.h>
 #include <core/toolbutton.h>
+#include <media/avmediaplayer.h>
 #include <views/whitecanvas.h>
 #include <views/whitecanvaswidget.h>
 
-#include <QGraphicsVideoItem>
-#include <QMediaPlayer>
 #include <QMediaService>
-#include <QVideoRendererControl>
 #include <QWindow>
 
 static constexpr char const * toolstr =
@@ -23,56 +22,55 @@ static constexpr char const * toolstr =
         "stop()|停止|;";
 
 VideoControl::VideoControl(ResourceView * res)
-    : Control(res, {KeepAspectRatio, LayoutScale, Touchable, FixedOnCanvas})
+    : WidgetControl(res, {WithSelectBar, ExpandScale, LayoutScale, Touchable, FixedOnCanvas}, {CanRotate})
     , player_(nullptr)
-    , fullscreen_(nullptr)
+    , fullScreenWidget_(nullptr)
 {
-    setToolsString(toolstr);
+    //setToolsString(toolstr);
+
 }
 
-qreal VideoControl::playRate() const
+VideoControl::~VideoControl()
 {
-    return player_->playbackRate();
+    if(fullScreenWidget_)
+        delete fullScreenWidget_;
 }
 
-void VideoControl::setPlayRate(qreal v)
+bool VideoControl::isFullScreen() const
 {
-    player_->setPlaybackRate(v);
+    return flags_.testFlag(FullLayout);
 }
 
-void VideoControl::play()
+
+QObject *VideoControl::mediaPlayer() const
 {
-    if (player_->state() != QMediaPlayer::PlayingState)
-        player_->play();
-    else
-        player_->pause();
+    return player_;
 }
 
-void VideoControl::seek()
+void VideoControl::fullScreen(bool)
 {
-    player_->setPosition(player_->position() + 10000);
-}
-
-void VideoControl::fullScreen()
-{
-    if (player_->parent() != this) {
-        QTimer::singleShot(0, this, [this] () {
-            VideoControl * another = qobject_cast<VideoControl*>(player_->parent());
-            res_->page()->removeFromPackage();
-            another->fullscreen_->hide();
-        });
+    if(!flags_.testFlag(LoadFinished))
         return;
-    }
-    WhiteCanvasWidget * widget = qobject_cast<WhiteCanvasWidget*>(fullscreen_);
+    if (player_->parent() != this) {
+          QTimer::singleShot(0, this, [this] () {
+              VideoControl * another = qobject_cast<VideoControl*>(player_->parent());
+              ResourcePackage *pkgage =  qobject_cast<WhiteCanvasWidget*>(another->fullScreenWidget_)->package();
+              pkgage->removePage(res_->page());
+              another->fullScreenWidget_->hide();
+          });
+          return;
+      }
+    WhiteCanvasWidget * widget = qobject_cast<WhiteCanvasWidget*>(fullScreenWidget_);
     if (widget == nullptr) {
         widget = new WhiteCanvasWidget();
         widget->setAttribute(Qt::WA_NativeWindow);
         widget->windowHandle()->setSurfaceType(QSurface::RasterSurface);
         widget->setResourcePackage(new ResourcePackage(widget));
         widget->scene()->setBackgroundBrush(Qt::black);
-        fullscreen_ = widget;
+        fullScreenWidget_ = widget;
     }
     widget->show();
+
     widget->package()->newPage(QUrl("video:full"), {
                                    {"pageMode", ResourceView::Independent},
                                    {"deletable", false},
@@ -81,84 +79,38 @@ void VideoControl::fullScreen()
                                });
 }
 
-void VideoControl::stop()
-{
-    player_->stop();
-}
 
-ControlView *VideoControl::create(ControlView *)
+QWidget *VideoControl::createWidget(ControlView *parent)
 {
-    QGraphicsVideoItem * item = new QGraphicsVideoItem();
-    item->setAspectRatioMode(Qt::KeepAspectRatio);
-    item->setCursor(Qt::SizeAllCursor);
-    return item;
+    Q_UNUSED(parent)
+    player_ = res_->property("player").value<MediaPlayer*>();
+    if(!player_){
+      player_ = new AVMediaPlayer(this);
+      player_->setUrl(res_->resource()->url().toString());
+    }
+    QWidget * vo = player_->createRenderer();
+    connect(vo,&QObject::destroyed,this,[this](){
+        widget_ = nullptr;
+    });
+    return vo;
 }
 
 void VideoControl::attached()
 {
-    QGraphicsVideoItem * item = static_cast<QGraphicsVideoItem *>(item_);
-    QObject::connect(item, &QGraphicsVideoItem::nativeSizeChanged,
-                     this, [this](QSizeF const & size) {
-        if (!flags_.testFlag(FullLayout))
-            resize(size);
-        loadFinished(true);
-        sender()->disconnect(this);
-        player_->play();
-        player_->pause();
-    });
-    player_ = res_->property("player").value<QMediaPlayer*>();
-    if (player_ == nullptr) {
-        QMediaPlayer * player = new QMediaPlayer(this);
-        player->setMedia(res_->resource()->url());
-        player->setVolume(50);
-        player->setPlaybackRate(1);
-        player_ = player;
-    }
-    player_->setVideoOutput(item);
-    QObject::connect(player_, &QMediaPlayer::stateChanged, this, [this] () {
-        raiseButtonsChanged();
-    });
-    QObject::connect(player_, &QMediaPlayer::videoAvailableChanged, this, [this] (bool available) {
-        if (!available && flags_.testFlag(Loading)) {
-            resize({100, 100});
-            loadFinished(true);
-        }
-    });
+    loadFinished(true);
+    player_->showNextFrame();
+    if(!flags_.testFlag(FullLayout))
+      player_->setProperty("position",res_->property("position"));
 }
 
 void VideoControl::detached()
-{
-    if (player_->parent() == this) {
-        player_->stop();
-#if QT_VERSION >= 0x050F00 // 5.15.0
-        player_->setVideoOutput(static_cast<QGraphicsVideoItem*>(nullptr));
-#endif
-        delete player_;
-        delete fullscreen_;
-    } else {
-        player_->disconnect(this);
-        VideoControl * another = qobject_cast<VideoControl*>(player_->parent());
-        player_->setVideoOutput(static_cast<QGraphicsVideoItem*>(another->item_));
-    }
-    player_ = nullptr;
+{   
+    res_->setProperty("position",player_->property("position"));
+    player_->removeRenderer(widget_);
+    if(flags_.testFlag(FullLayout)) return;
+       player_->pause();
 }
 
-void VideoControl::resize(const QSizeF &size)
-{
-    QGraphicsVideoItem * item = static_cast<QGraphicsVideoItem *>(item_);
-    item->setSize(size);
-    item->setOffset({size.width() / -2.0, size.height() / -2.0});
-}
-
-void VideoControl::updateToolButton(ToolButton *button)
-{
-    if (button->name() == "play()") {
-        bool playing = player_->state() == QMediaPlayer::PlayingState;
-        button->setChecked(playing);
-        button->setText(playing ? "暂停" : "播放");
-    }
-    Control::updateToolButton(button);
-}
 
 class PlayRateOptionButtons : public OptionToolButtons
 {
@@ -178,4 +130,3 @@ protected:
 static PlayRateOptionButtons playRateButtons;
 
 REGISTER_OPTION_BUTTONS(VideoControl, playRate, playRateButtons)
-

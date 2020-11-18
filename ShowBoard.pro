@@ -47,6 +47,7 @@ include(data/data.pri)
 include(web/web.pri)
 include(graphics/graphics.pri)
 include(quick/quick.pri)
+include(media/media.pri)
 
 win32 {
     include(office/office.pri)
@@ -103,6 +104,11 @@ else:unix: LIBS += -L$$OUT_PWD/../QtHttpServer/lib -lQt5HttpServer
 
 INCLUDEPATH += $$OUT_PWD/../QtHttpServer/include
 DEPENDPATH += $$PWD/../qthttpserver/src/httpserver
+
+win32:CONFIG(release, debug|release): LIBS += -lQtAV1 -lQtAVWidgets1
+else:win32:CONFIG(debug, debug|release): LIBS += -lQtAVd1 -lQtAVWidgetsd1
+
+INCLUDEPATH += $$OUT_PWD/../QtAV/include/
 
 win32:CONFIG(debug, debug|release): {
     LIBS += -lGdiplus

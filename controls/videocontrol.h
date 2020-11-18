@@ -1,47 +1,40 @@
-#ifndef VIDEOCONTROL_H
+﻿#ifndef VIDEOCONTROL_H
 #define VIDEOCONTROL_H
 
 #include "core/control.h"
 
-class QMediaPlayer;
+#include "widgetcontrol.h"
 
-class VideoControl : public Control
+class MediaPlayer;
+class SHOWBOARD_EXPORT VideoControl : public WidgetControl
 {
     Q_OBJECT
-
-    Q_PROPERTY(qreal playRate READ playRate WRITE setPlayRate)
+    Q_PROPERTY(bool fullScreen READ isFullScreen WRITE fullScreen)
 
 public:
     Q_INVOKABLE VideoControl(ResourceView *res);
 
-public:
-    qreal playRate() const;
+    virtual ~VideoControl();
 
-    void setPlayRate(qreal v);
+    bool isFullScreen() const;
+
+    QObject *mediaPlayer() const;
 
 public slots:
-    void play();
 
-    void seek();
-
-    void fullScreen();
-
-    void stop();
+    void fullScreen(bool);
 
 protected:
-    virtual ControlView * create(ControlView * parent) override;
+
+    virtual QWidget * createWidget(ControlView * parent) override;
 
     virtual void attached() override;
 
     virtual void detached() override;
 
-    virtual void resize(const QSizeF &size) override;
-
-    virtual void updateToolButton(ToolButton * button) override;
-
 private:
-    QMediaPlayer * player_;
-    QWidget * fullscreen_;
+    MediaPlayer * player_;
+    QWidget * fullScreenWidget_;
 };
 
 #endif // VIDEOCONTROL_H
