@@ -72,6 +72,7 @@ static ToolButton btnCopy = { "copy", "复制", ToolButton::Static, ":/showboard
 static ToolButton btnFastCopy = { "copy", "快速复制",
                                     ToolButton::Flags{ToolButton::Static, ToolButton::Checkable},
                                     ":/showboard/icon/copy.svg" };
+static ToolButton btnRotate = { "rotate", "旋转", ToolButton::Static, ":/showboard/icon/rotate.svg" };
 static ToolButton btnDelete = { "delete", "删除", ToolButton::Static, ":/showboard/icon/delete.svg" };
 
 Control::Control(ResourceView *res, Flags flags, Flags clearFlags)
@@ -1135,6 +1136,8 @@ void Control::getToolButtons(QList<ToolButton *> &buttons, ToolButton * parent)
             buttons.append(&btnCopy);
         if (res_->flags().testFlag(ResourceView::CanFastCopy))
             buttons.append(&btnFastCopy);
+        if (flags_.testFlag(CanRotate))
+            buttons.append(&btnRotate);
         if (res_->flags() & ResourceView::CanDelete)
             buttons.append(&btnDelete);
         if (buttons.endsWith(&ToolButton::SPLITTER))
@@ -1155,6 +1158,9 @@ bool Control::handleToolButton(ToolButton *btn, const QStringList &args)
         bool checked = !btn->isChecked();
         whiteCanvas()->selector()->enableFastClone(checked);
         btn->setChecked(checked);
+    } else if (btn == &btnRotate) {
+        qreal angle = -90;
+        res_->transform().rotate(angle);
     } else if (btn == &btnDelete) {
         res_->removeFromPage();
     } else {

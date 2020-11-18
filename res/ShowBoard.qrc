@@ -38,5 +38,6 @@
         <file>qss/canvastoolbar.qss</file>
         <file>icon/drag.svg</file>
         <file>icon/cursor-rotate.png</file>
+        <file>icon/rotate.svg</file>
     </qresource>
 </RCC>
