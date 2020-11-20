@@ -68,7 +68,10 @@ public:
 public:
     WebPage(QObject * parent, QObject *settings);
 protected:
-    QWebEnginePage *createWindow(WebWindowType);
+    virtual QWebEnginePage *createWindow(WebWindowType) override;
+    virtual void javaScriptAlert(const QUrl &, const QString &) override {}
+    virtual bool javaScriptConfirm(const QUrl &, const QString &) override { return false; }
+    virtual bool javaScriptPrompt(const QUrl &, const QString &, const QString &, QString *) override { return false; }
 
 private:
     NewPageMode mode_;

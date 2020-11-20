@@ -5,14 +5,14 @@
         <file>icon/play.press.svg</file>
         <file>icon/error.unknown.svg</file>
         <file>icon/stop.press.svg</file>
-        <file>html/video.htm</file>
+        <file>html/video.html</file>
         <file>icon/close.svg</file>
         <file>icon/copy.svg</file>
         <file>icon/delete.svg</file>
         <file>icon/edit.svg</file>
         <file>icon/erase.svg</file>
         <file>qml/WhiteCanvas.qml</file>
-        <file>html/embed.htm</file>
+        <file>html/embed.html</file>
         <file>icon/top.svg</file>
         <file>icon/return.png</file>
         <file>qss/toolbar.qss</file>
