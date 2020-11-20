@@ -1,57 +1,52 @@
 ﻿#include "avmediaplayer.h"
 
 #include <QtAVWidgets/WidgetRenderer.h>
+#include <QDebug>
+#include <QTimer>
 
 #define PRE_CAPTURE_ENABLE 0
 
 using namespace QtAV;
 
-AVMediaPlayer::AVMediaPlayer(QObject *parent):MediaPlayer(parent)
+AVMediaPlayer::AVMediaPlayer(QObject *parent):AVPlayer(parent)
+  ,volume_(1.0)
+  ,mute_(false)
+  ,autoPlay_(false)
+  ,preparedState_(false)
+  ,loaded_(false)
   ,preview_(nullptr)
 {
-    player_= new AVPlayer(parent);
-    player_->setBufferMode(BufferMode::BufferPackets);
-    connect(player_,&AVPlayer::stateChanged,this,&AVMediaPlayer::playingChanged);
-    connect(player_,&AVPlayer::bufferProgressChanged,this,&AVMediaPlayer::bufferProgressChanged);
-    connect(player_,&AVPlayer::sourceChanged,this,&AVMediaPlayer::sourceChanged);
-    connect(player_,&AVPlayer::durationChanged,this,&AVMediaPlayer::durationChanged);
-    connect(player_,&AVPlayer::speedChanged,this,&AVMediaPlayer::speedChanged);
-    connect(player_,&AVPlayer::positionChanged,this,&AVMediaPlayer::positionChanged);
+    setAsyncLoad(true);
+    setAutoLoad(true);
+    setBufferMode(BufferMode::BufferPackets);
+    connect(this,&AVPlayer::stateChanged,this,&AVMediaPlayer::videoStateChanged);
+    connect(this,&AVPlayer::stopped,this,&AVMediaPlayer::videoStateChanged);
+    connect(this,&AVPlayer::started,this,&AVMediaPlayer::videoStateChanged);
+    connect(this,&AVPlayer::paused,this,&AVMediaPlayer::videoStateChanged);
+    connect(this,&AVPlayer::mediaStatusChanged,this,&AVMediaPlayer::videoStateChanged);
 
-    connect(player_,&AVPlayer::stopped,this,&AVMediaPlayer::playingChanged);
-    connect(player_,&AVPlayer::started,this,&AVMediaPlayer::playingChanged);
-    connect(player_,&AVPlayer::paused,this,&AVMediaPlayer::playingChanged);
-    connect(player_,&AVPlayer::mediaStatusChanged,this,&AVMediaPlayer::loadingChange);
-
-    connect(player_->audio(), &AudioOutput::volumeChanged,this,&AVMediaPlayer::applyVolume, Qt::DirectConnection);
-    connect(player_->audio(), &AudioOutput::muteChanged, this,&AVMediaPlayer::applyVolume, Qt::DirectConnection);
-    connect(player_,&AVPlayer::started,this,&AVMediaPlayer::applyVolume);
+    connect(audio(), &AudioOutput::volumeChanged,this,&AVMediaPlayer::applyVolume, Qt::DirectConnection);
+    connect(audio(), &AudioOutput::muteChanged, this,&AVMediaPlayer::applyVolume, Qt::DirectConnection);
+    connect(this,&AVPlayer::started,this,&AVMediaPlayer::applyVolume);
+    connect(this,&AVPlayer::started,this,[this](){ preparedState_ = false;});
+    connect(this,&AVPlayer::loaded,this,[this](){
+        if(loaded_)
+            return;
+        loaded_ = true;
+        preparedState_ = true;
+        emit videoSizeChanged();
+        emit videoStateChanged();
+    });
 }
 
 AVMediaPlayer::~AVMediaPlayer()
 {
-
-    if(preview_)
-        delete preview_;
+    stop();
 }
-
-void AVMediaPlayer::togglePlayPause()
-{
-    if(player_->isPlaying()){
-        player_->pause(!player_->isPaused());
-    }else {
-        player_->play();
-    }
-}
-
-void AVMediaPlayer::seek(qint64 value)
-{
-    player_->seek(value);
-}
-
+#if PRE_CAPTURE_ENABLE
 void AVMediaPlayer::onTimeSliderHover(int pos, int value)
 {
-#if PRE_CAPTURE_ENABLE
+
     QToolTip::showText(QPoint(pos, 0), QTime(0, 0, 0).addMSecs(value).toString(QString::fromLatin1("HH:mm:ss")));
     int w = 240;
     int h=135;
@@ -66,12 +61,12 @@ void AVMediaPlayer::onTimeSliderHover(int pos, int value)
     preview_->setTimestamp(value);
     preview_->preview();
     preview_->show();
-#endif
+
 }
+
 
 void AVMediaPlayer::onTimeSliderLeave()
 {
-#if PRE_CAPTURE_ENABLE
     if (!preview_)
     {
         return;
@@ -80,34 +75,8 @@ void AVMediaPlayer::onTimeSliderLeave()
     {
         preview_->hide();
     }
+}
 #endif
-}
-
-qint64 AVMediaPlayer::position() const
-{
-    return player_->position();
-}
-
-void AVMediaPlayer::setPosition(qint64 pos)
-{
-    player_->setPosition(pos);
-}
-
-
-qreal AVMediaPlayer::bufferProgress()const
-{
-    return player_->bufferProgress();
-}
-
-qint64 AVMediaPlayer::duration() const
-{
-    return player_->duration();
-}
-
-bool AVMediaPlayer::isPlaying() const
-{
-    return player_->isPlaying()?!player_->isPaused():false;
-}
 
 
 qreal AVMediaPlayer::volume() const
@@ -142,47 +111,80 @@ void AVMediaPlayer::setMuted(bool m)
     applyVolume();
 }
 
-bool AVMediaPlayer::isLoading() const
+QString AVMediaPlayer::source() const
 {
-    return player_->mediaStatus() == MediaStatus::BufferingMedia;
+    return file();
 }
 
-void AVMediaPlayer::showNextFrame()
+void AVMediaPlayer::setSource(const QString source)
 {
-    if(player_->isPlaying()){
-        //todo 展示解决暂停 setoutput时黑屏问题
-        player_->pause(!player_->isPaused());
-        player_->pause(!player_->isPaused());
-    }else {
-        player_->play();
+    setFile(source);
+    load();
+}
+
+QWidget *AVMediaPlayer::surfaceView()
+{
+    return static_cast<WidgetRenderer *>(renderer());
+}
+
+void AVMediaPlayer::setSurfaceView(QWidget * render)
+{
+    WidgetRenderer * widgetRender =static_cast<WidgetRenderer *>(render) ;
+    setRenderer(widgetRender);
+
+}
+
+MediaPlayer::State AVMediaPlayer::videoState() const
+{
+    if(mediaStatus() == MediaStatus::BufferingMedia)
+        return MediaPlayer::State::LoadingState;
+    if(preparedState_)
+        return MediaPlayer::State::PreparedState;
+    if(isPlaying() && !isPaused())
+        return MediaPlayer::State::PlayingState;
+    if(isPlaying() && isPaused())
+        return MediaPlayer::State::PausedState;
+    if(state() == QtAV::AVPlayer::State::StoppedState)
+        return MediaPlayer::State::StoppedState;
+    return MediaPlayer::UnknownStatus;
+}
+
+void AVMediaPlayer::setVideoState(MediaPlayer::State state)
+{
+    switch (state) {
+    case MediaPlayer::State::PausedState:
+        pause(true);
+        break;
+    case MediaPlayer::State::StoppedState:
+        stop();
+        break;
+    case MediaPlayer::State::PlayingState:
+        isPlaying()?pause(false):play();
+        break;
+    default:
+        break;
     }
 }
 
-void AVMediaPlayer::setUrl(QString url)
+QSizeF AVMediaPlayer::videoSize() const
 {
-    player_->setFile(url);
+    return QSizeF(statistics().video_only.width,statistics().video_only.height);
 }
 
-QWidget *AVMediaPlayer::createRenderer()
+bool AVMediaPlayer::autoPlay() const
 {
-    WidgetRenderer *vo = new WidgetRenderer();
-    player_->addVideoRenderer(vo);
-    return vo;
+    return autoPlay_;
 }
 
-void AVMediaPlayer::removeRenderer(QWidget * widget)
+void AVMediaPlayer::setAutoPlay(bool autoPlay)
 {
-    player_->removeVideoRenderer(static_cast<WidgetRenderer*>(widget));
-}
-
-void AVMediaPlayer::pause()
-{
-    player_->pause(true);
+    autoPlay_ = autoPlay;
+    emit autoPlayChanged();
 }
 
 void AVMediaPlayer::applyVolume()
 {
-    AudioOutput *ao = player_->audio();
+    AudioOutput *ao = audio();
     if (!ao || !ao->isAvailable())
         return;
     if (!sender() || qobject_cast<AudioOutput*>(sender()) != ao) {

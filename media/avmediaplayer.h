@@ -2,45 +2,27 @@
 #define AVMEDIAPLAYER_H
 
 #include "mediaplayer.h"
-
 #include <QtAV/AVPlayer.h>
-
 #include <QtAVWidgets/VideoPreviewWidget.h>
 
 using namespace QtAV;
 
-class AVMediaPlayer : public MediaPlayer
+class AVMediaPlayer : public AVPlayer
 {
     Q_OBJECT
-    Q_PROPERTY(qint64 buffered READ bufferProgress NOTIFY bufferProgressChanged)
-    Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
-    Q_PROPERTY(qint64 position READ position WRITE setPosition NOTIFY positionChanged)
-    Q_PROPERTY(bool playing READ isPlaying NOTIFY playingChanged)
+
     Q_PROPERTY(qreal volume READ volume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(bool muted READ isMuted WRITE setMuted NOTIFY mutedChanged)
-    Q_PROPERTY(bool loading READ isLoading NOTIFY loadingChange)
+    Q_PROPERTY(QString source READ source WRITE setSource NOTIFY sourceChanged)
+    Q_PROPERTY(MediaPlayer::State videoState READ videoState WRITE setVideoState NOTIFY videoStateChanged)
+    Q_PROPERTY(QWidget* surfaceView READ surfaceView WRITE setSurfaceView NOTIFY surfaceViewChange)
+    Q_PROPERTY(QSizeF videoSize READ videoSize NOTIFY videoSizeChanged)
+    Q_PROPERTY(bool autoPlay READ autoPlay WRITE setAutoPlay NOTIFY autoPlayChanged)
 public:
-    AVMediaPlayer(QObject * parent =nullptr);
+
+    Q_INVOKABLE AVMediaPlayer(QObject * parent =nullptr);
 
     virtual ~AVMediaPlayer() override;
-    Q_INVOKABLE void togglePlayPause();
-
-    Q_INVOKABLE void seek(qint64 value);
-
-    Q_INVOKABLE void onTimeSliderHover(int pos, int value);
-
-    Q_INVOKABLE void onTimeSliderLeave();
-
-
-    qint64 position () const;
-
-    void setPosition(qint64 pos);
-
-    qreal bufferProgress() const;
-
-    qint64 duration() const;
-
-    bool isPlaying() const;
 
     qreal volume() const;
 
@@ -50,36 +32,41 @@ public:
 
     void setMuted(bool m);
 
-    bool isLoading() const;
+    QString source() const;
 
-    virtual void showNextFrame() override;
+    void setSource(const QString source);
 
-    virtual void setUrl(QString url) override;
+    QWidget* surfaceView();
 
-    virtual QWidget *createRenderer() override;
+    void setSurfaceView(QWidget *);
 
-    virtual void removeRenderer(QWidget *) override;
+    MediaPlayer::State videoState()const;
 
-    virtual void pause() override;
+    void setVideoState(MediaPlayer::State state);
 
+    QSizeF videoSize() const;
+
+    bool autoPlay()const;
+
+    void setAutoPlay(bool autoPlay);
 
 Q_SIGNALS:
-    void bufferProgressChanged(qreal);
-    void sourceChanged();
-    void durationChanged(qint64);
-    void speedChanged(qreal speed);
-    void positionChanged(qint64 position);
-    void playingChanged();
     void volumeChanged();
     void mutedChanged();
-    void fullScreenChanged(bool);
-    void loadingChange();
+    void surfaceViewChange();
+    void videoStateChanged();
+    void videoSizeChanged();
+    void autoPlayChanged();
 
 private Q_SLOTS:
     void applyVolume();
 
 private:
-    AVPlayer * player_;
+    qreal volume_;
+    bool mute_;
+    bool autoPlay_;
+    bool preparedState_;
+    bool loaded_;
     VideoPreviewWidget *preview_;
 };
 

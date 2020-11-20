@@ -4,27 +4,21 @@
 #include <QObject>
 
 
-class MediaPlayer : public QObject{
-
+class MediaPlayer:public QObject
+{
     Q_OBJECT
+    Q_ENUMS(State)
 public:
-    MediaPlayer(QObject * parent);
-
-    virtual ~MediaPlayer();
-
-    virtual void showNextFrame();
-
-    virtual void setUrl(QString url) = 0;
-
-    virtual QWidget * createRenderer();
-
-    virtual void pause();
-
-    virtual void removeRenderer(QWidget *);
-
-protected:
-    qreal volume_;
-    bool mute_;
+    enum State {
+        UnknownStatus = 0,
+        StoppedState,
+        PlayingState,
+        PausedState,
+        LoadingState,
+        PreparedState
+    };
+public:
+    MediaPlayer(QObject *parent = nullptr);
 };
 
 #endif // MEDIAPLAYER_H

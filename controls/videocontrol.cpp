@@ -2,17 +2,17 @@
 #include "core/resourceview.h"
 #include "core/resource.h"
 #include "core/optiontoolbuttons.h"
-#include "media/mediaplayer.h"
-
 #include <core/resourcepackage.h>
 #include <core/resourcepage.h>
 #include <core/toolbutton.h>
-#include <media/avmediaplayer.h>
+#include <media/avmediaplayerbridge.h>
 #include <views/whitecanvas.h>
 #include <views/whitecanvaswidget.h>
 
 #include <QMediaService>
 #include <QWindow>
+
+#include <media/mediaplayer.h>
 
 static constexpr char const * toolstr =
         "play()|播放|NeedUpdate,Checkable|;"
@@ -23,11 +23,11 @@ static constexpr char const * toolstr =
 
 VideoControl::VideoControl(ResourceView * res)
     : WidgetControl(res, {WithSelectBar, ExpandScale, LayoutScale, Touchable, FixedOnCanvas}, {CanRotate})
+    , playerBridge_(nullptr)
     , player_(nullptr)
     , fullScreenWidget_(nullptr)
 {
-    //setToolsString(toolstr);
-
+    playerBridge_ = new AVMediaPlayerBridge(this);
 }
 
 VideoControl::~VideoControl()
@@ -52,14 +52,15 @@ void VideoControl::fullScreen(bool)
     if(!flags_.testFlag(LoadFinished))
         return;
     if (player_->parent() != this) {
-          QTimer::singleShot(0, this, [this] () {
-              VideoControl * another = qobject_cast<VideoControl*>(player_->parent());
-              ResourcePackage *pkgage =  qobject_cast<WhiteCanvasWidget*>(another->fullScreenWidget_)->package();
-              pkgage->removePage(res_->page());
-              another->fullScreenWidget_->hide();
-          });
-          return;
-      }
+        QTimer::singleShot(0, this, [this] () {
+            VideoControl * another = qobject_cast<VideoControl*>(player_->parent());
+            ResourcePackage *pkgage =  qobject_cast<WhiteCanvasWidget*>(another->fullScreenWidget_)->package();
+            pkgage->removePage(res_->page());
+            another->player_->setProperty("surfaceView",QVariant::fromValue(another->widget()));
+            another->fullScreenWidget_->hide();
+        });
+        return;
+    }
     WhiteCanvasWidget * widget = qobject_cast<WhiteCanvasWidget*>(fullScreenWidget_);
     if (widget == nullptr) {
         widget = new WhiteCanvasWidget();
@@ -72,43 +73,52 @@ void VideoControl::fullScreen(bool)
     widget->show();
 
     widget->package()->newPage(QUrl("video:full"), {
-                                   {"pageMode", ResourceView::Independent},
                                    {"deletable", false},
+                                   {"pageMode", ResourceView::Independent},
                                    {"scaleMode", FullLayout},
                                    {"player", QVariant::fromValue(player_)}
                                });
+}
+
+void VideoControl::loaded()
+{
+    if(player_->property("videoState").toInt()!=MediaPlayer::State::PreparedState)
+        return;
+    loadFinished(true);
+    setSize(player_->property("videoSize").toSizeF());
 }
 
 
 QWidget *VideoControl::createWidget(ControlView *parent)
 {
     Q_UNUSED(parent)
-    player_ = res_->property("player").value<MediaPlayer*>();
+    player_ = res_->property("player").value<QObject*>();
     if(!player_){
-      player_ = new AVMediaPlayer(this);
-      player_->setUrl(res_->resource()->url().toString());
+        player_ = playerBridge_->createMediaPlayer(res_->resource()->url().toString());
+        player_->setParent(this);
     }
-    QWidget * vo = player_->createRenderer();
-    connect(vo,&QObject::destroyed,this,[this](){
+    QWidget * surfaceView = playerBridge_->createSurfaceView();
+    player_->setProperty("surfaceView",QVariant::fromValue(surfaceView));
+    connect(surfaceView,&QObject::destroyed,this,[this](){
         widget_ = nullptr;
     });
-    return vo;
+    return surfaceView;
 }
 
 void VideoControl::attached()
 {
-    loadFinished(true);
-    player_->showNextFrame();
-    if(!flags_.testFlag(FullLayout))
-      player_->setProperty("position",res_->property("position"));
+    if(!isFullScreen()){
+        player_->setProperty("startPosition",res_->property("startPosition"));
+        connect(player_,SIGNAL(videoStateChanged()),this,SLOT(loaded()));
+    }else{
+        loadFinished(true);
+    }
 }
 
 void VideoControl::detached()
 {   
-    res_->setProperty("position",player_->property("position"));
-    player_->removeRenderer(widget_);
-    if(flags_.testFlag(FullLayout)) return;
-       player_->pause();
+    res_->setProperty("startPosition",player_->property("position"));
+    player_->setProperty("surfaceView",QVariant::fromValue(nullptr));
 }
 
 

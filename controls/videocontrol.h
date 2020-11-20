@@ -5,7 +5,7 @@
 
 #include "widgetcontrol.h"
 
-class MediaPlayer;
+class MediaPlayerBridge;
 class SHOWBOARD_EXPORT VideoControl : public WidgetControl
 {
     Q_OBJECT
@@ -14,7 +14,7 @@ class SHOWBOARD_EXPORT VideoControl : public WidgetControl
 public:
     Q_INVOKABLE VideoControl(ResourceView *res);
 
-    virtual ~VideoControl();
+    virtual ~VideoControl() override;
 
     bool isFullScreen() const;
 
@@ -23,6 +23,7 @@ public:
 public slots:
 
     void fullScreen(bool);
+    void loaded();
 
 protected:
 
@@ -33,7 +34,8 @@ protected:
     virtual void detached() override;
 
 private:
-    MediaPlayer * player_;
+    MediaPlayerBridge * playerBridge_;
+    QObject * player_;
     QWidget * fullScreenWidget_;
 };
 
