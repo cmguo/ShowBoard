@@ -12,12 +12,17 @@ class ImageControl : public Control
 {
     Q_OBJECT
 
+    Q_PROPERTY(qreal borderSize READ borderSize WRITE setBorderSize)
     Q_PROPERTY(qreal mipmap READ mipmap WRITE setMipmap)
 
 public:
     Q_INVOKABLE ImageControl(ResourceView *res, Flags flags = None, Flags clearFlags = None);
 
 public:
+    qreal borderSize() const { return borderSize_; }
+
+    void setBorderSize(qreal borderSize);
+
     qreal mipmap() const { return mipmap_; }
 
     void setMipmap(qreal mipmap);
@@ -48,8 +53,10 @@ private:
 
 private:
     QGraphicsPixmapItem * image_;
+    qreal borderSize_;
     qreal mipmap_;
     qreal mipScale_;
+    QSizeF initImageSize_;
     QSharedPointer<ImageData> data_;
 };
 
