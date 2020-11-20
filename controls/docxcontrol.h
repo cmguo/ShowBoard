@@ -1,5 +1,5 @@
-#ifndef WORDCONTROL_H
-#define WORDCONTROL_H
+#ifndef DOCXCONTROL_H
+#define DOCXCONTROL_H
 
 #include "imagecontrol.h"
 
@@ -8,16 +8,16 @@
 class ResourceView;
 class Word;
 
-class WordControl : public ImageControl
+class DocxControl : public ImageControl
 {
     Q_OBJECT
 
     Q_PROPERTY(int page READ page WRITE setPage)
 
 public:
-    Q_INVOKABLE WordControl(ResourceView * res);
+    Q_INVOKABLE DocxControl(ResourceView * res);
 
-    virtual ~WordControl() override;
+    virtual ~DocxControl() override;
 
 public:
     int page();
@@ -51,4 +51,4 @@ private:
     Word * word_;
 };
 
-#endif // WORDCONTROL_H
+#endif // DOCXCONTROL_H

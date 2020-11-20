@@ -1,5 +1,6 @@
 HEADERS += \
     $$PWD/controls.h \
+    $$PWD/docxcontrol.h \
     $$PWD/imagecontrol.h \
     $$PWD/qmlcontrol.h \
     $$PWD/strokecontrol.h \
@@ -11,6 +12,7 @@ HEADERS += \
     $$PWD/widgetcontrol.h
 
 SOURCES += \
+    $$PWD/docxcontrol.cpp \
     $$PWD/imagecontrol.cpp \
     $$PWD/qmlcontrol.cpp \
     $$PWD/strokecontrol.cpp \
@@ -23,10 +25,8 @@ SOURCES += \
 
 win32 {
     HEADERS += \
-        $$PWD/pptxcontrol.h \
-        $$PWD/wordcontrol.h
+        $$PWD/pptxcontrol.h
 
     SOURCES += \
-        $$PWD/pptxcontrol.cpp \
-        $$PWD/wordcontrol.cpp
+        $$PWD/pptxcontrol.cpp
 }

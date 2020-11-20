@@ -1,4 +1,4 @@
-#include "wordcontrol.h"
+#include "docxcontrol.h"
 #include "core/resourceview.h"
 #include "core/resource.h"
 #include "views/stateitem.h"
@@ -16,30 +16,30 @@ static char const * toolstr =
         "next()|下一页|:/showboard/icon/page.next.svg;"
         ;
 
-WordControl::WordControl(ResourceView * res)
+DocxControl::DocxControl(ResourceView * res)
     : ImageControl(res)
 {
     setProperty("mipmap", 1.5);
     word_ = new Word;
-    QObject::connect(word_, &Word::opened, this, &WordControl::opened);
-    QObject::connect(word_, &Word::failed, this, &WordControl::failed);
-    QObject::connect(word_, &Word::thumbed, this, &WordControl::thumbed);
-    QObject::connect(word_, &Word::closed, this, &WordControl::closed);
+    QObject::connect(word_, &Word::opened, this, &DocxControl::opened);
+    QObject::connect(word_, &Word::failed, this, &DocxControl::failed);
+    QObject::connect(word_, &Word::thumbed, this, &DocxControl::thumbed);
+    QObject::connect(word_, &Word::closed, this, &DocxControl::closed);
 }
 
-WordControl::~WordControl()
+DocxControl::~DocxControl()
 {
     close();
     word_->deleteLater();
     word_ = nullptr;
 }
 
-void WordControl::attached()
+void DocxControl::attached()
 {
     open();
 }
 
-void WordControl::open()
+void DocxControl::open()
 {
     QVariant localUrl = res_->property("localUrl");
     if (localUrl.isValid()) {
@@ -59,7 +59,7 @@ void WordControl::open()
     });
 }
 
-void WordControl::open(QUrl const & url)
+void DocxControl::open(QUrl const & url)
 {
     Word * p = word_;
     WorkThread::postWork(p, [p, url]() {
@@ -67,17 +67,17 @@ void WordControl::open(QUrl const & url)
     });
 }
 
-void WordControl::opened(int total)
+void DocxControl::opened(int total)
 {
     (void) total;
 }
 
-void WordControl::failed(QString const & msg)
+void DocxControl::failed(QString const & msg)
 {
     loadFinished(false, msg);
 }
 
-void WordControl::thumbed(QPixmap pixmap)
+void DocxControl::thumbed(QPixmap pixmap)
 {
     if (!pixmap.isNull()) {
         setPixmap(pixmap);
@@ -85,21 +85,21 @@ void WordControl::thumbed(QPixmap pixmap)
     item_->setCursor(Qt::ArrowCursor);
 }
 
-void WordControl::closed()
+void DocxControl::closed()
 {
 }
 
-int WordControl::page()
+int DocxControl::page()
 {
     return word_->page();
 }
 
-void WordControl::setPage(int n)
+void DocxControl::setPage(int n)
 {
     word_->setPage(n);
 }
 
-void WordControl::next()
+void DocxControl::next()
 {
     Word * p = word_;
     WorkThread::postWork(p, [p]() {
@@ -107,7 +107,7 @@ void WordControl::next()
     });
 }
 
-void WordControl::jump(int page)
+void DocxControl::jump(int page)
 {
     Word * p = word_;
     WorkThread::postWork(p, [p, page]() {
@@ -115,7 +115,7 @@ void WordControl::jump(int page)
     });
 }
 
-void WordControl::prev()
+void DocxControl::prev()
 {
     Word * p = word_;
     WorkThread::postWork(p, [p]() {
@@ -123,7 +123,7 @@ void WordControl::prev()
     });
 }
 
-void WordControl::close()
+void DocxControl::close()
 {
     Word * p = word_;
     WorkThread::postWork(p, [p]() {
@@ -131,12 +131,12 @@ void WordControl::close()
     });
 }
 
-void WordControl::detached()
+void DocxControl::detached()
 {
     close();
 }
 
-QString WordControl::toolsString(QByteArray const & parent) const
+QString DocxControl::toolsString(QByteArray const & parent) const
 {
     (void) parent;
     (void) toolstr;

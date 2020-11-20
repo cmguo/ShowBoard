@@ -8,7 +8,7 @@
 #include "webcontrol.h"
 #include "pptxcontrol.h"
 #include "qmlcontrol.h"
-#include "wordcontrol.h"
+#include "docxcontrol.h"
 #include "textcontrol.h"
 
 #include <qexport.h>
@@ -27,7 +27,7 @@ REGISTER_CONTROL(TextControl, "text,txt,js,cpp,h,qss,css")
 #ifdef WIN32
 REGISTER_CONTROL(PptxControl, "ppt,pptx")
 # ifdef QT_DEBUG
-REGISTER_CONTROL(WordControl, "doc,docx")
+REGISTER_CONTROL(DocxControl, "doc,docx")
 # endif
 #endif
 
