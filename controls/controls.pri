@@ -9,7 +9,8 @@ HEADERS += \
     $$PWD/videocontrol.h \
     $$PWD/webcontrol.h \
     $$PWD/whitecanvascontrol.h \
-    $$PWD/widgetcontrol.h
+    $$PWD/widgetcontrol.h \
+    $$PWD/wordscontrol.h
 
 SOURCES += \
     $$PWD/docxcontrol.cpp \
@@ -21,7 +22,8 @@ SOURCES += \
     $$PWD/videocontrol.cpp \
     $$PWD/webcontrol.cpp \
     $$PWD/whitecanvascontrol.cpp \
-    $$PWD/widgetcontrol.cpp
+    $$PWD/widgetcontrol.cpp \
+    $$PWD/wordscontrol.cpp
 
 win32 {
     HEADERS += \
