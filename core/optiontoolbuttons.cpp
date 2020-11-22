@@ -114,6 +114,29 @@ QVariant OptionToolButtons::buttonIcon(const QVariant &)
     return QVariant();
 }
 
+/* EnumToolButtons */
+
+EnumToolButtons::EnumToolButtons(QMetaEnum me)
+    : OptionToolButtons(enumKeys(me), 5)
+    , me_(me)
+{
+}
+
+QString EnumToolButtons::buttonTitle(const QVariant &value)
+{
+    return me_.valueToKey(value.toInt());
+}
+
+QVariantList EnumToolButtons::enumKeys(QMetaEnum me)
+{
+    QVariantList l;
+    for (int i = 0; i < me.keyCount(); ++i)
+        l.append(me.value(i));
+    return l;
+}
+
+/* ColorToolButtons */
+
 ColorToolButtons::ColorToolButtons(const QStringList &colors)
     : OptionToolButtons(colors, colors.size() / 2)
 {
@@ -141,6 +164,8 @@ QGraphicsItem *ColorToolButtons::colorIcon(QColor color)
     item->setBrush(color);
     return item;
 }
+
+/* StateColorToolButtons */
 
 StateColorToolButtons::StateColorToolButtons(const QStringList &colors)
     : OptionToolButtons(colors, colors.size() / 2)
@@ -183,6 +208,8 @@ QGraphicsItem* StateColorToolButtons::colorIcon(QColor color, bool selected)
     return border;
 }
 
+/* WidthToolButtons */
+
 WidthToolButtons::WidthToolButtons(const QList<qreal> &widths)
     : OptionToolButtons(widths, widths.size())
 {
@@ -209,6 +236,8 @@ QGraphicsItem *WidthToolButtons::widthIcon(qreal width)
     item->setBrush(Qt::blue);
     return border;
 }
+
+/* StateWidthToolButtons */
 
 StateWidthToolButtons::StateWidthToolButtons(const QList<qreal> &widths, QColor color, QColor borderColor)
     : OptionToolButtons(widths, widths.size())

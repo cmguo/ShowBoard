@@ -7,6 +7,7 @@
 #include <QList>
 #include <QVector>
 #include <QColor>
+#include <QMetaEnum>
 
 class ToolButton;
 class ToolButtonProvider;
@@ -64,6 +65,23 @@ private:
 };
 
 class QGraphicsItem;
+
+class SHOWBOARD_EXPORT EnumToolButtons : public OptionToolButtons
+{
+public:
+    EnumToolButtons(QMetaEnum me);
+
+protected:
+    virtual QString buttonTitle(const QVariant &value) override;
+
+private:
+    static QVariantList enumKeys(QMetaEnum me);
+
+    static QGraphicsItem* colorIcon(QColor color);
+
+private:
+    QMetaEnum me_;
+};
 
 class SHOWBOARD_EXPORT ColorToolButtons : public OptionToolButtons
 {
