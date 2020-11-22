@@ -22,6 +22,7 @@
 #include <QGraphicsProxyWidget>
 #include <QGraphicsScene>
 #include <QGraphicsTransform>
+#include <QPainter>
 #endif
 #include <QWidget>
 #include <QTransform>
@@ -30,6 +31,7 @@
 #include <QScreen>
 #include <QMimeData>
 #include <QTimeLine>
+#include <QFileDialog>
 
 #include <map>
 
@@ -73,6 +75,7 @@ static ToolButton btnFastCopy = { "copy", "快速复制",
                                     ToolButton::Flags{ToolButton::Static, ToolButton::Checkable},
                                     ":/showboard/icon/copy.svg" };
 static ToolButton btnRotate = { "rotate", "旋转", ToolButton::Static, ":/showboard/icon/rotate.svg" };
+static ToolButton btnCapture = { "capture", "截图", ToolButton::Static, "" };
 static ToolButton btnDelete = { "delete", "删除", ToolButton::Static, ":/showboard/icon/delete.svg" };
 
 Control::Control(ResourceView *res, Flags flags, Flags clearFlags)
@@ -327,10 +330,24 @@ void Control::afterClone(Control *)
 {
 }
 
+static QImage toImage(QGraphicsItem * item)
+{
+    QRect rect = item->boundingRect().toAlignedRect();
+    QImage image(rect.size(), QImage::Format_ARGB32);
+    image.fill(Qt::transparent);
+    QPainter painter(&image);
+    painter.setBrush(Qt::white);
+    painter.setTransform(QTransform::fromTranslate(-rect.left(), -rect.top()));
+    item->paint(&painter, nullptr, nullptr);
+    painter.end();
+    return image;
+}
+
 void Control::copy(QMimeData &data)
 {
     beforeClone();
     res_->copy(data);
+    data.setImageData(toImage(item_));
     data.setProperty("OriginControl", QVariant::fromValue(life()));
     data.setProperty("OriginPage", QVariant::fromValue(res_->page()));
     connect(res_->page(), &QObject::destroyed, &data, [&data] () {
@@ -1138,6 +1155,9 @@ void Control::getToolButtons(QList<ToolButton *> &buttons, ToolButton * parent)
             buttons.append(&btnFastCopy);
         if (flags_.testFlag(CanRotate))
             buttons.append(&btnRotate);
+#ifdef QT_DEBUG
+        buttons.append(&btnCapture);
+#endif
         if (res_->flags() & ResourceView::CanDelete)
             buttons.append(&btnDelete);
         if (buttons.endsWith(&ToolButton::SPLITTER))
@@ -1161,6 +1181,12 @@ bool Control::handleToolButton(ToolButton *btn, const QStringList &args)
     } else if (btn == &btnRotate) {
         qreal angle = -90;
         res_->transform().rotate(angle);
+    } else if (btn == &btnCapture) {
+        QFileDialog fd;
+        QString file = fd.getSaveFileName(nullptr, "现在保存位置", "", "*.png");
+        if (!file.isEmpty()) {
+            toImage(item()).save(file);
+        }
     } else if (btn == &btnDelete) {
         res_->removeFromPage();
     } else {
