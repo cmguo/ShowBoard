@@ -32,6 +32,7 @@
 #include <QMimeData>
 #include <QTimeLine>
 #include <QFileDialog>
+#include <QStyleOptionGraphicsItem>
 
 #include <map>
 
@@ -338,7 +339,8 @@ static QImage toImage(QGraphicsItem * item)
     QPainter painter(&image);
     painter.setBrush(Qt::white);
     painter.setTransform(QTransform::fromTranslate(-rect.left(), -rect.top()));
-    item->paint(&painter, nullptr, nullptr);
+    QStyleOptionGraphicsItem option;
+    item->paint(&painter, &option, nullptr);
     painter.end();
     return image;
 }

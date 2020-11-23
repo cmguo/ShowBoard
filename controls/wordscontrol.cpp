@@ -167,7 +167,7 @@ void WordsItem::addPath(QPainterPath &ph)
 
 void distanceMap(QImage & image)
 {
-    constexpr int D = 16;
+    constexpr int D = 8;
     QList<QPoint> points;
     int c1 = 1;
     int c2 = 1;
@@ -219,7 +219,7 @@ void distanceMap(QImage & image)
                 if (c1 == full) {
                     image.setPixel(p, c2);
                     points.append(p);
-                } else if (c1 == c) {
+                } else if (c1 > c) {
                     --n;
                 }
                 p.setY(p.y() + 1);
