@@ -30,8 +30,13 @@ void WebView::sinit()
                 " --disable-web-security"
                 " --touch-events=disabled"
                 " --register-pepper-plugins="
-                "./pepflashplayer.dll;application/x-shockwave-flash";
-        qputenv("QTWEBENGINE_CHROMIUM_FLAGS", flags);
+                "$PWD/pepflashplayer.dll;application/x-shockwave-flash";
+        QByteArray flags2(flags);
+        flags2.replace("$PWD", QCoreApplication::applicationDirPath().toUtf8());
+        qputenv("QTWEBENGINE_CHROMIUM_FLAGS", flags2);
+        // flush will call cmd.exe, make a fake
+        QByteArray cmdEnv = QCoreApplication::applicationDirPath().toUtf8() + "/cmd.exe";
+        qputenv("ComSpec", cmdEnv);
         init = true;
     }
 }
