@@ -1,4 +1,4 @@
-﻿#include "whitecanvaswidget.h"
+#include "whitecanvaswidget.h"
 #include "whitecanvas.h"
 #include "core/resourcepackage.h"
 #include "core/resourcepage.h"
@@ -277,7 +277,7 @@ void WhiteCanvasWidget::moveSelection()
             c->move(d);
     }
     if (sc == nullptr && d.isNull()) {
-        if (!shotcutControl_) {
+        if (shotcutControl_) {
             shotcutControl_->adjustEnd(Control::Keyboard);
             shotcutControl_ = nullptr;
         }
