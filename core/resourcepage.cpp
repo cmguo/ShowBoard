@@ -55,11 +55,9 @@ ResourceView * ResourcePage::addResource(QUrl const & url, QVariantMap const & s
         qobject_cast<ResourcePackage*>(parent())->newPage(rv);
     } else {
         RecordMergeScope rs(this);
-        if (rs) {
-            rs.add(MakeDestructRecord(false, [rv] () {
-               delete rv;
-            }));
-        }
+        rs.add(MakeDestructRecord(false, [rv] () {
+           delete rv;
+        }));
         addResource(rv);
     }
     return rv;
@@ -165,12 +163,10 @@ void ResourcePage::removeResource(ResourceView * res)
     QList<ResourceView*> list = resources_.mid(pos1, pos2 - pos1 + 1);
     RecordMergeScope rs(this);
     removeResource(pos1, list);
-    if (rs) {
-        rs.add(MakeDestructRecord(true, [list] () {
-            for (ResourceView* res : list)
-                delete res;
-        }));
-    }
+    rs.add(MakeDestructRecord(true, [list] () {
+        for (ResourceView* res : list)
+            delete res;
+    }));
 }
 
 void ResourcePage::moveResourceFront(ResourceView *res)
@@ -236,17 +232,15 @@ void ResourcePage::switchSubPage(int nPage)
     if (nPage >= 0 && subPages_[nPage] == nullptr) {
         ResourcePage * subPage = new ResourcePage(this);
         ResourcePackage * pkg = package();
-        if (rs) {
-            rs.add(MakeDestructRecord(false, [this, subPage, nPage] () {
-                qDebug() << "ResourcePage::switchSubPage destroy" << nPage << subPage;
-                if (nPage < subPages_.size() && subPages_[nPage] == subPage) // may change after undo clearSubPages
-                    subPages_[nPage] = nullptr;
-                ResourcePackage * pkg = package();
-                if (pkg)
-                    emit pkg->pageDestroyed(subPage);
-                delete subPage;
-            }));
-        }
+        rs.add(MakeDestructRecord(false, [this, subPage, nPage] () {
+            qDebug() << "ResourcePage::switchSubPage destroy" << nPage << subPage;
+            if (nPage < subPages_.size() && subPages_[nPage] == subPage) // may change after undo clearSubPages
+                subPages_[nPage] = nullptr;
+            ResourcePackage * pkg = package();
+            if (pkg)
+                emit pkg->pageDestroyed(subPage);
+            delete subPage;
+        }));
         qDebug() << "ResourcePage::switchSubPage create " << nPage << subPage;
         if (pkg)
             emit pkg->pageCreated(subPage);
@@ -272,7 +266,7 @@ ResourcePage *ResourcePage::currentSubPage() const
 void ResourcePage::clearSubPages(bool exceptCurrent)
 {
     RecordMergeScope rs(this);
-    if (!rs) // we are undo/redo
+    if (rs.inOperation()) // we are undo/redo
         return;
     qDebug() << "ResourcePage::clearSubPages";
     if (!exceptCurrent && currentSubPage_ >= 0) {

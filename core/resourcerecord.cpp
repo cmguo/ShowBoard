@@ -22,6 +22,7 @@ static void initConfig()
         QString record = qEnvironmentVariable("SHOWBOARD_RECORD");
         if (!record.isEmpty())
             sEnable = sEnableDump = QVariant(record).toBool();
+        sEnable = false;
         QString recordDump = qEnvironmentVariable("SHOWBOARD_RECORD_DUMP");
         if (!recordDump.isEmpty())
             sEnableDump = QVariant(record).toBool();
@@ -53,8 +54,10 @@ void ResourceRecordSet::commit(ResourceRecord *record)
         undo_ = 0;
     }
     records_.append(record);
-    if (records_.size() > capacity_)
+    if (records_.size() > capacity_) {
+        qDebug() << "ResourceRecordSet drop" << undo_ << records_.size() << record;
         delete records_.takeFirst();
+    }
 }
 
 void ResourceRecordSet::prepare(bool block)
@@ -135,7 +138,7 @@ bool ResourceRecordSet::inOperation() const
 
 void ResourceRecordSet::clear(int keep)
 {
-    for (int i = records_.size() - 1; i >= keep; --i) {
+    for (int i = keep; i < records_.size() - 1; ++i) {
         qDebug() << "ResourceRecordSet clear" << undo_ << records_.size() + 1 << records_[i];
         records_[i]->dump();
         delete records_[i];
@@ -229,7 +232,7 @@ RecordMergeScope::~RecordMergeScope()
 
 void RecordMergeScope::add(ResourceRecord *record)
 {
-    if (sEnable && set_)
+    if (bool(*this))
         set_->add(record);
     else
         delete record;
@@ -243,6 +246,11 @@ void RecordMergeScope::drop()
 bool RecordMergeScope::atTop() const
 {
     return set_ && set_->prepareLevel() == 1;
+}
+
+bool RecordMergeScope::inOperation() const
+{
+    return set_ && set_->inOperation();
 }
 
 RecordMergeScope::operator bool() const

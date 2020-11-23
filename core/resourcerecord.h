@@ -174,6 +174,7 @@ public:
     void add(ResourceRecord * record);
     void drop();
     bool atTop() const;
+    bool inOperation() const;
 private:
     Q_DISABLE_COPY(RecordMergeScope)
     ResourceRecordSet * set_;
