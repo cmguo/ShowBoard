@@ -33,6 +33,7 @@
 #include <QTimeLine>
 #include <QFileDialog>
 #include <QStyleOptionGraphicsItem>
+#include <QClipboard>
 
 #include <map>
 
@@ -359,6 +360,19 @@ void Control::copy(QMimeData &data)
 
 void Control::paste(QMimeData const & data, WhiteCanvas * canvas)
 {
+    static bool init = false;
+    if (!init) {
+        auto c = QApplication::clipboard();
+        connect(c, &QClipboard::dataChanged, [c] () {
+            QMimeData * data = const_cast<QMimeData*>(c->mimeData());
+            if (data->metaObject() != &QMimeData::staticMetaObject) {
+                data->setProperty("OriginPage", QVariant());
+                data->setProperty("OriginControl", QVariant());
+                data->setProperty("Offset", QVariant());
+            }
+        });
+        init = true;
+    }
     ResourcePage * po = data.property("OriginPage").value<ResourcePage*>();
     ResourcePage * pt = canvas->subPage();
     ResourceView * res = ResourceView::paste(data);
@@ -376,6 +390,8 @@ void Control::paste(QMimeData const & data, WhiteCanvas * canvas)
     } else {
         offset = -res->transform().offset();
     }
+    if (data.property("DropOffset").isValid())
+        offset = data.property("DropOffset").toPointF();
     res->transform().translate(offset);
     Control * c = canvas->addResource(res);
     QSharedPointer<LifeObject> life = data.property("OriginControl").value<QWeakPointer<LifeObject>>();

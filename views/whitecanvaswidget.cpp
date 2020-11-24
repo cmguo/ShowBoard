@@ -161,8 +161,13 @@ void WhiteCanvasWidget::dragLeaveEvent(QDragLeaveEvent *event)
 void WhiteCanvasWidget::dropEvent(QDropEvent *event)
 {
     QMimeData const * data = event->mimeData();
-    if (data)
+    if (data) {
+        const_cast<QMimeData*>(data)->setProperty(
+                    "DropOffset", mapToScene(event->pos()));
         Control::paste(*data, canvas());
+        const_cast<QMimeData*>(data)->setProperty(
+                    "DropOffset", QVariant());
+    }
     event->setDropAction(Qt::CopyAction);
 }
 
