@@ -153,6 +153,11 @@ void WhiteCanvasWidget::dragMoveEvent(QDragMoveEvent *event)
     event->accept();
 }
 
+void WhiteCanvasWidget::dragLeaveEvent(QDragLeaveEvent *event)
+{
+    event->accept();
+}
+
 void WhiteCanvasWidget::dropEvent(QDropEvent *event)
 {
     QMimeData const * data = event->mimeData();

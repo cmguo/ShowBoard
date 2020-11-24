@@ -70,6 +70,8 @@ private:
 
     virtual void dragMoveEvent(QDragMoveEvent *event) override;
 
+    virtual void dragLeaveEvent(QDragLeaveEvent *event) override;
+
     virtual void dropEvent(QDropEvent *event) override;
 
     virtual bool eventFilter(QObject *watched, QEvent *event) override;

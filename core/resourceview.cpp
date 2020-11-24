@@ -259,15 +259,16 @@ void ResourceView::copy(QMimeData &data)
 
 bool ResourceView::canPaste(const QMimeData &data)
 {
-    if (data.hasFormat(RESOURCE_FORMAT))
-        return data.data(RESOURCE_FORMAT).isEmpty();
+    // QInternalMimeData can't setData
+    if (data.property("RESOURCE_FORMAT").isValid())
+        return data.property("RESOURCE_FORMAT").isNull();
     ResourceView * res = paste(data);
     if (res) {
-        const_cast<QMimeData&>(data).setData(RESOURCE_FORMAT, QByteArray());
+        const_cast<QMimeData&>(data).setProperty("RESOURCE_FORMAT", QByteArray());
         res->setParent(&const_cast<QMimeData&>(data));
         return true;
     } else {
-        const_cast<QMimeData&>(data).setData(RESOURCE_FORMAT, "X");
+        const_cast<QMimeData&>(data).setProperty("RESOURCE_FORMAT", "X");
         return false;
     }
 }
@@ -285,9 +286,15 @@ public:
 
 ResourceView *ResourceView::paste(QMimeData const &data)
 {
-    if (data.hasFormat(RESOURCE_FORMAT)) {
+    if (data.hasFormat(RESOURCE_FORMAT)
+            || data.property("RESOURCE_FORMAT").isValid()) {
         ResourceView * res = data.findChild<ResourceView*>(
                     nullptr /* aName */, Qt::FindDirectChildrenOnly);
+        if (!data.hasFormat(RESOURCE_FORMAT)) {
+            const_cast<QMimeData&>(data).setProperty("RESOURCE_FORMAT", QVariant());
+            res->setParent(nullptr);
+            return res;
+        }
         if (res)
             return res->clone();
     }
