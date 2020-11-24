@@ -53,6 +53,9 @@ public:
 
     QSharedPointer<ImageData> put(QUrl const & url, QPixmap const & pixmap, qreal mipmap = 0.0);
 
+signals:
+    void onLoadError(QObject * context, QUrl const & url);
+
 private:
     static QtPromise::QPromise<QPixmap> load(QByteArray data);
 

@@ -60,6 +60,9 @@ QtPromise::QPromise<QSharedPointer<ImageData>> ImageCache::getOrCreate(QObject *
                 return QtPromise::resolve(put(url, pixmap, mipmap));
             });
         }
+    }).fail([this, context, url] (std::exception &) -> QSharedPointer<ImageData> {
+        emit onLoadError(context, url);
+        throw;
     }).finally([this, url] {
         pendings_.remove(url);
     });

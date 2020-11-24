@@ -1189,8 +1189,8 @@ bool Control::handleToolButton(ToolButton *btn, const QStringList &args)
         qreal angle = -90;
         res_->transform().rotate(angle);
     } else if (btn == &btnCapture) {
-        QFileDialog fd;
-        QString file = fd.getSaveFileName(nullptr, "现在保存位置", "", "*.png");
+        QString file = QFileDialog::getSaveFileName(
+                    nullptr, "选择保存位置", "", "*.png");
         if (!file.isEmpty()) {
             toImage(item()).save(file);
         }
