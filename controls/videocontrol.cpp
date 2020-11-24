@@ -63,7 +63,8 @@ void VideoControl::fullScreen(bool)
     }
     WhiteCanvasWidget * widget = qobject_cast<WhiteCanvasWidget*>(fullScreenWidget_);
     if (widget == nullptr) {
-        widget = new WhiteCanvasWidget();
+        widget = new WhiteCanvasWidget(WhiteCanvasWidget::mainInstance()->window());
+        widget->setWindowFlag(Qt::Tool);
         widget->setAttribute(Qt::WA_NativeWindow);
         widget->windowHandle()->setSurfaceType(QSurface::RasterSurface);
         widget->setResourcePackage(new ResourcePackage(widget));
