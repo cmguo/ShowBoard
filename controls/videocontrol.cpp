@@ -38,7 +38,7 @@ VideoControl::~VideoControl()
 
 bool VideoControl::isFullScreen() const
 {
-    return flags_.testFlag(FullLayout);
+    return res_->url()==QString("video:full");
 }
 
 

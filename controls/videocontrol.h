@@ -9,7 +9,7 @@ class MediaPlayerBridge;
 class SHOWBOARD_EXPORT VideoControl : public WidgetControl
 {
     Q_OBJECT
-    Q_PROPERTY(bool fullScreen READ isFullScreen WRITE fullScreen)
+    Q_PROPERTY(bool fullScreen READ isFullScreen WRITE fullScreen NOTIFY fullScreenChanged)
 
 public:
     Q_INVOKABLE VideoControl(ResourceView *res);
@@ -19,6 +19,9 @@ public:
     bool isFullScreen() const;
 
     QObject *mediaPlayer() const;
+
+Q_SIGNALS:
+    void fullScreenChanged();
 
 public slots:
 
