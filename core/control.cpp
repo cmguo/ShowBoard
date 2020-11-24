@@ -518,8 +518,14 @@ void Control::setSizeHint(QSizeF const & size)
     if (size.width() < 10.0 || size.height() < 10.0) {
         QSizeF size2 = size;
         Control * canvasControl = fromItem(whiteCanvas());
-        QRectF rect = canvasControl ? item_->scene()->sceneRect() : whiteCanvas()->rect();
-        adjustSizeHint(size2, rect.size());
+        QSizeF size1 = (canvasControl
+                ? item_->scene()->sceneRect()
+                : whiteCanvas()->rect()).size();
+        if (item_ != realItem_) {
+            QRectF padding(static_cast<ItemFrame *>(realItem_)->padding());
+            size1 -= padding.size();
+        }
+        adjustSizeHint(size2, size1);
         resize(size2);
     } else {
         resize(size);
@@ -788,7 +794,7 @@ void Control::initScale()
         scale = qMin(sh.width() / size.width(), sh.height() / size.height());
         if ((flags_ & ExpandScale) == 0 && scale > 1.0)
             scale = 1.0;
-        else
+        else if (!(flags_ & RestoreSession))
             size = size * scale * 0.999999;
         setProperty("delaySizeHint", QVariant());
     }
@@ -799,8 +805,7 @@ void Control::initScale()
         }
         if (item_ != realItem_) {
             QRectF padding(static_cast<ItemFrame *>(realItem_)->padding());
-            ps.setWidth(ps.width() - padding.width());
-            ps.setHeight(ps.height() - padding.height());
+            ps -= padding.size();
         }
         res_->setProperty("originSize", size);
         while (size.width() > ps.width() || size.height() > ps.height()) {
