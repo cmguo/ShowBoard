@@ -1,8 +1,8 @@
 ﻿#include "avmediaplayer.h"
 
 #include <QtAVWidgets/WidgetRenderer.h>
-#include <QDebug>
 #include <QTimer>
+#include <QUrl>
 
 #define PRE_CAPTURE_ENABLE 0
 
@@ -118,7 +118,12 @@ QString AVMediaPlayer::source() const
 
 void AVMediaPlayer::setSource(const QString source)
 {
-    setFile(source);
+    QUrl url(source);
+    if (url.isLocalFile() || url.scheme().isEmpty()
+            || url.scheme().startsWith("qrc"))
+        setFile(QUrl::fromPercentEncoding(url.toEncoded()));
+    else
+        setFile(url.toEncoded());
     load();
 }
 

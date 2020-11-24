@@ -82,10 +82,10 @@ void VideoControl::fullScreen(bool)
 
 void VideoControl::loaded()
 {
-    if(player_->property("videoState").toInt()!=MediaPlayer::State::PreparedState)
+    if(flags_.testFlag(LoadFinished) || player_->property("videoState").toInt() != MediaPlayer::State::PreparedState)
         return;
+    resize(player_->property("videoSize").toSizeF());
     loadFinished(true);
-    setSize(player_->property("videoSize").toSizeF());
 }
 
 
