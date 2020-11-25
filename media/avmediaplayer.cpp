@@ -24,7 +24,8 @@ AVMediaPlayer::AVMediaPlayer(QObject *parent):AVPlayer(parent)
     connect(this,&AVPlayer::started,this,&AVMediaPlayer::videoStateChanged);
     connect(this,&AVPlayer::paused,this,&AVMediaPlayer::videoStateChanged);
     connect(this,&AVPlayer::mediaStatusChanged,this,&AVMediaPlayer::videoStateChanged);
-
+    connect(this,&AVPlayer::mediaStatusChanged,this,&AVMediaPlayer::positionChanged);
+    connect(this,&AVPlayer::positionChanged,this,&AVMediaPlayer::positionChanged);
     connect(audio(), &AudioOutput::volumeChanged,this,&AVMediaPlayer::applyVolume, Qt::DirectConnection);
     connect(audio(), &AudioOutput::muteChanged, this,&AVMediaPlayer::applyVolume, Qt::DirectConnection);
     connect(this,&AVPlayer::started,this,&AVMediaPlayer::applyVolume);
@@ -184,6 +185,23 @@ void AVMediaPlayer::setAutoPlay(bool autoPlay)
 {
     autoPlay_ = autoPlay;
     emit autoPlayChanged();
+}
+
+void AVMediaPlayer::setPosition(qint64 pos)
+{
+    if(isPlaying())
+        AVPlayer::setPosition(pos);
+    else
+        AVPlayer::setStartPosition(pos);
+    emit positionChanged();
+
+}
+
+qint64 AVMediaPlayer::position() const
+{
+    if(isPlaying())
+        return AVPlayer::position();
+    return AVPlayer::startPosition();
 }
 
 void AVMediaPlayer::applyVolume()

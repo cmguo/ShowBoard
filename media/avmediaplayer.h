@@ -10,7 +10,7 @@ using namespace QtAV;
 class AVMediaPlayer : public AVPlayer
 {
     Q_OBJECT
-
+    Q_PROPERTY(qint64 position READ position WRITE setPosition NOTIFY positionChanged)
     Q_PROPERTY(qreal volume READ volume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(bool muted READ isMuted WRITE setMuted NOTIFY mutedChanged)
     Q_PROPERTY(QString source READ source WRITE setSource NOTIFY sourceChanged)
@@ -50,6 +50,10 @@ public:
 
     void setAutoPlay(bool autoPlay);
 
+    void setPosition(qint64 pos);
+
+    qint64 position() const;
+
 Q_SIGNALS:
     void volumeChanged();
     void mutedChanged();
@@ -57,6 +61,7 @@ Q_SIGNALS:
     void videoStateChanged();
     void videoSizeChanged();
     void autoPlayChanged();
+    void positionChanged();
 
 private Q_SLOTS:
     void applyVolume();

@@ -1,4 +1,4 @@
-#include "videocontrol.h"
+﻿#include "videocontrol.h"
 #include "core/resourceview.h"
 #include "core/resource.h"
 #include "core/optiontoolbuttons.h"
@@ -78,8 +78,8 @@ QWidget *VideoControl::createWidget(ControlView *parent)
 void VideoControl::attached()
 {
     if (!isFullScreen()) {
-        player_->setProperty("startPosition",
-                             res_->property("startPosition"));
+        player_->setProperty("position",
+                             res_->property("position"));
         connect(player_, SIGNAL(videoStateChanged()),
                 this, SLOT(loaded()));
     } else {
@@ -89,7 +89,7 @@ void VideoControl::attached()
 
 void VideoControl::detached()
 {   
-    res_->setProperty("startPosition", player_->property("position"));
+    res_->setProperty("position", player_->property("position"));
     player_->setProperty("videoState", static_cast<int>(MediaPlayer::StoppedState));
     player_->setProperty("surfaceView", QVariant());
 }
