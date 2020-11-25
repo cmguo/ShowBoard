@@ -47,6 +47,7 @@ QtPromise::QPromise<QSharedPointer<ImageData>> ImageCache::getOrCreate(QObject *
     if (pendings_.contains(url)) {
         return pendings_.find(url).value();
     }
+    QPointer<QObject> ctx(context);
     QtPromise::QPromise<QSharedPointer<ImageData>> p =
             Resource::getData(context, url).then([this, url, mipmap](QByteArray data) {
         if (data.size() < 100 * 1024) {
@@ -60,8 +61,8 @@ QtPromise::QPromise<QSharedPointer<ImageData>> ImageCache::getOrCreate(QObject *
                 return QtPromise::resolve(put(url, pixmap, mipmap));
             });
         }
-    }).fail([this, context, url] (std::exception &) -> QSharedPointer<ImageData> {
-        emit onLoadError(context, url);
+    }).fail([this, ctx, url] (std::exception &) -> QSharedPointer<ImageData> {
+        emit onLoadError(ctx.data(), url);
         throw;
     }).finally([this, url] {
         pendings_.remove(url);
