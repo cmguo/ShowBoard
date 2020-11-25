@@ -42,10 +42,14 @@ protected:
     virtual void detached() override;
 
 protected:
+    virtual void bindTouchEventToChild(QWidget * child);
+
+protected:
     virtual bool eventFilter(QObject * watched, QEvent * event) override;
 
 protected:
     QWidget * widget_;
+    QWidget * touchChild_;
     QList<Qt::Key> overrideShotcuts_;
 };
 

@@ -13,7 +13,7 @@ static char const * toolstr = ""
         ;
 
 QmlControl::QmlControl(ResourceView *res)
-    : WidgetControl(res)
+    : WidgetControl(res, {Touchable})
 {
     setToolsString(toolstr);
 }

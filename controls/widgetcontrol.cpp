@@ -7,10 +7,12 @@
 #include <QWidget>
 #include <QKeyEvent>
 #include <QMetaEnum>
+#include <QApplication>
 
 WidgetControl::WidgetControl(ResourceView *res, Flags flags, Flags clearFlags)
     : Control(res, flags, clearFlags)
     , widget_(nullptr)
+    , touchChild_(nullptr)
 {
     if (!QMetaType::hasRegisteredConverterFunction<QStringList, QList<Qt::Key>>())
         QMetaType::registerConverter<QStringList, QList<Qt::Key>>([] (QStringList list) {
@@ -54,8 +56,10 @@ ControlView *WidgetControl::create(ControlView *parent)
 {
     widget_ = createWidget(parent);
     QGraphicsProxyWidget * item = new QGraphicsProxyWidget();
-    if (flags_.testFlag(Touchable))
+    if (flags_.testFlag(Touchable)) {
+        widget_->setAttribute(Qt::WA_AcceptTouchEvents);
         item->setAcceptTouchEvents(true);
+    }
     item->setAutoFillBackground(false);
     item->setWidget(widget_);
     //resize(widget_->size());
@@ -79,6 +83,13 @@ void WidgetControl::detached()
         static_cast<QGraphicsProxyWidget*>(item_)->setWidget(nullptr);
 }
 
+void WidgetControl::bindTouchEventToChild(QWidget *child)
+{
+    // QGraphicsProxyWidget send touch events
+    //   to hold widget directly, not to children
+    touchChild_ = child;
+}
+
 bool WidgetControl::eventFilter(QObject *watched, QEvent *event)
 {
     if (watched != widget_)
@@ -93,6 +104,13 @@ bool WidgetControl::eventFilter(QObject *watched, QEvent *event)
             event->accept();
             return true;
         }
+    } else if (touchChild_
+               && (event->type() == QEvent::TouchBegin
+                   || event->type() == QEvent::TouchUpdate
+                   || event->type() == QEvent::TouchEnd
+                   || event->type() == QEvent::TouchCancel)) {
+        QApplication::sendEvent(touchChild_, event);
+        return true;
     }
     return false;
 }
