@@ -39,7 +39,18 @@ bool WidgetControl::touchable() const
 void WidgetControl::setTouchable(bool b)
 {
     flags_.setFlag(Touchable, b);
+    widget_->setAttribute(Qt::WA_AcceptTouchEvents, b);
     item_->setAcceptTouchEvents(b);
+}
+
+bool WidgetControl::delayApplySize() const
+{
+    return flags_.testFlag(DelayApplySize);
+}
+
+void WidgetControl::setDelayApplySize(bool b)
+{
+    flags_.setFlag(DelayApplySize, b);
 }
 
 void WidgetControl::setOverrideShotcuts(const QList<Qt::Key> &keys)
@@ -117,6 +128,9 @@ bool WidgetControl::eventFilter(QObject *watched, QEvent *event)
 
 void WidgetControl::resize(QSizeF const & size)
 {
+    if (delayApplySize() && !flags_.testFlag(Loading)
+            && !flags_.testFlag(LoadFinished))
+        return Control::resize(size);
     QGraphicsProxyWidget * item = static_cast<QGraphicsProxyWidget*>(item_);
     item->resize(size);
 }

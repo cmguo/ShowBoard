@@ -12,6 +12,7 @@ class SHOWBOARD_EXPORT WidgetControl : public Control
     Q_OBJECT
 
     Q_PROPERTY(bool touchable READ touchable WRITE setTouchable)
+    Q_PROPERTY(bool delayApplySize READ delayApplySize WRITE setDelayApplySize)
     Q_PROPERTY(QList<Qt::Key> overrideShotcuts MEMBER overrideShotcuts_)
 
 public:
@@ -19,10 +20,16 @@ public:
 
     virtual ~WidgetControl() override;
 
+    static constexpr Flag DelayApplySize = CustomFlag;
+
 public:
     bool touchable() const;
 
-    void setTouchable(bool b);
+    void setTouchable(bool b = true);
+
+    bool delayApplySize() const;
+
+    void setDelayApplySize(bool b = true);
 
     QList<Qt::Key> overrideShotcuts() const { return overrideShotcuts_; }
 
