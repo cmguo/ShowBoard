@@ -58,7 +58,6 @@ QObject *VideoControl::mediaPlayer() const
     return player_;
 }
 
-
 QWidget *VideoControl::createWidget(ControlView *parent)
 {
     Q_UNUSED(parent)
@@ -69,7 +68,7 @@ QWidget *VideoControl::createWidget(ControlView *parent)
     }
     QWidget * surfaceView = playerBridge_->createSurfaceView();
     surfaceView->resize(640, 360);
-    player_->setProperty("surfaceView",QVariant::fromValue(surfaceView));
+    player_->setProperty("surfaceView", QVariant::fromValue(surfaceView));
     connect(surfaceView,&QObject::destroyed,this,[this](){
         widget_ = nullptr;
     });
@@ -90,20 +89,21 @@ void VideoControl::attached()
 
 void VideoControl::detached()
 {   
-    res_->setProperty("startPosition",player_->property("position"));
-    player_->setProperty("surfaceView",QVariant::fromValue(nullptr));
+    res_->setProperty("startPosition", player_->property("position"));
+    player_->setProperty("videoState", static_cast<int>(MediaPlayer::StoppedState));
+    player_->setProperty("surfaceView", QVariant());
 }
 
 void VideoControl::fullScreen(bool)
 {
-    if(!flags_.testFlag(LoadFinished))
+    if (!flags_.testFlag(LoadFinished))
         return;
     if (player_->parent() != this) {
         QTimer::singleShot(0, this, [this] () {
             VideoControl * another = qobject_cast<VideoControl*>(player_->parent());
             ResourcePackage *pkgage =  qobject_cast<WhiteCanvasWidget*>(another->fullScreenWidget_)->package();
             pkgage->removePage(res_->page());
-            another->player_->setProperty("surfaceView",QVariant::fromValue(another->widget()));
+            another->player_->setProperty("surfaceView", QVariant::fromValue(another->widget()));
             another->fullScreenWidget_->hide();
         });
         return;

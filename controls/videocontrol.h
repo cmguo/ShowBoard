@@ -1,4 +1,4 @@
-﻿#ifndef VIDEOCONTROL_H
+#ifndef VIDEOCONTROL_H
 #define VIDEOCONTROL_H
 
 #include "core/control.h"
@@ -24,9 +24,13 @@ Q_SIGNALS:
     void fullScreenChanged();
 
 public slots:
-
     void fullScreen(bool);
-    void loaded();
+
+//    void play();
+
+//    void seek();
+
+//    void stop();
 
 protected:
 
@@ -35,6 +39,9 @@ protected:
     virtual void attached() override;
 
     virtual void detached() override;
+
+private slots:
+    void loaded();
 
 private:
     MediaPlayerBridge * playerBridge_;

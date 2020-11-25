@@ -1,4 +1,4 @@
-﻿#include "avmediaplayer.h"
+#include "avmediaplayer.h"
 
 #include <QtAVWidgets/WidgetRenderer.h>
 #include <QTimer>
@@ -136,7 +136,6 @@ void AVMediaPlayer::setSurfaceView(QWidget * render)
 {
     WidgetRenderer * widgetRender =static_cast<WidgetRenderer *>(render) ;
     setRenderer(widgetRender);
-
 }
 
 MediaPlayer::State AVMediaPlayer::videoState() const

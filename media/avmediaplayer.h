@@ -1,4 +1,4 @@
-﻿#ifndef AVMEDIAPLAYER_H
+#ifndef AVMEDIAPLAYER_H
 #define AVMEDIAPLAYER_H
 
 #include "mediaplayer.h"
