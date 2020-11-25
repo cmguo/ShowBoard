@@ -243,8 +243,8 @@ void Control::attachTo(ControlView * parent, ControlView * before)
     loadSettings();
     sizeChanged();
     initPosition();
-    relayout();
     flags_ |= Loading;
+    relayout();
 #ifdef PROD_TEST
     setParent(whiteCanvas()); // for testbed
 #endif
