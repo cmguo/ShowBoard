@@ -810,7 +810,7 @@ void Control::initScale()
         scale = qMin(sh.width() / size.width(), sh.height() / size.height());
         if ((flags_ & ExpandScale) == 0 && scale > 1.0)
             scale = 1.0;
-        else if (!(flags_ & RestoreSession))
+        else
             size = size * scale * 0.999999;
         setProperty("delaySizeHint", QVariant());
     }
@@ -846,10 +846,6 @@ void Control::initScale()
     res_->transform().scale({scale, scale});
     if (flags_ & LayoutScale) {
         resize(size);
-    }
-    if (item_ != realItem_) {
-        res_->transform().translate(
-                    -static_cast<ItemFrame *>(realItem_)->padding().center());
     }
     flags_.setFlag(Adjusting, false);
 }
