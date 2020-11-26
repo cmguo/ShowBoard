@@ -24,7 +24,7 @@ void ItemFrame::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
 {
     QRectF rect(boundingRect());
 
-    float radius = 8;
+    qreal radius = 8;
     QPainterPath clipPath;
     clipPath.addRoundedRect(rect, radius, radius);
     painter->setClipPath(clipPath);
@@ -58,23 +58,23 @@ void ItemFrame::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     }
     QRectF r(boundingRect());
     painter->setPen(QColor("#FFCDCDCD"));
-    painter->drawRoundedRect(r.x(), r.y(), r.width(), r.height(), radius, radius);
+    painter->drawRoundedRect(r, radius, radius);
 }
 
 void ItemFrame::drawTopBar(QPainter *painter, QRectF const & rect, ItemFrame *)
 {
     static QPixmap icon(":/showboard/icon/drag.png");
     painter->setPen(Qt::NoPen);
-    painter->setBrush(QColor("#FFF4F4F4"));
+    painter->setBrush(QColor("#fafafa"));
     //painter->setOpacity(frame->selected_ ? 1.0 : 0.2);
     painter->drawRect(rect);
     QRectF rect2 = rect;
-    rect2.setHeight(TOP_BAR_HEIGHT);
-    QLinearGradient gradient(rect2.left(), rect2.top(), rect2.left(), rect2.bottom());
-    gradient.setColorAt(0, QColor("#FFF9F9F9"));
-    gradient.setColorAt(1, QColor("#FFECECEC"));
-    painter->setBrush(gradient);
-    painter->drawRect(rect2);
+    rect2.setHeight(TOP_BAR_HEIGHT + TOP_BAR_WIDTH);
+//    QLinearGradient gradient(rect2.left(), rect2.top(), rect2.left(), rect2.bottom());
+//    gradient.setColorAt(0, QColor("#FFF9F9F9"));
+//    gradient.setColorAt(1, QColor("#FFECECEC"));
+//    painter->setBrush(gradient);
+//    painter->drawRect(rect2);
     QRectF iconRect(0, 0, icon.width(), icon.height());
     iconRect.moveCenter(rect2.center());
     painter->drawPixmap(iconRect.toRect(), icon);

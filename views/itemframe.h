@@ -85,7 +85,7 @@ private:
     QRectF reversePadding(DockItem & i, QRectF & rect);
 
     static constexpr qreal TOP_BAR_WIDTH = 24.0;
-    static constexpr qreal TOP_BAR_HEIGHT = 40.0;
+    static constexpr qreal TOP_BAR_HEIGHT = 16.0;
 
     static void drawTopBar(QPainter *painter, QRectF const & rect, ItemFrame * frame);
 
