@@ -134,7 +134,9 @@ void VideoControl::loaded()
     if (flags_.testFlag(LoadFinished)
             || player_->property("videoState").toInt() != MediaPlayer::State::PreparedState)
         return;
-    resize(player_->property("videoSize").toSizeF());
+    QSizeF size = player_->property("videoSize").toSizeF();
+    if(!size.isEmpty())
+        resize(size);
     loadFinished(true);
 }
 
