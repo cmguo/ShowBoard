@@ -1,4 +1,4 @@
-#include "avmediaplayer.h"
+﻿#include "avmediaplayer.h"
 
 #include <QtAVWidgets/WidgetRenderer.h>
 #include <QTimer>
@@ -35,6 +35,11 @@ AVMediaPlayer::AVMediaPlayer(QObject *parent):AVPlayer(parent)
             return;
         loaded_ = true;
         preparedState_ = true;
+        play();
+        QTimer::singleShot(position()>50 ? 200 : 0,this,[=](){ //恢复进度不需要前进太多
+            pause(true);
+        });
+
         emit videoSizeChanged();
         emit videoStateChanged();
     });

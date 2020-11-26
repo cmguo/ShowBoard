@@ -84,6 +84,11 @@ void VideoControl::attached()
                 this, SLOT(loaded()));
     } else {
         loadFinished(true);
+        // 暂停情况下截图，fix全屏黑屏
+        if(isFullScreen() && player_->property("videoState").toInt() == MediaPlayer::State::PausedState){
+            player_->setProperty("videoState",MediaPlayer::State::PlayingState);
+            player_->setProperty("videoState",MediaPlayer::State::PausedState);
+        }
     }
 }
 
