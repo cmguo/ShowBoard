@@ -281,7 +281,7 @@ void WebControl::scaleChanged(qreal scale)
 
 void WebControl::canvasTransformChanged(int)
 {
-    if (flags_.testFlag(Loading) || flags_.testFlag(Adjusting))
+    if (flags_.testFlag(Loading) || flags_.testFlag(Adjusting2))
         return;
     Control * canvasControl = Control::fromItem(whiteCanvas());
     WebView * view = static_cast<WebView *>(widget_);
