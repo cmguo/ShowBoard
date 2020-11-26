@@ -1168,12 +1168,12 @@ void Control::getToolButtons(QList<ToolButton *> &buttons, ToolButton * parent)
             buttons.append(&ToolButton::SPLITTER);
         if (res_->canMoveTop())
             buttons.append(&btnTop);
+        if (flags_.testFlag(CanRotate))
+            buttons.append(&btnRotate);
         if (res_->flags() & ResourceView::CanCopy)
             buttons.append(&btnCopy);
         if (res_->flags().testFlag(ResourceView::CanFastCopy))
             buttons.append(&btnFastCopy);
-        if (flags_.testFlag(CanRotate))
-            buttons.append(&btnRotate);
 #ifdef QT_DEBUG
         buttons.append(&btnCapture);
 #endif
