@@ -90,8 +90,9 @@ void VideoControl::attached()
 void VideoControl::detached()
 {   
     res_->setProperty("position", player_->property("position"));
-    player_->setProperty("videoState", static_cast<int>(MediaPlayer::StoppedState));
     player_->setProperty("surfaceView", QVariant());
+    if(!isFullScreen())
+       player_->setProperty("videoState", static_cast<int>(MediaPlayer::StoppedState));
 }
 
 void VideoControl::fullScreen(bool)
