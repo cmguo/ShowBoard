@@ -145,11 +145,11 @@ MediaPlayer::State AVMediaPlayer::videoState() const
         return MediaPlayer::State::LoadingState;
     if(preparedState_)
         return MediaPlayer::State::PreparedState;
-    if(isPlaying() && !isPaused())
+    if(state() == AVPlayer::State::PlayingState)
         return MediaPlayer::State::PlayingState;
-    if(isPlaying() && isPaused())
+    if(state() == AVPlayer::State::PausedState)
         return MediaPlayer::State::PausedState;
-    if(state() == QtAV::AVPlayer::State::StoppedState)
+    if(state() == AVPlayer::State::StoppedState)
         return MediaPlayer::State::StoppedState;
     return MediaPlayer::UnknownStatus;
 }
