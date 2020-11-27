@@ -25,6 +25,7 @@ VideoControl::VideoControl(ResourceView * res)
     : WidgetControl(res, {
                     WithSelectBar,
                     ExpandScale,
+                    KeepAspectRatio,
                     LayoutScale,
                     Touchable,
                     FixedOnCanvas,
