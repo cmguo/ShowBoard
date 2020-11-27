@@ -3,6 +3,7 @@
 #include <QtAVWidgets/WidgetRenderer.h>
 #include <QTimer>
 #include <QUrl>
+#include <QDebug>
 
 #define PRE_CAPTURE_ENABLE 0
 
@@ -16,9 +17,9 @@ AVMediaPlayer::AVMediaPlayer(QObject *parent):AVPlayer(parent)
   ,loaded_(false)
   ,preview_(nullptr)
 {
+    //setBufferMode(BufferMode::BufferPackets);
     setAsyncLoad(true);
     setAutoLoad(true);
-    setBufferMode(BufferMode::BufferPackets);
     connect(this,&AVPlayer::stateChanged,this,&AVMediaPlayer::videoStateChanged);
     connect(this,&AVPlayer::stopped,this,&AVMediaPlayer::videoStateChanged);
     connect(this,&AVPlayer::started,this,&AVMediaPlayer::videoStateChanged);
@@ -35,10 +36,15 @@ AVMediaPlayer::AVMediaPlayer(QObject *parent):AVPlayer(parent)
             return;
         loaded_ = true;
         preparedState_ = true;
-        play();
-        QTimer::singleShot(position()>50 ? 200 : 0,this,[=](){ //恢复进度不需要前进太多
-            pause(true);
-        });
+        connect(this,&AVPlayer::mediaStatusChanged,this,[this](QtAV::MediaStatus status){
+            if(status == QtAV::MediaStatus::BufferedMedia && !property("autoPause").toBool()){
+                QTimer::singleShot(800,this,[this](){
+                    pause(true);
+                });
+                setProperty("autoPause",true);
+            }
+        },Qt::DirectConnection);
+       play();
 
         emit videoSizeChanged();
         emit videoStateChanged();
