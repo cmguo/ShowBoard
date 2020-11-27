@@ -11,6 +11,7 @@
 #include "docxcontrol.h"
 #include "textcontrol.h"
 #include "wordscontrol.h"
+#include "textcontrol2.h"
 
 #include <qexport.h>
 
@@ -25,6 +26,8 @@ REGISTER_CONTROL(QmlControl, "qml")
 #endif
 REGISTER_CONTROL(TextControl, "text,txt,js,cpp,h,qss,css")
 REGISTER_CONTROL(WordsControl, "words")
+REGISTER_CONTROL(TextControl2, "text2")
+
 
 #ifdef WIN32
 REGISTER_CONTROL(PptxControl, "ppt,pptx")
