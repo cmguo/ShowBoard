@@ -1,4 +1,4 @@
-#include "textcontrol2.h"
+#include "inputtextcontrol.h"
 #include <QBrush>
 #include <QGraphicsTextItem>
 #include "../core/resourceview.h"
@@ -14,51 +14,49 @@ static char const * toolstr =
         #endif
         ;
 static ColorToolButtons colorButtons({Qt::white, Qt::black, Qt::red, Qt::green, Qt::blue, Qt::yellow});
-REGISTER_OPTION_BUTTONS(TextControl2, color, colorButtons)
+REGISTER_OPTION_BUTTONS(InputTextControl, color, colorButtons)
 
-TextControl2::TextControl2(ResourceView *res, Control::Flags flags, Control::Flags clearFlags) :
+InputTextControl::InputTextControl(ResourceView *res, Control::Flags flags, Control::Flags clearFlags) :
     Control(res, flags, clearFlags)
 {
 
     // text2:
 }
 
-QColor TextControl2::getColor()
+QColor InputTextControl::getColor()
 {
     DiagramTextItem *item = qgraphicsitem_cast<DiagramTextItem *>(item_);
     return item->defaultTextColor();
 }
 
-void TextControl2::setColor(QColor color)
+void InputTextControl::setColor(QColor color)
 {
     DiagramTextItem *item = qgraphicsitem_cast<DiagramTextItem *>(item_);
     item->setDefaultTextColor(color);
 }
 
-void TextControl2::test()
+void InputTextControl::test()
 {
 
 }
 
-ControlView *TextControl2::create(ControlView *parent)
+ControlView *InputTextControl::create(ControlView *parent)
 {
     DiagramTextItem* item = new DiagramTextItem;
-//    item->setPlainText("TextControl2");
     return item;
 }
 
-void TextControl2::attached()
+void InputTextControl::attached()
 {
-    //static_cast<QGraphicsTextItem*>(item_)->setTextInteractionFlags(Qt::TextEditorInteraction);
     loadFinished(true);
 }
 
-void TextControl2::copy(QMimeData &data)
+void InputTextControl::copy(QMimeData &data)
 {
 
 }
 
-QString TextControl2::toolsString(const QByteArray &parent) const
+QString InputTextControl::toolsString(const QByteArray &parent) const
 {
     if (parent.isEmpty()) {
         return toolstr;
@@ -74,14 +72,12 @@ DiagramTextItem::DiagramTextItem(QGraphicsItem *parent)
 //    setFlag(QGraphicsItem::ItemIsSelectable);
     setFlag(QGraphicsItem::ItemIsFocusable);
     setFlag(QGraphicsItem::ItemAcceptsInputMethod);
-
     setPlainText("QGraphicsTextItem Engine 中文 123");
-    setFont(QFont("华文琥珀",12));
+    setFont(QFont("微软雅黑",12));
+    setDefaultTextColor(Qt::white);
 
 }
-//! [0]
 
-//! [1]
 QVariant DiagramTextItem::itemChange(GraphicsItemChange change,
                      const QVariant &value)
 {
@@ -89,9 +85,8 @@ QVariant DiagramTextItem::itemChange(GraphicsItemChange change,
         emit selectedChange(this);
     return value;
 }
-//! [1]
 
-//! [2]
+
 void DiagramTextItem::focusOutEvent(QFocusEvent *event)
 {
     setTextInteractionFlags(Qt::NoTextInteraction);
@@ -105,9 +100,7 @@ void DiagramTextItem::focusInEvent(QFocusEvent *event)
         setTextInteractionFlags(Qt::TextEditorInteraction);
     QGraphicsTextItem::focusInEvent(event);
 }
-//! [2]
 
-//! [5]
 void DiagramTextItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 {
     if (textInteractionFlags() == Qt::NoTextInteraction)

@@ -11,7 +11,7 @@ HEADERS += \
     $$PWD/whitecanvascontrol.h \
     $$PWD/widgetcontrol.h \
     $$PWD/wordscontrol.h \
-    $$PWD/textcontrol2.h \
+    $$PWD/inputtextcontrol.h \
 
 
 SOURCES += \
@@ -26,7 +26,7 @@ SOURCES += \
     $$PWD/whitecanvascontrol.cpp \
     $$PWD/widgetcontrol.cpp \
     $$PWD/wordscontrol.cpp \
-    $$PWD/textcontrol2.cpp \
+    $$PWD/inputtextcontrol.cpp \
 
 
 win32 {

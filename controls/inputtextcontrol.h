@@ -1,5 +1,5 @@
-#ifndef TEXTCONTROL2_H
-#define TEXTCONTROL2_H
+#ifndef INPUTTEXTCONTROL_H
+#define INPUTTEXTCONTROL_H
 
 #include "core/control.h"
 
@@ -30,14 +30,14 @@ protected:
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) override;
 };
 
-class TextControl2 : public Control
+class InputTextControl : public Control
 {
     Q_OBJECT
     Q_PROPERTY(QString content MEMBER content_)
     Q_PROPERTY(QColor color WRITE setColor READ getColor)
 
 public:
-    Q_INVOKABLE TextControl2(ResourceView *res, Flags flags = None, Flags clearFlags = None);
+    Q_INVOKABLE InputTextControl(ResourceView *res, Flags flags = None, Flags clearFlags = None);
 
     QColor getColor();
     void setColor(QColor color);
@@ -56,4 +56,4 @@ private:
 };
 
 
-#endif // TEXTCONTROL2_H
+#endif // INPUTTEXTCONTROL_H
