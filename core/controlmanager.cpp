@@ -27,6 +27,11 @@ ControlManager::ControlManager(QObject *parent)
 {
 }
 
+void ControlManager::mapControlType(const QByteArray &from, const QByteArray &to)
+{
+    mapTypes_[from] = to;
+}
+
 void ControlManager::onComposition()
 {
     for (auto & r : control_types_) {
@@ -39,7 +44,9 @@ void ControlManager::onComposition()
 
 Control * ControlManager::createControl(ResourceView * res)
 {
-    std::map<QByteArray, QLazy *>::iterator iter = controls_.find(res->resource()->type());
+    QByteArray type = res->resource()->type();
+    type = mapTypes_.value(type, type);
+    std::map<QByteArray, QLazy *>::iterator iter = controls_.find(type);
     if (iter == controls_.end())
         return new UnknownControl(res);
     return iter->second->create<Control>(Q_ARG(ResourceView*, res));

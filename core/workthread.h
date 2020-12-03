@@ -1,6 +1,8 @@
 #ifndef WORKTHREAD_H
 #define WORKTHREAD_H
 
+#include "ShowBoard_global.h"
+
 #include <QtPromise>
 
 #include <QEvent>
@@ -10,13 +12,14 @@
 
 class QWaitCondition;
 
-class WorkEventBase : public QEvent
+class SHOWBOARD_EXPORT WorkEventBase : public QEvent
 {
 public:
     WorkEventBase(QWaitCondition * c = nullptr);
     virtual ~WorkEventBase();
 private:
     friend class WorkThread;
+    Q_DISABLE_COPY(WorkEventBase)
     QWaitCondition * c_;
 };
 
@@ -66,7 +69,7 @@ private:
     QtPromise::QPromiseReject<void> j_;
 };
 
-class WorkThread : public QThread
+class SHOWBOARD_EXPORT WorkThread : public QThread
 {
 public:
     WorkThread(char const * name = nullptr);

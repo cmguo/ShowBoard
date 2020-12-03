@@ -2,6 +2,7 @@
 #define TOOLBUTTONPROVIDER_H
 
 #include "ShowBoard_global.h"
+
 #include "lifeobject.h"
 
 #include <QObject>
@@ -13,6 +14,7 @@ class OptionToolButtons;
 class SHOWBOARD_EXPORT ToolButtonProvider : public LifeObject
 {
     Q_OBJECT
+    Q_CLASSINFO("version", "1.0")
     Q_PROPERTY(QString overrideToolString READ overrideToolString WRITE setOverrideToolString)
 public:
     ToolButtonProvider(QObject * parent = nullptr);

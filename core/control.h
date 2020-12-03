@@ -23,6 +23,8 @@ class SHOWBOARD_EXPORT Control : public ToolButtonProvider
 {
     Q_OBJECT
 
+    Q_CLASSINFO("version", "1.0")
+
     Q_PROPERTY(Control::Flags flags READ flags())
     Q_PROPERTY(ResourceView * resource READ resource)
     Q_PROPERTY(QRectF boundRect READ boundRect)

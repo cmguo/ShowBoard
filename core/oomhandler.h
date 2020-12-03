@@ -1,11 +1,13 @@
 #ifndef OOMHANDLER_H
 #define OOMHANDLER_H
 
+#include "ShowBoard_global.h"
+
 #include <QObject>
 
 #include <functional>
 
-class OomHandler : public QObject
+class SHOWBOARD_EXPORT OomHandler : public QObject
 {
     Q_OBJECT
 public:

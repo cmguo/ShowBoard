@@ -5,8 +5,6 @@
 #include "toolbuttonprovider.h"
 #include "controlview.h"
 
-#include <qexport.h>
-
 #include <QTransform>
 
 class Resource;
@@ -19,6 +17,8 @@ class QMimeData;
 class SHOWBOARD_EXPORT ResourceView : public ToolButtonProvider
 {
     Q_OBJECT
+
+    Q_CLASSINFO("version", "1.0")
 
     Q_PROPERTY(Resource * resource READ resource())
     Q_PROPERTY(ResourceView::Flags const flags READ flags())

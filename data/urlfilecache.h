@@ -11,7 +11,7 @@ struct FileLRUResource
     qint64 size;
 };
 
-class UrlFileCache : public FileCache
+class SHOWBOARD_EXPORT UrlFileCache : public FileCache
 {
     typedef LRUCache<QByteArray, FileLRUResource> base;
 

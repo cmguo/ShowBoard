@@ -18,6 +18,7 @@
 class SHOWBOARD_EXPORT ResourceFactory : public QObject
 {
     Q_OBJECT
+    Q_CLASS_VERSION(1.0)
     Q_PROPERTY(std::vector<QLazy> resource_types MEMBER resource_types_)
 
 public:

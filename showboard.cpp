@@ -6,7 +6,7 @@
 #include "views/qsshelper.h"
 #include "views/whitecanvasquick.h"
 #include "views/quickwidgetitem.h"
-#include "controls/webcontrol.h"
+#include "views/whitecanvastools.h"
 
 #include <qcomponentcontainer.h>
 
@@ -14,6 +14,8 @@
 
 #include <data/localhttpserver.h>
 #include <data/resourcecache.h>
+
+static QExport<WhiteCanvasTools, ToolButtonProvider> export_tools(QPart::shared);
 
 QComponentContainer & ShowBoard::containter()
 {
@@ -35,8 +37,6 @@ void ShowBoard::init()
     // qml types
     qmlRegisterType<WhiteCanvasQuick>("ShowBoard", 1, 0, "WhiteCanvasQuick");
     qmlRegisterType<QuickWidgetItem>("ShowBoard", 1, 0, "QuickWidgetItem");
-
-    WebControl::init();
 
     LocalHttpServer::instance()->start();
 }

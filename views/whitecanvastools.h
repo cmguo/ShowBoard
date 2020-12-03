@@ -13,11 +13,13 @@ class ResourcePackage;
 class SHOWBOARD_EXPORT WhiteCanvasTools : public ToolButtonProvider
 {
     Q_OBJECT
-public:
-    WhiteCanvasTools(QObject* parent = nullptr, WhiteCanvas* whiteCanvas = nullptr);
+    Q_CLASSINFO("position", "right")
 
 public:
-    void attachToWhiteCanvas(WhiteCanvas* whiteCanvas);
+    Q_INVOKABLE WhiteCanvasTools(QObject* parent = nullptr, WhiteCanvas* whiteCanvas = nullptr);
+
+public:
+    Q_INVOKABLE void attachToWhiteCanvas(WhiteCanvas* whiteCanvas);
 
 protected slots:
     void newPage();

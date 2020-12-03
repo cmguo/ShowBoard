@@ -1,13 +1,15 @@
 #ifndef STATEITEM_H
 #define STATEITEM_H
 
+#include "ShowBoard_global.h"
+
 #include <QGraphicsObject>
 #include <QPen>
 
 class SvgCache;
 class QSvgRenderer;
 
-class StateItem : public QGraphicsObject
+class SHOWBOARD_EXPORT StateItem : public QGraphicsObject
 {
     Q_OBJECT
 public:
