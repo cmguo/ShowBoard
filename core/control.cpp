@@ -13,6 +13,9 @@
 #include "resourcerecord.h"
 #include "resourcepackage.h"
 #include "varianthelper.h"
+#include "showboard.h"
+
+#include <qcomponentcontainer.h>
 
 #ifdef SHOWBOARD_QUICK
 #include <QQuickItem>
@@ -595,6 +598,24 @@ QSizeF Control::maxSize()
 void Control::setMaxSize(const QSizeF &size)
 {
     setMinMaxSize(minMaxSize_[1], size, false);
+}
+
+QVariant Control::extraToolButtons()
+{
+    return QVariant::fromValue(subProviderAfter());
+}
+
+void Control::setExtraToolButtons(const QVariant &toolButtons)
+{
+    if (!toolButtons.isValid() || toolButtons.isNull()) {
+        attachSubProvider(nullptr);
+    } else if (auto tp = toolButtons.value<ToolButtonProvider*>()) {
+        attachSubProvider(tp);
+    } else {
+        auto tp2 = qobject_cast<ToolButtonProvider*>(
+                    ShowBoard::containter().getExportValue(toolButtons.toByteArray()));
+        attachSubProvider(tp2);
+    }
 }
 
 WhiteCanvas *Control::whiteCanvas()

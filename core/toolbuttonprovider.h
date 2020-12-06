@@ -79,6 +79,10 @@ protected:
 
     void attachSubProvider(ToolButtonProvider * provider, bool before = false);
 
+    ToolButtonProvider * subProviderBefore() { return subProviderBefore_; }
+
+    ToolButtonProvider * subProviderAfter() { return subProviderAfter_; }
+
     ToolButton* getStringButton(QByteArray const & name);
 
     ToolButton* getStringButton(int index);

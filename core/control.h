@@ -7,6 +7,7 @@
 
 #include <QSizeF>
 #include <QRectF>
+#include <QVariant>
 
 class ResourceView;
 class GestureContext;
@@ -42,6 +43,9 @@ class SHOWBOARD_EXPORT Control : public ToolButtonProvider
     Q_PROPERTY(QSizeF sizeHint READ sizeHint WRITE setSizeHint)
     Q_PROPERTY(QSizeF minSize READ minSize WRITE setMinSize)
     Q_PROPERTY(QSizeF maxSize READ maxSize WRITE setMaxSize)
+
+    Q_PROPERTY(QVariant extraToolButtons READ extraToolButtons WRITE setExtraToolButtons)
+
 public:
 
     enum Flag {
@@ -351,6 +355,10 @@ protected:
     QSizeF maxSize();
 
     void setMaxSize(QSizeF const & size);
+
+    QVariant extraToolButtons();
+
+    void setExtraToolButtons(QVariant const & toolButtons);
 
     WhiteCanvas * whiteCanvas();
 
