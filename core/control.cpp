@@ -809,6 +809,11 @@ void Control::loadFinished(bool ok, const QString &iconOrMsg)
                     this, std::make_exception_ptr(std::runtime_error(iconOrMsg.toUtf8())));
 }
 
+void Control::loadFinished()
+{
+    loadFinished2(true, QString());
+}
+
 void Control::loadFailed()
 {
     try {

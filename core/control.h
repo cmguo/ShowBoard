@@ -334,6 +334,8 @@ protected:
      */
     void loadFinished(bool ok, QString const & iconOrMsg = QString());
 
+    void loadFinished();
+
     // can only be called from catch block
     void loadFailed();
 
