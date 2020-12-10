@@ -1,4 +1,4 @@
-#include "webview.h"
+﻿#include "webview.h"
 
 #include <QApplication>
 #include <QWebEngineFullScreenRequest>
@@ -66,9 +66,10 @@ class WebPage : public QWebEnginePage
 public:
     enum NewPageMode
     {
-        Disable,
+        NewView,
         InCurrent,
-        NewView
+        Disable
+
     };
 public:
     WebPage(QObject * parent, QObject *settings);
@@ -260,7 +261,7 @@ QWebEngineView *WebView::createWindow(QWebEnginePage::WebWindowType)
     WhiteCanvas * canvas = static_cast<WhiteCanvas*>(
                 graphicsProxyWidget()->parentItem()->parentItem());
     WebControl * control = qobject_cast<WebControl*>(
-                canvas->addResource(QUrl(), {{"resourceType", "html"}}));
+                canvas->addResource(QUrl(), {{"resourceType", "html"},{"sizeHint",QSizeF(0.95,0.95)}}));
     return static_cast<WebView*>(control->widget());
 }
 
