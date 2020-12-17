@@ -695,7 +695,11 @@ void Control::initPosition()
             adjustSizeHint(sz, rect.size());
             pos.setX(sz.width());
             pos.setY(sz.height());
-            res_->transform().translate(pos + rect.topLeft());
+            if (flags_.testFlag(FixedOnCanvas))
+                pos += parent->scene()->sceneRect().topLeft();
+            else
+                pos += rect.topLeft();
+            res_->transform().translate(pos);
         }
         return;
     }
