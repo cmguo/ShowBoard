@@ -22,6 +22,7 @@ ResourcePage::ResourcePage(ResourceView* mainRes, QObject *parent)
     : QAbstractItemModel(parent)
     , canvasView_(nullptr)
     , records_(nullptr)
+    , subPageCount_(0)
     , currentSubPage_(-1)
     , thumbnailVersion_(0)
 {
@@ -256,6 +257,11 @@ void ResourcePage::switchSubPage(int nPage)
     // special, may changed in signal, subsequence receiver will get wrong page, so re-emit
     if (currentSubPage_ != nPage)
         onSubPageChanged(currentSubPage());
+}
+
+void ResourcePage::setSubPageCount(int count)
+{
+    subPageCount_ = count;
 }
 
 ResourcePage *ResourcePage::currentSubPage() const

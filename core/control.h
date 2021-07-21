@@ -68,7 +68,8 @@ public:
         ShowSelectMask = 1 << 14,
         SelectOnLoaded = 1 << 15,
         EnterAnimate = 1 << 16,
-        CustomFlag = 1 << 17,
+        AttachToPageList = 1 << 17,
+        CustomFlag = 1 << 18,
         // States
         Loading = 1 << 24,
         LoadFinished = 1 << 25,

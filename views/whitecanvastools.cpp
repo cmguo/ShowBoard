@@ -7,6 +7,7 @@
 #include "core/resourcepage.h"
 #include "core/resourcepackage.h"
 #include "core/toolbutton.h"
+#include "core/control.h"
 
 #include <QApplication>
 #include <QListView>
@@ -48,7 +49,9 @@ void WhiteCanvasTools::attachToWhiteCanvas(WhiteCanvas *whiteCanvas)
                      this, &WhiteCanvasTools::update);
     QObject::connect(package, &ResourcePackage::currentPageChanged,
                      this, &WhiteCanvasTools::update);
-    update();
+    QObject::connect(package, &ResourcePackage::currentSubPageChanged,
+                     this, &WhiteCanvasTools::update);
+   update();
 }
 
 void WhiteCanvasTools::newPage()
@@ -105,6 +108,11 @@ void WhiteCanvasTools::delPage()
 
 bool WhiteCanvasTools::setOption(const QByteArray &key, QVariant value)
 {
+    ResourcePage * page = canvas_->package()->currentPage();
+    Control * control = canvas_->findControl(page->mainResource());
+    if (control != nullptr && control->flags().testFlag(Control::AttachToPageList)) {
+        return control->exec(key + "()");
+    }
     bool result = true;
 #ifndef QT_DEBUG
     canvas_->setProperty("FromUser", true);
@@ -135,13 +143,24 @@ void WhiteCanvasTools::update()
 {
     QList<ToolButton*> buttons;
     getToolButtons(buttons);
-    int total = canvas_->package()->pageCount();
-    int index = canvas_->package()->currentIndex();
+    ResourcePage * page = canvas_->package()->currentPage();
+    Control * control = page == nullptr ? nullptr : canvas_->findControl(page->mainResource());
+    int total, index;
+    if (control != nullptr && control->flags().testFlag(Control::AttachToPageList)) {
+        total = page->subPageCount();
+        index = page->currentSubNumber();
+    } else {
+        total = canvas_->package()->pageCount();
+        index = canvas_->package()->currentIndex();
+        control = nullptr;
+    }
+    buttons[0]->setVisible(control == nullptr);
     bool isEnabled = buttons[2]->isEnabled();
     buttons[1]->setEnabled(isEnabled && index > 0);
     buttons[2]->setIconText(QString("%1/%2").arg(index + 1).arg(total));
     buttons[3]->setEnabled(isEnabled && index + 1 < total);
 #ifdef QT_DEBUG
+    buttons[4]->setVisible(control == nullptr);
     buttons[4]->setEnabled(total > 1);
 #endif
 }

@@ -108,6 +108,10 @@ public:
 public:
     void switchSubPage(int nPage);
 
+    void setSubPageCount(int count);
+
+    int subPageCount() const { return subPageCount_; }
+
     ResourcePage* currentSubPage() const;
 
     int currentSubNumber() const { return currentSubPage_; }
@@ -188,6 +192,7 @@ private:
     ResourceView* canvasView_;
     QList<ResourceView *> resources_;
     ResourceRecordSet * records_;
+    int subPageCount_; // only for record
     int currentSubPage_;
     QVector<ResourcePage*> subPages_;
     QPixmap thumbnail_;

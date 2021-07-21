@@ -22,7 +22,6 @@ static void initConfig()
         QString record = qEnvironmentVariable("SHOWBOARD_RECORD");
         if (!record.isEmpty())
             sEnable = sEnableDump = QVariant(record).toBool();
-        sEnable = false;
         QString recordDump = qEnvironmentVariable("SHOWBOARD_RECORD_DUMP");
         if (!recordDump.isEmpty())
             sEnableDump = QVariant(record).toBool();
