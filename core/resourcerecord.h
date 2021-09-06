@@ -80,7 +80,11 @@ inline ResourceRecord * setRecordInfo(ResourceRecord * record, char const * info
 }
 #define SHOWBOARD_TOSTRING2(x) #x
 #define SHOWBOARD_TOSTRING(x) SHOWBOARD_TOSTRING2(x)
+#ifdef __MACH__
+#define SHOWBOARD_CODE_INFO __FILE__ "(" SHOWBOARD_TOSTRING(__LINE__) ")"
+#else
 #define SHOWBOARD_CODE_INFO __FUNCTION__ ": " __FILE__ "(" SHOWBOARD_TOSTRING(__LINE__) ")"
+#endif
 #define MakeFunctionRecord(...) \
     setRecordInfo(makeFunctionRecord(__VA_ARGS__), SHOWBOARD_CODE_INFO)
 #define MakeDestructRecord(destroy, ...) \

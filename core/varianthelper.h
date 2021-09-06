@@ -13,7 +13,7 @@ public:
     template <typename T>
     static T convert(QVariant v)
     {
-        return convert(v, qMetaTypeId<T>()).value<T>();
+        return convert(v, qMetaTypeId<T>()).template value<T>();
     }
 
     static QVariant convert(QVariant v, int type);

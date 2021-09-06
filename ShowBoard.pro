@@ -93,6 +93,7 @@ INCLUDEPATH += $$OUT_PWD/../quazip/include
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../QtHttpServer/lib -lQt5HttpServer
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../QtHttpServer/lib -lQt5HttpServerd
+else:mac: LIBS += -F$$OUT_PWD/../QtHttpServer/lib -framework QtHttpServer
 else:unix: LIBS += -L$$OUT_PWD/../QtHttpServer/lib -lQt5HttpServer
 
 INCLUDEPATH += $$OUT_PWD/../QtHttpServer/include
