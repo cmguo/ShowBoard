@@ -83,6 +83,16 @@ qint64 HttpStream::size() const
     return reply_->header(QNetworkRequest::ContentLengthHeader).toLongLong();
 }
 
+bool HttpStream::seek(qint64 pos)
+{
+    if (!QIODevice::seek(pos))
+        return false;
+    if (paused_)
+        return true;
+    reply_->abort();
+    return true;
+}
+
 void HttpStream::onError(QNetworkReply::NetworkError e)
 {
     qDebug() << "HttpStream onError" << e << this;

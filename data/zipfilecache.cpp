@@ -9,7 +9,7 @@ ZipFileCache::ZipFileCache(const QDir &dir, quint64 capacity, QByteArray algorit
     : FileCache(dir, capacity, algorithm)
 {
     load([] (QString const & f) {
-        return f.endsWith(".zip");
+        return f.endsWith(".zip") || f.endsWith(".zip.temp");
     });
 }
 

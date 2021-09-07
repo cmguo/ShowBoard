@@ -268,7 +268,7 @@ QtPromise::QPromise<qint64> FileCache::saveStream(const QString &path, QSharedPo
 {
     QDir().mkdir(path.left(path.lastIndexOf('/')));
     QSharedPointer<QFile> file(new QFile(path + ".temp"));
-    if (!file->open(QFile::WriteOnly)) {
+    if (!file->open(QFile::ReadWrite)) {
         return QPromise<qint64>::reject(std::runtime_error("文件打开失败"));
     }
     return QPromise<qint64>([file, stream, &status](
@@ -301,6 +301,11 @@ QtPromise::QPromise<qint64> FileCache::saveStream(const QString &path, QSharedPo
             }
             status.progress += data.size();
         };
+        qint64 size = file->size();
+        if (size > 0 && stream->seek(size)) {
+            file->seek(size);
+            status.progress = size;
+        }
         char c;
         if (stream->peek(&c, 1) > 0)
             read();

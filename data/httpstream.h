@@ -23,6 +23,8 @@ public:
 public:
     qint64 size() const override;
 
+    bool seek(qint64 pos) override;
+
 signals:
     void finished();
 
