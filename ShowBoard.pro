@@ -88,6 +88,7 @@ INCLUDEPATH += $$PWD/../qtpromise/src/qtpromise $$PWD/../qtpromise/include
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../quazip/lib -lquazip
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../quazip/lib -lquazipd
+else:unix: LIBS += -L$$OUT_PWD/../quazip/lib -lquazip
 
 INCLUDEPATH += $$OUT_PWD/../quazip/include
 
