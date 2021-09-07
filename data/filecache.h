@@ -19,6 +19,12 @@ class SHOWBOARD_EXPORT FileCache : public LRUCache<QString, FileResource, std::m
     typedef LRUCache<QString, FileResource, std::mutex> base;
 
 public:
+    class PutStatus {
+    public:
+        qint64 total = -2;
+        qint64 progress = 0;
+    };
+
     FileCache(QDir const & dir, quint64 capacity, QByteArray algorithm = nullptr);
 
 public:
@@ -26,7 +32,8 @@ public:
 
     QtPromise::QPromise<QString> putStream(QString const & path, QByteArray const & hash, QSharedPointer<QIODevice> stream);
 
-    QtPromise::QPromise<QString> putStream(QObject *context, QString const & path, QByteArray const & hash, std::function<QtPromise::QPromise<QSharedPointer<QIODevice>> (QObject *)> openStream);
+    QtPromise::QPromise<QString> putStream(QObject *context, QString const & path, QByteArray const & hash,
+                                           std::function<QtPromise::QPromise<QSharedPointer<QIODevice>> (QObject *)> openStream);
 
     QString putData(QString const & path, QByteArray const & hash, QByteArray data);
 
@@ -43,6 +50,8 @@ public:
 
     virtual FileResource get(QString const & path, QByteArray const & hash = nullptr, bool touch = true);
 
+    PutStatus getPutStatus(QString const & path);
+
 protected:
     virtual quint64 sizeOf(const FileResource &v) override;
 
@@ -56,11 +65,12 @@ protected:
     void check(QString const & path, QByteArray const & hash);
 
 private:
-    static QtPromise::QPromise<qint64> saveStream(QString const & path, QSharedPointer<QIODevice> stream);
+    static QtPromise::QPromise<qint64> saveStream(QString const & path, QSharedPointer<QIODevice> stream, PutStatus & status);
 
 protected:
     QDir dir_;
     QByteArray algorithm_;
+    QMap<QString, PutStatus> putsStatus_;
     QMap<QString, QtPromise::QPromise<QString>> asyncPuts_;
 };
 

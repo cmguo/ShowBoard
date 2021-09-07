@@ -6,7 +6,8 @@
 #include <QtPromise>
 
 #include <QObject>
-#include <QNetworkReply>
+#include <QIODevice>
+#include <QSharedPointer>
 
 class SHOWBOARD_EXPORT DataProvider : public QObject
 {
@@ -45,66 +46,6 @@ public:
             QObject * context, QUrl const & url, bool all) override;
 };
 
-class HttpStream : public QIODevice
-{
-    Q_OBJECT
-public:
-    HttpStream(QObject * context, QNetworkReply * reply);
-
-    virtual ~HttpStream() override;
-
-    QNetworkReply * reply() { return reply_; }
-
-    static bool connect(QIODevice * stream, std::function<void()> finished,
-                        std::function<void(std::exception &&)> error);
-
-signals:
-    void finished();
-
-    void error(QNetworkReply::NetworkError);
-
-private:
-    void onError(QNetworkReply::NetworkError);
-
-    void onReadyRead();
-
-    void onFinished();
-
-    void reopen();
-
-    void pause();
-
-    void resume();
-
-    void abort();
-
-protected:
-    virtual qint64 readData(char *data, qint64 maxlen) override;
-    virtual qint64 writeData(const char *data, qint64 len) override;
-    virtual void timerEvent(QTimerEvent * event) override;
-private:
-    QNetworkReply * reply_;
-    QNetworkReply * paused_;
-    bool aborted_;
-    qint64 lastPos_;
-    qint64 speed_;
-    int elapsed_; // in seconds
-};
-
-class SHOWBOARD_EXPORT HttpDataProvider : public DataProvider
-{
-    Q_OBJECT
-public:
-    Q_INVOKABLE explicit HttpDataProvider(QObject *parent = nullptr);
-
-public:
-    virtual bool needCache() override { return true; }
-
-    virtual QtPromise::QPromise<QSharedPointer<QIODevice>> getStream(QObject * context, QUrl const & url, bool all) override;
-
-private:
-    QNetworkAccessManager * network_ = nullptr;
-};
 
 /*
  * register data provider class @ctype with scheme type @type

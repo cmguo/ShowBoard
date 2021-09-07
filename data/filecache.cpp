@@ -1,5 +1,6 @@
 #include "filecache.h"
 #include "dataprovider.h"
+#include "httpstream.h"
 #include "core/workthread.h"
 
 #include <QDir>
@@ -46,15 +47,16 @@ QPromise<QString> FileCache::putStream(QString const & path, QByteArray const & 
     auto iter = asyncPuts_.find(path);
     if (iter != asyncPuts_.end())
         return iter.value();
-    QPromise<QString> asyncPut = saveStream(fullPath, stream)
+    QPromise<QString> asyncPut = saveStream(fullPath, stream, putsStatus_[path])
             .then([this, path, fullPath, hash] (qint64 size) {
         base::put(path, FileResource {size, hash});
         return fullPath;
     }).finally([this, path] () {
         std::lock_guard<std::mutex> l(FileCache::lock());
         asyncPuts_.remove(path);
+        putsStatus_.remove(path);
     });
-    asyncPuts_.insert(path, asyncPut);
+    asyncPuts_.insert(path, {asyncPut});
     return asyncPut;
 }
 
@@ -70,15 +72,16 @@ QtPromise::QPromise<QString> FileCache::putStream(QObject *context, QString cons
     if (iter != asyncPuts_.end())
         return iter.value();
     QPromise<QString> asyncPut = openStream(context).then([this, path, fullPath, hash] (QSharedPointer<QIODevice> stream) {
-        return saveStream(fullPath, stream).then([this, path, fullPath, hash] (qint64 size) {
+        return saveStream(fullPath, stream, putsStatus_[path]).then([this, path, fullPath, hash] (qint64 size) {
             base::put(path, FileResource {size, hash});
             return fullPath;
         });
     }).finally([this, path] () {
         std::lock_guard<std::mutex> l(FileCache::lock());
         asyncPuts_.remove(path);
+        putsStatus_.remove(path);
     });
-    asyncPuts_.insert(path, asyncPut);
+    asyncPuts_.insert(path, {asyncPut});
     return asyncPut;
 }
 
@@ -100,6 +103,19 @@ QString FileCache::putData(QString const & path, QByteArray const & hash, QByteA
     }
     base::put(path, FileResource {data.size(), hash});
     return fullPath;
+}
+
+FileCache::PutStatus FileCache::getPutStatus(const QString &path)
+{
+    std::lock_guard<std::mutex> l(FileCache::lock());
+    auto iter = putsStatus_.find(path);
+    if (iter != putsStatus_.end())
+        return iter.value();
+    FileResource f = get(path);
+    if (f.size >= 0) {
+        return {f.size, f.size};
+    }
+    return {};
 }
 
 QSharedPointer<QIODevice> FileCache::getStream(QString const & path)
@@ -248,29 +264,27 @@ void FileCache::check(const QString &path, const QByteArray &hash)
     get(path, hash, false);
 }
 
-QtPromise::QPromise<qint64> FileCache::saveStream(const QString &path, QSharedPointer<QIODevice> stream)
+QtPromise::QPromise<qint64> FileCache::saveStream(const QString &path, QSharedPointer<QIODevice> stream, PutStatus & status)
 {
     QDir().mkdir(path.left(path.lastIndexOf('/')));
     QSharedPointer<QFile> file(new QFile(path + ".temp"));
     if (!file->open(QFile::WriteOnly)) {
         return QPromise<qint64>::reject(std::runtime_error("文件打开失败"));
     }
-    return QPromise<qint64>([file, stream](
+    return QPromise<qint64>([file, stream, &status](
                              const QPromiseResolve<qint64>& resolve,
                              const QPromiseReject<qint64>& reject) {
-        QSharedPointer<qint64> size(new qint64(0));
-        auto error = [file, size, reject](std::exception && e) {
-            *size = -1;
+        auto error = [file, reject](std::exception && e) {
             file->close();
             reject(e);
         };
-        auto finished = [file, size, resolve] () {
-            if (*size >= 0) {
+        auto finished = [file, &status, resolve] () {
+            if (status.progress >= 0) {
                 file->close();
-                resolve(*size);
+                resolve(status.progress);
             }
         };
-        auto read = [file, size, stream, error] () {
+        auto read = [file, &status, stream, error] () {
             QByteArray data = stream->readAll();
             if (data.isEmpty()) {
                 error(std::runtime_error("文件下载失败"));
@@ -280,7 +294,12 @@ QtPromise::QPromise<qint64> FileCache::saveStream(const QString &path, QSharedPo
                 error(std::runtime_error("文件写入失败"));
                 return;
             }
-            *size += static_cast<quint64>(data.size());
+            if (status.total == -2) {
+                status.total = HttpStream::totalBytes(stream.get());
+                if (status.total < 0)
+                    status.total = -1;
+            }
+            status.progress += data.size();
         };
         char c;
         if (stream->peek(&c, 1) > 0)

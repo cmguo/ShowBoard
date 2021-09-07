@@ -58,7 +58,7 @@ bool UrlFileCache::contains(const QUrl &url)
     return FileCache::contains(md5Path(url));
 }
 
-void UrlFileCache::remove(const QUrl &url)
+bool UrlFileCache::remove(const QUrl &url)
 {
     return FileCache::remove(md5Path(url));
 }

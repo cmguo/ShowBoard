@@ -7,13 +7,13 @@
 #include "views/whitecanvasquick.h"
 #include "views/quickwidgetitem.h"
 #include "views/whitecanvastools.h"
+#include "data/localhttpserver.h"
+#include "data/resourcecache.h"
+#include "controls/controls.h"
 
 #include <qcomponentcontainer.h>
 
 #include <QQuickWidget>
-
-#include <data/localhttpserver.h>
-#include <data/resourcecache.h>
 
 static QExport<WhiteCanvasTools, ToolButtonProvider> export_tools(QPart::shared);
 

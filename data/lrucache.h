@@ -68,12 +68,12 @@ public:
         return i->second;
     }
 
-    void remove(K const & k)
+    bool remove(K const & k)
     {
         std::lock_guard<L> lock(lock_);
         auto iter = lruMap_.find(k);
         if (iter == lruMap_.end()) {
-            return;
+            return false;
         }
         typename QLinkedList<QPair<K, V>>::iterator i = iter.value();
         lruMap_.erase(iter);
@@ -84,12 +84,23 @@ public:
         } else {
             lruMap_.insert(k, i);
         }
+        return true;
     }
 
     bool contains(K const & k)
     {
         std::lock_guard<L> lock(lock_);
         return lruMap_.contains(k);
+    }
+
+    void clear() {
+        std::lock_guard<L> lock(lock_);
+        for (auto l : lruMap_) {
+            destroy(l.first, l.second);
+        }
+        lruList_.clear();
+        lruMap_.clear();
+        size_ = 0;
     }
 
 protected:

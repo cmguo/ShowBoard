@@ -37,7 +37,7 @@ public:
 
     bool contains(QUrl const & url);
 
-    void remove(QUrl const & url);
+    bool remove(QUrl const & url);
 
     FileLRUResource get(QUrl const & url, bool put = false);
 
