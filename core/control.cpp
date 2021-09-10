@@ -335,6 +335,17 @@ void Control::afterClone(Control *)
 {
 }
 
+static void paintItem(QPainter & painter, QGraphicsItem * item, QStyleOptionGraphicsItem & option)
+{
+    item->paint(&painter, &option, nullptr);
+    for (QGraphicsItem * c : item->childItems()) {
+        painter.save();
+        painter.setTransform(painter.transform() * c->transform());
+        paintItem(painter, c, option);
+        painter.restore();
+    }
+}
+
 static QImage toImage(QGraphicsItem * item)
 {
     QRect rect = item->boundingRect().toAlignedRect();
@@ -344,7 +355,7 @@ static QImage toImage(QGraphicsItem * item)
     painter.setBrush(Qt::white);
     painter.setTransform(QTransform::fromTranslate(-rect.left(), -rect.top()));
     QStyleOptionGraphicsItem option;
-    item->paint(&painter, &option, nullptr);
+    paintItem(painter, item, option);
     painter.end();
     return image;
 }
