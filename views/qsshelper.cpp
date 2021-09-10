@@ -91,10 +91,17 @@ QString QssHelper::loadText(const QString &file)
     return ret;
 }
 
-qreal QssHelper::sizeScale()
+static qreal calcScreenScale(QScreen * screen)
 {
-    static qreal height = QApplication::primaryScreen()->size().height();
-    static qreal s = height / 1080.0;
+    if (screen == nullptr)
+        screen = QApplication::primaryScreen();
+    static qreal height = screen->size().height();
+    return height / 1080.0;
+}
+
+qreal QssHelper::sizeScale(QScreen * screen)
+{
+    static qreal s = calcScreenScale(screen);
     return s;
 }
 
@@ -135,7 +142,7 @@ void QssHelper::setStyleFunctions(QMap<QByteArray, QMap<QByteArray, StyleFunc>> 
     gStyleFunctions = styleFunctions;
 }
 
-bool QssHelper::applyToAllStylesheet()
+bool QssHelper::applyToAllStylesheet(QScreen * screen)
 {
     allApplied = true;
     for (QssHelper* h : allHelpers()) {

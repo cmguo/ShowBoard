@@ -9,6 +9,8 @@
 #include <QSize>
 #include <QVariant>
 
+class QScreen;
+
 class SHOWBOARD_EXPORT QssValue : public QVariant
 {
 public:
@@ -28,7 +30,7 @@ public:
     QssHelper(QString const & file = nullptr);
 
 public:
-    static qreal sizeScale();
+    static qreal sizeScale(QScreen * screen = nullptr);
 
     static qreal sizeScale(qreal size);
 
@@ -51,7 +53,7 @@ public:
     // key/name/func
     static void setStyleFunctions(QMap<QByteArray, QMap<QByteArray, StyleFunc>> styleFunctions);
 
-    static bool applyToAllStylesheet();
+    static bool applyToAllStylesheet(QScreen * screen);
 
 public:
     void loadFromFile(QString const & file);

@@ -23,12 +23,12 @@ QComponentContainer & ShowBoard::containter()
     return c;
 }
 
-void ShowBoard::init()
+void ShowBoard::init(QScreen * screen)
 {
     static bool done = false;
     if (done) return;
     done = true;
-    QssHelper::applyToAllStylesheet();
+    QssHelper::applyToAllStylesheet(screen);
     qRegisterMetaType<Resource*>();
     qRegisterMetaType<QQuickWidget*>();
     qRegisterMetaType<ResourceView*>();
