@@ -96,7 +96,7 @@ public:
     void clear() {
         std::lock_guard<L> lock(lock_);
         for (auto l : lruMap_) {
-            destroy(l.first, l.second);
+            destroy(l->first, l->second);
         }
         lruList_.clear();
         lruMap_.clear();
