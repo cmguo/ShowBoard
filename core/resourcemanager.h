@@ -40,6 +40,8 @@ public slots:
     void onComposition();
 
 private:
+    void syncCommonTypes();
+
     QByteArray findType(QUrl const & uri, QByteArray& originType, QLazy*& lazy, QPair<int, int> const*& flags) const;
 
 private:

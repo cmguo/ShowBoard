@@ -37,14 +37,7 @@ ResourceManager::ResourceManager(QObject *parent)
     : QObject(parent)
 {
     //Q_INIT_RESOURCE(ShowBoard);
-    auto iter = commonResourceTypes().keyValueBegin();
-    auto end = commonResourceTypes().keyValueEnd();
-    for (; iter != end; ++iter) {
-        for (auto t : QByteArray((*iter).first).split(',')) {
-            commonResources_[t] = qMakePair(static_cast<int>((*iter).second.first),
-                                      static_cast<int>((*iter).second.second));
-        }
-    }
+    syncCommonTypes();
     // QMimeData types
     mapResourceType("x-qt-image", "image");
 }
@@ -63,6 +56,19 @@ void ResourceManager::onComposition()
             providers_[t.trimmed()] = &r;
         }
     }
+}
+
+void ResourceManager::syncCommonTypes()
+{
+    auto iter = commonResourceTypes().keyValueBegin();
+    auto end = commonResourceTypes().keyValueEnd();
+    for (; iter != end; ++iter) {
+        for (auto t : QByteArray((*iter).first).split(',')) {
+            commonResources_[t] = qMakePair(static_cast<int>((*iter).second.first),
+                                      static_cast<int>((*iter).second.second));
+        }
+    }
+    commonResourceTypes().clear();
 }
 
 QByteArray ResourceManager::findType(QUrl const & uri, QByteArray& originType, QLazy *&lazy, QPair<int, int> const *&flags) const
@@ -131,6 +137,7 @@ ResourceView * ResourceManager::createResource(QUrl const & uri, QByteArray cons
     QByteArray originType;
     QLazy * lazy = nullptr;
     QPair<int, int> const* flags = nullptr;
+    const_cast<ResourceManager*>(this)->syncCommonTypes();
     if (typeHint.isEmpty()) {
         type = findType(uri, originType, lazy, flags);
     } else {
