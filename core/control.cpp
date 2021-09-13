@@ -14,6 +14,7 @@
 #include "resourcepackage.h"
 #include "varianthelper.h"
 #include "showboard.h"
+#include "imagehelper.h"
 
 #include <qcomponentcontainer.h>
 
@@ -335,36 +336,11 @@ void Control::afterClone(Control *)
 {
 }
 
-static void paintItem(QPainter & painter, QGraphicsItem * item, QStyleOptionGraphicsItem & option)
-{
-    item->paint(&painter, &option, nullptr);
-    for (QGraphicsItem * c : item->childItems()) {
-        painter.save();
-        painter.setTransform(painter.transform() * c->transform());
-        paintItem(painter, c, option);
-        painter.restore();
-    }
-}
-
-static QImage toImage(QGraphicsItem * item)
-{
-    QRect rect = item->boundingRect().toAlignedRect();
-    QImage image(rect.size(), QImage::Format_ARGB32);
-    image.fill(Qt::transparent);
-    QPainter painter(&image);
-    painter.setBrush(Qt::white);
-    painter.setTransform(QTransform::fromTranslate(-rect.left(), -rect.top()));
-    QStyleOptionGraphicsItem option;
-    paintItem(painter, item, option);
-    painter.end();
-    return image;
-}
-
 void Control::copy(QMimeData &data)
 {
     beforeClone();
     res_->copy(data);
-    data.setImageData(toImage(item_));
+    data.setImageData(ImageHelper::toImage(item_));
     data.setProperty("OriginControl", QVariant::fromValue(life()));
     data.setProperty("OriginPage", QVariant::fromValue(res_->page()));
     connect(res_->page(), &QObject::destroyed, &data, [&data] () {
@@ -1243,9 +1219,10 @@ bool Control::handleToolButton(ToolButton *btn, const QStringList &args)
         res_->transform().rotate(angle);
     } else if (btn == &btnCapture) {
         QString file = QFileDialog::getSaveFileName(
-                    nullptr, "选择保存位置", "", "*.png");
+                    nullptr, "选择保存位置", res_->name(),
+                    "PNG (*.png);;JPEG (*.jpg);;矢量图 (*.svg)");
         if (!file.isEmpty()) {
-            toImage(item()).save(file);
+            ImageHelper::saveItem(item(), file);
         }
     } else if (btn == &btnDelete) {
         res_->removeFromPage();

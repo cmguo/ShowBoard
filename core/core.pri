@@ -3,6 +3,7 @@ HEADERS += \
     $$PWD/controlmanager.h \
     $$PWD/controltransform.h \
     $$PWD/controlview.h \
+    $$PWD/imagehelper.h \
     $$PWD/lifeobject.h \
     $$PWD/oomhandler.h \
     $$PWD/optiontoolbuttons.h \
@@ -23,6 +24,7 @@ SOURCES += \
     $$PWD/control.cpp \
     $$PWD/controlmanager.cpp \
     $$PWD/controltransform.cpp \
+    $$PWD/imagehelper.cpp \
     $$PWD/lifeobject.cpp \
     $$PWD/oomhandler.cpp \
     $$PWD/optiontoolbuttons.cpp \

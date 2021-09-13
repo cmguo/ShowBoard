@@ -61,7 +61,12 @@ bool HttpStream::connect(QIODevice * stream, std::function<void ()> finished,
         if (HttpStream * http = qobject_cast<HttpStream*>(stream)) {
             QObject::connect(http, &HttpStream::error, error2);
         } else {
+#if QT_VERSION >= 0x51500
             QObject::connect(reply, &QNetworkReply::errorOccurred, error2);
+#else
+            void (QNetworkReply::*errorOccurred)(QNetworkReply::NetworkError) = &QNetworkReply::error;
+            QObject::connect(reply, errorOccurred, error2);
+#endif
         }
     }
     return false;
@@ -150,7 +155,12 @@ void HttpStream::reopen()
 {
     QObject::connect(reply_, &QNetworkReply::finished, this, &HttpStream::onFinished);
     QObject::connect(reply_, &QNetworkReply::readyRead, this, &HttpStream::onReadyRead);
+#if QT_VERSION >= 0x51500
     QObject::connect(reply_, &QNetworkReply::errorOccurred, this, &HttpStream::onError);
+#else
+    void (QNetworkReply::*errorOccurred)(QNetworkReply::NetworkError) = &QNetworkReply::error;
+    QObject::connect(reply_, errorOccurred, this, &HttpStream::onError);
+#endif
     //pos_ = 0;
 }
 

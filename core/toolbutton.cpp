@@ -1,3 +1,4 @@
+#include "imagehelper.h"
 #include "toolbutton.h"
 
 #include <QIcon>
@@ -149,55 +150,6 @@ QList<ToolButton *> ToolButton::makeButtons(QString const & tools)
     return list;
 }
 
-static QPixmap widgetToPixmap(QWidget * widget, bool destroy)
-{
-    QPixmap pm(widget->size());
-    pm.fill(Qt::transparent);
-    QPainter pt(&pm);
-    pt.setRenderHint(QPainter::HighQualityAntialiasing);
-    widget->render(&pt);
-    pt.end();
-    if (destroy)
-        widget->deleteLater();
-    return pm;
-}
-
-static QPixmap itemToPixmap(QGraphicsItem * item, QSize size, bool destroy)
-{
-    QPointF c = item->boundingRect().center() * 2;
-    if (size.isEmpty()) {
-        size = QSizeF(c.x(), c.y()).toSize();
-    }
-    QPointF scale(size.width() / c.x(), size.height() / c.y());
-    QPixmap pm(size);
-    pm.fill(Qt::transparent);
-    QPainter pt(&pm);
-    pt.setRenderHint(QPainter::HighQualityAntialiasing);
-    QStyleOptionGraphicsItem style;
-    pt.setTransform(QTransform::fromScale(scale.x(), scale.y()));
-    item->paint(&pt, &style);
-    for (QGraphicsItem * c : item->childItems()) {
-        pt.setTransform(c->itemTransform(item).scale(scale.x(), scale.y()));
-        c->paint(&pt, &style);
-    }
-    pt.end();
-    if (destroy)
-        delete item;
-    return pm;
-}
-
-static QPixmap opacityPixmap(QPixmap pixmap, int opacity)
-{
-    QPixmap pm = QPixmap(pixmap.size());
-    pm.fill(Qt::transparent);
-    QPainter pt(&pm);
-    pt.setOpacity(opacity / 100.0);
-    QRect rc(0, 0, pm.width(), pm.height());
-    pt.drawPixmap(rc, pixmap, rc);
-    pt.end();
-    return pm;
-}
-
 static QPixmap getPixmap(QVariant value, QSize const & size, bool destroy)
 {
     if (value.type() == QVariant::Pixmap)
@@ -206,9 +158,9 @@ static QPixmap getPixmap(QVariant value, QSize const & size, bool destroy)
         return QPixmap::fromImage(value.value<QImage>());
     else if (value.type() == QVariant::UserType) {
         if (value.userType() == QMetaType::QObjectStar) {
-            return widgetToPixmap(value.value<QWidget *>(), destroy);
+            return ImageHelper::widgetToPixmap(value.value<QWidget *>(), destroy);
         } else if (value.userType() == qMetaTypeId<QGraphicsItem *>()) {
-            return itemToPixmap(value.value<QGraphicsItem *>(), size, destroy);
+            return ImageHelper::itemToPixmap(value.value<QGraphicsItem *>(), size, destroy);
         }
     }
     return QPixmap();
@@ -237,7 +189,7 @@ QIcon ToolButton::makeIcon(QString const & iconString, QSize const & size)
             if (sep == "default") {
                 // normal=,disabled=30%,+normal=
                 icon.addPixmap(pixmap, QIcon::Normal, QIcon::Off);
-                icon.addPixmap(opacityPixmap(pixmap, 30), QIcon::Disabled, QIcon::Off);
+                icon.addPixmap(ImageHelper::opacityPixmap(pixmap, 30), QIcon::Disabled, QIcon::Off);
                 icon.addPixmap(pixmap, QIcon::Normal, QIcon::On);
                 continue;
             }
@@ -254,7 +206,7 @@ QIcon ToolButton::makeIcon(QString const & iconString, QSize const & size)
             QPixmap p;
             if (v.endsWith("%")) {
                 int alpha = v.left(v.length() - 1).toInt();
-                p = opacityPixmap(pixmap, alpha);
+                p = ImageHelper::opacityPixmap(pixmap, alpha);
             } else if (!v.isEmpty()) {
                 int n1 = file.lastIndexOf('.');
                 if (v.startsWith('/')) {
