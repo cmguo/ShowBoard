@@ -117,7 +117,7 @@ void LocalHttpServer::addWebSocketProgram2(const QByteArray &prefix, LocalHttpSe
             QByteArray path = socket->requestUrl().path().toUtf8();
             for (QByteArray p : webSocketPrograms_.keys()) {
                 if (path.startsWith(p)) {
-                    webSocketPrograms_[p]->handle(socket);
+                    webSocketPrograms_[p]->handle(path, socket);
                     return;
                 }
             }

@@ -52,7 +52,7 @@ public:
     public:
         LocalWebSocketProgram() {}
         virtual ~LocalWebSocketProgram() {}
-        virtual void handle(QWebSocket * socket) = 0;
+        virtual void handle(QByteArray const & path, QWebSocket * socket) = 0;
     private:
         Q_DISABLE_COPY(LocalWebSocketProgram)
     };
