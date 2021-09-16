@@ -1,0 +1,11 @@
+[requires]
+QtComposition/master@cmguo/stable
+QtEventBus/master@cmguo/stable
+QtHttpServer/1.0@tal/stable
+qtpromise/v0.5.0@cmguo/stable
+quazip/1.0@tal/stable
+
+[generators]
+qmake
+
+[options]

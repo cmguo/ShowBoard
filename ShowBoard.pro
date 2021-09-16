@@ -6,6 +6,9 @@ DEFINES += SHOWBOARD_LIBRARY
 
 CONFIG += c++14
 
+include($$(applyCommonConfig))
+include($$(applyConanPlugin))
+
 include(../config.pri)
 
 # The following define makes your compiler emit warnings if you use
@@ -66,37 +69,3 @@ unix {
     target.path = /usr/lib
 }
 !isEmpty(target.path): INSTALLS += target
-
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../QtComposition/release/ -lQtComposition
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../QtComposition/debug/ -lQtCompositiond
-else:unix: LIBS += -L$$OUT_PWD/../QtComposition/ -lQtComposition
-
-INCLUDEPATH += $$PWD/../QtComposition
-DEPENDPATH += $$PWD/../QtComposition
-
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../QtEventBus/release/ -lQtEventBus
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../QtEventBus/debug/ -lQtEventBusd
-else:unix: LIBS += -L$$OUT_PWD/../QtEventBus/ -lQtEventBus
-
-INCLUDEPATH += $$PWD/../QtEventBus
-DEPENDPATH += $$PWD/../QtEventBus
-
-INCLUDEPATH += $$PWD/../QtPromise/src
-
-INCLUDEPATH += $$PWD/../qtpromise/src/qtpromise $$PWD/../qtpromise/include
-#DEPENDPATH += $$PWD/../qtpromise/src/qtpromise
-
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../quazip/lib -lquazip
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../quazip/lib -lquazipd
-else:unix: LIBS += -L$$OUT_PWD/../quazip/lib -lquazip
-
-INCLUDEPATH += $$OUT_PWD/../quazip/include
-
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../QtHttpServer/lib -lQt5HttpServer
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../QtHttpServer/lib -lQt5HttpServerd
-else:mac: LIBS += -F$$OUT_PWD/../QtHttpServer/lib -framework QtHttpServer
-else:unix: LIBS += -L$$OUT_PWD/../QtHttpServer/lib -lQt5HttpServer
-
-INCLUDEPATH += $$OUT_PWD/../QtHttpServer/include
-DEPENDPATH += $$PWD/../qthttpserver/src/httpserver
-
