@@ -249,6 +249,9 @@ Control * WhiteCanvas::addResource(QUrl const & url, QVariantMap settings)
 {
     ResourceView * res = canvas_->page()->addResource(url, settings);
     Control * ct = canvas_->findControl(res);
+    // may be added to tool page
+    if (ct == nullptr)
+        ct = tools_->findControl(res);
     ct->setSelectOnLoaded();
     return ct;
 }

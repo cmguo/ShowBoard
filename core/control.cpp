@@ -1067,7 +1067,7 @@ void Control::adjustEnd(int source)
         sizeChanged();
     }
     if (tr && adjustSources_ == 0 && tr->changed()) {
-        res_->package()->records()->commit(tr);
+        res_->page()->records()->commit(tr);
         setProperty("transformRecord", QVariant());
     }
 }

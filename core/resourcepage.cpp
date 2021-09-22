@@ -32,6 +32,8 @@ ResourcePage::ResourcePage(ResourceView* mainRes, QObject *parent)
 #endif
     if (parent)
         thumbnail_ = ResourcePackage::toolPage()->thumbnail();
+    else // tool page
+        records_ = new ResourceRecordSet(this, 0);
     if (mainRes == nullptr)
         return;
     RecordMergeScope rs(this, true); // block

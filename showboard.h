@@ -11,7 +11,7 @@ class SHOWBOARD_EXPORT ShowBoard
 public:
     static QComponentContainer & containter();
 
-    static void init(QScreen * screen);
+    static void init(QScreen * screen = nullptr);
 
     static void exit();
 };
