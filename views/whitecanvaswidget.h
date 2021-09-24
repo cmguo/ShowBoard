@@ -88,6 +88,7 @@ private:
     WhiteCanvas * canvas_;
     QSizeF sceneSize_;
     Control * shotcutControl_;
+    bool dragAccept_;
 };
 
 #endif // WHITECANVASWIDGET_H

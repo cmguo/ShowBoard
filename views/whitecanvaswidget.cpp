@@ -16,6 +16,7 @@
 #include <QShortcut>
 #include <QMimeData>
 #include <QClipboard>
+#include <QGraphicsSceneMouseEvent>
 
 static WhiteCanvasWidget * mainInstance_ = nullptr;
 
@@ -24,14 +25,26 @@ WhiteCanvasWidget * WhiteCanvasWidget::mainInstance()
     return mainInstance_;
 }
 
+class Scene : public QGraphicsScene
+{
+public:
+    Scene(QRectF rect) : QGraphicsScene(rect) {}
+    // fix drop
+    void dropEvent(QGraphicsSceneDragDropEvent *event) override{
+        event->setAccepted(false);
+        QGraphicsScene::dropEvent(event);
+    }
+};
+
 WhiteCanvasWidget::WhiteCanvasWidget(QWidget *parent)
     : QGraphicsView(parent)
     , sceneSize_(QApplication::primaryScreen()->geometry().size())
     , shotcutControl_(nullptr)
+    , dragAccept_(false)
 {
     QRectF rect(QPointF(0, 0), sceneSize_);
     rect.moveCenter({0, 0});
-    scene_ = new QGraphicsScene(rect);
+    scene_ = new Scene(rect);
     scene_->setBackgroundBrush(QBrush());
     setScene(scene_);
     canvas_ = new WhiteCanvas;
@@ -143,23 +156,29 @@ void WhiteCanvasWidget::showEvent(QShowEvent *event)
 
 void WhiteCanvasWidget::dragEnterEvent(QDragEnterEvent *event)
 {
-    if (!ResourceView::canPaste(*event->mimeData()))
-        return;
-    event->accept();
+    QGraphicsView::dragEnterEvent(event); // always accept
+    dragAccept_ = ResourceView::canPaste(*event->mimeData());
 }
 
 void WhiteCanvasWidget::dragMoveEvent(QDragMoveEvent *event)
 {
-    event->accept();
+    QGraphicsView::dragMoveEvent(event);
+    if (event->isAccepted())
+        return;
+    event->setAccepted(dragAccept_);
+    event->setDropAction(Qt::LinkAction);
 }
 
 void WhiteCanvasWidget::dragLeaveEvent(QDragLeaveEvent *event)
 {
-    event->accept();
+    QGraphicsView::dragLeaveEvent(event);
 }
 
 void WhiteCanvasWidget::dropEvent(QDropEvent *event)
 {
+    QGraphicsView::dropEvent(event);
+    if (event->isAccepted() || !dragAccept_)
+        return;
     QMimeData const * data = event->mimeData();
     if (data) {
         const_cast<QMimeData*>(data)->setProperty(
