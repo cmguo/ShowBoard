@@ -1,6 +1,8 @@
 # ShowBoard
 基于 Qt Graphics 的白板框架
 
+![image](ShowBoard.png)
+
 ## 特性：
 - 各种白板资源，展示控件的管理，可无限扩展更多类型
 - 内置资源的复制，删除，置顶等
