@@ -38,6 +38,10 @@ void ShowBoard::init(QScreen * screen)
     qmlRegisterType<WhiteCanvasQuick>("ShowBoard", 1, 0, "WhiteCanvasQuick");
     qmlRegisterType<QuickWidgetItem>("ShowBoard", 1, 0, "QuickWidgetItem");
 
+    qmlRegisterSingletonType<Destiny>("ShowBoard", 1, 0, "Destiny", [](QQmlEngine *, QJSEngine *) {
+        return new Destiny();
+    });
+
     LocalHttpServer::instance()->start();
 }
 

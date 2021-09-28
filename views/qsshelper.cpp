@@ -332,3 +332,8 @@ QPen QssValue::toPen() const
     }
     return pen;
 }
+
+qreal Destiny::dp(qreal size)
+{
+    return ::dp(size);
+}

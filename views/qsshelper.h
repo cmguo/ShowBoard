@@ -90,4 +90,11 @@ inline T dp(T const & t)
     return QssHelper::sizeScale(t);
 }
 
+class Destiny : public QObject
+{
+    Q_OBJECT
+public slots:
+    static qreal dp(qreal size);
+};
+
 #endif // QSSHELPER_H
