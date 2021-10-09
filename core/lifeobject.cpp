@@ -8,6 +8,11 @@ LifeObject::LifeObject(QObject *parent)
 {
 }
 
+LifeObject::~LifeObject()
+{
+    resetLife();
+}
+
 LifeObject::LifeObject(const LifeObject &o)
     : lifeToken_(nullptr)
 {
@@ -27,5 +32,14 @@ QWeakPointer<LifeObject> LifeObject::life()
 QWeakPointer<LifeObject> LifeObject::uniqeLife()
 {
     lifeToken_.reset(this, nopdel);
+    emit lifeExpired();
     return lifeToken_;
+}
+
+void LifeObject::resetLife()
+{
+    if (!lifeToken_.isNull()) {
+        lifeToken_.reset();
+        emit lifeExpired();
+    }
 }

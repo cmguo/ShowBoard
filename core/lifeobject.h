@@ -12,12 +12,22 @@ class SHOWBOARD_EXPORT LifeObject : public QObject
 public:
     explicit LifeObject(QObject *parent = nullptr);
 
+    ~LifeObject() override;
+
+signals:
+    void lifeExpired();
+
 protected:
     LifeObject(LifeObject const & o);
 
     QWeakPointer<LifeObject> life();
 
     QWeakPointer<LifeObject> uniqeLife();
+
+    void resetLife();
+
+    friend class ResourcePage;
+    friend class HttpStream;
 
 private:
     QSharedPointer<LifeObject> lifeToken_;

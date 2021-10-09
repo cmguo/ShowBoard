@@ -438,6 +438,8 @@ void ResourcePage::removeResource(int index, QList<ResourceView *> ress)
     for (auto r : ress) {
         resources_.removeAt(index);
         r->setParent(nullptr);
+        r->resetLife();
+        r->resource()->resetLife();
     }
     endRemoveRows();
 }

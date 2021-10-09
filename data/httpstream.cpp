@@ -15,8 +15,14 @@ HttpStream::HttpStream(QObject * context, QNetworkReply *reply)
 {
     open(ReadOnly);
     if (context) {
-        QObject::connect(context, &QObject::destroyed,
-                         this, &HttpStream::abort);
+        if (LifeObject * life = qobject_cast<LifeObject*>(context)) {
+            life->life();
+            QObject::connect(life, &LifeObject::lifeExpired,
+                             this, &HttpStream::abort);
+        } else {
+            QObject::connect(context, &QObject::destroyed,
+                             this, &HttpStream::abort);
+        }
         if (ResourceCacheLife * life = qobject_cast<ResourceCacheLife*>(context)) {
             QObject:: connect(life, &ResourceCacheLife::pause,
                               this, &HttpStream::pause);
