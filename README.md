@@ -10,6 +10,16 @@
 - 支持多页面管理，页面也可以有子页面
 - 更多特性请参考文档
 
+# 快速尝试
+通过 Conan 包管理器依赖
++ JFrog 源：conan remote add accumulating https://accumulating.jfrog.io/artifactory/api/conan/default-conan
++ 依赖配置：[requires] ShowBoard/develop@cmguo/test
++ 仅在 Qt 5.15.0 VS2019 上构建
++ 注意：需要部署各种扩展组件，才能够打开各种资源
+
+# 方案说明
++ [用 Qt 实现电子白板](https://blog.csdn.net/luansxx/article/details/120645847)
+
 ## 基本用法：
 ```cpp
 WhiteCanvasWidget widget(&mainWidget);
