@@ -1,11 +1,13 @@
 #ifndef QQUICKSHAPEPATH_H
 #define QQUICKSHAPEPATH_H
 
+#include "ShowBoard_global.h"
+
 #include <QObject>
 
 class QPainterPath;
 
-class QQuickShapePath : public QObject
+class SHOWBOARD_EXPORT QQuickShapePath : public QObject
 {
 public:
     static QQuickShapePath * create(QObject * context);

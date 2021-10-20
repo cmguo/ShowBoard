@@ -8,19 +8,19 @@ SOURCES += \
     $$PWD/qquickshapepath.cpp \
     $$PWD/quickhelper.cpp
 
-showboard_quick : {
+showboard_quick {
 
     HEADERS += \
-        $$PWD/itemframe.h \
-        $$PWD/positionbar.h \
-        $$PWD/selectbox.h \
-        $$PWD/stateitem.h
+        $$PWD/itemframeq.h \
+        $$PWD/positionbarq.h \
+    $$PWD/selectboxq.h \
+    $$PWD/stateitemq.h
 
     SOURCES += \
-        $$PWD/itemframe.cpp \
-        $$PWD/positionbar.cpp \
-        $$PWD/selectbox.cpp \
-        $$PWD/stateitem.cpp
+        $$PWD/itemframeq.cpp \
+        $$PWD/positionbarq.cpp \
+    $$PWD/selectboxq.cpp \
+    $$PWD/stateitemq.cpp
 
 } else {
 
