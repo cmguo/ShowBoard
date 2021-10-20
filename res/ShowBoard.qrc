@@ -39,5 +39,6 @@
         <file>icon/drag.svg</file>
         <file>icon/cursor-rotate.png</file>
         <file>icon/rotate.svg</file>
+        <file>qml/ShapeItem.qml</file>
     </qresource>
 </RCC>

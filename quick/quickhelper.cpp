@@ -33,3 +33,31 @@ void QuickHelper::appendChild(QObject *parent, QObject *child)
             data.append(child);
     }
 }
+
+void QuickHelper::clearChildren(QObject *parent)
+{
+    int idef = parent->metaObject()->indexOfClassInfo("DefaultProperty");
+    if (idef >= 0) {
+        char const * def = parent->metaObject()->classInfo(idef).value();
+        QQmlListReference data(parent, def, qmlEngine(parent));
+        if (data.isValid())
+            data.clear();
+    }
+}
+
+QObject * QuickHelper::findChild(QObject *parent, const char *className)
+{
+    int idef = parent->metaObject()->indexOfClassInfo("DefaultProperty");
+    if (idef >= 0) {
+        char const * def = parent->metaObject()->classInfo(idef).value();
+        QQmlListReference data(parent, def, qmlEngine(parent));
+        if (data.isValid()) {
+            for (int i = 0; i < data.count(); ++i) {
+                QObject * c = data.at(i);
+                if (strcmp(c->metaObject()->className(), className) == 0)
+                    return c;
+            }
+        }
+    }
+    return nullptr;
+}

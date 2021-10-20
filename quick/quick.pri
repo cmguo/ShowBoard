@@ -1,7 +1,11 @@
 HEADERS += \
+    $$PWD/qquickshapeitem.h \
+    $$PWD/qquickshapepath.h \
     $$PWD/quickhelper.h
 
 SOURCES += \
+    $$PWD/qquickshapeitem.cpp \
+    $$PWD/qquickshapepath.cpp \
     $$PWD/quickhelper.cpp
 
 showboard_quick : {

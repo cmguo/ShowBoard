@@ -13,6 +13,11 @@ public:
                            char const * module = nullptr, char const * version = nullptr);
 
     static void appendChild(QObject * parent, QObject * child);
+
+    static void clearChildren(QObject * parent);
+
+    static QObject * findChild(QObject * parent, char const * className);
+
 };
 
 #endif // QUICKHELPER_H

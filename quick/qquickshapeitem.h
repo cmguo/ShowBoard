@@ -3,15 +3,18 @@
 
 #include <QQuickItem>
 
+class QQuickShapePath;
+
 class QQuickShapeItem : public QQuickItem
 {
-    Q_OBJECT
 public:
-    QQuickShapeItem();
+    static QQuickShapeItem * create(QObject * context);
 
-signals:
+public:
+    void setPath(QPainterPath const & path);
 
-public slots:
+private:
+    QQuickShapePath * shapePath();
 };
 
 #endif // QQUICKSHAPEITEM_H
