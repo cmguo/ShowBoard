@@ -47,8 +47,11 @@ Control * ControlManager::createControl(ResourceView * res)
     QByteArray type = res->resource()->type();
     type = mapTypes_.value(type, type);
     std::map<QByteArray, QLazy *>::iterator iter = controls_.find(type);
-    if (iter == controls_.end())
-        return new UnknownControl(res);
-    return iter->second->create<Control>(Q_ARG(ResourceView*, res));
+    Control * control = nullptr;
+    if (iter != controls_.end())
+        control = iter->second->create<Control>(Q_ARG(ResourceView*, res));
+    if (control == nullptr)
+        control = new UnknownControl(res);
+    return control;
 }
 
