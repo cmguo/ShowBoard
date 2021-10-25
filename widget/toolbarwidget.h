@@ -45,6 +45,12 @@ public:
         BottomLeft,
         BottomCenter,
         BottomRight,
+        LeftTop,
+        LeftCenter,
+        LeftBottom,
+        RightTop,
+        RightCenter,
+        RightBottom
     };
 public:
     explicit ToolbarWidget(QWidget *parent = nullptr);
@@ -131,7 +137,7 @@ private:
 
     void buttonClicked(QWidget * btn);
 
-    QPointF popupPosition(QPushButton * btn, QGraphicsProxyWidget * popup);
+    QPointF popupPosition(QPushButton * btn);
 
 private:
     QMetaObject const * template_;

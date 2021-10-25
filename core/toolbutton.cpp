@@ -123,6 +123,8 @@ ToolButton * ToolButton::makeButton(const QString &desc)
         return &PLACE_HOOLDER;
     if (desc == "-")
         return &LINE_SPLITTER;
+    if (desc == "\n")
+        return &LINE_BREAK;
     if (desc.startsWith("-"))
         return nullptr;
     QStringList seps = desc.split("|");

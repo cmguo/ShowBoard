@@ -420,9 +420,9 @@ void ToolbarWidget::buttonClicked(QWidget * widget)
         QGraphicsProxyWidget * proxy = graphicsProxyWidget();
         if (proxy) {
             QGraphicsProxyWidget * proxy2 = popUp_->graphicsProxyWidget();
-            proxy2->setPos(popupPosition(btn, proxy2));
+            proxy2->setPos(popupPosition(btn));
         } else {
-            QPoint pos = btn->mapTo(popUp_->parentWidget(), QPoint(0, btn->height() + 10));
+            QPoint pos = popupPosition(btn).toPoint();
             popUp_->move(pos);
         }
     } else {
@@ -459,32 +459,52 @@ void ToolbarWidget::buttonClicked(QWidget * widget)
     }
 }
 
-QPointF ToolbarWidget::popupPosition(QPushButton *btn, QGraphicsProxyWidget *popup)
+QPointF ToolbarWidget::popupPosition(QPushButton *btn)
 {
-    QGraphicsItem* parent = graphicsProxyWidget();
     QPointF topLeft = btn->mapTo(this, QPoint(0, 0));
-    QSizeF size = popup->size();
+    QSizeF size = popUp_->size();
+    constexpr qreal PADDING = 15;
     switch (popupPosition_) {
     case TopLeft:
-        topLeft += QPointF(-size.width(), -size.height() - 15);
+        topLeft += QPointF(-size.width() + btn->width(), -size.height() - PADDING);
         break;
     case TopCenter:
-        topLeft += QPointF(-(size.width() - btn->width()) / 2, -size.height() - 15);
+        topLeft += QPointF(-(size.width() - btn->width()) / 2, -size.height() - PADDING);
         break;
     case TopRight:
-        topLeft += QPointF(0, -size.height() - 15);
+        topLeft += QPointF(0, -size.height() - PADDING);
         break;
     case BottomLeft:
-        topLeft += QPointF(-size.width(), btn->height() + 15);
+        topLeft += QPointF(-size.width() + btn->width(), btn->height() + PADDING);
         break;
     case BottomCenter:
-        topLeft += QPointF(-(size.width() - btn->width()) / 2, btn->height() + 15);
+        topLeft += QPointF(-(size.width() - btn->width()) / 2, btn->height() + PADDING);
         break;
     case BottomRight:
-        topLeft += QPointF(0, btn->height() + 15);
+        topLeft += QPointF(0, btn->height() + PADDING);
+        break;
+    case LeftTop:
+        topLeft += QPointF(-size.width() - PADDING, -size.height() + btn->height());
+        break;
+    case LeftCenter:
+        topLeft += QPointF(-size.width() - PADDING, (-size.height() + btn->height()) / 2);
+        break;
+    case LeftBottom:
+        topLeft += QPointF(-size.width() - PADDING, 0);
+        break;
+    case RightTop:
+        topLeft += QPointF(btn->width() + PADDING, -size.height() + btn->height());
+        break;
+    case RightCenter:
+        topLeft += QPointF(btn->width() + PADDING, (-size.height() + btn->height()) / 2);
+        break;
+    case RightBottom:
+        topLeft += QPointF(btn->width() + PADDING, 0);
         break;
     }
-    QRectF bound = parent->mapRectFromScene(parent->scene()->sceneRect());
+    QGraphicsItem* parent = graphicsProxyWidget();
+    QRectF bound = parent ? parent->mapRectFromScene(parent->scene()->sceneRect())
+                          : QRectF{mapFrom(window(),QPoint()), window()->size()};
     QRectF bound2(topLeft, size);
     if (bound2.left() < bound.left())
         topLeft.setX(bound.left());
@@ -494,7 +514,11 @@ QPointF ToolbarWidget::popupPosition(QPushButton *btn, QGraphicsProxyWidget *pop
         topLeft.setY(topLeft.y() + size.height() + btn->height() + 30);
     else if (bound2.bottom() > bound.bottom())
         topLeft.setY(topLeft.y() - size.height() - btn->height() - 30);
-    return parent->mapToItem(popup->parentItem(), topLeft);
+    if (parent) {
+        return parent->mapToItem(popUp_->graphicsProxyWidget()->parentItem(), topLeft);
+    } else {
+        return mapToGlobal(topLeft.toPoint());
+    }
 }
 
 void ToolbarWidget::getPopupButtons(QList<ToolButton *> &buttons, const QList<ToolButton *> &parents)
