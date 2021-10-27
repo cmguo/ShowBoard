@@ -273,6 +273,8 @@ public:
 
     virtual void copy(QMimeData & data);
 
+    virtual void captureTo(QString const & file);
+
     static void paste(QMimeData const & data, WhiteCanvas * canvas);
 
 protected:

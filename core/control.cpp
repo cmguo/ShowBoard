@@ -353,6 +353,11 @@ void Control::copy(QMimeData &data)
     });
 }
 
+void Control::captureTo(const QString &file)
+{
+    ImageHelper::saveItem(item(), file);
+}
+
 void Control::paste(QMimeData const & data, WhiteCanvas * canvas)
 {
     static bool init = false;
@@ -1238,7 +1243,7 @@ bool Control::handleToolButton(ToolButton *btn, const QStringList &args)
                     nullptr, "选择保存位置", res_->name(),
                     "PNG (*.png);;JPEG (*.jpg);;矢量图 (*.svg)");
         if (!file.isEmpty()) {
-            ImageHelper::saveItem(item(), file);
+            captureTo(file);
         }
     } else if (btn == &btnDelete) {
         res_->removeFromPage();
