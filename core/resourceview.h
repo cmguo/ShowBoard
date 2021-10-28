@@ -28,6 +28,7 @@ class SHOWBOARD_EXPORT ResourceView : public ToolButtonProvider
     Q_PROPERTY(bool deletable READ deletable WRITE setDeletable)
     Q_PROPERTY(bool copyable READ copyable WRITE setCopyable)
     Q_PROPERTY(bool independent READ independent WRITE setIndependent)
+    Q_PROPERTY(bool bringOldTop READ bringOldTop WRITE setBringOldTop)
     Q_PROPERTY(ResourceView::Flags pageMode READ pageMode WRITE setPageMode)
     Q_PROPERTY(QByteArray sessionGroup READ sessionGroup WRITE setSessionGroup)
 
@@ -59,6 +60,7 @@ public:
         LargeCanvas = Independent | (1 << 11),
         ListOfPages = Independent | (1 << 12),
         PersistSession = 1 << 13,
+        BringOldTop = 1 << 14,
         CustomFlag = 1 << 16,
         // States
         SavedSession = 1 << 24,
@@ -91,6 +93,10 @@ public:
     bool independent() const;
 
     void setIndependent(bool v);
+
+    bool bringOldTop() const;
+
+    void setBringOldTop(bool v);
 
     Flags pageMode() const;
 

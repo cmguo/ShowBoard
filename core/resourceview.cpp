@@ -81,6 +81,16 @@ void ResourceView::setIndependent(bool v)
     flags_.setFlag(Independent, v);
 }
 
+bool ResourceView::bringOldTop() const
+{
+    return flags_.testFlag(BringOldTop);
+}
+
+void ResourceView::setBringOldTop(bool v)
+{
+    flags_.setFlag(BringOldTop, v);
+}
+
 ResourceView::Flags ResourceView::pageMode() const
 {
     return flags_ & (LargeCanvas | VirtualPage | ListOfPages);
@@ -239,10 +249,11 @@ QMimeData const * ResourceView::mimeData()
 
 ResourceView * ResourceView::clone() const
 {
-
-    QObject * clone = metaObject()->newInstance(QGenericArgument(metaObject()->className(), this));
-    if (clone)
-        return qobject_cast<ResourceView*>(clone);
+    ResourceView * clone = qobject_cast<ResourceView*>(metaObject()->newInstance(QGenericArgument(metaObject()->className(), this)));
+    if (clone) {
+        clone->setBringOldTop(false);
+        return clone;
+    }
     return new ResourceView(*this);
 }
 
