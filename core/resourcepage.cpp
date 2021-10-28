@@ -50,36 +50,7 @@ ResourcePage::~ResourcePage()
 ResourceView * ResourcePage::addResource(QUrl const & url, QVariantMap const & settings)
 {
     ResourceView * rv = createResource(url, settings);
-    if (rv->resource()->type().endsWith("tool")) {
-        ResourcePackage::toolPage()->addResource(rv);
-        return rv;
-    }
-    if (rv->flags().testFlag(ResourceView::Independent)) {
-        qobject_cast<ResourcePackage*>(parent())->newPage(rv);
-    } else {
-        RecordMergeScope rs(this);
-        rs.add(MakeDestructRecord(false, [rv] () {
-           delete rv;
-        }));
-        addResource(rv);
-    }
-    return rv;
-}
-
-ResourceView * ResourcePage::addResourceOrBringTop(QUrl const & url, QVariantMap const & settings)
-{
-    ResourcePage * page = currentSubPage_ >= 0 ? subPages_[currentSubPage_] : this;
-    ResourceView * rv = page->findResource(url);
-    if (rv) {
-        rv->page()->moveResourceBack(rv);
-        return rv;
-    }
-    ResourcePage * page2 = qobject_cast<ResourcePackage*>(parent())->findPage(url);
-    if (page2) {
-        qobject_cast<ResourcePackage*>(parent())->switchPage(page2);
-        return page2->mainResource();
-    }
-    return addResource(url, settings);
+    return  addResource(rv);
 }
 
 ResourceView * ResourcePage::findResource(QUrl const & url) const
@@ -104,12 +75,41 @@ ResourceView *ResourcePage::findResource(const QByteArray &type) const
     return nullptr;
 }
 
-void ResourcePage::addResource(ResourceView * res)
+ResourceView * ResourcePage::addResource(ResourceView * res)
 {
-    if (currentSubPage_ >= 0) {
-        subPages_[currentSubPage_]->addResource(res);
-        return;
+    if (isTopLevelPage()) {
+        if (res->resource()->type().endsWith("tool")) {
+            return ResourcePackage::toolPage()->addResource(res);
+        }
+        if (res->flags().testFlag(ResourceView::Independent)) {
+            qobject_cast<ResourcePackage*>(parent())->newPage(res);
+            return res;
+        }
+        if (res->flags().testFlag(ResourceView::BringOldTop) && !isSubPage()) {
+            std::unique_ptr<ResourceView> res2(res); // auto delete
+            ResourceView * rv = findResource(res->url());
+            if (rv) {
+                rv->page()->moveResourceBack(rv);
+                return rv;
+            }
+            ResourcePackage * pkg = qobject_cast<ResourcePackage*>(parent());
+            if (pkg) {
+                ResourcePage * page2 = pkg->findPage(res->url());
+                if (page2) {
+                    pkg->switchPage(page2);
+                    return page2->mainResource();
+                }
+            }
+            res2.release();
+        }
     }
+    if (currentSubPage_ >= 0) {
+        return subPages_[currentSubPage_]->addResource(res);
+    }
+    RecordMergeScope rs(this);
+    rs.add(MakeDestructRecord(false, [res] () {
+       delete res;
+    }));
     if (res->flags().testFlag(ResourceView::ListOfPages)) {
         ResourcePage * subPage = new ResourcePage(this);
         if (!resources_.empty()) {
@@ -128,10 +128,11 @@ void ResourcePage::addResource(ResourceView * res)
         ResourceView * split = resources_[index]->clone();
         if (split) {
             insertResource(index, {split, res});
-            return;
+            return res;
         }
     }
     insertResource(index, {res});
+    return res;
 }
 
 ResourceView * ResourcePage::copyResource(ResourceView * res)
@@ -350,6 +351,12 @@ bool ResourcePage::isLargePage() const
 {
     return !resources_.isEmpty()
             && resources_.first()->flags().testFlag(ResourceView::LargeCanvas);
+}
+
+bool ResourcePage::isTopLevelPage()
+{
+    ResourcePackage * pkg = qobject_cast<ResourcePackage*>(parent());
+    return pkg != nullptr;
 }
 
 bool ResourcePage::hasSubPage() const

@@ -266,7 +266,8 @@ Control * WhiteCanvas::addResource(QUrl const & url, QVariantMap settings)
     // may be added to tool page
     if (ct == nullptr)
         ct = tools_->findControl(res);
-    ct->setSelectOnLoaded();
+    if (ct)
+        ct->setSelectOnLoaded();
     return ct;
 }
 
@@ -274,7 +275,11 @@ Control *WhiteCanvas::addResource(ResourceView *res)
 {
     canvas_->page()->addResource(res);
     Control * ct = canvas_->findControl(res);
-    ct->setSelectOnLoaded();
+    // may be added to tool page
+    if (ct == nullptr)
+        ct = tools_->findControl(res);
+    if (ct)
+        ct->setSelectOnLoaded();
     return ct;
 }
 

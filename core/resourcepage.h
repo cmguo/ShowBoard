@@ -42,15 +42,6 @@ public:
     ResourceView * addResource(QUrl const & url, QVariantMap const & settings = QVariantMap());
 
     /*
-     * add resource from url
-     *  if a resource with same url is already exists in this page,
-     *   it's bring to top
-     *  @see addResource(res)
-     *  @return newly added or already existing resource
-     */
-    ResourceView * addResourceOrBringTop(QUrl const & url, QVariantMap const & settings = QVariantMap());
-
-    /*
      * find resource by url
      */
     ResourceView * findResource(QUrl const & url) const;
@@ -63,7 +54,7 @@ public:
     /*
      * add resource at back (top), but under resources with flag TopMost
      */
-    void addResource(ResourceView * res);
+    ResourceView * addResource(ResourceView * res);
 
     /*
      * copy resource @res and add to page
@@ -130,6 +121,8 @@ public:
     bool isVirtualPage() const;
 
     bool isLargePage() const;
+
+    bool isTopLevelPage();
 
     bool hasSubPage() const;
 

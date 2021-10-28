@@ -138,6 +138,7 @@ public:
 
     int prepareLevel() const { return prepare_; }
 
+    // if blocked, drop more deep records
     bool blocked() const { return block_ >= 0 && prepare_ > block_; }
 
     void add(ResourceRecord * record);
