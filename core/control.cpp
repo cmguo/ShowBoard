@@ -1105,10 +1105,22 @@ ItemFrame * Control::itemFrame()
 
 void Control::loadStream()
 {
+    auto stream = res_->property("SavedStream").value<QSharedPointer<QIODevice>>();
+    if (stream) {
+        onStream(stream.get());
+        loadFinished(true);
+        stream->setParent(nullptr);
+        return;
+    }
     auto l = life();
     res_->resource()->getStream().then([this, l] (QSharedPointer<QIODevice> stream) {
         if (l.isNull()) return;
         onStream(stream.get());
+        if (stream->parent()) {
+            // delay delete stream
+            stream->parent()->setProperty("SavedStream", QVariant::fromValue(stream));
+            stream->setParent(nullptr);
+        }
         loadFinished(true);
     }, [this, l](std::exception &) {
         if (l.isNull()) return;
