@@ -11,7 +11,7 @@ class SHOWBOARD_EXPORT Strokes : public ResourceView
     Q_OBJECT
 
 public:
-    Q_INVOKABLE Strokes(Resource * res, Flags flags = nullptr, Flags clearFlags = nullptr);
+    Q_INVOKABLE Strokes(Resource * res, Flags flags = {}, Flags clearFlags = {});
 
     Q_INVOKABLE Strokes(Strokes const & o);
 
