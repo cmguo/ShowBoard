@@ -76,6 +76,10 @@ void ConvertTool::convert(const QUrl &url)
 {
     stateItem()->setLoading("正在打开");
     QObject * converter = ShowBoard::containter().getExportValue("converter");
+    if (converter == nullptr) {
+        onFailed("没有找到转换工具");
+        return;
+    }
     connect(converter, SIGNAL(sigConvertImage(QString,int,int)),
                               this, SLOT(onImage(QString,int,int)));
     connect(converter, SIGNAL(sigConvertFinished()),
@@ -131,6 +135,7 @@ void ConvertTool::onFinished()
 void ConvertTool::onFailed(QString const & error)
 {
     loadFinished(false, error);
-    ShowBoard::containter().releaseValue(sender());
+    if (sender())
+        ShowBoard::containter().releaseValue(sender());
     startTimer(3000);
 }
